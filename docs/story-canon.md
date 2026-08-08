@@ -72,8 +72,8 @@ magic; jragyn = dragon). And per the Maker's framing: it may not be his real nam
 gave himself**, a manifestation of a sin-like self-creation. He may have forgotten his true name. The
 un-happener un-happened his own identity and branded himself with the wound instead: Majik was named for his
 power; Grudj named himself for his grievance. (Contrast, quietly: Jerald and Rupert kept their names and each
-other across 440 years. Naer traded his person for a tower; Grudj traded his name for a grudge. The whole
-cosmology's identity-economy in one villain.)
+other. Naer traded his person for a tower; Grudj traded his name for a grudge. The whole cosmology's
+identity-economy in one villain.)
 
 **The last free void clown**, survivor of the genocide. (Retcon note: *not* the sole survivor — at least two
 kin also survived; see Lust and Sloth. They are siblings **to each other**, kin to the gent by species only.)
@@ -395,6 +395,10 @@ mounts when ready — not corridor stops.**
   already conquered. "Brimming with righteous glory" is Pride's own vocabulary. (Geography receipt: the
   giant bird that scattered Leo's journal pages already lives in this airspace — seeded before the sin was
   assigned.)
+- **The split-party seed lives here** `PROPOSED (2026-08-06)` — a short, voluntary, entirely comic two-switch
+  separation, a few screens long, where they *agree* to the gimmick rather than having it inflicted. It exists
+  to train a reflex the Frozen Fortress then takes away. Full drafting under
+  [Ch5 → THE SPLIT](#the-split--the-duo-runs-the-fortress-alone-proposed-2026-08-06).
 
 ### Disk 2 — The Subterranean (Sloth) `LOCKED`
 
@@ -490,6 +494,181 @@ and `design-contract.md` chapter references accordingly — housekeeping.)*
   outside of time.
 - **Three sections, two gates:** the central **courtyard** (an interior courtyard at the keep's heart, not a
   front yard) is sealed by "inexplicable powers" until both the tower and the basement fall.
+
+### THE SPLIT — the duo runs the Fortress alone `PROPOSED (2026-08-06)`
+
+**The premise:** the tower and the basement are not two dungeons the party clears in sequence. They are two
+dungeons the party clears **simultaneously, one protagonist each, with no partner and no party-cycle.** The
+courtyard is where they get each other back. Lineage: FF5's twin towers, FF6's split parties — but the
+translation is not the same, and that difference is the whole idea. In a turn-based game, splitting is
+*resource allocation.* In JABS with a two-person party, splitting is **isolation**: no AI ally covering your
+back, no second health bar to retreat into, no swap. For the first time in the entire game, the player is
+alone.
+
+**Why the game can afford it:** the class trunks/forks give each protagonist full archetype coverage via
+cross-pollination — that is the stated justification for demoting the elementals, and it has never been
+*collected on.* A solo lane is the game auditing its own premise. Same thesis as Trainer Lord's exam,
+delivered one chapter early: **show me what you built, not what you collected.**
+
+#### The ambush — the world's most boring trap `PROPOSED (drafted)`
+
+They do not choose to split. They would never choose to split; they are recklessly confident, not stupid, and
+they know they are stronger together. So it has to be done *to* them — and the mechanism is deliberately,
+insultingly mundane. A trapdoor and a spring trap, sprung mid-sentence, before anything meaningful is said.
+
+> J: hey so... this is a pretty spacious entry hall.
+> R: yeah, I think I see a gate over th- `<BOING>`
+> J: Rupert? *(looks up, realizes he is falling)* AHH FUUUUUUUuuuuu.....
+
+**Why the stupidest possible trap is the right one:**
+
+- **It is the scramble joke told twice, and the second telling is the one that works.** Grudj spent four
+  centuries engineering a perfect counter to their power source, and it fails because it was built for a
+  paradigm that no longer exists — he loses to patch notes. The thing that *actually* takes them apart is a
+  hole in the floor. His sophistication fails and his crudeness succeeds, in the same building, an hour apart.
+- **It indicts them correctly.** These two are not beatable by being outsmarted. They are beatable by **not
+  paying attention** — which is precisely what they did in scene one, when a cloaked man warned them about a
+  demon king and they asked about loot. At the end of four centuries of preparation, he drops them through a
+  floor mid-pun.
+- **It solves "why can't they just walk back" for free.** No sealed door, no barrier, no exposition, no rule
+  anyone has to state: one fell, one flew. Gravity did the writing.
+
+**Assignment** `PROPOSED (per the draft above)`: **Jerald falls to the basement (Lust); Rupert springs to the
+tower (Envy).** The casting is meaningful and should be chosen, not randomized — the basement is the sin
+something was *done to*, the tower is the sin someone *did to herself by wanting*. Counter-argument on file
+`OPEN`: sending **Jerald** up to Envy is the funnier and possibly stronger option, because he is the least
+envious character in the game — a man genuinely thrilled about a mushroom. Envy would reach into him for a
+grievance and find nothing to hold. That version trades the clean mirror for a statement about who he is.
+
+#### The dead cycle button `PROPOSED (mechanics)`
+
+Party-cycle is **disabled for the duration of the sequence**, on purpose — and the failed press is the single
+best beat in the sequence, precisely because it is *not dialogue*. The player mashes a button they have
+pressed ten thousand hours' worth of times, and nothing happens. That is the player discovering the situation
+with their thumb, before either character says a word. It cannot be done in a cutscene; it can only be
+purchased by having trained the reflex for twenty-five hours first.
+
+> *(basement, dark and quiet)*
+> J: hey uhh... Rupert? *(tries to party cycle; nothing happens)*
+> J: hmm... okay... *(visibly nervous)*
+> *(a hundred meters up)*
+> R: *pant pant...* Jerald? Shit. *(tries to party cycle; nothing happens)*
+> J & R: `...`
+
+**The double ellipsis is the only moment in the game where the player outranks them.** Twenty-five hours of
+these two knowing more than everyone in the room, and now the audience is the only party who can see both
+halls.
+
+**HUD support already exists:** `Window_PartyFrame` draws the leader, then returns early on
+`$hudManager.canShowAllies()` before drawing the ally row. A one-member party renders as a leader and an
+absence, with no new view code — the second frame simply stops being there.
+
+#### The Ch4 seed — teaching it as a joke `PROPOSED (drafted)`
+
+The Fortress must not be the first time the player has ever been apart. Seed it in **Nimbus** (see Ch4), where
+it is voluntary, painless, a few screens long, and entirely comedic — they *agree* to the gimmick rather than
+having it inflicted. Two switches, pressed simultaneously, and Jerald talks himself into cooperating out of
+consideration for the dev's map budget.
+
+> J: the door is locked.
+> R: I wonder what opens it?
+> J: we did see those two switches earlier.
+> R: but they didn't do anything... maybe we have to step on them both at the same time?
+> J: oh please, why would the dev do that to us? we've been a duo since the... ahh fuck.
+> R: 🥺🥺🥺
+
+> R: hey Jerald, why don't you just kick the door in? You did that in the ghost dungeon back on that one planet. 💪
+> J: but the dev put all this effort into these other maps, breaking the door would cheapen the experience.
+> Come on Rupert, at least play along sometimes! 🤠
+> R: yeah i guess we can this time... 🥺
+
+**The two seeds teach different lessons, and that is the escalation** `PROPOSED (principle)`: in Nimbus they
+are in two *places* but both still present — cycling works fine, it is purely a positioning puzzle. In the
+Fortress, **the button is gone.** Nimbus therefore does not need to be frightening at all. It only needs to
+happen, so the reflex is trained and the Fortress has something to take away.
+
+**Unspent, available:** Jerald *volunteered* for the Nimbus split, as a favor, to be nice about level design.
+`PROPOSED`: in the Fortress basement, alone, he gets exactly one line about that. Not a joke.
+
+**And in the Fortress, nobody makes the joke.** They lampshaded the dev separating them once. The second time,
+the trapdoor opens on a pun and then there is silence. The callback the player is braced for is the one that
+never comes.
+
+#### The sigils — shifting control `PROPOSED (mechanics)`
+
+Control passes between the two lanes at **plentiful checkpoints**: mysterious statues/sigils on **enemy-free
+maps** (a JABS constraint, not a flavor choice — re-entering a populated map respawns everything unless every
+enemy is individually self-switched). They do **not** let the two communicate. They only move the player.
+
+- **Not an escape hatch.** Neither protagonist can clear the other's lane, so shifting never avoids work — it
+  only advances the other half of the same job. This is what makes free control-order affordable: the player
+  self-balances against a wall instead of the designer having to tune both lanes to equal difficulty.
+- **Place them at emotional resolutions, not convenient intervals** `PROPOSED (principle)`. The one real cost
+  of free shifting is *pacing decay* — leave a dread crescendo mid-build for twenty minutes and it is gone
+  when you return. Shift after a beat lands. Between sigils the player is committed, and the commitment is
+  where the dread lives.
+- **Both lanes must alternate danger and safety in step**, since the safe rooms are also the shift points.
+  Real authoring constraint on the two lanes simultaneously.
+- **Lore resonance, deliberately unexplained** `PROPOSED`: save sigils are already canon as protagonist-facing,
+  Lord-grade, older than Raevula, and possibly the one class of thing regression cannot un-happen. A sigil that
+  moves protagonist-hood between two bodies is transparently the same family of object — which means Grudj's
+  paused fortress contains infrastructure **he did not install and cannot erase.** Nobody comments on it. The
+  duo uses one like it is Tuesday, exactly as they use the save shrine. The attentive player gets a shiver; the
+  rest get a checkpoint.
+
+#### The freeze `PROPOSED (2026-08-06)`
+
+**What is the other one doing while you are not him? He is frozen** — and this is not a new supernatural
+condition, it is the honest reading of a mechanic that has been running since Chapter 1. Party-cycling has
+always been *the player occupying one of them.* It has simply never had enough duration to be noticeable,
+because the swap is instant and nobody ever loses time.
+
+The Fortress finally introduces a **gap**. Separate them by a hundred meters of stone and the shift has
+travel; the one left behind loses minutes and does not feel them pass. Receipt already shipped: the
+pink-haired kid in Ch2 is bribed with a dozen party-cycle sparkle animations — *something observable happens
+to these two when the player moves between them,* and a child stared at it for fun.
+
+- **It splits along the dynamic for free.** Jerald finds it annoying (did I space out? whatever). Rupert does
+  the math and goes quiet. Same event, two reactions, entirely in character — the player watches the
+  strategist arrive somewhere the bruiser cheerfully did not.
+- **Guardrail `PROPOSED (principle)`: let them NOTICE, never let them CONCLUDE.** House style is a cosmology
+  that refuses to explain itself — the Tower of Naer is never explained, the sigils are never explained, the
+  Echoes get no journal entry. This lands as an unresolved shiver or not at all. Precedent for pointing at the
+  player through the characters without spelling it out: Trainer Lord's Greed extraction — *"something has
+  grown from within you"* — where the party's hoarding is the player's hoarding, said aloud, explained never.
+
+#### The interlock `PROPOSED (design)`
+
+The two lanes should be **functionally one puzzle**: progress above unlocks progress below and vice versa —
+gates, firewalls, paths. That is the FF5 twin-towers reference landing mechanically rather than by analogy.
+Two rules to build it under:
+
+- **Build the dependencies on the AXIS, never on their kits.** "Jerald smashes what Rupert cannot" quietly
+  contradicts the entire class system, where cross-pollination means either of them could have built anything
+  — a player who made Rupert a bruiser would be reading a puzzle that does not describe their save file. The
+  reliable asymmetry is **positional and free**: one is above, one is below. Weight falls, heat rises, what is
+  released up top arrives down below. The tower/basement geometry already rhymes with the limiter axis (maxed
+  above, zeroed below); the puzzle can express the same idea the architecture does.
+- **Asymmetric dependency, not symmetric switch-flipping.** Two people pressing two buttons proves only that
+  there are two bodies. What the sequence needs to prove is that **each can do for the other what he cannot do
+  for himself** — which is what makes the courtyard reunion mean something.
+- **Watch the backtrack tax.** Shift, walk, flip, shift, walk back is tedium wearing a puzzle's coat. Keep the
+  affected mechanism near the sigil, or let the effect land where the other man already stands. Interleaving
+  should feel like leverage, not commuting.
+
+#### Texture — stillness, not darkness `PROPOSED (principle)`
+
+Low-visibility horror is **already spent and already earmarked**: the Fallen Kingdom uses it correctly (a
+~5-tile sight radius plus lanterns, short-lived, deployed exactly where the Kingdom's real condition lands),
+and the Subterranean is slated for it. A third use in the Fortress demotes it from spike to house style — and
+it fights the genre besides, since JABS is real-time and a melee protagonist cannot read telegraphs he cannot
+see.
+
+The Fortress has its own unspent vocabulary: **it is a paused moment.** A preserved time-slice still wearing
+the winter of the day it was taken. Not blindness — **stillness.** Snow that hangs. Motion that never
+completes. A room visible in full detail that has not changed since the day it was taken. Which is the crueler
+pairing with the scene above: what Jerald notices in that basement is not that he cannot see, but that
+nothing is moving — including him, until he decides to.
 
 ### The Basement — Lust `LOCKED`
 
@@ -667,6 +846,9 @@ post-game stinger, not the main plot. Drafted scene:
 | 10 | ~~The gent's NAME~~ **RESOLVED: Grudj** | `LOCKED (2026-07-24)` — self-given, a brand of his own wound; his true name may be forgotten, even by him |
 | 11 | Alex's (v4 protagonist) placement in Raevula | `OPEN` |
 | 12 | Silver & Kayla = the v3 duo? | `PROPOSED` — see The Erasures |
+| 13 | **The Fortress split** — whole sequence | `PROPOSED (2026-08-06)` — see Ch5 → THE SPLIT |
+| 14 | Who falls, who springs (Jerald→Lust / Rupert→Envy, or invert to put Jerald under Envy) | `OPEN` — draft assumes the former; the inversion argument is on file |
+| 15 | Is the freeze ever acknowledged out loud, and by whom? | `OPEN` — guardrail is notice-never-conclude |
 
 **Resolved 2026-07-24 (first pass):** RL-uncage → **rejected** (no suppression to uncage; RL is a class
 name). Room of Sacrifice → **explained** (the Nimbus gate). Technodisk L/R fragments → **nixed**. Lust
@@ -686,7 +868,8 @@ elemental names in dialogue (`\N[3-6]` → Earthie/Aqualock/Cynder/Skye) · fix 
 (`=== TBD Aspect` → Lucian's wrath form; `Emotion` → Gluttonwolf) · retire the six L/R Technofragment
 items (Items 401/402/404/405/407/408) · rewrite Wyatt/Lucian declarations — sins do not get to call
 themselves "Lord of X" (cosmological rank correction) · ice-slide puzzles broken under pixel plugin ·
-whisper-network eventing for Sloth discovery.
+whisper-network eventing for Sloth discovery · split-party sequence: party-cycle disable window, sigil
+control-shift eventing, enemy-free checkpoint maps, cross-lane gate interlocks, Nimbus two-switch seed.
 
 ---
 

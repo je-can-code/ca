@@ -32,6 +32,7 @@ pass.
 | `chef-adventure/js/plugins/j/` | **Generated** — build output from `rmmz-plugins` via `bun run copy:to-ca`. Never edit; fix it upstream and re-copy |
 | `chef-adventure/js/plugins/` (everything else) | Vendored third-party plugins — `casper/`, `kame/`, `others/`, `vs/`, and the separator files. These have **no upstream in `rmmz-plugins`**; if one needs a change, it happens here |
 | `docs/` | Design documentation, and it is extensive |
+| `tools/` | Read-only CLIs over the shipped data. Repo root, **not** inside `chef-adventure/` — that directory is the nw.js project that ships |
 
 ### The docs tree
 
@@ -95,9 +96,40 @@ code → meaning map. If the editor and the cheatsheet ever disagree, the editor
 actually wrote the data.
 
 > **Known gap:** the cheatsheet documents a `bun chef-adventure/tools/decode-db-trait.mjs` CLI in seven
-> places. **That tool no longer exists** — `chef-adventure/tools/` is gone. The cheatsheet's tables and
-> the live-data lookup rules above are still correct and sufficient; just do the resolution by hand and
-> do not waste time trying to run the CLI.
+> places. **That tool no longer exists** — `chef-adventure/tools/` is gone, and the `tools/` directory at
+> the repo root is a different thing that does not contain it. The cheatsheet's tables and the live-data
+> lookup rules above are still correct and sufficient; just do the resolution by hand and do not waste
+> time trying to run the CLI.
+
+---
+
+## Reading the maps
+
+**`bun tools/map-atlas.js` answers questions about map layout — use it before hand-rolling a script
+over `Map###.json`.** Full documentation in [`docs/maps/atlas.md`](docs/maps/atlas.md).
+
+```bash
+bun tools/map-atlas.js dungeons          # what dungeons exist
+bun tools/map-atlas.js atlas   <rootId>  # rooms as boxes, doors as lines, one picture per floor
+bun tools/map-atlas.js links   <rootId>  # islands, ways in from outside, ways out, stranded rooms
+bun tools/map-atlas.js gates   <rootId>  # which tool gates separate which doors, proven by flood-fill
+bun tools/map-atlas.js oneways [rootId]  # one-way transfers and scripted player jumps
+bun tools/map-atlas.js plan    <mapId>   # a single room as a text floor plan
+```
+
+Three things about this data that cost real time to rediscover:
+
+- **JABS tags live in event *page comments*, not in `event.note`.** A script looking for `<enemyId:31>`
+  on the note field finds nothing and concludes a map full of enemies is empty.
+- **Tool gates are invincible enemies, and only some of them block.** `@Spire` (31, shatter/crush),
+  `@Suspicious Crack` (32, explosive), `@Torch` (34, ignite) are walls. `@Durable Post` (33, hookshot)
+  is `through: true` — an anchor you cross a gap *to*, never an obstacle.
+- **A gate near a door is not proof that it blocks that door.** Flood-fill the passability grid with
+  the gate tiles solid and check what is still reachable; `map-atlas gates` already does this.
+
+Points of no return come in two kinds and both are detectable: a transfer whose mirror was never
+authored, and a `Set Movement Route` on the player carrying a `Jump` step. Neither needs a
+hand-maintained note — do not create one.
 
 ### Enemy AI tags
 

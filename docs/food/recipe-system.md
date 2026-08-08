@@ -1,0 +1,520 @@
+# The recipe system
+
+> **Status: design ratified 2026-08-04, unbuilt.** This is the plan for how cooking content gets
+> authored from here on. It replaces "invent another dish and see how it feels," which produced 31
+> good recipes and then a wall.
+>
+> **Related:** [`food-chain-durations.md`](food-chain-durations.md) (the state arcs a dish feeds
+> into — unchanged by any of this) and [`../maps/progression-bands.md`](../maps/progression-bands.md)
+> (where ingredients can be gated). The work item this answers is
+> `.backlog/unstarted/ca-food-recipes-crafting-redo.md` in the sibling **rmmz-plugins** repo.
+
+---
+
+## Why this exists
+
+The 31 shipped recipes were each modelled on a real dish, then built from whatever the local enemies
+happened to drop. That produced individually fine dishes and no system, which is why authoring stalled
+— there was no answer to "what should the 32nd recipe be?" other than "another random one."
+
+The diagnosis that mattered was not the dishes. It was that **the drop economy could only ever supply
+protein**. Monster materials are anatomical; fruit, grain and milk are agricultural. No amount of
+retagging fixes a pantry that has no fruit in it.
+
+Six findings from the 2026-08-04 audit, all reproducible from the shipped data:
+
+- **No ingredient carries a `<food:TYPE>` tag.** Those tags exist only on finished meals, so a dish's
+  family was always a hand-authored opinion rather than a consequence of what went into it.
+- **Smithing uses 120 of the 155 monster-material slots; cooking uses 25.** The material grid was built
+  for refinement, and cooking borrowed from it opportunistically.
+- **Fruit and dairy have zero material families.** Carb has one (Root) that no recipe uses.
+- **20 of 31 recipes are already "one tiered feature plus flat staples."** The pattern was there; it was
+  never named, so it could not be leaned on.
+- **The six recipes with no feature ingredient are exactly the starved lanes** — dairy, carb, vegetable,
+  vegetable, sweet, fruit. A recipe has no star precisely when its family has no star to offer.
+- **The tools are cooking methods.** Soup Pot says "boil and stew," Frying Pan says "saute, fry, or
+  sear," Obliterator says "similar to a blender." The dish names follow: *Grilled* Bearcat, *Charred*
+  Ribs, *Pan-seared* Cod, Slime *Puree*, Mushroom *Bisque*.
+
+The last one is the whole unblock. The generator already existed and was never written down.
+
+---
+
+## The model
+
+### Three independent axes
+
+These get conflated constantly. They are not the same question.
+
+| Axis | Values | Question it answers |
+|---|---|---|
+| **Role** | Star / Staple | does this ingredient define the dish, or support it |
+| **State** | Raw / Prepared | has it been cooked yet |
+| **Output tier** | Component / Cuisine | is this an input to more cooking, or a meal |
+
+A Carrot is a **raw staple**. Bearcat Flank is a **raw star**. Toasted Rice is a **prepared
+component**. Tasty Stew is a **cuisine**. Grilled Bearcat is a component *and* a cuisine depending on
+what consumes it — role is not a type, and nothing needs to be decided at authoring time.
+
+**Star vs Staple has an empirical test, not a taste one.** Count how many recipes an ingredient appears
+in. Seasoning is in 13 of 31, Earthy Herbs 9, Butter 8, Water 7, Onion 7. The monster materials appear
+once or twice each. Things that show up everywhere are background; things that show up once are the
+point.
+
+### Three layers
+
+```
+Method x Star                       ->  component        (combinatorial, always unlocked)
+components + staples                ->  cuisine          (authored, taught by people)
+cuisine + a named creature's part    ->  supreme cuisine  (authored, gated on a signature)
+```
+
+A **component** is cheap, fast, and does not need to be delicious. Pureed ribs is not a bad meal, it is
+rib paste, and rib paste is a perfectly reasonable thing to have in a kitchen. Reframing the generated
+layer as *components rather than meals* is what makes the odd combinations acceptable instead of
+embarrassing.
+
+A **cuisine** is a destination. It has a name, a joke, an icon, and it is worth going somewhere for.
+
+A **supreme cuisine** is a cuisine that additionally requires a **signature** — a unique part from one
+named creature. See "Common and signature ingredients" below.
+
+**Not every cuisine should be deep.** A cuisine can be `1 component + 2 staples`, or `3 components`, or
+all-raw for the humble stuff. Depth is a dial turned per dish. This is what makes the six featureless
+recipes legitimate rather than broken — Fried Cheesy Eggs is a weeknight dish, and weeknight dishes are
+allowed now.
+
+**Tasty Stew keeps all ten ingredients.** It was a fetch-quest for Gilbert in both the RMXP and RMVXAce
+versions and the sentiment is load-bearing. Under this model it stops being an outlier and becomes the
+showcase: the one dish that legitimately asks you to go get everything.
+
+### The star sets the family
+
+A dish's `<food:TYPE>` is inherited from its star rather than hand-assigned. This is the structural fix
+for the tagging drift that produced a gelatin pudding tagged protein and a meatless goulash tagged
+protein — those were not mistakes of judgement, they were the absence of a rule.
+
+**`<food:TYPE>` only means anything on a consumable.** It selects which chain fires when the item is
+eaten, so it belongs on cuisines and on components that can be eaten alone. A raw Bearcat Flank you
+cannot eat does not need one, and giving it one implies a behavior that never happens.
+
+That leaves inheritance as an open question of *mechanism*, recorded under Open decisions:
+
+- **As a code rule** — the plugin reads the star's lane and stamps the output. Raw ingredients then need
+  a marker, and it should be a distinct tag (`<foodLane:carb>`) so it does not read as "eating this
+  starts a carb chain."
+- **As an authoring convention** — the finished dish is tagged correctly by hand and the lane lives in
+  this document. No plugin work, no tags on raw ingredients, discipline carried by the author.
+
+At the roster size this system is aimed at, the convention is likely sufficient. Promote it to a code
+rule only if the roster outgrows what can be held in one head.
+
+---
+
+## Ingredients
+
+### Armors are the forge's; items are the kitchen's
+
+**Ratified 2026-08-04.** Food ingredients become **items**. Monster materials that feed refinement stay
+**armors**. The split is absolute, and it exists because armors carry traits and items do not — an
+armor is by definition something refinable onto gear.
+
+The practical effect: you cannot hammer slime into a sword and you cannot cook ghastly powder. The
+ambiguity disappears, and neither system has to reason about the other's materials.
+
+Note that **items already drop**. Earthy Herbs, Minty Herbs, Spicy Herbs, Mushrooms, Butter and
+Container all carry `<drops:[i,...]>` tags today. The armor/item choice never gated whether something
+can come off an enemy; it only ever gated refinability.
+
+### Food ingredients are not tiered
+
+The 5-tier ladder was a refinement artifact. Food does not need it, because the ladder was never doing
+the work anyway.
+
+Look at what the Flank family actually holds: Bearcat Flank, Ripped Flank, Grim Flank, Volt Jelli
+Flank, Gigacat Flank. Those are not quality grades of one meat — they are **five different animals**.
+Progression came from which creature you can kill, not from a grade attached to the item. Bearcat Flank
+is band 3-8; Grim Flank is band 56; Gigacat is 65. The ladder is the map.
+
+### Common and signature ingredients
+
+**Resolved 2026-08-04.** Graded food ingredients are rejected outright, because every grading scheme
+picks one of two failure modes and both are unfun:
+
+- **Obsolescence** — Bearcat Flank stops mattering the moment Grim Flank exists.
+- **Backtracking** — a late, fancy dish requires a humble early ingredient, so the player flies back to
+  band 6 to farm bearcats.
+
+The resolution is not a middle grade. It is **two categories that do different jobs**:
+
+| | Where it comes from | What it feeds | Rule |
+|---|---|---|---|
+| **Common** | many creatures, across **every band** | everything | never obsolete, never a reason to backtrack |
+| **Signature** | **one named creature**, and only that one | supreme cuisines only | never required by an everyday recipe |
+
+One common ingredient per lane per channel — `Flank`, `Root`, `Greens`, `Milk`. Bearcats give Flank.
+Grimfangs give Flank. Gigacats give Flank. Where you are does not change what you can cook, so the
+everyday kitchen simply works.
+
+**Signatures carry the hunting fantasy instead.** They are named after the creature they come from — a
+**Red Eye** from a Redeye, a **Dargin Heart** from a Dargin — which means the kitchen and the
+Monsterpedia teach each other. You learn what a Dargin is because you cooked one.
+
+The load-bearing rule: **a signature never raises the floor, only the ceiling.** Nothing everyday
+requires one. You hunt a Grimfang because you want to cook the Grimfang dish, not because a recipe is
+holding you hostage. That is what keeps hunting aspirational instead of mandatory.
+
+This split is already latent in the shipped material names. The proper nouns were always marking the
+signatures: **Dargin** Heart, **Dargin** Scales, **Dargin** Tail, **Titan** Heart, **Gigacat** Flank,
+**Ouroboros** Ribs, **Kapn** Coral — against generic Animal Heart, Loose Scales, Bearcat Flank, Old
+Bone. The five-slot families were never a quality ladder; they were two categories sharing a ladder.
+
+**So the collapse is 5 → one common + zero-to-two signatures**, and the signatures are the entries with
+a proper noun in the name. That is *fewer* total items than exist today, with the hunting fantasy
+intact. Rough target: ~15 commons doing ninety percent of the work, ~20-30 signatures gating supreme
+cuisines.
+
+The families that genuinely were "the same thing, bigger" — Big / Large / Huge / Massive / Colossal
+Gelatin — collapse to one outright.
+
+#### Where signatures drop
+
+**Resolved 2026-08-05: signatures come from repeatable creatures. Never from a one-kill boss.**
+
+The reasoning generalises past signatures, and it is the sharpest rule in this document:
+
+> **RNG must not determine whether you can get a temporary buff.**
+
+Everything cooking produces is *temporary* — the food chains run three to ten minutes and then they are
+gone. A permanent reward can justify a rare roll, because you keep it. A five-minute buff cannot: being
+told "no" by a dice roll on something that expires is pure friction with no upside.
+
+Two consequences, both binding:
+
+- **No one-kill boss signatures.** A supreme cuisine must be cookable more than once, so its signature
+  must come from something farmable. Where a boss flavour is wanted, the **lesser-spawn** pattern
+  already solves it — Gluttonwolves after the Gluttonwolf Mayor, Vampire Shades after the Vampire King.
+  The sin votary system is already a repeatable boss-ingredient pipeline built for SDP drops and works
+  identically here.
+- **Food drop rates should be generous relative to gear materials.** The same principle applies to
+  common ingredients: a 1% roll on something that feeds a five-minute buff is the same mistake at a
+  smaller scale. Cooking materials are consumables in a loop, not trophies.
+
+### Three sources, not one
+
+The single biggest structural fault today is that combat supplies two food families and one innkeeper
+supplies four. Three channels fixes it, and two of the three already exist:
+
+| Channel | Supplies | Status |
+|---|---|---|
+| **Slain** — enemy drops | protein, sweet (slimes), dairy (bovines) | works today |
+| **Harvested** — destructible nodes | vegetable, carb (grass/grain), fruit (trees) | mechanically exists, yields nothing worth stopping for |
+| **Bought / farmed** — shops | staples and dairy | one vendor, needs a network |
+
+Harvest is the cheap win. Destructibles are already implemented as enemies, already respawn, and already
+carpet the maps — and the band table says the player spends more time in the level 6-17 outdoor stretch
+than anywhere else in the game. Way to the Forest (53 spawns), Tons of Grass (50) and Green Greenery
+(27) are foraging grounds that currently reward nothing.
+
+---
+
+## Categories and matching
+
+Recipes ask for a **category**, not an item id. `Grill + [any meat]` is one recipe that already covers
+bearcat, grim flank, gigacat and lamia - and covers the ch5 monster that has not been invented yet, for
+free. This is the property that makes the system closed: **adding an ingredient later costs zero
+recipes.**
+
+The concrete roster of lanes and sub-categories lives in
+[`ingredient-sorting.md`](ingredient-sorting.md).
+
+### Two tag families, doing two different jobs
+
+They are constantly confused and they never overlap:
+
+| Tag | Count per item | Purpose |
+|---|---|---|
+| `<ingredientType:X>` | **many** | recipe matching only |
+| `<food:TYPE>` | **exactly one**, consumables only | selects which chain fires on eating |
+
+An ingredient is promiscuous; a dish is decisive. A tomato can be tagged both `vegetable` and `fruit`
+because it is only declaring which slots it can fill. A *dish* built around it commits to one arc,
+declared by hand on the dish itself. Raw non-consumable ingredients never carry `<food:>` at all.
+
+That also removes any need for a separate lane marker on raws, and any need for star-to-dish
+inheritance to be a code rule - `<ingredientType>` already carries what the matcher needs.
+
+### The matcher
+
+Every type the **recipe** wants must be present on the item. Extra tags on the item never disqualify
+it:
+
+```javascript
+desiredIngredientTypes.every(type => item.ingredientTypes.includes(type))
+```
+
+- wants `[protein]`, cod has `[protein, fish]` -> match
+- wants `[protein, fish]`, cod has `[protein, fish]` -> match
+- wants `[protein, fish]`, flank has `[protein, meat]` -> no match
+
+One predicate gives both rustic slots (`<protein>`, anything) and precise ones (`<protein><fish>`).
+
+### Rarity is specificity
+
+Nothing here is designed - it falls out of slots being categories. With roughly four ingredients per
+sub-category, each slot pinned to a named item divides the ways to make a dish by four:
+
+| Dish | Slots | Ways to satisfy |
+|---|---|---|
+| common | 3 generic | **64** |
+| uncommon | 2 generic + 1 named | **16** |
+| rare | 1 generic + 2 named | **4** |
+| signature | 3 named | **1** |
+
+So a dish's difficulty is tuned by **choosing how many slots to nail down**, not by inventing a rarity
+stat. Every common dish stays reachable because every sub-category has a shop-available baseline.
+
+---
+
+## Methods
+
+A method is a **tool combination**, and the dish name comes from the method plus the star.
+
+**Tools are shared infrastructure across crafting professions, not cooking's property.** The Obliterator
+was built to pulp lumber into paper; the Gripper is forge tongs; the Scissors cut fabric. This is good —
+finding a tool lights up several professions at once, so no cooking tool is a single-purpose pickup.
+
+### Roster
+
+Seven exist by accident. Three more are proposed, each clearing a five-recipe bar.
+
+| Method | Tools | Standing |
+|---|---|---|
+| Fry / sear | Frying Pan | 9 recipes today |
+| Boil | Soup Pot | 8 today |
+| Stew / simmer | Soup Pot + Spoon | 5 today |
+| Saute / wilt | Frying Pan + Spatula | 3 today |
+| Grill / skewer | Frying Pan + Gripper | 3 today |
+| Puree / blend | Obliterator | 1 today; sauces, juices, smoothies, pastes |
+| **Bake** | *new — Oven* | pies, breads, roasts, gratins, tarts |
+| **Steam** | *new — Steamer* | dumplings, fish, buns, vegetables, custards |
+| **Chop / raw** | Scissors *(exists, unused in cooking)* | salads, tartare, slaws, garnishes |
+| **Chill / freeze** | *new* | ice cream, sorbet, jelly, chilled soup |
+
+Three shipped dishes are already reaching for methods that do not exist: **Acorn Pie uses no tools at
+all** and wants an oven, **Vanilla Bleu Cone makes ice cream in a Soup Pot**, and **Steamed Imp Tongue
+steams in a Frying Pan**.
+
+**Deferred 2026-08-05, not rejected:** *Cure / dry* (jerky and preserves — thematically ideal for a road
+trip, and portable food is a real mechanical niche) and *Ferment* (cheese, pickles, drink — would give
+Bar's Tender an identity). Both clear five recipes easily. Both introduce **time** as a concept, which
+nothing else in cooking uses. Revisit once the ten-method roster is built and proven.
+
+---
+
+## Unlocks
+
+The count of recipes and the method of delivery are circularly dependent — how many you can afford
+depends on how they are delivered, and what delivery makes sense depends on how many there are. The cut
+that resolves it:
+
+**Components are all unlocked from the start. Cuisines are taught.**
+
+| | Unlocked | Visible | Discovered |
+|---|---|---|---|
+| **Component** | always, all of them | **only when makeable** | flagged on first craft |
+| **Cuisine** | when taught | **always, even when unmakeable** | flagged on first craft |
+
+That asymmetry is the whole trick. Components hide when useless so the list never becomes hundreds long.
+Cuisines stay visible when useless because an unmakeable cuisine is a **goal** — it tells you where to go.
+
+This makes combinatorial volume free. Whether there are 60 components or 600, the player only ever sees
+the handful they can cook right now, and none of them cost an unlock event.
+
+`maskedUntilCrafted` already exists on every recipe row in `config.crafting.json` and is the discovered
+flag this needs.
+
+### What actually gets unlocked
+
+Recipes are the wrong altitude. **Capabilities** are the right one:
+
+- **Methods** — roughly ten moments. Acquiring the Obliterator retroactively opens a puree option on
+  every ingredient already owned. That is a far better feeling than a journal handing over seven
+  unrelated dishes.
+- **Ingredient families** — arriving somewhere new introduces new stars, and every method already known
+  lights up against them.
+- **Flagship cuisines** — perhaps 15-20 across the whole game, taught by chefs, quests and story beats.
+  These stay special precisely because everything else is ambient.
+
+**The player has no concept of chapters** — chapters are an authoring structure. Cadence should key to
+what the player perceives, which is *arriving somewhere new*.
+
+### Recipe Journals I / II / III are retired
+
+Items 461-463 and common events 161-163. Their own descriptions give the failure away: Journal I teaches
+"a bundle of recipes for every meal of the day" — imp tongue, salad, coral, soup, an ice cream cone,
+fried rice and a rack of ribs. Six food families in one drop. The problem was never that there were only
+three journals; it was that a random drop taught seven unrelated dishes at once, so nothing was earned,
+nothing was chosen, and the family lanes stayed invisible.
+
+---
+
+## Finishing touches
+
+An optional extra ingredient chosen at craft time that modifies the output. In cooking it is a
+**garnish**; at the forge it is **reinforce**; on accessories, **polish**. One concept, one code path,
+different label.
+
+**It is a create-time modifier and it is not refinement.** It does not count toward
+`jaftingRefinedCount`, and a dish already in the bag can never be taken back to be garnished. You
+garnish while cooking or not at all.
+
+### Why it lives where it does
+
+The machinery for minting a new database row - allocation, lineage, replay - belongs to
+**J-JAFTING-Refinement**, which already does exactly this for equipment. The *moment* belongs to
+**J-JAFTING-Creation**, because refinement's scene is built around picking two equips and previewing a
+trait merge, and garnishing shares none of that UI. Making it fit there would mean a second large
+scene plus asking the player to cook in one place and finish in another.
+
+So create owns the step and calls into refine's minting, gated by the one namespace check this
+codebase allows for a genuinely optional sibling:
+
+```javascript
+// GOOD - refinement is genuinely optional here.
+if (J.JAFTING.EXT.REFINE)
+{
+  // the finisher step exists.
+}
+```
+
+No refinement installed, or a category that has not opted in, and the step silently does not appear.
+Core never learns about minting - putting it there would hand every extension a capability none of
+them asked for.
+
+### The domain is derived, never configured
+
+Items carry **effects**; equipment carries **traits**. They are not interchangeable, so the finishable
+output's type decides everything:
+
+| Output type | Verb | Merges | Modifier lives in |
+|---|---|---|---|
+| item | garnish | effects | items - herbs, oils, citrus |
+| weapon / armor | reinforce | traits | armors - the Core family (`a451-455`) |
+
+"Can I garnish a sword" is not a validation rule that fails, it is a code path that does not exist.
+Note this is the same rule the ingredient split already follows: **the datastore a thing lives in
+declares which crafting verb can use it.** Ores and ingots are items, so they are things you build
+*from*; the trait-bearing Cores are armors, so they are things you improve *with*.
+
+### What a finished row is
+
+A clone of the base, with the finisher's effects concatenated on and a prefix applied to the name -
+`Sprig of Mint` + `Tasty Stew` becomes `Minty Tasty Stew`. The prefix comes from a tag on the finisher;
+the `+N` suffix stays refinement's.
+
+**The clone inherits the base's `<ingredientType>` tags**, so a garnished dish is still a valid
+ingredient - Minty Grilled Bearcat satisfies `<any meat>` exactly as the plain one does.
+
+**Prefixes do not cascade.** A garnished component used inside a cuisine does not push its prefix up;
+the cuisine can be garnished on its own terms at its own craft time. This is what prevents
+"Spicy Minty Curry Rice".
+
+### Data shape
+
+- **Category** carries a boolean for whether a finisher step exists at all. Absent means no, so no
+  existing category needs touching.
+- **Recipe** carries `finishableOutput`: `-1` never, `0` (or absent) the first output, `>0` an explicit
+  index. This matters because a recipe may output any mix of items, weapons and armors in any
+  quantity, and only one of them can be the finishable one.
+- **One finisher per craft, finishing the whole batch.** Two stews and one sprig of mint yields two
+  minty stews - which makes large batches more efficient to finish rather than more expensive.
+- **Finisher item** carries `<garnish:[STATE_ID, DURATION, STACKS]>` and a prefix tag. Domain-specific
+  tag names mean an item can be both a garnish and a polish without either system knowing the other
+  exists.
+
+### Reclamation, checked
+
+Refinement already reclaims: when the last copy of a dynamic row leaves the party it splices the
+lineage out of the tracked list and blanks the datastore row via `createEmpty`. `RPG_Item.createEmpty`
+exists, so the item path has its primitive.
+
+The counter is **monotonic** - `increments()[type]++` with no decrement and no free list - so reclaimed
+indices are blanked but never reused. That is fine at food's churn rate: the index climbs by one per
+garnished batch, blanked rows are cheap, `$dataItems` is never persisted (storing lineage instead of
+rows is the whole design), and replay cost scales with *live* garnished stacks rather than historical
+ones.
+
+### Build work
+
+**J-JAFTING-Refinement** - a third `RefinementTypes` entry; `$dataItems` in the datastore branch; an
+item lineage list on `Game_Party`; `refreshDatabaseItems`; `determineFinishedOutput(base, finisher)`
+merging effects beside the existing trait merge; an item branch in the reclaim path.
+
+**J-JAFTING-Creation** - the finisher step in the craft flow, gated on the namespace check.
+
+**Data** - the category flag, `finishableOutput`, and the finisher tags.
+
+---
+
+## Database migration
+
+Nothing here needs new plugin work. A recipe is ingredients (consumed), tools (required, not consumed)
+and outputs (generated), and all three accept any item, weapon or armor. A recipe consuming another
+recipe's output already works — River Smoothie and Jelli Hors d'Oeuvres do it today.
+
+1. **Tag every consumable** with `<food:TYPE>`. Currently only finished meals carry one. Raw
+   non-consumable ingredients are excluded — see "The star sets the family" for why, and for the open
+   question of whether they need a separate lane marker at all.
+2. **Move food materials from armors to items**, leaving refinement materials as armors.
+3. **Collapse each food family to one common ingredient plus its named signatures.** Drop tier
+   semantics entirely. The signatures are the entries that already carry a proper noun.
+4. **Author supreme cuisines** against those signatures, and confirm no everyday recipe requires one.
+5. **Assign the orphaned lanes** — Root becomes **carb**, Gelatin becomes **protein** (it is slime
+   meat), Slime becomes **sweet** (the dessert roster). *Resolved 2026-08-05.*
+6. **Build fruit and dairy ingredient families.** Neither exists in any form today. Dairy is hunted
+   from **Minitaur/Megataur and the Quadruped subgroup**; fruit comes from Tree harvest nodes.
+7. **Give five ingredients a source.** Cooking Oil (in 5 recipes), Tomato, Bell Pepper, Green Beans and
+   Nuts have no shop entry, no drop tag and no grant event anywhere.
+8. **Wire up harvest nodes** so Grass and Trees yield grain, fruit and produce.
+9. **Split the 31 existing recipes** across the component and cuisine layers. Most already sit naturally
+   on one side.
+10. **Reach the six unreachable recipes** — Ghastly Goulash, River Smoothie, Slime Puree, Jelli Hors
+    d'Oeuvres, Blood-seared Asp and Grim Flankebobs are taught by nothing and are the six with `price: 0`.
+11. **Fix Ghastly Goulash's ingredients rather than its tag.** Real goulash is a beef stew; the tag
+    `protein` was right and the recipe — onions, oil and ghastly powder — is what is wrong.
+12. **Adopt the three unused pantry items** already in the database and used by nothing: **Lettuce**
+    (i81), **Pasta** (i89) and **Coconut** (i95). Coconut is a fruit, which is the emptiest lane.
+13. **Retire Recipe Journals I-III** (items 461-463, events 161-163) and update
+    `../unlockables/recipe-journals.md`.
+
+---
+
+## Open decisions
+
+- **The garnish state pool** - roughly eight utility states (antitoxin, regen, mana, braced, keen and
+  so on). Deliberately left undefined; the architecture does not depend on the specific list.
+- **Whether dishes differ beyond their garnish.** The chain is per-family and the same for every dish
+  in it, so without garnishes a signature dish grants what a common one does. One-shot heal magnitudes
+  were considered and rejected: food can only be eaten every 2-10 minutes, so a burst heal is an
+  afterthought no matter how large.
+- **What happens to the finisher on a cancelled craft** - consumed or returned.
+- **World sources for fruit, dairy and sweet.** All three lanes exist on paper and have no drop or
+  harvest wiring yet.
+
+### Resolved
+
+| Date | Decision |
+|---|---|
+| 2026-08-05 | **Recipes match categories, not item ids.** Adding an ingredient later costs zero recipes. |
+| 2026-08-05 | **`<ingredientType>` is many-per-item; `<food:TYPE>` is one, consumables only.** Ingredients are promiscuous, dishes are decisive. |
+| 2026-08-05 | **Finishing touches are create-time and are not refinement.** No refine count, no re-garnishing after the fact. |
+| 2026-08-05 | **Create owns the finisher step; refinement owns the minting.** Gated on `J.JAFTING.EXT.REFINE`; core stays out of it. |
+| 2026-08-05 | **Garnish-vs-reinforce is derived from the output's type**, never configured. Items have effects, equipment has traits. |
+| 2026-08-05 | **Gelatin is protein** (slime meat); **Slime is sweet** (the dessert roster). |
+| 2026-08-05 | **Cure and Ferment deferred**, not rejected. Revisit after the ten-method roster proves out. |
+| 2026-08-05 | **Dairy is hunted from Minitaur/Megataur and the Quadruped subgroup**, not primarily bought. |
+| 2026-08-05 | **No one-kill boss signatures** — RNG must not gate a temporary buff. See "Where signatures drop." |
+| 2026-08-04 | **Food ingredients are not graded** — one common per lane, plus named signatures. |
+| 2026-08-04 | **Armors are refinement, items are food.** The split is absolute. |
+| 2026-08-04 | **Components always unlocked and filtered by inventory; cuisines taught.** |

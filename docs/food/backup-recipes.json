@@ -1,0 +1,1588 @@
+{
+  "_backup": "Cooking recipes as authored before the category-based redesign.",
+  "_captured": "2026-08-05",
+  "_source": "chef-adventure/data/config.crafting.json",
+  "_counts": {
+    "categories": 2,
+    "recipes": 31
+  },
+  "categories": [
+    {
+      "key": "cook-meal",
+      "name": "Chef de Cuisine",
+      "iconIndex": 2056,
+      "description": "Cooking of the finest calibur, refined to the MAX.\r\nAdmittedly, the ingredients available in these parts make for some strange dishes.",
+      "unlockedByDefault": false
+    },
+    {
+      "key": "cook-drink",
+      "name": "Bar's Tender",
+      "iconIndex": 2091,
+      "description": "One must understand that drinks can make or break the tension like a hot knife through butter.\r\nOr through a hot rum cocktail, or even a cold glass of chocolate malk.",
+      "unlockedByDefault": false
+    }
+  ],
+  "recipes": [
+    {
+      "key": "food_erocian-pudding",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 401,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 151,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_yellow-soup",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 436,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 152,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_grilled-bearcat",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 386,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 153,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_panseared-cod",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 104,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 426,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 154,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_fried-cheesy-eggs",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 104,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 92,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 90,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 155,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_potato-beef-cake",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 84,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 386,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 90,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_charred-beef-ribs",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 396,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 157,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_acorn-pie",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 85,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 75,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 92,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 431,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 158,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_jelli-pilaf",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 93,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 159,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_lemonroasted-carrots",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 82,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 99,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 96,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 160,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_mushroom-bisque",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 86,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 90,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 161,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_tasty-stew",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 73,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 75,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 76,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 82,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 87,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 412,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 162,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_steamed-imp-tongue",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 391,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 99,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 164,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_wilted-wolftrap-salad",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 104,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 436,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 321,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 446,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 165,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "food_tender-coral-and-trout",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 427,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 343,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 99,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 166,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "food_bloody-trap-soup",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 447,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 79,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 167,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_vanilla-bleu-cone",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-drink"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 14,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 92,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 91,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 168,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_molten-fried-rice",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 93,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 418,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 11,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 76,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 82,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 80,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 92,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 169,
+          "type": "i",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "key": "food_flame-kissed-rack",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 397,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 11,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 96,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 75,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 170,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "food_mahogany-melody",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 86,
+          "type": "i",
+          "count": 3
+        },
+        {
+          "id": 431,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 171,
+          "type": "i",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "key": "food_erociberry-toast",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 88,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 94,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 172,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "food_beef-shakshuka",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 348,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 76,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 79,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 82,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 84,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 92,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 73,
+          "type": "i",
+          "count": 3
+        }
+      ],
+      "outputs": [
+        {
+          "id": 173,
+          "type": "i",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "key": "food_seeing-jambalaya",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 357,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 93,
+          "type": "i",
+          "count": 3
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 78,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 93,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 99,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 174,
+          "type": "i",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "key": "food_herbal-tea",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-drink"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 102,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 73,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 96,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 431,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 175,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_gel-o",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-drink"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 418,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 403,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 332,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 91,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 176,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_ghastly-goulash",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 83,
+          "type": "i",
+          "count": 3
+        },
+        {
+          "id": 99,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 333,
+          "type": "a",
+          "count": 5
+        }
+      ],
+      "outputs": [
+        {
+          "id": 177,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "food_river-smoothie",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-drink"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 77,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 166,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 413,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 91,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 88,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 73,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 178,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "food_slime-puree",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-drink"
+      ],
+      "tools": [
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 418,
+          "type": "a",
+          "count": 5
+        },
+        {
+          "id": 368,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 179,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "food_jelli-hors-doeuvres",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 179,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 91,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 398,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 75,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 180,
+          "type": "i",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "key": "food_blood-seared-asp",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 372,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 398,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 181,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "food_grim-flankebobs",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 388,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 74,
+          "type": "i",
+          "count": 3
+        },
+        {
+          "id": 78,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 182,
+          "type": "i",
+          "count": 3
+        }
+      ]
+    }
+  ]
+}

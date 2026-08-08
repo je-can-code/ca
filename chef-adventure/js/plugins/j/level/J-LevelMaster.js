@@ -1305,7 +1305,7 @@ Game_Enemy.prototype.setup = function(enemyId, x, y) {
 * Sets up the learnings defined on the enemy.
 */
 Game_Enemy.prototype.setupSkillLearnings = function() {
-	const learnings = RPGManager.getArraysFromNotesByRegex(this.enemy(), J.LEVEL.RegExp.Learning) ?? [];
+	const learnings = RPGManager.getArraysFromNotesByRegex(this.enemy(), J.LEVEL.RegExp.Learning);
 	if (learnings.length === 0) return;
 	learnings.forEach((learning) => this.setSkillLearning(learning.at(0), learning.at(1)));
 };

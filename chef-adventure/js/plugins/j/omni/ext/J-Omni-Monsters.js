@@ -491,9 +491,6 @@ Game_Party.prototype.translateMonsterpediaSaveablesToCache = function() {
 * Synchronizes the monsterpedia cache into the saveable datas.
 */
 Game_Party.prototype.synchronizeMonsterpediaDataBeforeSave = function() {
-	if (!this.isOmnipediaInitialized()) {
-		this.initOmnipediaMembers();
-	}
 	this.translateMonsterpediaCacheForSaving();
 	this.translateMonsterpediaSaveablesToCache();
 };
@@ -501,9 +498,6 @@ Game_Party.prototype.synchronizeMonsterpediaDataBeforeSave = function() {
 * Synchronize the monsterpedia saveable datas into the cache.
 */
 Game_Party.prototype.synchronizeMonsterpediaAfterLoad = function() {
-	if (!this.isOmnipediaInitialized()) {
-		this.initOmnipediaMembers();
-	}
 	this.translateMonsterpediaSaveablesToCache();
 	this.translateMonsterpediaCacheForSaving();
 };

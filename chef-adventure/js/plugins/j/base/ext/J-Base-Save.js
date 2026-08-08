@@ -4129,7 +4129,9 @@ var Window_FilesList = class extends Window_Command {
 	* @returns {SaveFileEntry|null} The row, or null while nothing is highlighted.
 	*/
 	currentEntry() {
-		return this.entries().at(this.index()) ?? null;
+		const index = this.index();
+		if (index < 0) return null;
+		return this.entries().at(index) ?? null;
 	}
 	/**
 	* How many rows are visible at once.

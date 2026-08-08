@@ -2,10 +2,10 @@
   "alwaysDash": false,
   "commandRemember": false,
   "touchUI": true,
-  "bgmVolume": 0,
-  "bgsVolume": 0,
-  "meVolume": 0,
-  "seVolume": 0,
+  "bgmVolume": 100,
+  "bgsVolume": 100,
+  "meVolume": 100,
+  "seVolume": 100,
   "jabsInputMappings": {
     "player1": {
       "Menu": [

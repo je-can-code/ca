@@ -339,9 +339,6 @@ Game_Event.prototype.parseEscriptionIconProximityValue = function() {
 J.ESCRIBE.Aliased.Game_Event.set("update", Game_Event.prototype.update);
 Game_Event.prototype.update = function() {
 	J.ESCRIBE.Aliased.Game_Event.get("update").call(this);
-	if (this.eventId() === 3) {
-		console.log();
-	}
 	if (this.hasProximityEscriptionData()) {
 		this.updateEscribeTextProximity();
 		this.updateEscribeIconProximity();

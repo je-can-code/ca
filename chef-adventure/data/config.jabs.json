@@ -87,5 +87,37 @@
         }
       ]
     }
+  ],
+  "foodTypes": [
+    {
+      "key": "protein",
+      "name": "Protein",
+      "iconIndex": 0
+    },
+    {
+      "key": "vegetable",
+      "name": "Vegetable",
+      "iconIndex": 0
+    },
+    {
+      "key": "fruit",
+      "name": "Fruit",
+      "iconIndex": 0
+    },
+    {
+      "key": "carb",
+      "name": "Carb",
+      "iconIndex": 0
+    },
+    {
+      "key": "dairy",
+      "name": "Dairy",
+      "iconIndex": 0
+    },
+    {
+      "key": "sweet",
+      "name": "Sweet",
+      "iconIndex": 0
+    }
   ]
 }

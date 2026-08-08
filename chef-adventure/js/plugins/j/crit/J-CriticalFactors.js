@@ -1048,11 +1048,11 @@ Game_Action.prototype.ownCriticalChanceBonus = function() {
 */
 Game_Action.prototype.thisCritChanceIfStateBonus = function(target) {
 	const pairs = this.item().thisCritChanceIfStates;
-	if (!pairs.length) return 0;
+	const typePairs = this.item().thisCritChanceIfStateTypes;
+	if (!pairs.length && !typePairs.length) return 0;
 	const stateIdBonus = pairs.reduce((total, [stateId, bonusChance]) => {
 		return total + (target.isStateAffected(stateId) ? bonusChance / 100 : 0);
 	}, 0);
-	const typePairs = this.item().thisCritChanceIfStateTypes;
 	const stateTypeBonus = typePairs.reduce((total, [type, bonusChance]) => {
 		return total + (this.targetHasActiveStateType(target, type) ? bonusChance / 100 : 0);
 	}, 0);
@@ -1067,11 +1067,11 @@ Game_Action.prototype.thisCritChanceIfStateBonus = function(target) {
 */
 Game_Action.prototype.critChanceIfStateBonus = function(target) {
 	const allPairs = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critChanceIfStates);
-	if (!allPairs.length) return 0;
+	const allTypePairs = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critChanceIfStateTypes);
+	if (!allPairs.length && !allTypePairs.length) return 0;
 	const stateIdBonus = allPairs.reduce((total, [stateId, bonusChance]) => {
 		return total + (target.isStateAffected(stateId) ? bonusChance / 100 : 0);
 	}, 0);
-	const allTypePairs = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critChanceIfStateTypes);
 	const stateTypeBonus = allTypePairs.reduce((total, [type, bonusChance]) => {
 		return total + (this.targetHasActiveStateType(target, type) ? bonusChance / 100 : 0);
 	}, 0);

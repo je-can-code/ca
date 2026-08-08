@@ -1861,6 +1861,7 @@ J.BASE.Aliased = {
 	Input: new Map(),
 	Scene_Base: new Map(),
 	Scene_Boot: new Map(),
+	Scene_Map: new Map(),
 	Scene_MenuBase: new Map(),
 	SoundManager: new Map(),
 	Window_Base: new Map(),
@@ -2661,20 +2662,45 @@ JsonEx._decode = function(value) {
 //#endregion
 //#region src/plugins/_base/core/core/Bitmap.js
 /**
-* RMMZ {@link Window_Base.prototype.flushTextState} calls {@link Bitmap.prototype.drawText}
-* without an alignment argument. Older engines treated that like left alignment; NW.js 0.110+
-* warns when assigning undefined to {@link CanvasRenderingContext2D#textAlign}.
+* The alignments a canvas will actually accept for {@link CanvasRenderingContext2D#textAlign}.
+*
+* Kept as an allowlist rather than a type check, because the question being asked is not "is this a string" but
+* "is this something the canvas understands" - and a wrong string is every bit as broken as a number.
+* @type {string[]}
+*/
+var validTextAlignments = [
+	"left",
+	"center",
+	"right",
+	"start",
+	"end"
+];
+/**
+* Normalizes the alignment RMMZ hands down, because the engine hands down two different wrong things.
+*
+* `Window_Base.prototype.drawText` takes `(text, x, y, maxWidth, align)` while `Bitmap.prototype.drawText` takes
+* `(text, x, y, maxWidth, lineHeight, align)` - five parameters against six, with `align` and `lineHeight` sitting
+* in the same slot. Vanilla confuses the two in three separate places, and every one lands here:
+*
+* - `Window_Base.flushTextState` calls with no alignment at all, so `align` arrives `undefined`.
+* - `Window_EquipSlot.drawItem` and `Window_StatusEquip.drawItem` both pass `rect.height`, so `align` arrives as
+*   the line height - `36` by default, which the console then rejects once per equipment slot per refresh.
+*
+* Older Chromium quietly ignored an unusable `textAlign`; NW.js 0.110+ warns instead, which is why engine code
+* that has been wrong for years only started saying so recently. **This is not a guard against our own contract**
+* - it is the boundary with engine code that cannot be corrected at the source, and every one of those callers
+* meant the default, so the default is what they get.
 *
 * @param {string} text The text that will be drawn.
 * @param {number} x The x coordinate for the left of the text.
 * @param {number} y The y coordinate for the top of the text.
 * @param {number} maxWidth The maximum allowed width of the text.
 * @param {number} lineHeight The height of the text line.
-* @param {string} [align] The alignment of the text; defaults to left when omitted.
+* @param {string} [align] The alignment of the text; defaults to left when unusable or omitted.
 */
 J.BASE.Aliased.Bitmap.set("drawText", Bitmap.prototype.drawText);
 Bitmap.prototype.drawText = function(text, x, y, maxWidth, lineHeight, align) {
-	const resolvedAlign = align === undefined ? "left" : align;
+	const resolvedAlign = validTextAlignments.includes(align) ? align : "left";
 	J.BASE.Aliased.Bitmap.get("drawText").call(this, text, x, y, maxWidth, lineHeight, resolvedAlign);
 };
 
@@ -10610,6 +10636,68 @@ Game_Party.prototype.rawArmors = function() {
 	return this._armors;
 };
 /**
+* Drops every inventory entry whose database row no longer exists, and shouts about each one.
+*
+* **A savefile outlives the database it was written against.** Deleting a row during development is ordinary and
+* correct - a whole family of weapons stops being part of the game - but every save written beforehand still holds
+* that row in its containers. Those containers store quantities against keys, so a deleted row leaves a key
+* pointing at nothing, and `Game_Party.weapons` resolves it by handing back `undefined`.
+*
+* Vanilla survives that only by luck: `DataManager.isItem` reads `item && …`, so engine windows silently skip the
+* gaps. Plugin code that asks a row a question first - `datum.isArmor()` - dies instead, somewhere entirely
+* unrelated to the deletion, with a stack trace that names neither the row nor the reason.
+*
+* So the reconciliation happens once, out loud, in one place. This is deliberately **not** a guard sprinkled across
+* every predicate that touches inventory: the entry is genuinely gone, and the honest thing is to say so and drop
+* it, rather than teach fifty callers to tiptoe around a hole.
+*/
+Game_Party.prototype.pruneMissingInventoryEntries = function() {
+	const prunedItems = this.pruneMissingFromContainer(this.rawItems(), $dataItems, "i");
+	const prunedWeapons = this.pruneMissingFromContainer(this.rawWeapons(), $dataWeapons, "w");
+	const prunedArmors = this.pruneMissingFromContainer(this.rawArmors(), $dataArmors, "a");
+	const pruned = prunedItems.concat(prunedWeapons, prunedArmors);
+	if (pruned.length === 0) {
+		return;
+	}
+	this.reportPrunedInventoryEntries(pruned);
+};
+/**
+* Removes the keys of one container that no longer resolve to a row, reporting what was removed.
+*
+* Keys are read against the datastore rather than trusted, because that is the whole question being asked. Note
+* this is indexed by the container's own key, which is the row's index rather than its id - the two agree for
+* anything authored in the editor, and dynamically created rows are the reason the distinction exists.
+* @param {Object<number, number>} container The raw key-to-quantity map to prune.
+* @param {RPG_BaseItem[]} datastore The table those keys are supposed to index.
+* @param {string} type The datastore letter this container holds - `i`, `w`, or `a`.
+* @returns {string[]} One `type`-prefixed key per entry removed, such as `w181`.
+*/
+Game_Party.prototype.pruneMissingFromContainer = function(container, datastore, type) {
+	const pruned = [];
+	Object.keys(container).forEach((key) => {
+		if (datastore[key]) {
+			return;
+		}
+		pruned.push(`${type}${key}`);
+		delete container[key];
+	});
+	return pruned;
+};
+/**
+* Announces, in one line, the inventory entries that were dropped because their database rows are gone.
+*
+* Deliberately a single message rather than one per entry. Deletions come in families - a whole tier of weapons
+* retired at once - so a per-entry report is dozens of near-identical lines that bury the very pattern that makes
+* the cause recognisable. The keys are listed in the same `i` / `w` / `a` shorthand the salvage ledger uses, so a
+* reader already knows how to read them.
+* @param {string[]} pruned Every dropped entry, already type-prefixed.
+*/
+Game_Party.prototype.reportPrunedInventoryEntries = function(pruned) {
+	const plural = pruned.length === 1 ? "entry" : "entries";
+	const listed = pruned.join(",");
+	console.warn(`J-BASE: dropped ${pruned.length} inventory ${plural} whose database rows no longer exist ` + `(rows deleted after this save was written): [${listed}]`);
+};
+/**
 * Overwrites {@link #gainItem}.<br/>
 * Replaces item gain and management with index-based management instead.
 * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
@@ -11096,6 +11184,28 @@ Scene_Equip.prototype.statusWindow = function() {
 */
 Scene_Map.prototype.transfer = function() {
 	return this._transfer;
+};
+/**
+* Extends {@link Scene_Map.prototype.start}.<br/>
+* Reconciles the party's inventory against the database it was actually loaded next to.
+*
+* **Why here, of all places.** The obvious home is `DataManager.extractSaveContents`, and it is wrong: rows created
+* at runtime rather than authored in the editor are written back into `$data*` from `Game_System.onAfterLoad`, which
+* fires later - so a reconciliation that early would see a legitimately restored row as a missing one and delete
+* the player's belongings. Aliasing `onAfterLoad` here does not help either, because this plugin loads first, which
+* puts its body *before* every extension's replay in that same chain. `Scene_Load` is no good as a hook either,
+* since J-Base-Save loads through a scene of its own.
+*
+* Every one of those paths ends up on the map, and by the time the map starts, everything that intends to populate
+* a datastore has done it. So the question gets asked from the one moment where the answer is trustworthy.
+*
+* Running on every map entry rather than once per load is deliberate: it costs three key scans, it is idempotent,
+* and it stays silent unless it actually removes something.
+*/
+J.BASE.Aliased.Scene_Map.set("start", Scene_Map.prototype.start);
+Scene_Map.prototype.start = function() {
+	J.BASE.Aliased.Scene_Map.get("start").call(this);
+	$gameParty.pruneMissingInventoryEntries();
 };
 
 //#endregion

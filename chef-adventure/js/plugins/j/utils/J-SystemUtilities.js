@@ -251,7 +251,7 @@ J.UTILS.Aliased.Input.set("_updateGamepadState", Input._updateGamepadState);
 Input._updateGamepadState = function(gamepad) {
 	const prev = this.gamepadStates()[gamepad.index] || [];
 	J.UTILS.Aliased.Input.get("_updateGamepadState").call(this, gamepad);
-	const next = this.gamepadStates()[gamepad.index] || [];
+	const next = this.gamepadStates()[gamepad.index];
 	J.UTILS.GamepadLog.logFreshPresses(gamepad, prev, next);
 };
 

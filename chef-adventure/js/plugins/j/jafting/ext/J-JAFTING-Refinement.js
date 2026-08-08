@@ -658,9 +658,13 @@ var JaftingManager = class JaftingManager {
 	static createRefinedOutput(outputEquip, baseLineage, materialLineage) {
 		if (outputEquip.wtypeId) {
 			this.generateRefinedEquip($dataWeapons, outputEquip, this.RefinementTypes.Weapon, baseLineage, materialLineage);
-		} else if (outputEquip.atypeId) {
-			this.generateRefinedEquip($dataArmors, outputEquip, this.RefinementTypes.Armor, baseLineage, materialLineage);
+			return;
 		}
+		if (outputEquip.atypeId) {
+			this.generateRefinedEquip($dataArmors, outputEquip, this.RefinementTypes.Armor, baseLineage, materialLineage);
+			return;
+		}
+		throw new Error("a refinement output was neither weapon nor armor, so there is no datastore for it.");
 	}
 	/**
 	* Generates the new entry in the corresponding datastore for the new equip data that was refined.
@@ -999,6 +1003,7 @@ J.JAFTING.EXT.REFINE.Aliased.Game_System = new Map();
 J.JAFTING.EXT.REFINE.Aliased.RPG_Base = new Map();
 J.JAFTING.EXT.REFINE.Aliased.RPG_EquipItem = new Map();
 J.JAFTING.EXT.REFINE.Aliased.Scene_Jafting = new Map();
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map = new Map();
 J.JAFTING.EXT.REFINE.Aliased.Window_JaftingList = new Map();
 /**
 * All regular expressions used by this plugin.
@@ -1256,6 +1261,219 @@ Game_System.prototype.onAfterLoad = function() {
 };
 
 //#endregion
+//#region src/plugins/jafting/ext/refine/managers/RefinementEligibility.js
+/**
+* Answers whether one equip may take part in refinement right now, and why not when it may not.
+*
+* **This exists so the list can be sorted.** The eligibility rules used to be computed while each row was being
+* built, which meant the ordering pass ran before any row knew whether it was usable and had nothing to sort on -
+* so a player hunting for the one valid donor scrolled past every invalid one to find it. Deciding first and
+* drawing second is the whole point, and it happens to put the rules somewhere they can be tested without a scene.
+*
+* **Two kinds of "no", and they are treated differently.**
+*
+* - **Permanent** - this equip can never fill this role, in any circumstance. Those rows are dropped entirely,
+*   because showing a player something they will never be allowed to pick is a tease. JAFTING already did this for
+*   {@link RPG_EquipItem.jaftingUnrefinable}; this widens it to the per-role flags that mean the same thing.
+* - **Situational** - this equip is fine in principle but not against the base currently chosen, or has been
+*   improved as far as it goes. Those rows stay, disabled and carrying a reason, and sort to the bottom. Filtering
+*   them would be actively worse: a maxed-out weapon is an achievement the player wants to see rather than an
+*   error, and a "not with this base" row becomes valid the moment they back out and choose differently, so hiding
+*   it would make the list change shape while it is being read.
+*/
+var RefinementEligibility = class RefinementEligibility {
+	/**
+	* Icon shown on a row that is barred outright, whether by rule or by the chosen base.
+	* @type {number}
+	*/
+	static BlockedIcon = 90;
+	/**
+	* Icon marking the physical copy the player already committed as the base.
+	* @type {number}
+	*/
+	static ChosenBaseIcon = 91;
+	/**
+	* Icon shown on a row that has hit a ceiling - fully refined, or at its trait cap.
+	* @type {number}
+	*/
+	static CappedIcon = 92;
+	/**
+	* Whether this equip can never fill this role, so the list should not offer it at all.
+	*
+	* @param {RPG_EquipItem} equip The equip being considered.
+	* @param {boolean} isPrimary True when filling the base slot, false when filling the donor slot.
+	* @returns {boolean}
+	*/
+	static isPermanentlyExcluded(equip, isPrimary) {
+		if (equip.jaftingUnrefinable) {
+			return true;
+		}
+		if (isPrimary) {
+			return equip.jaftingNotRefinementBase;
+		}
+		return equip.jaftingNotRefinementMaterial;
+	}
+	/**
+	* Judges one equip for the role currently being filled.
+	*
+	* Deliberately answers about the **template** rather than a particular copy of it. Which physical copy the player
+	* is pointing at only matters for refusing to feed a base to itself, and that is the list's own business - every
+	* copy of one template shares the verdict returned here, which is exactly what lets the sort treat them as a
+	* block.
+	*
+	* @param {RPG_EquipItem} equip The equip being considered.
+	* @param {boolean} isPrimary True when filling the base slot, false when filling the donor slot.
+	* @param {RPG_EquipItem|null} baseSelection The already-chosen base, or null while choosing one.
+	* @returns {{ enabled: boolean, iconIndex: number, errorText: string }}
+	*/
+	static evaluate(equip, isPrimary, baseSelection) {
+		if (isPrimary) {
+			return RefinementEligibility.evaluateAsBase(equip);
+		}
+		return RefinementEligibility.evaluateAsMaterial(equip, baseSelection);
+	}
+	/**
+	* Judges an equip offered as the thing being improved.
+	*
+	* @param {RPG_EquipItem} equip The equip being considered.
+	* @returns {{ enabled: boolean, iconIndex: number, errorText: string }}
+	*/
+	static evaluateAsBase(equip) {
+		const verdict = {
+			enabled: true,
+			iconIndex: equip.iconIndex,
+			errorText: String.empty
+		};
+		const refineCap = equip.jaftingMaxRefineCount;
+		const isMaxRefined = refineCap === 0 ? false : refineCap <= equip.jaftingRefinedCount;
+		if (isMaxRefined) {
+			verdict.enabled = false;
+			verdict.iconIndex = RefinementEligibility.CappedIcon;
+			verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxRefineCount}\n`;
+		}
+		const traitCap = equip.jaftingMaxTraitCount;
+		const currentTraits = JaftingManager.parseTraits(equip).length;
+		const hasMaxTraits = traitCap === 0 ? false : traitCap <= currentTraits;
+		if (hasMaxTraits) {
+			verdict.enabled = false;
+			verdict.iconIndex = RefinementEligibility.CappedIcon;
+			verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxTraitCount}\n`;
+		}
+		return verdict;
+	}
+	/**
+	* Judges an equip offered as the thing being consumed.
+	*
+	* @param {RPG_EquipItem} equip The equip being considered.
+	* @param {RPG_EquipItem|null} baseSelection The already-chosen base, or null while choosing one.
+	* @returns {{ enabled: boolean, iconIndex: number, errorText: string }}
+	*/
+	static evaluateAsMaterial(equip, baseSelection) {
+		const verdict = {
+			enabled: true,
+			iconIndex: equip.iconIndex,
+			errorText: String.empty
+		};
+		if (JaftingManager.parseTraits(equip).length === 0) {
+			verdict.enabled = false;
+			verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.NoTraitsOnMaterial}\n`;
+		}
+		if (baseSelection === null) {
+			return verdict;
+		}
+		RefinementEligibility.applyRefineCountCeiling(verdict, equip, baseSelection);
+		RefinementEligibility.applyTraitCountCeiling(verdict, equip, baseSelection);
+		return verdict;
+	}
+	/**
+	* Bars a donor that would push the base past how many times it is allowed to be refined.
+	*
+	* @param {{ enabled: boolean, iconIndex: number, errorText: string }} verdict The verdict being amended.
+	* @param {RPG_EquipItem} equip The donor being considered.
+	* @param {RPG_EquipItem} baseSelection The chosen base.
+	*/
+	static applyRefineCountCeiling(verdict, equip, baseSelection) {
+		const cap = baseSelection.jaftingMaxRefineCount;
+		if (cap === 0) {
+			return;
+		}
+		const projected = baseSelection.jaftingRefinedCount + equip.jaftingRefinedCount;
+		if (cap >= projected) {
+			return;
+		}
+		verdict.enabled = false;
+		verdict.iconIndex = RefinementEligibility.BlockedIcon;
+		verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedRefineCount} ${projected}/${cap}.<br>\n`;
+	}
+	/**
+	* Whether this equip should sort with the crafted goods rather than the stock ones.
+	*
+	* Anything carrying dismantle history or a refine counter has a story, and those are the rows a player browsing
+	* this list is usually looking for. Note this asks about the **template**, never a single copy of it - ordering on
+	* a per-copy value would reshuffle identical rows every time the list refreshed.
+	*
+	* @param {RPG_EquipItem} equip The equip being considered.
+	* @returns {boolean}
+	*/
+	static hasStampedLineage(equip) {
+		if (equip.jaftingRefinedCount > 0) {
+			return true;
+		}
+		const ledger = JaftingSalvageManager.getLedgerForDatum(equip);
+		if (ledger === null) {
+			return false;
+		}
+		return ledger.rows.length > 0;
+	}
+	/**
+	* Orders two judged rows for display.
+	*
+	* **Usable first, and that is the point of the whole exercise.** Everything after it is the ordering this list
+	* always had: rows with a history above stock equipment, weapons before armor, then by id so copies of one
+	* template stay together.
+	*
+	* @param {{ equip: RPG_EquipItem, verdict: { enabled: boolean } }} left The row being placed.
+	* @param {{ equip: RPG_EquipItem, verdict: { enabled: boolean } }} right The row it is compared against.
+	* @returns {number}
+	*/
+	static compareCandidates(left, right) {
+		if (left.verdict.enabled !== right.verdict.enabled) {
+			return left.verdict.enabled ? -1 : 1;
+		}
+		const leftStamped = RefinementEligibility.hasStampedLineage(left.equip);
+		const rightStamped = RefinementEligibility.hasStampedLineage(right.equip);
+		if (leftStamped !== rightStamped) {
+			return leftStamped ? -1 : 1;
+		}
+		if (left.equip.etypeId !== right.equip.etypeId) {
+			return left.equip.etypeId - right.equip.etypeId;
+		}
+		return left.equip.id - right.equip.id;
+	}
+	/**
+	* Bars a donor whose traits would push the merged result past the base's trait ceiling.
+	*
+	* @param {{ enabled: boolean, iconIndex: number, errorText: string }} verdict The verdict being amended.
+	* @param {RPG_EquipItem} equip The donor being considered.
+	* @param {RPG_EquipItem} baseSelection The chosen base.
+	*/
+	static applyTraitCountCeiling(verdict, equip, baseSelection) {
+		const cap = baseSelection.jaftingMaxTraitCount;
+		if (cap === 0) {
+			return;
+		}
+		const projectedOutput = JaftingManager.determineRefinementOutput(baseSelection, equip);
+		const projectedTraits = JaftingManager.parseTraits(projectedOutput).length;
+		if (cap >= projectedTraits) {
+			return;
+		}
+		verdict.enabled = false;
+		verdict.iconIndex = RefinementEligibility.CappedIcon;
+		verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedTraitCount} ${projectedTraits}/${cap}.<br>\n`;
+	}
+};
+
+//#endregion
 //#region src/plugins/jafting/ext/refine/windows/Window_RefinementStepHint.js
 /**
 * Short workflow copy above the refinable lists so the base vs material steps read clearly.
@@ -1309,33 +1527,16 @@ var Window_RefinementDescription = class extends Window_Help {
 //#endregion
 //#region src/plugins/jafting/ext/refine/windows/Window_RefinableList.js
 /**
-* Refinement equip list helpers + {@link Window_RefinableList}.<br>
+* Refinement equip list + its one remaining paint helper.<br>
 * <br>
-* **Two different questions:** {@link refinableEquipTemplateSortHasSalvageLineage} drives **list ordering** (anything
-* with dismantle history or a refine counter sorts like a “stamped” row). {@link refinableEquipHasSalvageStamp} drives
-* **per-row paint** when the stack UI passes a `unitOrdinal` so only the expanded slot shows the hollow diamond from
+* **Two different questions, and only one of them lives here now.** Whether a row is usable, and how usable rows
+* order against unusable ones, is {@link RefinementEligibility} - decided for every row before any row is drawn,
+* because a sort cannot put the usable ones first while each row only learns its own verdict as it is built.
+* {@link refinableEquipHasSalvageStamp} stays, and drives **per-row paint** when the stack UI passes a `unitOrdinal`
+* so only the expanded copy shows the hollow diamond from
 * {@link J.JAFTING.EXT.REFINE.Messages.RefinableListSalvageStampPrefix}.<br>
-* Keep those roles split—sorting on `unitOrdinal` would scramble templates every frame.
+* Keep those roles split—ordering on a `unitOrdinal` would scramble identical rows every refresh.
 */
-/**
-* True when this row should sort with stamped-lineage priority (salvage bag, dynamic ledger, or any refine +N).
-*
-* @param {RPG_EquipItem} equip The equip driving this step.
-* @returns {boolean}
-*/
-function refinableEquipTemplateSortHasSalvageLineage(equip) {
-	if (equip.jaftingRefinedCount > 0) {
-		return true;
-	}
-	const ledger = JaftingSalvageManager.getLedgerForDatum(equip);
-	if (ledger === null || ledger === undefined) {
-		return false;
-	}
-	if (!ledger.rows || ledger.rows.length === 0) {
-		return false;
-	}
-	return true;
-}
 /**
 * True when this row should show dismantle lineage styling (per stack slot when expanded).
 *
@@ -1460,148 +1661,134 @@ var Window_RefinableList = class extends Window_Command {
 				return true;
 			});
 		}
-		equips.sort((a, b) => {
-			const stampA = refinableEquipTemplateSortHasSalvageLineage(a) ? 1 : 0;
-			const stampB = refinableEquipTemplateSortHasSalvageLineage(b) ? 1 : 0;
-			if (stampA !== stampB) {
-				return stampB - stampA;
-			}
-			if (a.etypeId > b.etypeId) return 1;
-			if (a.etypeId < b.etypeId) return -1;
-			if (a.id > b.id) return 1;
-			if (a.id < b.id) return -1;
-			return 0;
-		});
-		equips.forEach((equip) => {
-			if (equip.jaftingUnrefinable) {
-				return;
-			}
+		const offerable = equips.filter((equip) => !RefinementEligibility.isPermanentlyExcluded(equip, this.isPrimary));
+		const judged = offerable.map((equip) => ({
+			equip,
+			verdict: RefinementEligibility.evaluate(equip, this.isPrimary, this.baseSelection)
+		}));
+		judged.sort(RefinementEligibility.compareCandidates);
+		judged.forEach((candidate) => {
+			const { equip, verdict } = candidate;
 			const isStackCountedRow = JaftingSalvageLedger.isStackCountedRefinableEquip(equip);
 			const count = $gameParty.numItems(equip);
 			if (count < 1) {
 				return;
 			}
 			if (isStackCountedRow) {
-				this.addRefinableEquipCommand(equip, null);
+				this.addRefinableEquipCommand(equip, null, verdict);
 				return;
 			}
 			for (let u = 0; u < count; u++) {
-				this.addRefinableEquipCommand(equip, {
+				const unitSlot = {
 					unitOrdinal: u,
 					unitsTotal: count
-				});
+				};
+				this.addRefinableEquipCommand(equip, unitSlot, verdict);
 			}
 		});
 	}
 	/**
-	* Builds and appends refinable rows (enable rules, icons, salvage stamp label, optional stack counts).
+	* Builds and appends one refinable row (salvage stamp label, optional stack count, per-copy markers).
+	*
+	* The verdict arrives already decided by {@link RefinementEligibility}, shared by every copy of this template.
+	* What is left here is genuinely per-copy: marking the exact copy the player committed as the base, and refusing
+	* to feed that copy to itself. Neither is knowable from the template alone.
 	*
 	* @param {RPG_EquipItem} equip The equip driving this step.
 	* @param {{ unitOrdinal: number, unitsTotal: number }|null} unitSlot Pass null for stack-counted material rows.
+	* @param {{ enabled: boolean, iconIndex: number, errorText: string }} verdict This template's eligibility.
 	*/
-	addRefinableEquipCommand(equip, unitSlot) {
-		if (equip.jaftingUnrefinable) {
-			return;
-		}
-		const equipCount = $gameParty.numItems(equip);
+	addRefinableEquipCommand(equip, unitSlot, verdict) {
 		const isStackCountedRow = JaftingSalvageLedger.isStackCountedRefinableEquip(equip);
-		const hasUnit = unitSlot !== null && unitSlot !== undefined;
-		if (isStackCountedRow && hasUnit) {
+		const hasUnit = unitSlot !== null;
+		if (isStackCountedRow === hasUnit) {
 			return;
 		}
-		if (!isStackCountedRow && !hasUnit) {
-			return;
-		}
-		let rightText = String.empty;
-		if (isStackCountedRow) {
-			rightText = `x${equipCount}`;
-		}
-		const hasSalvageStamp = refinableEquipHasSalvageStamp(equip, hasUnit ? unitSlot.unitOrdinal : undefined);
-		const hasRefinementAccent = equip.jaftingRefinedCount > 0;
-		const stamped = hasSalvageStamp || hasRefinementAccent;
-		const rowName = stamped ? `${J.JAFTING.EXT.REFINE.Messages.RefinableListSalvageStampPrefix}${equip.name}` : equip.name;
-		const nameColorIndex = stamped ? 6 : 0;
-		const sameTemplate = equip === this.baseSelection;
 		const rowOrdinal = hasUnit ? unitSlot.unitOrdinal : null;
-		const baseOrdinal = this.baseSelectionUnitOrdinal;
-		let samePhysicalUnit = false;
-		if (sameTemplate) {
-			if (rowOrdinal !== null && rowOrdinal !== undefined && baseOrdinal !== null && baseOrdinal !== undefined) {
-				samePhysicalUnit = rowOrdinal === baseOrdinal;
-			}
-		}
-		const templateStack = this.baseSelection ? $gameParty.numItems(this.baseSelection) : 0;
-		const canSelectThisMaterial = sameTemplate === false || templateStack > 1 && samePhysicalUnit === false;
-		let enabled = this.isPrimary ? true : canSelectThisMaterial;
-		let { iconIndex } = equip;
-		let errorText = "";
-		if (equip.jaftingUnrefinable) {
-			enabled = false;
-			iconIndex = 90;
-		}
-		if (!this.isPrimary) {
-			if (!JaftingManager.parseTraits(equip).length) {
-				enabled = false;
-				errorText += `${J.JAFTING.EXT.REFINE.Messages.NoTraitsOnMaterial}\n`;
-			}
-			if (equip.jaftingNotRefinementMaterial) {
-				enabled = false;
-				iconIndex = 90;
-			}
-			if (this.baseSelection) {
-				const primaryHasMaxRefineCount = this.baseSelection.jaftingMaxRefineCount > 0;
-				if (primaryHasMaxRefineCount) {
-					const primaryMaxRefineCount = this.baseSelection.jaftingMaxRefineCount;
-					const projectedCount = this.baseSelection.jaftingRefinedCount + equip.jaftingRefinedCount;
-					const overRefinementCount = primaryMaxRefineCount < projectedCount;
-					if (overRefinementCount) {
-						enabled = false;
-						iconIndex = 90;
-						errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedRefineCount} ${projectedCount}/${primaryMaxRefineCount}.<br>\n`;
-					}
-				}
-				const baseMaxTraitCount = this.baseSelection.jaftingMaxTraitCount;
-				const projectedResult = JaftingManager.determineRefinementOutput(this.baseSelection, equip);
-				const projectedResultTraitCount = JaftingManager.parseTraits(projectedResult).length;
-				const overMaxTraitCount = baseMaxTraitCount > 0 && projectedResultTraitCount > baseMaxTraitCount;
-				if (overMaxTraitCount) {
-					enabled = false;
-					iconIndex = 92;
-					errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedTraitCount} ${projectedResultTraitCount}/${baseMaxTraitCount}.<br>\n`;
-				}
-			}
-		} else {
-			const equipIsMaxRefined = equip.jaftingMaxRefineCount === 0 ? false : equip.jaftingMaxRefineCount <= equip.jaftingRefinedCount;
-			const equipHasMaxTraits = equip.jaftingMaxTraitCount === 0 ? false : equip.jaftingMaxTraitCount <= JaftingManager.parseTraits(equip).length;
-			if (equipIsMaxRefined) {
-				enabled = false;
-				iconIndex = 92;
-				errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxRefineCount}\n`;
-			}
-			if (equipHasMaxTraits) {
-				enabled = false;
-				iconIndex = 92;
-				errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxTraitCount}\n`;
-			}
-			if (equip.jaftingNotRefinementBase) {
-				enabled = false;
-				iconIndex = 92;
-			}
-		}
-		const isChosenBaseRow = sameTemplate && rowOrdinal !== null && rowOrdinal !== undefined && baseOrdinal !== null && baseOrdinal !== undefined && rowOrdinal === baseOrdinal;
-		if (isChosenBaseRow) {
-			iconIndex = 91;
-		}
+		const isChosenBaseCopy = this.isChosenBaseCopy(equip, rowOrdinal);
+		const label = this.rowLabelFor(equip, rowOrdinal);
+		const enabled = verdict.enabled && this.isSpendableCopy(equip, isChosenBaseCopy);
+		const iconIndex = isChosenBaseCopy ? RefinementEligibility.ChosenBaseIcon : verdict.iconIndex;
+		const rightText = isStackCountedRow ? `x${$gameParty.numItems(equip)}` : String.empty;
 		const extData = {
 			data: equip,
-			error: errorText
+			error: verdict.errorText
 		};
 		if (hasUnit) {
 			extData.unitOrdinal = unitSlot.unitOrdinal;
 			extData.unitsTotal = unitSlot.unitsTotal;
 		}
-		const command = new WindowCommandBuilder(rowName).setSymbol("refine-object").setEnabled(enabled).setExtensionData(extData).setIconIndex(iconIndex).setColorIndex(nameColorIndex).setRightText(rightText).setHelpText(equip.description).build();
+		const command = new WindowCommandBuilder(label.name).setSymbol("refine-object").setEnabled(enabled).setExtensionData(extData).setIconIndex(iconIndex).setColorIndex(label.colorIndex).setRightText(rightText).setHelpText(equip.description).build();
 		this.addBuiltCommand(command);
+	}
+	/**
+	* Whether this row is the exact physical copy the player already committed as the base.
+	*
+	* Both halves matter. The same template is not enough - a player who owns three of a weapon may refine one into
+	* another - and an ordinal only means something once a base copy has actually been locked in.
+	*
+	* @param {RPG_EquipItem} equip The equip this row draws.
+	* @param {number|null} rowOrdinal Which copy this row is, or null for a stack-counted row.
+	* @returns {boolean}
+	*/
+	isChosenBaseCopy(equip, rowOrdinal) {
+		if (equip !== this.baseSelection) {
+			return false;
+		}
+		if (rowOrdinal === null) {
+			return false;
+		}
+		const baseOrdinal = this.baseSelectionUnitOrdinal;
+		if (baseOrdinal === null) {
+			return false;
+		}
+		return rowOrdinal === baseOrdinal;
+	}
+	/**
+	* Whether this copy may be spent as the donor.
+	*
+	* A template can be fed to itself - two of the same sword merging is legitimate - but only when a second copy
+	* exists to be consumed, and never using the very copy standing in as the base.
+	*
+	* @param {RPG_EquipItem} equip The equip this row draws.
+	* @param {boolean} isChosenBaseCopy Whether this row is the committed base copy.
+	* @returns {boolean}
+	*/
+	isSpendableCopy(equip, isChosenBaseCopy) {
+		if (this.isPrimary) {
+			return true;
+		}
+		if (equip !== this.baseSelection) {
+			return true;
+		}
+		const templateStack = $gameParty.numItems(this.baseSelection);
+		return templateStack > 1 && isChosenBaseCopy === false;
+	}
+	/**
+	* The name and colour a row draws with.
+	*
+	* Dismantle lineage earns the hollow diamond, and a refine counter earns the same accent even when the merged
+	* salvage rows came out empty - a `+N` output should not look like stock gear just because its donor was a
+	* vendor shell with nothing to refund.
+	*
+	* @param {RPG_EquipItem} equip The equip this row draws.
+	* @param {number|null} rowOrdinal Which copy this row is, or null for a stack-counted row.
+	* @returns {{ name: string, colorIndex: number }}
+	*/
+	rowLabelFor(equip, rowOrdinal) {
+		const hasSalvageStamp = refinableEquipHasSalvageStamp(equip, rowOrdinal);
+		const stamped = hasSalvageStamp || equip.jaftingRefinedCount > 0;
+		if (!stamped) {
+			return {
+				name: equip.name,
+				colorIndex: 0
+			};
+		}
+		const { RefinableListSalvageStampPrefix } = J.JAFTING.EXT.REFINE.Messages;
+		return {
+			name: `${RefinableListSalvageStampPrefix}${equip.name}`,
+			colorIndex: 6
+		};
 	}
 };
 
@@ -2450,6 +2637,34 @@ Scene_Jafting.prototype.onRootJaftingSelection = function() {
 Scene_Jafting.prototype.jaftingRefinementSelected = function() {
 	this.closeRootJaftingWindows();
 	Scene_JaftingRefine.callScene();
+};
+
+//#endregion
+//#region src/plugins/jafting/ext/refine/scenes/Scene_Map.js
+/**
+* Extends {@link Scene_Map.prototype.start}.<br/>
+* Collects any refinement slot the playthrough can no longer reach.
+*
+* **Why the map, and why not the moment a row leaves inventory.** Refinement mints rows into `$dataWeapons` /
+* `$dataArmors` and the party tracks their provenance, so both need tidying once the player parts with one for
+* good. The tempting place to do that is the `loseItem` hook, and it is wrong: equipping spends a row out of the
+* bag before installing it in the slot, so an item mid-equip is momentarily held nowhere, and selling, dismantling
+* and story-driven removals each settle at their own pace. Collecting from inside any of those means reading a
+* transitional state as a final one.
+*
+* `Scene_Map.start` is the point where none of that is in flight. It runs on map transfer *and* on the return from
+* any menu, shop, or battle, because `SceneManager.pop` constructs a fresh scene rather than resuming the old one -
+* so every path that could have released a refined equip passes through here afterward, with the transaction
+* finished. Collection being late costs nothing: the slot allocator only ever counts upward, so no future
+* refinement is waiting on a freed slot.
+*
+* This lives in Refinement rather than JAFTING core because Refinement is what creates dynamic rows in the first
+* place. A project without it has none, and therefore wants no sweep.
+*/
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.set("start", Scene_Map.prototype.start);
+Scene_Map.prototype.start = function() {
+	J.JAFTING.EXT.REFINE.Aliased.Scene_Map.get("start").call(this);
+	JaftingSalvageManager.reclaimUnreferencedDynamicSlots();
 };
 
 //#endregion

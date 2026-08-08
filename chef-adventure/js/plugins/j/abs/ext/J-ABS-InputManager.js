@@ -1301,7 +1301,9 @@ var SEMANTIC_TO_SYMBOL = {
 	"focus-prev": JabsInputSymbols.DirLeft,
 	"focus-next": JabsInputSymbols.DirRight,
 	"cart-dec": JabsInputSymbols.DirLeft,
-	"cart-inc": JabsInputSymbols.DirRight
+	"cart-inc": JabsInputSymbols.DirRight,
+	"cart-dec-bulk": JabsInputSymbols.SkillTrigger,
+	"cart-inc-bulk": JabsInputSymbols.GuardTrigger
 };
 /**
 * Describes a semantic handler as the inputs currently bound to it.
