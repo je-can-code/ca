@@ -1,6 +1,9 @@
 # The recipe system
 
-> **Status: design ratified 2026-08-04, unbuilt.** This is the plan for how cooking content gets
+> **Status: ingredient layer built 2026-08-10, recipe layer unbuilt.** `config.crafting.json` carries all
+> 56 `ingredientTypes`, 180 items in `i201-i432` carry their `<ingredientType:>` tags, and recipe
+> ingredient slots accept categories — though only one recipe has been converted to use them so far.
+> Categories, tools and the recipes themselves are still ahead. This is the plan for how cooking content gets
 > authored from here on. It replaces "invent another dish and see how it feels," which produced 31
 > good recipes and then a wall.
 >
@@ -218,7 +221,7 @@ than anywhere else in the game. Way to the Forest (53 spawns), Tons of Grass (50
 
 ---
 
-## Categories and matching
+## Ingredient categories and matching
 
 Recipes ask for a **category**, not an item id. `Grill + [any meat]` is one recipe that already covers
 bearcat, grim flank, gigacat and lamia - and covers the ch5 monster that has not been invented yet, for
@@ -286,7 +289,7 @@ finding a tool lights up several professions at once, so no cooking tool is a si
 
 ### Roster
 
-Seven exist by accident. Three more are proposed, each clearing a five-recipe bar.
+Six exist by accident. Four more are proposed, each clearing a five-recipe bar.
 
 | Method | Tools | Standing |
 |---|---|---|
@@ -296,19 +299,140 @@ Seven exist by accident. Three more are proposed, each clearing a five-recipe ba
 | Saute / wilt | Frying Pan + Spatula | 3 today |
 | Grill / skewer | Frying Pan + Gripper | 3 today |
 | Puree / blend | Obliterator | 1 today; sauces, juices, smoothies, pastes |
-| **Bake** | *new — Oven* | pies, breads, roasts, gratins, tarts |
-| **Steam** | *new — Steamer* | dumplings, fish, buns, vegetables, custards |
-| **Chop / raw** | Scissors *(exists, unused in cooking)* | salads, tartare, slaws, garnishes |
-| **Chill / freeze** | *new* | ice cream, sorbet, jelly, chilled soup |
+| **Bake** | *new — Dutch Oven* | pies, breads, roasts, gratins, tarts |
+| **Steam** | *new — Steamer Basket* | dumplings, fish, buns, vegetables, custards |
+| **Chop / raw** | *new — Cleaver* | salads, tartare, slaws, garnishes |
+| **Chill / freeze** | *new — Icebox* | ice cream, sorbet, jelly, chilled soup |
+
+The four new tools land in `i113-i119` — the seven empty slots between the Obliterator (`i112`) and the
+`==JABS TOOLS==` separator at `i120`.
 
 Three shipped dishes are already reaching for methods that do not exist: **Acorn Pie uses no tools at
 all** and wants an oven, **Vanilla Bleu Cone makes ice cream in a Soup Pot**, and **Steamed Imp Tongue
 steams in a Frying Pan**.
 
+### Tools are carried, so their names have to be portable
+
+**Resolved 2026-08-10: tools stay inventory items. They do not become switches.**
+
+The question that forced this was that an oven, a steamer and a refrigerator are *furniture*, and a
+party hauling furniture is absurd in a way a party hauling a frying pan is not. The tempting fix is to
+make a tool a switch — a capability the player has rather than an object they carry.
+
+That reads the problem wrong. The absurdity is not possession, it is **naming an appliance that happens
+to be furniture**. The Obliterator is a blender and it does not feel ridiculous, because it is named
+like something a lunatic would strap to a backpack. So the fix is the name: a **Dutch Oven** is a lidded
+cast-iron pot you genuinely bake in over coals, a **Steamer Basket** is stacked bamboo trays lighter
+than the Soup Pot already in the bag, and an **Icebox** is a box.
+
+Three reasons the item form is worth keeping, in increasing order of how much they would hurt to lose:
+
+- Switches cost plugin work. A tool is a `CraftingComponent` checked through `hasEnough()`, and
+  `isDatabaseEntry` throws on a type it does not recognise, so a switch means a new component type plus
+  a way for `Window_RecipeToolList` to render something with no icon and no name.
+- **A switch flipping in an event is not a moment.** The whole argument for shared tools is that finding
+  one lights up several professions at once, and that only lands if it is a thing you picked up.
+- **Tools may be categorical.** `CraftingRecipe` already says so. A slot wanting *any oven* — a camp
+  oven, a brick oven, whatever turns up in chapter five — is free with items and impossible with a
+  switch.
+
+**Tools are given, never bought.** They used to be shop stock, gated by which page of the Temporal
+Merchant's inventory you had unlocked, which meant the pickup was a transaction. Every tool now arrives
+through a story beat instead. That is what makes the item form worth its cost — a purchase is not a
+moment, and neither is a switch.
+
+The alternative that is *not* refuted here is **stations**: cooking bound to a place, where the kitchen
+you stand in declares which methods it offers. That is a different design with real plugin work, and it
+would make food a thing you prepare before leaving rather than in the field. It is not chosen, and it is
+not dismissed.
+
 **Deferred 2026-08-05, not rejected:** *Cure / dry* (jerky and preserves — thematically ideal for a road
-trip, and portable food is a real mechanical niche) and *Ferment* (cheese, pickles, drink — would give
-Bar's Tender an identity). Both clear five recipes easily. Both introduce **time** as a concept, which
-nothing else in cooking uses. Revisit once the ten-method roster is built and proven.
+trip, and portable food is a real mechanical niche) and *Ferment* (cheese, pickles, drink). Both clear
+five recipes easily. Both introduce **time** as a concept, which nothing else in cooking uses. Revisit
+once the ten-method roster is built and proven.
+
+---
+
+## The menu is organised by lane
+
+**Resolved 2026-08-10.** A crafting **category** is a tab in the crafting menu. Cooking's two —
+`cook-meal` and `cook-drink` — are replaced by the six food lanes, plus a seventh for outputs that have
+no lane.
+
+### Why lanes, and not methods
+
+Every other profession in the game already categorises by **what the recipe makes**, never by how it is
+made:
+
+| Profession | Category is | Method is |
+|---|---|---|
+| Bladesmithing, Spearcrafting, Gungineering, … | the weapon family | Hammer, or Hammer + Mitts — unnamed, invisible |
+| Sole Defender, The Weaver, Fabulous Footwork | the equip slot | Hammer + Gripper, Scissors, … |
+| Runic Creations, Gemology | the output classification | Gripper; Mitts + Gripper |
+| **Cooking** | **meal or drink** | Frying Pan, Soup Pot, Soup Pot + Spoon, … |
+
+Smithing reads as cut-and-dry precisely because those two axes are separated. Cooking read as chaotic
+because it never had an output-family axis at all — "meal versus beverage" is a serving temperature, not
+a family — so every bit of organising pressure fell onto the tool combination, which is the wrong axis
+and was never named anyway.
+
+The tool combination is a poor axis on its own evidence. Across all 329 shipped recipes there are only
+about twenty distinct combinations: Gemology is forty recipes behind a single Gripper, Runic Creations
+twenty behind a single Mitts + Gripper. A field that is re-stated identically forty times is a property
+of the *method*, not of the recipe.
+
+### The rule
+
+> **A recipe lives in the lane of its first output.**
+
+**This is an authoring rule, not a derivation.** `categoryKeys` is still written per recipe and no plugin
+computes it from the output's tags — so nobody should go looking for resolution code, and nothing stops
+a recipe being filed wrong. First output rather than any output, because a recipe may emit any mix of
+items, weapons and armors; the same reason `finishableOutput` needs an index.
+
+No new tagging is needed to follow the rule, because both tag families already speak the same six words:
+
+```
+<food:TYPE>            -> protein, vegetable, carb, fruit, dairy, sweet
+<ingredientType:LANE>  -> those same six, plus vessel, herb, liquid, spice, oil
+```
+
+A consumable carries its lane in `<food:>`; an ingredient carries it in `<ingredientType:>`. Either way
+the tab is read from a tag the author had to write regardless, so a dish is never classified twice.
+
+### The tabs
+
+| Lane | Category name |
+|---|---|
+| protein | **Meaty Members** |
+| vegetable | **Produce Power** |
+| carb | **Densecraft** |
+| fruit | **Fruition** |
+| dairy | **Dairy Air** |
+| sweet | **Confection Convection** |
+| *(none)* | **Pantry Paradise** |
+
+**Pantry Paradise holds only what has no lane** — which today means the shared bucket, and in practice
+means oils and waters. Six of the seven oils and three of the four waters are cooked; spices, herbs and
+vessels are bought, farmed or dropped and so need no recipes at all. Roughly ten recipes.
+
+It is tempting to widen Pantry into "crude components" and give it the breads, noodles, cheeses and
+creams too. **Do not.** Bread has a lane and cheese has a lane, so filing them by how refined they are
+instead reintroduces exactly the ambiguity this section removes: the player would have to know whether a
+thing is grouped by what it is or by how processed it is. Pantry is the home for the laneless and
+nothing else, which keeps the rule to one sentence with no judgement calls in it.
+
+**Pantry is exclusive, not cross-cutting.** Oil is not protein-and-pantry, it is pantry.
+
+### What retires, and what survives
+
+`cook-meal` and `cook-drink` both go away. Leaving either one alongside the lanes would put "Protein"
+and "Drink" on screen as siblings, and the player would have no way to learn what a tab even means.
+
+That costs **Bar's Tender**, which is a good name attached to a real identity. It survives by becoming a
+**person rather than a tab** — the bartender who teaches drink recipes. Cuisines are taught by chefs,
+quests and story beats already, so this needs no schema and no menu space, and a drink simply files
+under the lane of whatever it is made of: River Smoothie is fruit, Gel-o is sweet, Malk is dairy.
 
 ---
 
@@ -487,6 +611,22 @@ recipe's output already works — River Smoothie and Jelli Hors d'Oeuvres do it 
     (i81), **Pasta** (i89) and **Coconut** (i95). Coconut is a fruit, which is the emptiest lane.
 13. **Retire Recipe Journals I-III** (items 461-463, events 161-163) and update
     `../unlockables/recipe-journals.md`.
+14. **Replace the cooking categories** — delete `cook-meal` and `cook-drink`, add the six lane tabs plus
+    Pantry Paradise, and re-file all 31 existing cooking recipes by the lane of their output.
+15. **Author the new tools and reorder the tool block.** This touches **423 references** — 384 in
+    `config.crafting.json` and 39 in map events — across all fourteen categories, not just cooking. It
+    is done as a scripted remap keyed on **names rather than ids**, because a renumber applied
+    consistently to the wrong rows passes every id-level check. `bun tools/tool-ids.js snapshot` records
+    the starting state into [`backup-tools.json`](backup-tools.json); `plan` reports what moved and
+    which references were left behind.
+16. **Take the tools out of the shop.** Tools stop being purchasable and become story grants. The
+    Temporal Merchant (`Map20` event 31) stocks 6, 10 and 12 of them across its three pages, which is a
+    progression gate that no longer has anything to gate. The event itself survives — tools are only a
+    slice of its 18, 41 and 51 goods.
+17. **Re-tool the six mis-tooled recipes.** Acorn Pie uses no tool and wants the Dutch Oven; Vanilla Bleu
+    Cone wants the Icebox; Steamed Imp Tongue wants the Steamer Basket; River Smoothie wants the
+    Obliterator; Molten Fried Rice boils in a Soup Pot and should fry; and Seeing Jambalaya carries a
+    Spoon + Frying Pan pairing that exists nowhere else in 329 recipes and matches no method.
 
 ---
 
@@ -506,6 +646,14 @@ recipe's output already works — River Smoothie and Jelli Hors d'Oeuvres do it 
 
 | Date | Decision |
 |---|---|
+| 2026-08-10 | **Crafting categories are the six food lanes**, plus Pantry Paradise for laneless outputs. `cook-meal` and `cook-drink` retire. |
+| 2026-08-10 | **A recipe lives in its output's lane**, read from `<food:>` or `<ingredientType:>`. The two vocabularies already agree on the six names. |
+| 2026-08-10 | **Method is never a tab.** It is a tool requirement, an unlock moment, and the dish-name generator — the same role Hammer + Mitts plays in smithing. |
+| 2026-08-10 | **Pantry Paradise is exclusive and narrow** — the laneless only, not "crude components". Breads and cheeses file under carb and dairy. |
+| 2026-08-10 | **Bar's Tender becomes a person, not a tab** — the bartender who teaches drink recipes. |
+| 2026-08-10 | **Tools stay items, not switches**, and a new tool must be named as something portable rather than as furniture. Stations remain unchosen and unrejected. The specific names in the roster are proposals. |
+| 2026-08-10 | **Tools are given, never bought.** Every tool arrives through a story beat; the shop stops stocking them. Acquiring one is a moment, which is the whole reason they are items. |
+| 2026-08-10 | **No method layer in the schema.** Method stays a convention the author holds, not a `methods` block — partly because ten methods fit in one head, and partly because the editor replaces `config.crafting.json` wholesale and would erase any block it does not know about. |
 | 2026-08-05 | **Recipes match categories, not item ids.** Adding an ingredient later costs zero recipes. |
 | 2026-08-05 | **`<ingredientType>` is many-per-item; `<food:TYPE>` is one, consumables only.** Ingredients are promiscuous, dishes are decisive. |
 | 2026-08-05 | **Finishing touches are create-time and are not refinement.** No refine count, no re-garnishing after the fact. |
