@@ -329,28 +329,12 @@ Cooking's tools answer **how**, so a cooking recipe names exactly one. The rest 
 **what a thing is made of**, so those recipes name as many tools as they use materials. That asymmetry
 is deliberate: they are answering different questions, and the questions have different cardinality.
 
-| Tool | Material | Present in the shipped data as |
-|---|---|---|
-| **cross-pein** | metal | Iron / Silver / Bleu / Sandwraith / Engle / Deep / Might / Ultanium, as Ore and Ingot |
-| **adze** | wood | Oak, Dreamwood, Negapine, Preserved / Dead / Dry Branch, Pokey Stick, Aged Crook |
-| **graver** | gems | Ruby, Topaz, Sapphire, Crystal, Emerald, and the Raw colour stones |
-| **wirestripper** | circuitry | Tech Battery I-IV, the Stun Gun / Shocker line, Voltaic Sabatons |
-| **shears** | fabric | Wisp Pelt, Dense Pelt, Loose Scales, Dead Veil |
-| **alembic** | catalysts | the six colour Essences, Magic Core, Smith's Soulcrystal |
+The six material tools, and which materials each equipment family is made of, live in
+[`../crafting/material-tools.md`](../crafting/material-tools.md). That document is the authority for
+everything outside the kitchen.
 
 **No tool is a legitimate requirement.** Fifteen of the twenty-two fist recipes ask for nothing, because
 gloves get put together by hand. That is a real answer and not a gap.
-
-**Circuitry has a roster but no materials yet.** The weapons and armors that need it are shipped; the
-things they are built out of have not been authored. Alchemy is in the same position, which is why the
-alembic covers potions and gem upgrades that do not exist yet either.
-
-Two material families have real volume and no tool:
-
-- **Stone** — Round Stone, Circular Stone, Worn Stone, heavy in fist-smithing and survive-off. The graver
-  can plausibly swallow these; a graver is a stone-and-metal tool.
-- **Bone, fang and claw** — Sharp Stinger, Double Fangs, Dull Talon, Mossy Bone, Red Spines, Intact
-  Stinger, Pierced Ear, across fist, spear, gun and feet. These are genuinely homeless.
 
 Because a crafting tool follows from the materials, **a recipe's tools can be checked against its
 ingredients** and a mismatch reported. That is a consistency gate the profession-based tools could never

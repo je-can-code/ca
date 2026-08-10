@@ -27,6 +27,7 @@ As such, while the plugins living in my [other repository can be found over here
 - [SDP archetype mapping (design)][23]
 - [database decode cheatsheet (traits, ids, CLI)][25]
 - [SDP panel parameters cheatsheet (P4-1 stat rows)][26]
+- [crafting tools and materials (what each family is made of)][34]
 - [the recipe system (components, cuisines, methods, unlocks)][30]
 - [ingredient roster (every food item/armor, bucketed and tagged)][33]
 - [food chain durations and colors][31]
@@ -67,3 +68,5 @@ And of course, a list of unlockables and their details:
 [32]: ./maps/progression-bands.md
 
 [33]: ./food/ingredient-roster.md
+
+[34]: ./crafting/material-tools.md
