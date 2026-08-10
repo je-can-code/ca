@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.1 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
+ * [v1.2.2 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -139,6 +139,11 @@
  * the J-MZ Data Editor app), not tagged on individual database objects.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.2
+ *    The recipe detail window reads a crafted weapon or armor's base parameters
+ *    through thisBParam rather than off the params array. An equip's worth for a
+ *    parameter is that field plus any this-parameter tag it carries, so reading
+ *    the array alone understated anything authored as a tag.
  * - 1.2.1
  *    The plugin metadata class and the category badge and recipe detail
  *    windows no longer declare private members. Both base constructors reach
@@ -1546,7 +1551,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.2.1");
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.2.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2708,41 +2713,51 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 		const traitsY = y + lh * 5;
 		this.drawTraits(output, x, traitsY);
 	}
+	/**
+	* Draws the eight base parameters a crafted weapon or armor will be worth.
+	*
+	* Read through {@link RPG_EquipItem#thisBParam} rather than off the `params` array, because an equip's
+	* worth for a parameter is that field plus any `<this{PARAM}:N>` tag it carries. Reading the array alone
+	* would quietly understate anything authored as a tag.
+	* @param {RPG_EquipItem} output The equip this recipe produces.
+	* @param {number} x The origin to draw from.
+	* @param {number} y The vertical position to draw at.
+	*/
 	drawCoreParams(output, x, y) {
 		this.resetFontSettings();
 		const leftX = x;
 		const rightX = x + Math.max(72, Math.floor(this.detailsFourthBandWidth() / 2) - 8);
 		const lh = this.lineHeight() - 4;
 		const mhpY = y;
-		const mhp = this.needsMasking ? "??" : output.params.at(0);
+		const mhp = this.needsMasking ? "??" : output.thisBParam(0);
 		this.drawIcon(IconManager.param(0), leftX, mhpY);
 		this.drawText(mhp, leftX + 40, mhpY);
 		const mmpY = y + lh * 1;
-		const mmp = this.needsMasking ? "??" : output.params.at(1);
+		const mmp = this.needsMasking ? "??" : output.thisBParam(1);
 		this.drawIcon(IconManager.param(1), leftX, mmpY);
 		this.drawText(mmp, leftX + 40, mmpY);
 		const atkY = y + lh * 2;
-		const atk = this.needsMasking ? "??" : output.params.at(2);
+		const atk = this.needsMasking ? "??" : output.thisBParam(2);
 		this.drawIcon(IconManager.param(2), leftX, atkY);
 		this.drawText(atk, leftX + 40, atkY);
 		const defY = y + lh * 3;
-		const def = this.needsMasking ? "??" : output.params.at(3);
+		const def = this.needsMasking ? "??" : output.thisBParam(3);
 		this.drawIcon(IconManager.param(3), leftX, defY);
 		this.drawText(def, leftX + 40, defY);
 		const agiY = y;
-		const agi = this.needsMasking ? "??" : output.params.at(6);
+		const agi = this.needsMasking ? "??" : output.thisBParam(6);
 		this.drawIcon(IconManager.param(6), rightX, agiY);
 		this.drawText(agi, rightX + 40, agiY);
 		const lukY = y + lh * 1;
-		const luk = this.needsMasking ? "??" : output.params.at(7);
+		const luk = this.needsMasking ? "??" : output.thisBParam(7);
 		this.drawIcon(IconManager.param(7), rightX, lukY);
 		this.drawText(luk, rightX + 40, lukY);
 		const matY = y + lh * 2;
-		const mat = this.needsMasking ? "??" : output.params.at(4);
+		const mat = this.needsMasking ? "??" : output.thisBParam(4);
 		this.drawIcon(IconManager.param(4), rightX, matY);
 		this.drawText(mat, rightX + 40, matY);
 		const mdfY = y + lh * 3;
-		const mdf = this.needsMasking ? "??" : output.params.at(5);
+		const mdf = this.needsMasking ? "??" : output.thisBParam(5);
 		this.drawIcon(IconManager.param(5), rightX, mdfY);
 		this.drawText(mdf, rightX + 40, mdfY);
 	}

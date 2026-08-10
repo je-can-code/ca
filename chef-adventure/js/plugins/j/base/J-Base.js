@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.3.0 BASE] The base class for all J plugins.
+ * [v3.4.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,39 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.4.0
+ *    Parameter percentages carried by equipment now scale that equipment's own
+ *    contribution rather than the wearer's total. A weapon granting +25% attack
+ *    lifts what the weapon is worth, not the class curve and every other worn
+ *    item along with it, which is what makes such a bonus bounded by the thing
+ *    carrying it.
+ *    Added RPG_EquipItem.ownRate, answering what an equip amplifies its own base
+ *    by for one parameter. Codes 21 and 23 store deltas from 1.0 while code 22
+ *    stores them from 0; this normalises all three onto one multiplier so a
+ *    single subtraction can remove equipment's share from any of them.
+ *    Added a localisedEquips hook to Game_BattlerBase, answering with nothing at
+ *    that level. Enemies carry no equipment, so every formula below is a no-op
+ *    for them rather than a special case.
+ *    Game_BattlerBase.paramRate, sparam and the newly added xparam override now
+ *    subtract equipment's share from the battler-wide aggregate and, for the two
+ *    parameter families with no field of their own, re-apply it against each
+ *    item's own base.
+ *    Game_Actor.paramPlus is overwritten rather than extended, because vanilla
+ *    already adds each equip's params entry and thisBParam includes that same
+ *    entry - aliasing would have counted it twice.
+ *    Equipment contributions are cached per parameter and invalidated by
+ *    onBattlerDataChange, matching every other note-derived value on a battler.
+ *    The reads behind them scan a note string once per equipped item, and
+ *    parameters are asked for during damage resolution and once per row of every
+ *    parameter catalog refresh.
+ *    NoteResolver gained a summing policy for numeric tags. Stacking those as
+ *    repeated lines cannot work - an exact duplicate line is dropped within a
+ *    single note, so a value written twice collapses to one and reads as half
+ *    what it should forever. Totalling them into one line is the only shape that
+ *    survives being merged again.
+ *    Added Window_ItemList data and setData accessors, so a list reordering or
+ *    filtering its rows has a way in that is not a reach into storage it does
+ *    not own.
  * - 3.3.0
  *    The shipped file moved from js/plugins/J-Base.js to
  *    js/plugins/base/J-Base.js, following the base plugin set's split into a
@@ -1729,7 +1762,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.3.0";
+J.BASE.Metadata.Version = "3.4.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -1866,6 +1899,197 @@ J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\]+>$/i;
 * The basic structure for retrieving summable max tech values.
 */
 J.BASE.RegExp.MaxTp = /<maxTp: ?(-?\d+)>/i;
+/**
+* A flat amount of one parameter that **this row itself carries**, rather than one it grants its bearer.
+*
+* <pre>
+* Structure:
+*  <this{PARAM}:AMOUNT>
+*
+* Example:
+*  <thisAtk:15>
+*
+* Translation:
+*  This row contributes 15 points of ATK of its own.
+* </pre>
+*
+* **Why these exist.** RMMZ gives equipment a `params` array for the eight base parameters and nothing at
+* all for the twenty ex- and sp-parameters, which can only ever arrive as traits. A trait has no amount
+* of its own to speak of - it multiplies whatever the *battler* already has - so there is no way in the
+* editor to say "this shield is worth 25 points of parry". These tags are that missing field, in the same
+* manner {@link J.BASE.RegExp.MaxTp} is the missing field for a resource RMMZ never modelled.
+*
+* That matters because it is what lets a percentage scale the *item* instead of its wearer. A `+25% ATK`
+* on a sword can multiply the sword's own contribution once the sword has one, which keeps a legendary
+* blade permanently worth more than a plussed-up Iron Sword - and stops a defensive stat being piled onto
+* anything that will hold it.
+*
+* All twenty-eight are declared, including the eight the editor already covers via `params`. A refinement
+* merge can produce any of them, so a `<thisAtk:>` arriving on a merged output needs somewhere to land
+* rather than a special case. Where a row declares both, the two sum.
+*
+* **Amounts are in display units** - the same numbers the editor and the UI show, not the internal rates.
+* `<thisGrd:25>` is twenty-five points of parry, matching the convention `<sar:25>` already uses.
+*/
+/**
+* Flat max hit points this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisMhp = /<thisMhp: ?(-?\d+)>/i;
+/**
+* Flat max magi this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisMmp = /<thisMmp: ?(-?\d+)>/i;
+/**
+* Flat max tech this row carries.
+*
+* Belongs beside max life and max magi - {@link ParameterKeys} files it as a long parameter alongside them
+* and `PassiveRuleThreshold` treats all three as max resources - and it is only absent from the eight
+* because RMMZ fixed tech at a flat hundred for every battler rather than modelling it.
+*
+* Distinct from {@link J.BASE.RegExp.MaxTp}, which grants its **bearer** extra max tech wherever it is
+* declared. This one is an amount the row itself is worth, so a percentage can scale it. A row may carry
+* both, and they mean different things.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisMtp = /<thisMtp: ?(-?\d+)>/i;
+/**
+* Flat attack this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisAtk = /<thisAtk: ?(-?\d+)>/i;
+/**
+* Flat defense this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisDef = /<thisDef: ?(-?\d+)>/i;
+/**
+* Flat magic attack this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisMat = /<thisMat: ?(-?\d+)>/i;
+/**
+* Flat magic defense this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisMdf = /<thisMdf: ?(-?\d+)>/i;
+/**
+* Flat agility this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisAgi = /<thisAgi: ?(-?\d+)>/i;
+/**
+* Flat luck this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisLuk = /<thisLuk: ?(-?\d+)>/i;
+/**
+* Flat accuracy this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisHit = /<thisHit: ?(-?\d+)>/i;
+/**
+* Flat evasion this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisEva = /<thisEva: ?(-?\d+)>/i;
+/**
+* Flat critical hit chance this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisCri = /<thisCri: ?(-?\d+)>/i;
+/**
+* Flat critical evasion this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisCev = /<thisCev: ?(-?\d+)>/i;
+/**
+* Flat magic evasion this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisMev = /<thisMev: ?(-?\d+)>/i;
+/**
+* Flat magic reflection this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisMrf = /<thisMrf: ?(-?\d+)>/i;
+/**
+* Flat counter attack chance this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisCnt = /<thisCnt: ?(-?\d+)>/i;
+/**
+* Flat hp regeneration this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisHrg = /<thisHrg: ?(-?\d+)>/i;
+/**
+* Flat magi regeneration this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisMrg = /<thisMrg: ?(-?\d+)>/i;
+/**
+* Flat tech regeneration this row carries.
+*
+* Mind the neighbour: this is regeneration, while {@link J.BASE.RegExp.ThisTgr} one region below is
+* target rate. The two abbreviations are a transposition apart and mean unrelated things.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisTrg = /<thisTrg: ?(-?\d+)>/i;
+/**
+* Flat target rate this row carries - how much aggro it draws.
+*
+* Mind the neighbour: this is target rate, while {@link J.BASE.RegExp.ThisTrg} one region above is tech
+* regeneration.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisTgr = /<thisTgr: ?(-?\d+)>/i;
+/**
+* Flat guard rate this row carries - parry.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisGrd = /<thisGrd: ?(-?\d+)>/i;
+/**
+* Flat recovery rate this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisRec = /<thisRec: ?(-?\d+)>/i;
+/**
+* Flat pharmacology this row carries - potency of consumed items.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisPha = /<thisPha: ?(-?\d+)>/i;
+/**
+* Flat magi cost reduction this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisMcr = /<thisMcr: ?(-?\d+)>/i;
+/**
+* Flat tech charge rate this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisTcr = /<thisTcr: ?(-?\d+)>/i;
+/**
+* Flat physical damage rate this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisPdr = /<thisPdr: ?(-?\d+)>/i;
+/**
+* Flat magical damage rate this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisMdr = /<thisMdr: ?(-?\d+)>/i;
+/**
+* Flat floor damage rate this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisFdr = /<thisFdr: ?(-?\d+)>/i;
+/**
+* Flat experience rate this row carries.
+* @type {RegExp}
+*/
+J.BASE.RegExp.ThisExr = /<thisExr: ?(-?\d+)>/i;
 /**
 * One or more type classifiers assigned to a state.
 * Multiple tags on the same state are all collected.
@@ -5406,6 +5630,349 @@ ColorManager.colorIndexFromHex = function(hexString) {
 };
 
 //#endregion
+//#region src/plugins/_base/core/managers/IconManager.js
+/**
+* A static class that manages the icon to X correlation, such as stats and elements.
+* IconManager is a J-Base global — not part of the RMMZ engine (unlike TextManager).
+*/
+var IconManager = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("The IconManager is a static class.");
+	}
+	/**
+	* Gets the iconIndex for levels.
+	* @returns {number}
+	*/
+	static level() {
+		return 86;
+	}
+	/**
+	* Gets the `iconIndex` for max tp.
+	* @returns {number} The `iconIndex`.
+	*/
+	static maxTp() {
+		return 930;
+	}
+	/**
+	* Gets the `iconIndex` for HAR (Healing Rate).
+	* @returns {number} The `iconIndex`.
+	*/
+	static har() {
+		return 7;
+	}
+	/**
+	* Gets the iconIndex for a given reward parameter.<br>
+	* Reward Param mapping:<br>
+	* <pre>
+	* - 0: experience
+	* - 1: gold/currency
+	* - 2: drops or drop rate
+	* - 3: encounters or encounter rate
+	* - 4: SDP
+	* </pre>
+	* @param {number} paramId The param id to get the icon index for.
+	* @returns {number}
+	*/
+	static rewardParam(paramId) {
+		switch (paramId) {
+			case 0: return 87;
+			case 1: return 2048;
+			case 2: return 208;
+			case 3: return 914;
+			case 4: return 445;
+		}
+	}
+	/**
+	* Gets the corresponding `iconIndex` for the param.
+	* @param {number} paramId The id of the param.
+	* @returns {number} The `iconIndex`.
+	*/
+	static param(paramId) {
+		switch (paramId) {
+			case 0: return 928;
+			case 1: return 929;
+			case 2: return 931;
+			case 3: return 932;
+			case 4: return 933;
+			case 5: return 934;
+			case 6: return 935;
+			case 7: return 936;
+		}
+	}
+	/**
+	* Gets the corresponding `iconIndex` for the x-param.
+	* @param {number} paramId The id of the param.
+	* @returns {number} The `iconIndex`.
+	*/
+	static xparam(paramId) {
+		switch (paramId) {
+			case 0: return 944;
+			case 1: return 945;
+			case 2: return 946;
+			case 3: return 947;
+			case 4: return 948;
+			case 5: return 949;
+			case 6: return 950;
+			case 7: return 951;
+			case 8: return 952;
+			case 9: return 953;
+		}
+	}
+	/**
+	* Gets the corresponding `iconIndex` for the s-param.
+	* @param {number} paramId The id of the param.
+	* @returns {number} The `iconIndex`.
+	*/
+	static sparam(paramId) {
+		switch (paramId) {
+			case 0: return 960;
+			case 1: return 961;
+			case 2: return 962;
+			case 3: return 963;
+			case 4: return 964;
+			case 5: return 965;
+			case 6: return 966;
+			case 7: return 967;
+			case 8: return 968;
+			case 9: return 969;
+		}
+	}
+	/**
+	* Gets the icon index for a catalog parameter key.
+	* @param {string} parameterKey The registry key.
+	* @returns {number}
+	*/
+	static parameterIcon(parameterKey) {
+		const definition = ParameterRegistry.get(parameterKey);
+		if (!definition) {
+			return 0;
+		}
+		return definition.iconIndex();
+	}
+	/**
+	* Gets the corresponding `iconIndex` for the element based on their id.
+	* @param {number} elementId The id of the element.
+	* @returns {number}
+	*/
+	static element(elementId) {
+		switch (elementId) {
+			case -1: return 76;
+			case 0: return 70;
+			case 1: return 912;
+			case 2: return 913;
+			case 3: return 914;
+			case 4: return 915;
+			case 5: return 916;
+			case 6: return 917;
+			case 7: return 918;
+			case 8: return 919;
+			case 9: return 920;
+			case 10: return 127;
+			case 11: return 302;
+			case 12: return 321;
+			case 13: return 345;
+			case 14: return 342;
+			case 15: return 184;
+			case 16: return 2112;
+			case 17: return 348;
+			case 18: return 82;
+			case 19: return 83;
+			case 20: return 2192;
+			case 21: return 403;
+			case 22: return 364;
+			case 23: return 453;
+			case 24: return 72;
+			case 25: return 200;
+			case 26: return 218;
+			case 27: return 1904;
+			case 28: return 119;
+			default: return 93;
+		}
+	}
+	/**
+	* Gets the icon for the skill type.
+	* @param {number} skillTypeId The id of the skill type.
+	* @returns {number} The corresponding icon index.
+	*/
+	static skillType(skillTypeId) {
+		switch (skillTypeId) {
+			case 1: return 82;
+			case 2: return 2592;
+			case 3: return 77;
+			case 4: return 79;
+			case 5: return 188;
+			case 6: return 227;
+			case 7: return 76;
+			case 8: return 2192;
+			default: return 0;
+		}
+	}
+	/**
+	* Gets the icon for the weapon type.
+	* @param {number} weaponTypeId The id of the weapon type.
+	* @returns {number} The corresponding icon index.
+	*/
+	static weaponType(weaponTypeId) {
+		switch (weaponTypeId) {
+			case 1: return 401;
+			case 2: return 408;
+			case 3: return 438;
+			case 4: return 434;
+			case 5: return 442;
+			case 6: return 461;
+			case 7: return 2074;
+			case 8: return 2077;
+			case 9: return 2076;
+			case 10: return 2075;
+			default: return 16;
+		}
+	}
+	/**
+	* Gets the icon for the armor type.
+	* @param {number} armorTypeId The id of the armor type.
+	* @returns {number} The corresponding icon index.
+	*/
+	static armorType(armorTypeId) {
+		switch (armorTypeId) {
+			case 1: return 16;
+			default: return 16;
+		}
+	}
+	/**
+	* Gets the icon for the equip type.
+	* @param {number} equipTypeId The id of the equip type.
+	* @returns {number} The corresponding icon index.
+	*/
+	static equipType(equipTypeId) {
+		switch (equipTypeId) {
+			case 1: return 16;
+			default: return 16;
+		}
+	}
+	/**
+	* Gets the icon for the special flag of a trait.
+	* @param {number} flagId The id of the special flag.
+	* @returns {number} The corresponding icon index.
+	*/
+	static specialFlag(flagId) {
+		switch (flagId) {
+			case 1: return 16;
+			default: return 16;
+		}
+	}
+	/**
+	* Gets the icon for the party ability of a trait.
+	* @param {number} partyAbilityId The id of the party ability.
+	* @returns {number} The corresponding icon index.
+	*/
+	static partyAbility(partyAbilityId) {
+		switch (partyAbilityId) {
+			case 1: return 16;
+			default: return 16;
+		}
+	}
+	/**
+	* Gets the icon for a trait.
+	* @param {JAFTING_Trait} trait The target trait.
+	* @returns {number} The corresponding icon index.
+	*/
+	static trait(trait) {
+		switch (trait._code) {
+			case 11: return this.element(trait._dataId);
+			case 12: return this.param(trait._dataId);
+			case 13:
+			case 14: return $dataStates[trait._dataId].iconIndex;
+			case 21: return this.param(trait._dataId);
+			case 22: return this.xparam(trait._dataId);
+			case 23: return this.sparam(trait._dataId);
+			case 31: return this.element(trait._dataId);
+			case 32: return $dataStates[trait._dataId].iconIndex;
+			case 33: return 79;
+			case 34: return 399;
+			case 35: return $dataSkills[trait._dataId].iconIndex;
+			case 41: return this.skillType(trait._dataId);
+			case 42: return this.skillType(trait._dataId);
+			case 43: return $dataSkills[trait._dataId].iconIndex;
+			case 44: return $dataSkills[trait._dataId].iconIndex;
+			case 51: return this.weaponType(trait._dataId);
+			case 52: return this.armorType(trait._dataId);
+			case 53: return this.equipType(trait._dataId);
+			case 54: return this.equipType(trait._dataId);
+			case 55: return 462;
+			case 61: return 76;
+			case 63: return 25;
+			case 62: return this.specialFlag(trait._dataId);
+			case 64: return this.partyAbility(trait._dataId);
+			default:
+				console.error(`all traits are accounted for- is this a custom trait code: [${trait._code}]?`);
+				return false;
+		}
+	}
+	/**
+	* A tag for correlating a JABS parameter to an icon.
+	*/
+	static JABS_PARAMETER = {
+		BONUS_HITS: "bonus-hits",
+		ATTACK_SKILL: "attack-skill",
+		SPEED_BOOST: "speed-boost"
+	};
+	/**
+	* Gets the JABS-related icon based on parameter type.
+	* @param {string} type The type of JABS parameter.
+	* @returns {number} The corresponding icon index.
+	*/
+	static jabsParameterIcon(type) {
+		switch (type) {
+			case this.JABS_PARAMETER.BONUS_HITS: return 399;
+			case this.JABS_PARAMETER.SPEED_BOOST: return 82;
+			case this.JABS_PARAMETER.ATTACK_SKILL: return 76;
+		}
+	}
+	/**
+	* A tag for correlating a JAFTING parameter to an icon.
+	*/
+	static JAFTING_PARAMETER = {
+		MAX_REFINE: "max-refine-count",
+		MAX_TRAITS: "max-trait-count",
+		NOT_BASE: "not-refinement-base",
+		NOT_MATERIAL: "not-refinement-material",
+		TIMES_REFINED: "refined-count",
+		UNREFINABLE: "unrefinable"
+	};
+	/**
+	* Gets the JAFTING-related icon based on parameter type.
+	* @param {string} type The type of JAFTING parameter.
+	* @returns {number} The corresponding icon index.
+	*/
+	static jaftingParameterIcon(type) {
+		switch (type) {
+			case this.JAFTING_PARAMETER.MAX_REFINE: return 86;
+			case this.JAFTING_PARAMETER.MAX_TRAITS: return 86;
+			case this.JAFTING_PARAMETER.NOT_BASE: return 90;
+			case this.JAFTING_PARAMETER.NOT_MATERIAL: return 90;
+			case this.JAFTING_PARAMETER.TIMES_REFINED: return 223;
+			case this.JAFTING_PARAMETER.UNREFINABLE: return 90;
+		}
+	}
+	/**
+	* Gets the icon representing the team id provided.
+	* @param {number} teamId The team id.
+	* @returns {number} The corresponding icon index.
+	*/
+	static team(teamId) {
+		switch (teamId) {
+			case 0: return 38;
+			case 1: return 21;
+			case 2: return 91;
+		}
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/core/database/_data/RPG_Trait.js
 /**
 * A class representing a single trait living on one of the many types
@@ -5451,6 +6018,24 @@ var RPG_Trait = class RPG_Trait {
 		this.code = trait.code;
 		this.dataId = trait.dataId;
 		this.value = trait.value;
+	}
+	/**
+	* The icon representing what this trait affects, or 0 when it has no natural one.
+	*
+	* The three parameter codes line up exactly with the three parameter icon lookups already in
+	* {@link IconManager}, so a trait carrying a stat can always be shown as that stat's icon rather than
+	* spelled out. Everything else - element rates, skill seals, party abilities - has no single icon that
+	* means it, and answers 0 so a caller can fall back to words instead of inventing artwork.
+	* @returns {number}
+	*/
+	iconIndex() {
+		if (this.code === 21) return IconManager.param(this.dataId);
+		if (this.code === 22) return IconManager.xparam(this.dataId);
+		if (this.code === 23) return IconManager.sparam(this.dataId);
+		if (this.code === 11 || this.code === 31) return IconManager.element(this.dataId);
+		if (this.code === 14) return $dataStates.at(this.dataId).iconIndex;
+		if (this.code === 35 || this.code === 43 || this.code === 44) return $dataSkills.at(this.dataId).iconIndex;
+		return 0;
 	}
 	/**
 	* Gets a combined textual name and value of this trait.
@@ -5666,6 +6251,315 @@ var RPG_EquipItem = class extends RPG_Traited {
 	*/
 	implementationType() {
 		return `${super.implementationType()}:equip`;
+	}
+	/**
+	* How much of a base parameter this equip is worth of its own.
+	*
+	* **Both sources are summed.** The editor's `params` array and a `<this{PARAM}:N>` tag are two ways of
+	* saying the same thing, and an equip may end up carrying both - a refinement merge can put a tag onto a
+	* row that already had a number in the field. Neither wins; they add.
+	* @param {number} paramId The base parameter id, 0 through 7.
+	* @returns {number}
+	*/
+	thisBParam(paramId) {
+		return this.params.at(paramId) + this.thisBParamBonus(paramId);
+	}
+	/**
+	* The tagged half of a base parameter this equip carries, without its `params` field.
+	*
+	* Separate from {@link thisBParam} because the two halves are authored in different places, and a reader
+	* comparing an equip against what the editor shows needs to be able to see them apart.
+	* @param {number} paramId The base parameter id, 0 through 7.
+	* @returns {number}
+	*/
+	thisBParamBonus(paramId) {
+		switch (paramId) {
+			case 0: return this.thisMhp();
+			case 1: return this.thisMmp();
+			case 2: return this.thisAtk();
+			case 3: return this.thisDef();
+			case 4: return this.thisMat();
+			case 5: return this.thisMdf();
+			case 6: return this.thisAgi();
+			case 7: return this.thisLuk();
+			default: return 0;
+		}
+	}
+	/**
+	* How much of an ex-parameter this equip is worth of its own.
+	*
+	* No `params` counterpart exists for these - RMMZ models them only as traits - so the tag is the whole
+	* of it. That absence is the reason these tags exist at all.
+	* @param {number} xparamId The ex-parameter id, 0 through 9.
+	* @returns {number}
+	*/
+	thisXParam(xparamId) {
+		switch (xparamId) {
+			case 0: return this.thisHit();
+			case 1: return this.thisEva();
+			case 2: return this.thisCri();
+			case 3: return this.thisCev();
+			case 4: return this.thisMev();
+			case 5: return this.thisMrf();
+			case 6: return this.thisCnt();
+			case 7: return this.thisHrg();
+			case 8: return this.thisMrg();
+			case 9: return this.thisTrg();
+			default: return 0;
+		}
+	}
+	/**
+	* How much of an sp-parameter this equip is worth of its own.
+	* @param {number} sparamId The sp-parameter id, 0 through 9.
+	* @returns {number}
+	*/
+	thisSParam(sparamId) {
+		switch (sparamId) {
+			case 0: return this.thisTgr();
+			case 1: return this.thisGrd();
+			case 2: return this.thisRec();
+			case 3: return this.thisPha();
+			case 4: return this.thisMcr();
+			case 5: return this.thisTcr();
+			case 6: return this.thisPdr();
+			case 7: return this.thisMdr();
+			case 8: return this.thisFdr();
+			case 9: return this.thisExr();
+			default: return 0;
+		}
+	}
+	/**
+	* Flat max hit points this equip carries, from its tag alone.
+	* @returns {number}
+	*/
+	thisMhp() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisMhp);
+	}
+	/**
+	* Flat max magi this equip carries, from its tag alone.
+	* @returns {number}
+	*/
+	thisMmp() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisMmp);
+	}
+	/**
+	* Flat max tech this equip carries.
+	*
+	* The only one of the nine with no editor field to sum against, because RMMZ fixed tech at a flat
+	* hundred rather than modelling it, so the tag is the whole of it.
+	* @returns {number}
+	*/
+	thisMtp() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisMtp);
+	}
+	/**
+	* Flat attack this equip carries, from its tag alone.
+	* @returns {number}
+	*/
+	thisAtk() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisAtk);
+	}
+	/**
+	* Flat defense this equip carries, from its tag alone.
+	* @returns {number}
+	*/
+	thisDef() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisDef);
+	}
+	/**
+	* Flat magic attack this equip carries, from its tag alone.
+	* @returns {number}
+	*/
+	thisMat() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisMat);
+	}
+	/**
+	* Flat magic defense this equip carries, from its tag alone.
+	* @returns {number}
+	*/
+	thisMdf() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisMdf);
+	}
+	/**
+	* Flat agility this equip carries, from its tag alone.
+	* @returns {number}
+	*/
+	thisAgi() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisAgi);
+	}
+	/**
+	* Flat luck this equip carries, from its tag alone.
+	* @returns {number}
+	*/
+	thisLuk() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisLuk);
+	}
+	/**
+	* Flat accuracy this equip carries.
+	* @returns {number}
+	*/
+	thisHit() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisHit);
+	}
+	/**
+	* Flat evasion this equip carries.
+	* @returns {number}
+	*/
+	thisEva() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisEva);
+	}
+	/**
+	* Flat critical hit chance this equip carries.
+	* @returns {number}
+	*/
+	thisCri() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisCri);
+	}
+	/**
+	* Flat critical evasion this equip carries.
+	* @returns {number}
+	*/
+	thisCev() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisCev);
+	}
+	/**
+	* Flat magic evasion this equip carries.
+	* @returns {number}
+	*/
+	thisMev() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisMev);
+	}
+	/**
+	* Flat magic reflection this equip carries.
+	* @returns {number}
+	*/
+	thisMrf() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisMrf);
+	}
+	/**
+	* Flat counter attack chance this equip carries.
+	* @returns {number}
+	*/
+	thisCnt() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisCnt);
+	}
+	/**
+	* Flat hp regeneration this equip carries.
+	* @returns {number}
+	*/
+	thisHrg() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisHrg);
+	}
+	/**
+	* Flat magi regeneration this equip carries.
+	* @returns {number}
+	*/
+	thisMrg() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisMrg);
+	}
+	/**
+	* Flat tech regeneration this equip carries.
+	*
+	* Regeneration, not target rate - see {@link thisTgr}, whose abbreviation is a transposition away.
+	* @returns {number}
+	*/
+	thisTrg() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisTrg);
+	}
+	/**
+	* Flat target rate this equip carries - how much aggro it draws.
+	*
+	* Target rate, not tech regeneration - see {@link thisTrg}.
+	* @returns {number}
+	*/
+	thisTgr() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisTgr);
+	}
+	/**
+	* Flat guard rate this equip carries - parry.
+	* @returns {number}
+	*/
+	thisGrd() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisGrd);
+	}
+	/**
+	* Flat recovery rate this equip carries.
+	* @returns {number}
+	*/
+	thisRec() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisRec);
+	}
+	/**
+	* Flat pharmacology this equip carries.
+	* @returns {number}
+	*/
+	thisPha() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisPha);
+	}
+	/**
+	* Flat magi cost reduction this equip carries.
+	* @returns {number}
+	*/
+	thisMcr() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisMcr);
+	}
+	/**
+	* Flat tech charge rate this equip carries.
+	* @returns {number}
+	*/
+	thisTcr() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisTcr);
+	}
+	/**
+	* Flat physical damage rate this equip carries.
+	* @returns {number}
+	*/
+	thisPdr() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisPdr);
+	}
+	/**
+	* Flat magical damage rate this equip carries.
+	* @returns {number}
+	*/
+	thisMdr() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisMdr);
+	}
+	/**
+	* Flat floor damage rate this equip carries.
+	* @returns {number}
+	*/
+	thisFdr() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisFdr);
+	}
+	/**
+	* Flat experience rate this equip carries.
+	* @returns {number}
+	*/
+	thisExr() {
+		return RPGManager.getSumFromNoteByRegex(this, J.BASE.RegExp.ThisExr);
+	}
+	/**
+	* How much this equip amplifies its own base for a given parameter.
+	*
+	* A percentage on equipment scales what that equipment is worth rather than what its wearer is worth,
+	* so the multiplier has to be assembled from this item's own traits. It cannot come from the battler's
+	* flattened trait list, which no longer knows which item each trait arrived on.
+	*
+	* Returns a multiplier centred on 1.0 whichever family is asked for. Codes 21 and 23 store their values
+	* as deltas from 1.0 while code 22 stores them as deltas from 0, and normalising the two here is what
+	* lets one subtraction remove equipment's share from all three battler aggregates.
+	*
+	* Every trait counts, including any sitting below a JAFTING divider. A worn item's below-divider traits
+	* are live - the divider is a transfer marker, not a switch - so a percentage there scales this item
+	* exactly like one above it.
+	* @param {number} code The trait code: 21 for base, 22 for ex-, 23 for sp-parameters.
+	* @param {number} dataId The parameter id within that family.
+	* @returns {number}
+	*/
+	ownRate(code, dataId) {
+		const baseline = code === 22 ? 0 : 1;
+		const matching = this.traits.filter((trait) => trait.code === code && trait.dataId === dataId);
+		return matching.reduce((total, trait) => total + (trait.value - baseline), 1);
 	}
 };
 
@@ -7036,349 +7930,6 @@ Object.defineProperty(Graphics, "boxOrigin", { get: function() {
 } });
 
 //#endregion
-//#region src/plugins/_base/core/managers/IconManager.js
-/**
-* A static class that manages the icon to X correlation, such as stats and elements.
-* IconManager is a J-Base global — not part of the RMMZ engine (unlike TextManager).
-*/
-var IconManager = class {
-	/**
-	* The constructor is not designed to be called.
-	* This is a static class.
-	*/
-	constructor() {
-		throw new Error("The IconManager is a static class.");
-	}
-	/**
-	* Gets the iconIndex for levels.
-	* @returns {number}
-	*/
-	static level() {
-		return 86;
-	}
-	/**
-	* Gets the `iconIndex` for max tp.
-	* @returns {number} The `iconIndex`.
-	*/
-	static maxTp() {
-		return 930;
-	}
-	/**
-	* Gets the `iconIndex` for HAR (Healing Rate).
-	* @returns {number} The `iconIndex`.
-	*/
-	static har() {
-		return 7;
-	}
-	/**
-	* Gets the iconIndex for a given reward parameter.<br>
-	* Reward Param mapping:<br>
-	* <pre>
-	* - 0: experience
-	* - 1: gold/currency
-	* - 2: drops or drop rate
-	* - 3: encounters or encounter rate
-	* - 4: SDP
-	* </pre>
-	* @param {number} paramId The param id to get the icon index for.
-	* @returns {number}
-	*/
-	static rewardParam(paramId) {
-		switch (paramId) {
-			case 0: return 87;
-			case 1: return 2048;
-			case 2: return 208;
-			case 3: return 914;
-			case 4: return 445;
-		}
-	}
-	/**
-	* Gets the corresponding `iconIndex` for the param.
-	* @param {number} paramId The id of the param.
-	* @returns {number} The `iconIndex`.
-	*/
-	static param(paramId) {
-		switch (paramId) {
-			case 0: return 928;
-			case 1: return 929;
-			case 2: return 931;
-			case 3: return 932;
-			case 4: return 933;
-			case 5: return 934;
-			case 6: return 935;
-			case 7: return 936;
-		}
-	}
-	/**
-	* Gets the corresponding `iconIndex` for the x-param.
-	* @param {number} paramId The id of the param.
-	* @returns {number} The `iconIndex`.
-	*/
-	static xparam(paramId) {
-		switch (paramId) {
-			case 0: return 944;
-			case 1: return 945;
-			case 2: return 946;
-			case 3: return 947;
-			case 4: return 948;
-			case 5: return 949;
-			case 6: return 950;
-			case 7: return 951;
-			case 8: return 952;
-			case 9: return 953;
-		}
-	}
-	/**
-	* Gets the corresponding `iconIndex` for the s-param.
-	* @param {number} paramId The id of the param.
-	* @returns {number} The `iconIndex`.
-	*/
-	static sparam(paramId) {
-		switch (paramId) {
-			case 0: return 960;
-			case 1: return 961;
-			case 2: return 962;
-			case 3: return 963;
-			case 4: return 964;
-			case 5: return 965;
-			case 6: return 966;
-			case 7: return 967;
-			case 8: return 968;
-			case 9: return 969;
-		}
-	}
-	/**
-	* Gets the icon index for a catalog parameter key.
-	* @param {string} parameterKey The registry key.
-	* @returns {number}
-	*/
-	static parameterIcon(parameterKey) {
-		const definition = ParameterRegistry.get(parameterKey);
-		if (!definition) {
-			return 0;
-		}
-		return definition.iconIndex();
-	}
-	/**
-	* Gets the corresponding `iconIndex` for the element based on their id.
-	* @param {number} elementId The id of the element.
-	* @returns {number}
-	*/
-	static element(elementId) {
-		switch (elementId) {
-			case -1: return 76;
-			case 0: return 70;
-			case 1: return 912;
-			case 2: return 913;
-			case 3: return 914;
-			case 4: return 915;
-			case 5: return 916;
-			case 6: return 917;
-			case 7: return 918;
-			case 8: return 919;
-			case 9: return 920;
-			case 10: return 127;
-			case 11: return 302;
-			case 12: return 321;
-			case 13: return 345;
-			case 14: return 342;
-			case 15: return 184;
-			case 16: return 2112;
-			case 17: return 348;
-			case 18: return 82;
-			case 19: return 83;
-			case 20: return 2192;
-			case 21: return 403;
-			case 22: return 364;
-			case 23: return 453;
-			case 24: return 72;
-			case 25: return 200;
-			case 26: return 218;
-			case 27: return 1904;
-			case 28: return 119;
-			default: return 93;
-		}
-	}
-	/**
-	* Gets the icon for the skill type.
-	* @param {number} skillTypeId The id of the skill type.
-	* @returns {number} The corresponding icon index.
-	*/
-	static skillType(skillTypeId) {
-		switch (skillTypeId) {
-			case 1: return 82;
-			case 2: return 2592;
-			case 3: return 77;
-			case 4: return 79;
-			case 5: return 188;
-			case 6: return 227;
-			case 7: return 76;
-			case 8: return 2192;
-			default: return 0;
-		}
-	}
-	/**
-	* Gets the icon for the weapon type.
-	* @param {number} weaponTypeId The id of the weapon type.
-	* @returns {number} The corresponding icon index.
-	*/
-	static weaponType(weaponTypeId) {
-		switch (weaponTypeId) {
-			case 1: return 401;
-			case 2: return 408;
-			case 3: return 438;
-			case 4: return 434;
-			case 5: return 442;
-			case 6: return 461;
-			case 7: return 2074;
-			case 8: return 2077;
-			case 9: return 2076;
-			case 10: return 2075;
-			default: return 16;
-		}
-	}
-	/**
-	* Gets the icon for the armor type.
-	* @param {number} armorTypeId The id of the armor type.
-	* @returns {number} The corresponding icon index.
-	*/
-	static armorType(armorTypeId) {
-		switch (armorTypeId) {
-			case 1: return 16;
-			default: return 16;
-		}
-	}
-	/**
-	* Gets the icon for the equip type.
-	* @param {number} equipTypeId The id of the equip type.
-	* @returns {number} The corresponding icon index.
-	*/
-	static equipType(equipTypeId) {
-		switch (equipTypeId) {
-			case 1: return 16;
-			default: return 16;
-		}
-	}
-	/**
-	* Gets the icon for the special flag of a trait.
-	* @param {number} flagId The id of the special flag.
-	* @returns {number} The corresponding icon index.
-	*/
-	static specialFlag(flagId) {
-		switch (flagId) {
-			case 1: return 16;
-			default: return 16;
-		}
-	}
-	/**
-	* Gets the icon for the party ability of a trait.
-	* @param {number} partyAbilityId The id of the party ability.
-	* @returns {number} The corresponding icon index.
-	*/
-	static partyAbility(partyAbilityId) {
-		switch (partyAbilityId) {
-			case 1: return 16;
-			default: return 16;
-		}
-	}
-	/**
-	* Gets the icon for a trait.
-	* @param {JAFTING_Trait} trait The target trait.
-	* @returns {number} The corresponding icon index.
-	*/
-	static trait(trait) {
-		switch (trait._code) {
-			case 11: return this.element(trait._dataId);
-			case 12: return this.param(trait._dataId);
-			case 13:
-			case 14: return $dataStates[trait._dataId].iconIndex;
-			case 21: return this.param(trait._dataId);
-			case 22: return this.xparam(trait._dataId);
-			case 23: return this.sparam(trait._dataId);
-			case 31: return this.element(trait._dataId);
-			case 32: return $dataStates[trait._dataId].iconIndex;
-			case 33: return 79;
-			case 34: return 399;
-			case 35: return $dataSkills[trait._dataId].iconIndex;
-			case 41: return this.skillType(trait._dataId);
-			case 42: return this.skillType(trait._dataId);
-			case 43: return $dataSkills[trait._dataId].iconIndex;
-			case 44: return $dataSkills[trait._dataId].iconIndex;
-			case 51: return this.weaponType(trait._dataId);
-			case 52: return this.armorType(trait._dataId);
-			case 53: return this.equipType(trait._dataId);
-			case 54: return this.equipType(trait._dataId);
-			case 55: return 462;
-			case 61: return 76;
-			case 63: return 25;
-			case 62: return this.specialFlag(trait._dataId);
-			case 64: return this.partyAbility(trait._dataId);
-			default:
-				console.error(`all traits are accounted for- is this a custom trait code: [${trait._code}]?`);
-				return false;
-		}
-	}
-	/**
-	* A tag for correlating a JABS parameter to an icon.
-	*/
-	static JABS_PARAMETER = {
-		BONUS_HITS: "bonus-hits",
-		ATTACK_SKILL: "attack-skill",
-		SPEED_BOOST: "speed-boost"
-	};
-	/**
-	* Gets the JABS-related icon based on parameter type.
-	* @param {string} type The type of JABS parameter.
-	* @returns {number} The corresponding icon index.
-	*/
-	static jabsParameterIcon(type) {
-		switch (type) {
-			case this.JABS_PARAMETER.BONUS_HITS: return 399;
-			case this.JABS_PARAMETER.SPEED_BOOST: return 82;
-			case this.JABS_PARAMETER.ATTACK_SKILL: return 76;
-		}
-	}
-	/**
-	* A tag for correlating a JAFTING parameter to an icon.
-	*/
-	static JAFTING_PARAMETER = {
-		MAX_REFINE: "max-refine-count",
-		MAX_TRAITS: "max-trait-count",
-		NOT_BASE: "not-refinement-base",
-		NOT_MATERIAL: "not-refinement-material",
-		TIMES_REFINED: "refined-count",
-		UNREFINABLE: "unrefinable"
-	};
-	/**
-	* Gets the JAFTING-related icon based on parameter type.
-	* @param {string} type The type of JAFTING parameter.
-	* @returns {number} The corresponding icon index.
-	*/
-	static jaftingParameterIcon(type) {
-		switch (type) {
-			case this.JAFTING_PARAMETER.MAX_REFINE: return 86;
-			case this.JAFTING_PARAMETER.MAX_TRAITS: return 86;
-			case this.JAFTING_PARAMETER.NOT_BASE: return 90;
-			case this.JAFTING_PARAMETER.NOT_MATERIAL: return 90;
-			case this.JAFTING_PARAMETER.TIMES_REFINED: return 223;
-			case this.JAFTING_PARAMETER.UNREFINABLE: return 90;
-		}
-	}
-	/**
-	* Gets the icon representing the team id provided.
-	* @param {number} teamId The team id.
-	* @returns {number} The corresponding icon index.
-	*/
-	static team(teamId) {
-		switch (teamId) {
-			case 0: return 38;
-			case 1: return 21;
-			case 2: return 91;
-		}
-	}
-};
-
-//#endregion
 //#region src/plugins/_base/core/managers/InputDeviceTracker.js
 /**
 * Tracks which kind of device the player most recently gave input with.
@@ -7655,12 +8206,16 @@ ImageManager.iconColumns = 16;
 * merge that consulted a global would silently produce different results once another plugin registered
 * a key. Passing the policy in makes the output a function of nothing but its arguments.
 *
-* Two behaviors, and they line up with how the tags are read back:
+* Three behaviors, and they line up with how the tags are read back:
 * - **replace** (the default) suits a tag read by a scalar reader like
 *   {@link RPGManager.getNumberFromNoteByRegex}, which takes the last match on a note and ignores the
 *   rest. Appending a second one would silently discard the first.
 * - **accumulate** suits a tag read by a collecting reader like
 *   {@link RPGManager.getArraysFromNotesByRegex}, where every occurrence contributes.
+* - **sum** suits a numeric tag that should total rather than choose between two values. Stacking those
+*   as repeated lines cannot work: {@link #_toKeyBuckets} drops an exact duplicate line *within* a single
+*   note, so `<bonusHits:2>` written twice collapses to one and reads as two forever. Totalling them into
+*   one line is the only representation that survives being merged again.
 */
 var NoteResolver = class NoteResolver {
 	/**
@@ -7692,16 +8247,19 @@ var NoteResolver = class NoteResolver {
 	* @param {string} overlayNote The note being merged in.
 	* @param {string[]} accumulatingKeys Keys that gain the overlay's lines instead of being replaced by
 	* them. Empty means every key replaces, which is the conservative reading.
+	* @param {string[]} summingKeys Keys whose two scalar values total into one line. A key listed here that
+	* does not hold a single plain number on each side falls back to accumulating, never to replacing, so a
+	* mis-declared key cannot silently discard what the base already had.
 	* @returns {string} The merged note, newline-joined.
 	*/
-	static merge(baseNote, overlayNote, accumulatingKeys = []) {
+	static merge(baseNote, overlayNote, accumulatingKeys = [], summingKeys = []) {
 		const oldNote = baseNote || String.empty;
 		const newNote = overlayNote || String.empty;
 		const oldTokens = this._tokenizeNote(oldNote);
 		const newTokens = this._tokenizeNote(newNote);
 		const oldBuckets = this._toKeyBuckets(oldTokens.tags);
 		const newBuckets = this._toKeyBuckets(newTokens.tags);
-		const merged = this._mergeBuckets(oldBuckets, newBuckets, accumulatingKeys);
+		const merged = this._mergeBuckets(oldBuckets, newBuckets, accumulatingKeys, summingKeys);
 		const mergedUnsupported = this._mergeUnsupported(oldTokens.unsupported, newTokens.unsupported);
 		return this._reconstructNote(mergedUnsupported, merged);
 	}
@@ -7798,9 +8356,10 @@ var NoteResolver = class NoteResolver {
 	* @param {{order: string[], map: Record<string, string[]>}} oldBuckets The base note's buckets.
 	* @param {{order: string[], map: Record<string, string[]>}} newBuckets The overlay note's buckets.
 	* @param {string[]} accumulatingKeys Keys that gain the overlay's lines rather than being replaced.
+	* @param {string[]} summingKeys Keys whose two scalar values total into one line.
 	* @returns {{ order: string[], map: Record<string, string[]> }} The merged buckets.
 	*/
-	static _mergeBuckets(oldBuckets, newBuckets, accumulatingKeys) {
+	static _mergeBuckets(oldBuckets, newBuckets, accumulatingKeys, summingKeys = []) {
 		const mergedMap = Object.create(null);
 		const mergedOrder = [];
 		/**
@@ -7814,15 +8373,21 @@ var NoteResolver = class NoteResolver {
 			mergedOrder.push(key);
 		};
 		oldBuckets.order.forEach((key) => {
-			const accumulates = accumulatingKeys.includes(key);
 			const oldLines = oldBuckets.map[key];
 			const newLines = newBuckets.map[key];
-			const overlayHasAny = newLines && newLines.length > 0;
-			if (overlayHasAny && accumulates === false) {
-				appendKey(key, newLines);
+			const overlayHasAny = newLines !== undefined && newLines.length > 0;
+			if (overlayHasAny === false) {
+				appendKey(key, oldLines);
 				return;
 			}
-			if (accumulates && overlayHasAny) {
+			if (summingKeys.includes(key)) {
+				const summed = this._sumScalarLines(oldLines, newLines);
+				if (summed !== null) {
+					appendKey(key, [summed]);
+					return;
+				}
+			}
+			if (accumulatingKeys.includes(key) || summingKeys.includes(key)) {
 				const combined = oldLines.slice(0);
 				newLines.forEach((line) => {
 					if (combined.includes(line) === false) combined.push(line);
@@ -7830,7 +8395,7 @@ var NoteResolver = class NoteResolver {
 				appendKey(key, combined);
 				return;
 			}
-			appendKey(key, oldLines);
+			appendKey(key, newLines);
 		});
 		newBuckets.order.forEach((key) => {
 			if (mergedOrder.includes(key) === false) appendKey(key, newBuckets.map[key]);
@@ -7839,6 +8404,28 @@ var NoteResolver = class NoteResolver {
 			order: mergedOrder,
 			map: mergedMap
 		};
+	}
+	/**
+	* Totals two single-line scalar tags into one line, or reports that it cannot.
+	*
+	* Both sides must hold exactly one line, and both values must read as a plain number. A key already
+	* carrying several lines is not a scalar - whatever it is, adding it up would be inventing a number
+	* nobody wrote - so it declines rather than guessing.
+	*
+	* The base's spelling of the key is kept, so a merge never quietly recases a tag the author wrote.
+	* @param {string[]} oldLines The base note's lines for this key.
+	* @param {string[]} newLines The overlay note's lines for this key.
+	* @returns {string|null} The totalled line, or null when the pair is not two scalars.
+	*/
+	static _sumScalarLines(oldLines, newLines) {
+		if (oldLines.length !== 1 || newLines.length !== 1) return null;
+		const scalarShape = /^<([^:]+):\s*(-?\d+(?:\.\d+)?)\s*>$/;
+		const oldMatch = oldLines[0].match(scalarShape);
+		const newMatch = newLines[0].match(scalarShape);
+		if (oldMatch === null || newMatch === null) return null;
+		const total = parseFloat(oldMatch[2]) + parseFloat(newMatch[2]);
+		const tidied = parseFloat(total.toFixed(4));
+		return `<${oldMatch[1]}:${tidied}>`;
 	}
 	/**
 	* Merges free-form lines, base order first, without duplicates.
@@ -9333,6 +9920,38 @@ Game_Actor.prototype.equippedEquips = function() {
 	return this.equips().filter((equip) => !!equip);
 };
 /**
+* Overwrites {@link Game_BattlerBase#localisedEquips}.<br/>
+* An actor's worn equipment is exactly the set of trait sources whose percentages describe the item
+* rather than the actor wearing it.
+* @returns {RPG_EquipItem[]}
+*/
+Game_Actor.prototype.localisedEquips = function() {
+	return this.equippedEquips();
+};
+/**
+* Overwrites {@link Game_Actor#paramPlus}.<br/>
+* Each equipped item contributes its own base for the parameter, amplified by its own percentages.
+*
+* Previously an equip's percentage was pooled into the actor's global rate, so a sword's `+25% ATK` lifted
+* the class curve and every other worn item along with it. Now it lifts only what that sword is worth,
+* which is what makes a percentage bounded by the thing carrying it.
+*
+* Deliberately an overwrite rather than an extension: vanilla's implementation already adds each equip's
+* `params` entry, and {@link RPG_EquipItem#thisBParam} includes that same entry, so aliasing would count
+* it twice. The actor's own permanent plus is fetched from the battler implementation directly, the way
+* {@link #traitObjects} reaches past its own vanilla version.
+* @param {number} paramId The base parameter id, 0 through 7.
+* @returns {number}
+*/
+Game_Actor.prototype.paramPlus = function(paramId) {
+	const actorPlus = Game_Battler.prototype.paramPlus.call(this, paramId);
+	const equipPlus = this.equippedEquips().reduce((total, equip) => {
+		const ownRate = equip.ownRate(Game_BattlerBase.TRAIT_PARAM, paramId);
+		return total + equip.thisBParam(paramId) * ownRate;
+	}, 0);
+	return actorPlus + equipPlus;
+};
+/**
 * Sets the level of this actor to the given level.
 * @param {number} level The level to set this actor to.
 */
@@ -9668,6 +10287,7 @@ Game_Battler.prototype.onBattlerDataChange = function() {
 	this.setCachedTraitObjects(null);
 	this.setCachedAllTraits(null);
 	this.setCachedMaxTpBonuses(null);
+	this.setCachedEquipContributions(null);
 	this.setCachedHarFactor(null);
 	JCache.invalidateAllForBattler(this);
 };
@@ -9903,6 +10523,14 @@ Game_BattlerBase.prototype.initMembers = function() {
 	* @type {MV.Trait[]|null}
 	*/
 	this._j._base._cachedAllTraits = null;
+	/**
+	* The cached equipment contributions for this battler, keyed by `code:dataId`.
+	* Null when the cache is cold; each parameter is resolved on first ask and held for the rest of
+	* the cycle, because the reads behind it scan note strings once per equipped item.
+	* Invalidated by {@link #onBattlerDataChange}.
+	* @type {Map<string, {delta: number, local: number}>|null}
+	*/
+	this._j._base._cachedEquipContributions = null;
 };
 /**
 * Gets the cached trait objects for this battler, or null if the cache is cold.
@@ -9979,6 +10607,87 @@ Game_BattlerBase.prototype.allTraits = function() {
 	const allTraits = this.traitObjects().reduce((r, obj) => r.concat(obj.traits), []);
 	this.setCachedAllTraits(allTraits);
 	return this.getCachedAllTraits();
+};
+/**
+* Gets the cached equipment contributions for this battler, or null if the cache is cold.
+* @returns {Map<string, {delta: number, local: number}>|null}
+*/
+Game_BattlerBase.prototype.getCachedEquipContributions = function() {
+	return this._j._base._cachedEquipContributions;
+};
+/**
+* Sets the cached equipment contributions for this battler.
+* @param {Map<string, {delta: number, local: number}>|null} contributions The new cached value, or null to invalidate.
+*/
+Game_BattlerBase.prototype.setCachedEquipContributions = function(contributions) {
+	this._j._base._cachedEquipContributions = contributions;
+};
+/**
+* The trait sources on this battler whose parameter percentages apply only to themselves.
+*
+* Equipment is the one kind of trait source that is a discrete object the player swaps in and out, so a
+* percentage on it describes the item rather than its wearer. Battlers with no equipment answer with
+* nothing, which makes every localisation formula below a no-op for them rather than a special case.
+* @returns {RPG_EquipItem[]}
+*/
+Game_BattlerBase.prototype.localisedEquips = function() {
+	return Array.empty;
+};
+/**
+* What equipment contributes to a parameter, split into the share to remove from the battler-wide
+* aggregate and the share to re-apply locally.
+*
+* Cached per parameter for the rest of the data-change cycle, because the reads behind it scan a note
+* string once per equipped item and parameters are asked for during damage resolution and once per row
+* of every parameter catalog refresh.
+* @param {number} code The trait code: 21, 22, or 23.
+* @param {number} dataId The parameter id within that family.
+* @returns {{delta: number, local: number}}
+*/
+Game_BattlerBase.prototype.equipParameterContribution = function(code, dataId) {
+	if (this.getCachedEquipContributions() === null) {
+		this.setCachedEquipContributions(new Map());
+	}
+	const cache = this.getCachedEquipContributions();
+	const key = `${code}:${dataId}`;
+	if (cache.has(key)) return cache.get(key);
+	cache.set(key, this.buildEquipParameterContribution(code, dataId));
+	return cache.get(key);
+};
+/**
+* Computes equipment's contribution to one parameter from scratch.
+*
+* `delta` is what equipment contributed to the battler-wide total, in that family's own units, and gets
+* subtracted back out. `local` is each item's own base for the parameter amplified by that same item's
+* own percentages. Both are expressed through {@link RPG_EquipItem#ownRate}, which normalises all three
+* families onto one 1.0-centred multiplier so a single subtraction serves each of them.
+*
+* `local` is always zero for base parameters — {@link Game_Actor#paramPlus} owns their local half, since
+* those are the one family with an existing field to scale.
+*
+* Tags are authored as whole percents while the engine works in rate space, hence the hundredth - the
+* same conversion J-NaturalGrowths applies to its own growth tags.
+*
+* Separated from the caching wrapper above so the arithmetic can be read and tested without the cache in
+* the way, mirroring how {@link #buildTraitObjects} sits behind {@link #traitObjects}.
+* @param {number} code The trait code: 21, 22, or 23.
+* @param {number} dataId The parameter id within that family.
+* @returns {{delta: number, local: number}}
+*/
+Game_BattlerBase.prototype.buildEquipParameterContribution = function(code, dataId) {
+	let delta = 0;
+	let local = 0;
+	this.localisedEquips().forEach((equip) => {
+		const ownRate = equip.ownRate(code, dataId);
+		delta += ownRate - 1;
+		if (code === Game_BattlerBase.TRAIT_PARAM) return;
+		const base = code === Game_BattlerBase.TRAIT_XPARAM ? equip.thisXParam(dataId) : equip.thisSParam(dataId);
+		local += base / 100 * ownRate;
+	});
+	return {
+		delta,
+		local
+	};
 };
 /**
 * Returns a list of known base parameter ids.
@@ -10062,7 +10771,25 @@ Game_BattlerBase.prototype.traitsDeltaSum = function(code, id) {
 */
 J.BASE.Aliased.Game_BattlerBase.set("sparam", Game_BattlerBase.prototype.sparam);
 Game_BattlerBase.prototype.sparam = function(sparamId) {
-	return 1 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_SPARAM, sparamId);
+	const { delta, local } = this.equipParameterContribution(Game_BattlerBase.TRAIT_SPARAM, sparamId);
+	const global = 1 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_SPARAM, sparamId) - delta;
+	return global + local;
+};
+/**
+* Overwrites {@link Game_BattlerBase#xparam}.<br/>
+* Scopes each equipped item's percentages to that item's own base rather than the battler's total.
+*
+* Vanilla aggregation is already additive here, so nothing about the stacking changes. What changes is
+* whose value a percentage on a sword is a percentage *of*: previously the wearer's whole accuracy, now
+* the sword's. Equipment's share is subtracted from the battler-wide sum and re-applied per item.
+* @param {number} xparamId The xparam index (0-9).
+* @returns {number}
+*/
+J.BASE.Aliased.Game_BattlerBase.set("xparam", Game_BattlerBase.prototype.xparam);
+Game_BattlerBase.prototype.xparam = function(xparamId) {
+	const global = J.BASE.Aliased.Game_BattlerBase.get("xparam").call(this, xparamId);
+	const { delta, local } = this.equipParameterContribution(Game_BattlerBase.TRAIT_XPARAM, xparamId);
+	return global - delta + local;
 };
 /**
 * Overwrites {@link Game_BattlerBase#elementRate}.<br/>
@@ -10101,7 +10828,8 @@ Game_BattlerBase.prototype.elementRate = function(elementId) {
 */
 J.BASE.Aliased.Game_BattlerBase.set("paramRate", Game_BattlerBase.prototype.paramRate);
 Game_BattlerBase.prototype.paramRate = function(paramId) {
-	const rate = 1 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_PARAM, paramId);
+	const { delta } = this.equipParameterContribution(Game_BattlerBase.TRAIT_PARAM, paramId);
+	const rate = 1 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_PARAM, paramId) - delta;
 	return Math.max(0, rate);
 };
 /**
@@ -14546,6 +15274,28 @@ Window_Help.prototype.refresh = function() {
 Window_Help.prototype.renderText = function() {
 	const { x, y, width } = this.baseTextRect();
 	this.drawTextEx(this.getText(), x, y, width);
+};
+
+//#endregion
+//#region src/plugins/_base/core/windows/Window_ItemList.js
+/**
+* Gets the rows this list is currently displaying.
+*
+* Vanilla builds `_data` in {@link #makeItemList} and then reads the field directly from half a dozen
+* places. Anything extending one of those - reordering the rows, filtering them, appending to them -
+* needs a way in that is not a reach into storage it does not own, and every J-owned list window already
+* carries this same pair.
+* @returns {(RPG_BaseItem|null)[]}
+*/
+Window_ItemList.prototype.data = function() {
+	return this._data;
+};
+/**
+* Sets the rows this list displays.
+* @param {(RPG_BaseItem|null)[]} newData The rows to display.
+*/
+Window_ItemList.prototype.setData = function(newData) {
+	this._data = newData;
 };
 
 //#endregion
