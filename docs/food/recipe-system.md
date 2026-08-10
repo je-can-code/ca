@@ -281,35 +281,80 @@ stat. Every common dish stays reachable because every sub-category has a shop-av
 
 ## Methods
 
-A method is a **tool combination**, and the dish name comes from the method plus the star.
+**Resolved 2026-08-10: one tool, one method.** A method is a single tool rather than a combination, and
+the dish name comes from the method plus the star.
 
-**Tools are shared infrastructure across crafting professions, not cooking's property.** The Obliterator
-was built to pulp lumber into paper; the Gripper is forge tongs; the Scissors cut fabric. This is good —
-finding a tool lights up several professions at once, so no cooking tool is a single-purpose pickup.
+The old scheme split one appliance into several methods with accessories — Frying Pan alone was fry,
+plus Spatula was saute, plus Gripper was grill. It bought a wider method roster off a narrow tool roster,
+and it cost more than it bought:
+
+- **A combination can be written that means nothing.** `food_seeing-jambalaya` asks for Spoon + Frying
+  Pan, a pairing that appears once in 329 recipes and maps to no method. Under one-to-one that recipe is
+  unrepresentable rather than merely wrong.
+- **The accessories never gated anything**, because they were shop stock sitting beside their primaries.
+  A Spatula bought in the same transaction as the pan is ceremony.
+- **A tool grant is a story beat now**, so ten tools is ten moments — which is the thing the accessories
+  were supposed to provide and did not.
 
 ### Roster
 
-Six exist by accident. Four more are proposed, each clearing a five-recipe bar.
-
-| Method | Tools | Standing |
+| Method | Tool | Standing |
 |---|---|---|
-| Fry / sear | Frying Pan | 9 recipes today |
-| Boil | Soup Pot | 8 today |
-| Stew / simmer | Soup Pot + Spoon | 5 today |
-| Saute / wilt | Frying Pan + Spatula | 3 today |
-| Grill / skewer | Frying Pan + Gripper | 3 today |
-| Puree / blend | Obliterator | 1 today; sauces, juices, smoothies, pastes |
-| **Bake** | *new — Dutch Oven* | pies, breads, roasts, gratins, tarts |
-| **Steam** | *new — Steamer Basket* | dumplings, fish, buns, vegetables, custards |
-| **Chop / raw** | *new — Cleaver* | salads, tartare, slaws, garnishes |
-| **Chill / freeze** | *new — Icebox* | ice cream, sorbet, jelly, chilled soup |
+| Sear / fry | **wok** | 9 recipes today |
+| Boil | **pot** | 8 today |
+| Stew / simmer | **donabe** | 5 today |
+| Saute / wilt | **skillet** | 3 today |
+| Grill | **hibachi** | 3 today |
+| Puree / blend | **processor** | 1 today; sauces, juices, smoothies, pastes |
+| Bake / roast | **cocotte** | new — pies, breads, roasts, gratins, tarts |
+| Steam | **vaporera** | new — dumplings, fish, buns, vegetables, custards |
+| Chop / raw | **caidao** | new — salads, tartare, slaws, garnishes |
+| Chill / freeze | **icebox** | new — ice cream, sorbet, jelly, chilled soup |
 
-The four new tools land in `i113-i119` — the seven empty slots between the Obliterator (`i112`) and the
-`==JABS TOOLS==` separator at `i120`.
+**The names are a collection gathered from everywhere the party has been.** A wok, a donabe, a hibachi,
+a caidao, a cocotte, a vaporera — each one is a souvenir of a place, which is a far better reason to
+hand somebody a grill than "you can grill now." It also suits a road trip, and it gives every tool grant
+a person and a place to come from rather than a shop counter.
 
 Three shipped dishes are already reaching for methods that do not exist: **Acorn Pie uses no tools at
 all** and wants an oven, **Vanilla Bleu Cone makes ice cream in a Soup Pot**, and **Steamed Imp Tongue
 steams in a Frying Pan**.
+
+### Tools are shared, and crafting sorts them by material
+
+**Tools are shared infrastructure across crafting professions, not cooking's property** — finding one
+lights up several professions at once, so no tool is a single-purpose pickup.
+
+Cooking's tools answer **how**, so a cooking recipe names exactly one. The rest of crafting sorts by
+**what a thing is made of**, so those recipes name as many tools as they use materials. That asymmetry
+is deliberate: they are answering different questions, and the questions have different cardinality.
+
+| Tool | Material | Present in the shipped data as |
+|---|---|---|
+| **cross-pein** | metal | Iron / Silver / Bleu / Sandwraith / Engle / Deep / Might / Ultanium, as Ore and Ingot |
+| **adze** | wood | Oak, Dreamwood, Negapine, Preserved / Dead / Dry Branch, Pokey Stick, Aged Crook |
+| **graver** | gems | Ruby, Topaz, Sapphire, Crystal, Emerald, and the Raw colour stones |
+| **wirestripper** | circuitry | Tech Battery I-IV, the Stun Gun / Shocker line, Voltaic Sabatons |
+| **shears** | fabric | Wisp Pelt, Dense Pelt, Loose Scales, Dead Veil |
+| **alembic** | catalysts | the six colour Essences, Magic Core, Smith's Soulcrystal |
+
+**No tool is a legitimate requirement.** Fifteen of the twenty-two fist recipes ask for nothing, because
+gloves get put together by hand. That is a real answer and not a gap.
+
+**Circuitry has a roster but no materials yet.** The weapons and armors that need it are shipped; the
+things they are built out of have not been authored. Alchemy is in the same position, which is why the
+alembic covers potions and gem upgrades that do not exist yet either.
+
+Two material families have real volume and no tool:
+
+- **Stone** — Round Stone, Circular Stone, Worn Stone, heavy in fist-smithing and survive-off. The graver
+  can plausibly swallow these; a graver is a stone-and-metal tool.
+- **Bone, fang and claw** — Sharp Stinger, Double Fangs, Dull Talon, Mossy Bone, Red Spines, Intact
+  Stinger, Pierced Ear, across fist, spear, gun and feet. These are genuinely homeless.
+
+Because a crafting tool follows from the materials, **a recipe's tools can be checked against its
+ingredients** and a mismatch reported. That is a consistency gate the profession-based tools could never
+support, and it is the payoff for sorting by material.
 
 ### Tools are carried, so their names have to be portable
 
@@ -321,9 +366,9 @@ make a tool a switch — a capability the player has rather than an object they 
 
 That reads the problem wrong. The absurdity is not possession, it is **naming an appliance that happens
 to be furniture**. The Obliterator is a blender and it does not feel ridiculous, because it is named
-like something a lunatic would strap to a backpack. So the fix is the name: a **Dutch Oven** is a lidded
-cast-iron pot you genuinely bake in over coals, a **Steamer Basket** is stacked bamboo trays lighter
-than the Soup Pot already in the bag, and an **Icebox** is a box.
+like something a lunatic would strap to a backpack. So the fix is the name: a **cocotte** is a lidded
+cast-iron pot you genuinely bake in, a **vaporera** is a pot with a rack in it, and an **icebox** is a
+box. Every one of them goes in a bag.
 
 Three reasons the item form is worth keeping, in increasing order of how much they would hurt to lose:
 
@@ -613,12 +658,13 @@ recipe's output already works — River Smoothie and Jelli Hors d'Oeuvres do it 
     `../unlockables/recipe-journals.md`.
 14. **Replace the cooking categories** — delete `cook-meal` and `cook-drink`, add the six lane tabs plus
     Pantry Paradise, and re-file all 31 existing cooking recipes by the lane of their output.
-15. **Author the new tools and reorder the tool block.** This touches **423 references** — 384 in
-    `config.crafting.json` and 39 in map events — across all fourteen categories, not just cooking. It
-    is done as a scripted remap keyed on **names rather than ids**, because a renumber applied
-    consistently to the wrong rows passes every id-level check. `bun tools/tool-ids.js snapshot` records
-    the starting state into [`backup-tools.json`](backup-tools.json); `plan` reports what moved and
-    which references were left behind.
+15. **Replace the tool roster.** Twelve tools become sixteen, and none of the old names survive, so this
+    is a re-assignment rather than a renumber — every one of the **423 references** (384 in
+    `config.crafting.json`, 39 in map events) gets rewritten. Cooking is mechanical: each old tool
+    *combination* maps to exactly one new tool, with the mis-tooled recipes below as the only
+    exceptions. Crafting is not: each recipe's tools follow from the materials it consumes, so those are
+    derived from ingredients and reviewed. [`backup-tools.json`](backup-tools.json) records the
+    starting state; `bun tools/tool-ids.js plan` reports every reference the change strands.
 16. **Take the tools out of the shop.** Tools stop being purchasable and become story grants. The
     Temporal Merchant (`Map20` event 31) stocks 6, 10 and 12 of them across its three pages, which is a
     progression gate that no longer has anything to gate. The event itself survives — tools are only a
@@ -652,6 +698,10 @@ recipe's output already works — River Smoothie and Jelli Hors d'Oeuvres do it 
 | 2026-08-10 | **Pantry Paradise is exclusive and narrow** — the laneless only, not "crude components". Breads and cheeses file under carb and dairy. |
 | 2026-08-10 | **Bar's Tender becomes a person, not a tab** — the bartender who teaches drink recipes. |
 | 2026-08-10 | **Tools stay items, not switches**, and a new tool must be named as something portable rather than as furniture. Stations remain unchosen and unrejected. The specific names in the roster are proposals. |
+| 2026-08-10 | **One tool, one method.** Secondary tools are gone; a cooking recipe names exactly one tool and that tool is the method. An unmeaning combination becomes unrepresentable. |
+| 2026-08-10 | **Cooking tools are named as a global collection** — wok, donabe, hibachi, caidao, cocotte, vaporera — so each grant is a souvenir of a place rather than a capability unlock. |
+| 2026-08-10 | **Crafting tools sort by material, not by profession** — cross-pein, adze, graver, wirestripper, shears, alembic. A crafting recipe names one per material it consumes, so its tools can be validated against its ingredients. |
+| 2026-08-10 | **Requiring no tool is a legitimate answer.** Gloves are assembled by hand, which is why fifteen fist recipes ask for nothing. |
 | 2026-08-10 | **Tools are given, never bought.** Every tool arrives through a story beat; the shop stops stocking them. Acquiring one is a moment, which is the whole reason they are items. |
 | 2026-08-10 | **No method layer in the schema.** Method stays a convention the author holds, not a `methods` block — partly because ten methods fit in one head, and partly because the editor replaces `config.crafting.json` wholesale and would erase any block it does not know about. |
 | 2026-08-05 | **Recipes match categories, not item ids.** Adding an ingredient later costs zero recipes. |
