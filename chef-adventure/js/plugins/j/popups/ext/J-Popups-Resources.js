@@ -104,7 +104,6 @@ Game_Battler.prototype.paySkillHpCost = function(amount) {
 	const jabsBattler = JABS_AiManager.getBattlerByUuid(this.getUuid());
 	if (!jabsBattler) return;
 	const character = jabsBattler.getCharacter();
-	if (!character) return;
 	const pop = new TextPopBuilder(amount).isHpDamage().forEnemyDamageRing().build();
 	const uuid = jabsBattler.getUuid();
 	JABS_PopupMergeController.routeStrikePop(pop, character, {
@@ -125,7 +124,6 @@ Game_Battler.prototype.gainHpFromResource = function(amount) {
 	const jabsBattler = JABS_AiManager.getBattlerByUuid(this.getUuid());
 	if (!jabsBattler) return;
 	const character = jabsBattler.getCharacter();
-	if (!character) return;
 	const pop = new TextPopBuilder(-amount).isHpDamage().forIncomingHealRing().build();
 	const uuid = jabsBattler.getUuid();
 	JABS_PopupMergeController.routeStrikePop(pop, character, {
@@ -146,7 +144,6 @@ Game_Battler.prototype.gainMpFromResource = function(amount) {
 	const jabsBattler = JABS_AiManager.getBattlerByUuid(this.getUuid());
 	if (!jabsBattler) return;
 	const character = jabsBattler.getCharacter();
-	if (!character) return;
 	const pop = new TextPopBuilder(-amount).isMpDamage().forIncomingHealRing().build();
 	const uuid = jabsBattler.getUuid();
 	JABS_PopupMergeController.routeStrikePop(pop, character, {
@@ -167,7 +164,6 @@ Game_Battler.prototype.gainTpFromResource = function(amount) {
 	const jabsBattler = JABS_AiManager.getBattlerByUuid(this.getUuid());
 	if (!jabsBattler) return;
 	const character = jabsBattler.getCharacter();
-	if (!character) return;
 	const pop = new TextPopBuilder(-amount).isTpDamage().forIncomingHealRing().build();
 	const uuid = jabsBattler.getUuid();
 	JABS_PopupMergeController.routeStrikePop(pop, character, {

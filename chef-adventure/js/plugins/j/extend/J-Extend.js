@@ -922,7 +922,7 @@ J.EXTEND.RegExp.ToggleGroupOnExecute = /<toggleGroupOnExecute:[ ]?(\[[^\]]+])>/g
 * A static class for managing the overlaying of one skill onto another.
 * The methods are divided by the attribute they overlay.
 */
-var OverlayManager = class OverlayManager {
+var OverlayManager = class {
 	/**
 	* Gets the skill cache.
 	* @returns {JCache} The skillCache.
@@ -937,24 +937,6 @@ var OverlayManager = class OverlayManager {
 	static stateCache() {
 		return this._stateCache;
 	}
-	/**
-	* The line types available for overlaying in the context of a note.
-	*/
-	static LineType = {
-		/**
-		* A "key value pair" tag, such as <key:value>.
-		*/
-		kvp: "kvp",
-		/**
-		* A "boolean" tag, such as <key>.
-		*/
-		boolean: "boolean",
-		/**
-		* A tag that isn't supported by this framework at this time.
-		* Any tag that is not one of the defined types will qualify as this and not get mutated.
-		*/
-		unsupported: "unsupported"
-	};
 	/**
 	* The cache for caster-skill extensions. Keyed by the caster alone- extension results are
 	* wholesale-invalidated on any learnSkill/forgetSkill via {@link invalidate}, so the skill id
@@ -1412,207 +1394,18 @@ var OverlayManager = class OverlayManager {
 		RPGManager.invalidate(baseState);
 	}
 	/**
-	* Merges the overlay note into the base note with key-aware behavior.
-	* - For keys not registered as non-combining: replace base lines with overlay lines if overlay provides any.
-	* - For keys registered as non-combining: append unique overlay lines after base lines.
-	* - Unsupported lines (non-tag text) are preserved from both notes with deduplication; base lines keep priority.
-	* Non-combining keys are registered via {@link J.EXTEND.Metadata.registerNonCombiningKey}.
-	* Keys are case-insensitive. Tags are those enclosed with angle brackets (e.g., `<key:value>` or `<key>`).
+	* Merges the overlay skill's note into the base skill's note.
+	*
+	* The merging itself belongs to {@link NoteResolver} in J-Base, alongside the reader that parses notes
+	* back out and the resolver that merges the structured half of the same problem. What stays here is
+	* the *policy*: which keys accumulate rather than replace, which is this plugin's registry to own.
 	* @param {string} baseNote The base note content.
 	* @param {string} overlayNote The overlay note content.
 	* @returns {string} The merged note text, joined with newlines.
 	*/
 	static overwriteNote(baseNote, overlayNote) {
-		const oldNote = baseNote || String.empty;
-		const newNote = overlayNote || String.empty;
-		const exclusions = J.EXTEND.Metadata.getNonCombiningKeys();
-		const oldTokens = this._tokenizeNote(oldNote);
-		const newTokens = this._tokenizeNote(newNote);
-		const oldBuckets = this._toKeyBuckets(oldTokens.tags);
-		const newBuckets = this._toKeyBuckets(newTokens.tags);
-		const merged = this._mergeBuckets(oldBuckets, newBuckets, exclusions);
-		const mergedUnsupported = this._mergeUnsupported(oldTokens.unsupported, newTokens.unsupported);
-		const result = this._reconstructNote(mergedUnsupported, merged);
-		return result;
-	}
-	/**
-	* Tokenizes a note text into angle-bracketed tags and unsupported lines.
-	* Handles tags concatenated without newlines by regex extraction, and also
-	* collects newline-separated content that is not tags.
-	* @param {string} note The raw note text.
-	* @returns {{tags: string[], unsupported: string[]}} The extracted tags and unsupported lines.
-	*/
-	static _tokenizeNote(note) {
-		const tags = note.match(/<[^>]+>/g) || [];
-		const rawLines = note.split(/[\r\n]+/).filter((l) => l.length > 0);
-		const tagSet = new Set(tags);
-		const unsupported = rawLines.filter((l) => tagSet.has(l) === false);
-		return {
-			tags,
-			unsupported
-		};
-	}
-	/**
-	* Parses a single tag string into a key and type using the existing classifier.
-	* @param {string} tag The tag, e.g. "<range:5>" or "<direct>".
-	* @returns {{type: string, key: (string|null), line: string}} The parsed record.
-	*/
-	static _parseTag(tag) {
-		const type = this._classifyLine(tag);
-		if (type === OverlayManager.LineType.unsupported) {
-			return {
-				type,
-				key: null,
-				line: tag
-			};
-		}
-		const inner = tag.substring(1, tag.length - 1);
-		if (type === OverlayManager.LineType.kvp) {
-			const idx = inner.indexOf(":");
-			const key = inner.substring(0, idx).trim().toLowerCase();
-			return {
-				type,
-				key,
-				line: tag
-			};
-		}
-		const key = inner.trim().toLowerCase();
-		return {
-			type: OverlayManager.LineType.boolean,
-			key,
-			line: tag
-		};
-	}
-	/**
-	* Determines if the note line is one of our standard key-value pairs separated by a colon.
-	* @param {string} line The note line as a string.
-	* @returns {boolean} True if it is a conventional <key:value> type of line.
-	*/
-	static _classifyLine(line) {
-		if (line.startsWith("<") === false || line.endsWith(">") === false) return OverlayManager.LineType.unsupported;
-		if (line.match(/</g).length > 1) return OverlayManager.LineType.unsupported;
-		if (line.match(/>/g).length > 1) return OverlayManager.LineType.unsupported;
-		if (line.includes(":")) return OverlayManager.LineType.kvp;
-		return OverlayManager.LineType.boolean;
-	}
-	/**
-	* Buckets an array of tag strings by their keys, preserving the first-seen key order
-	* and deduping exact duplicate lines within a key.
-	* @param {string[]} tags The tag strings to bucket.
-	* @returns {{ order: string[], map: Record<string, string[]> }} The ordered keys and per-key lines.
-	*/
-	static _toKeyBuckets(tags) {
-		const order = [];
-		const map = Object.create(null);
-		tags.forEach((tag) => {
-			const parsed = this._parseTag(tag);
-			if (parsed.type === OverlayManager.LineType.unsupported) {
-				return;
-			}
-			if (map[parsed.key] === undefined) {
-				map[parsed.key] = [];
-				order.push(parsed.key);
-			}
-			if (map[parsed.key].includes(parsed.line) === false) {
-				map[parsed.key].push(parsed.line);
-			}
-		});
-		return {
-			order,
-			map
-		};
-	}
-	/**
-	* Merges the old and new buckets according to replacement rules and exclusions.
-	* - For keys NOT in exclusions: replace old lines entirely with new lines (if provided), else keep old.
-	* - For keys IN exclusions: combine old lines with new lines (append unique new lines), preserving order.
-	* - New-only keys are appended in the order they appear in the new note.
-	* @param {{order: string[], map: Record<string, string[]>}} oldBuckets The buckets from the base note.
-	* @param {{order: string[], map: Record<string, string[]>}} newBuckets The buckets from the overlay note.
-	* @param {string[]} exclusions The keys to be combined instead of replaced.
-	* @returns {{ order: string[], map: Record<string, string[]> }} The merged buckets.
-	*/
-	static _mergeBuckets(oldBuckets, newBuckets, exclusions) {
-		const mergedMap = Object.create(null);
-		const mergedOrder = [];
-		const appendKey = (key, lines) => {
-			if (!lines || lines.length === 0) {
-				return;
-			}
-			mergedMap[key] = lines.slice(0);
-			mergedOrder.push(key);
-		};
-		oldBuckets.order.forEach((key) => {
-			const isExcluded = exclusions.includes(key);
-			const oldLines = oldBuckets.map[key];
-			const newLines = newBuckets.map[key];
-			if (newLines && newLines.length > 0 && isExcluded === false) {
-				appendKey(key, newLines);
-				return;
-			}
-			if (isExcluded && newLines && newLines.length > 0) {
-				const combined = oldLines.slice(0);
-				newLines.forEach((line) => {
-					if (combined.includes(line) === false) {
-						combined.push(line);
-					}
-				});
-				appendKey(key, combined);
-				return;
-			}
-			appendKey(key, oldLines);
-		});
-		newBuckets.order.forEach((key) => {
-			if (mergedOrder.includes(key) === false) {
-				appendKey(key, newBuckets.map[key]);
-			}
-		});
-		return {
-			order: mergedOrder,
-			map: mergedMap
-		};
-	}
-	/**
-	* Merges unsupported lines by appending new unsupported lines that do not already exist.
-	* Old unsupported lines retain their relative order.
-	* @param {string[]} oldUnsupported The unsupported lines from the base note.
-	* @param {string[]} newUnsupported The unsupported lines from the overlay note.
-	* @returns {string[]} The merged unsupported lines.
-	*/
-	static _mergeUnsupported(oldUnsupported, newUnsupported) {
-		const merged = [];
-		oldUnsupported.forEach((line) => {
-			if (merged.includes(line) === false) {
-				merged.push(line);
-			}
-		});
-		newUnsupported.forEach((line) => {
-			if (merged.includes(line) === false) {
-				merged.push(line);
-			}
-		});
-		return merged;
-	}
-	/**
-	* Reconstructs a note from unsupported lines and merged buckets of tags.
-	* Unsupported lines are emitted first, followed by tags grouped by key in key order.
-	* @param {string[]} unsupported The unsupported lines to emit first.
-	* @param {{order: string[], map: Record<string, string[]>}} buckets The merged buckets.
-	* @returns {string} The reconstructed note text.
-	*/
-	static _reconstructNote(unsupported, buckets) {
-		const parts = [];
-		unsupported.forEach((line) => {
-			parts.push(line);
-		});
-		buckets.order.forEach((key) => {
-			const lines = buckets.map[key];
-			lines.forEach((line) => {
-				parts.push(line);
-			});
-		});
-		const result = parts.join("\n");
-		return result;
+		const accumulatingKeys = J.EXTEND.Metadata.getNonCombiningKeys();
+		return NoteResolver.merge(baseNote, overlayNote, accumulatingKeys);
 	}
 };
 

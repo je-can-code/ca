@@ -366,7 +366,6 @@ Game_Interpreter.prototype.hideSpecificChoiceBranches = function(params) {
 		return null;
 	}).filter((choiceIndex) => choiceIndex !== null);
 	const choiceGroups = showChoiceIndices.reduce((runningCollection, choiceIndex, index) => {
-		if (showChoiceIndices.length < index) return;
 		const startIndex = choiceIndex;
 		const endIndex = showChoiceIndices.at(index + 1);
 		let counterIndex = startIndex;

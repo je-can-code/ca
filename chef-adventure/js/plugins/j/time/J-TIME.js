@@ -1832,7 +1832,6 @@ var Game_Time = class Game_Time {
 			return false;
 		}
 		if (!$dataMap || !$dataMap.meta) {
-			console.warn("no datamap to inspect.");
 			return false;
 		}
 		return this._needsToneChange;

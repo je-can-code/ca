@@ -614,7 +614,7 @@ Game_Actor.prototype.equippedSkills = function() {
 */
 Game_Actor.prototype.forcedUnslottedSkillIds = function() {
 	if (this._j._sks._forcedUnslottedSkillIds !== null) return this._j._sks._forcedUnslottedSkillIds;
-	const arraysFound = RPGManager.getArraysFromAllNotesByRegex(this.getAllNotes(), J.SKS.RegExp.UnslottedSkills, true, false) ?? [];
+	const arraysFound = RPGManager.getArraysFromAllNotesByRegex(this.getAllNotes(), J.SKS.RegExp.UnslottedSkills, true, false);
 	this._j._sks._forcedUnslottedSkillIds = new Set(arraysFound.flat());
 	return this._j._sks._forcedUnslottedSkillIds;
 };
@@ -658,7 +658,6 @@ Game_Actor.prototype.equipSkillToSlot = function(slotIndex, skillId) {
 Game_Actor.prototype.canEquipSkillToSlot = function(slotIndex, skillId) {
 	if (this.getEquippedSkillIndex(skillId) !== -1) return true;
 	const currentSkillId = this.getSkillIdInSlot(slotIndex);
-	if (currentSkillId === skillId) return true;
 	const pointsOk = this.canAffordSkillSlotPoints(slotIndex, skillId, currentSkillId);
 	const countOk = this.canAffordSkillSlotCount(currentSkillId);
 	if (J.SKS.Metadata.enableExclusiveMode) {
@@ -775,6 +774,7 @@ Game_Actor.prototype.unequipSkill = function(skillId) {
 * @param {number} toIndex - The destination slot index to move to.
 */
 Game_Actor.prototype.moveEquippedSkill = function(fromIndex, toIndex) {
+	if (fromIndex === toIndex) return;
 	const skillId = this.getSkillIdInSlot(fromIndex);
 	if (skillId === 0) return;
 	this.equipSkillToSlot(toIndex, skillId);

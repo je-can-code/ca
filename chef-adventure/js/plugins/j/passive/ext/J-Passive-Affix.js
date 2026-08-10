@@ -1166,13 +1166,13 @@ Window_PassiveDetail.prototype.collectResourcesAbsRows = function(state) {
 * @returns {{icon: number, label: string, value: string}|null}
 */
 Window_PassiveDetail.prototype.collectResourceGainRow = function(state, flatRx, pctRx, formRx, label, icon) {
-	const flat = RPGManager.getNumberFromNoteByRegex(state, flatRx);
+	const flat = RPGManager.getSumFromNoteByRegex(state, flatRx);
 	if (flat) return {
 		icon,
 		label,
 		value: `+${flat}`
 	};
-	const pct = RPGManager.getNumberFromNoteByRegex(state, pctRx);
+	const pct = RPGManager.getSumFromNoteByRegex(state, pctRx);
 	if (pct) return {
 		icon,
 		label,
@@ -1213,7 +1213,7 @@ Window_PassiveDetail.prototype.collectJabsModifierRows = function(state) {
 			value: skill ? skill.name : `Skill #${offhandId}`
 		});
 	}
-	const visionMult = RPGManager.getNumberFromNoteByRegex(state, J.ABS.RegExp.VisionMultiplier);
+	const visionMult = RPGManager.getSumFromNoteByRegex(state, J.ABS.RegExp.VisionMultiplier);
 	if (visionMult) {
 		const sign = visionMult > 0 ? "+" : "";
 		rows.push({
@@ -1257,7 +1257,7 @@ Window_PassiveDetail.prototype.collectJabsModifierRows = function(state) {
 		value: ""
 	});
 	if (J.ABS.EXT.SPEED) {
-		const speedBoost = RPGManager.getNumberFromNoteByRegex(state, J.ABS.EXT.SPEED.RegExp.WalkSpeedBoost);
+		const speedBoost = RPGManager.getSumFromNoteByRegex(state, J.ABS.EXT.SPEED.RegExp.WalkSpeedBoost);
 		if (speedBoost) {
 			const sign = speedBoost > 0 ? "+" : "";
 			rows.push({

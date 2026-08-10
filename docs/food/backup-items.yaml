@@ -1,0 +1,372 @@
+# Food data backup
+# Captured 2026-08-05, before the category-based recipe redesign.
+# Source: chef-adventure/data/Items.json and Armors.json
+# Fields limited to name, iconIndex and description by request.
+
+dishes:   # recipe outputs, the 151-182 block
+  - id: i151
+    name: "Erocian Pudding"
+    iconIndex: 778
+    description: "A strange-looking pudding that is a delicacy in Erocy.\nSeem to smell like oranges... but at least it heals life, magi, AND tech!"
+  - id: i152
+    name: "Yellow Soup"
+    iconIndex: 1960
+    description: "A classic Erocian dish, according to The Comfy Bear's innkeeper.\nIt is a strange honey-based soup with floating bits of vine in it."
+  - id: i153
+    name: "Grilled Bearcat"
+    iconIndex: 244
+    description: "A classic Erocian dish, according to The Comfy Bear's innkeeper.\nIt seems simple enough: seasoned bearcat flank that has been grilled."
+  - id: i154
+    name: "Pan-seared Cod"
+    iconIndex: 245
+    description: "A classic Erocian dish, according to The Comfy Bear's innkeeper.\nA beautiful cod that has been panseared in butter."
+  - id: i155
+    name: "Fried Cheesy Eggs"
+    iconIndex: 2120
+    description: "A classic Erocian dish, according to The Comfy Bear's innkeeper.\nSome eggs that were cooked in that really old cheese you found."
+  - id: i156
+    name: "Potato Beef Cake"
+    iconIndex: 2116
+    description: "An uncommon Erocian dish, according to nature lover.\nA roll made from fried potatoes as the container and beef with cheese as the filling."
+  - id: i157
+    name: "Charred Beef Ribs"
+    iconIndex: 2099
+    description: "An uncommon Erocian dish, according to nature lover.\nBeautifully charred rib meat that has been seasoned to perfection. Would even revive the dead."
+  - id: i158
+    name: "Acorn Pie"
+    iconIndex: 1958
+    description: "This is an amazing nut-based pie, derived from none other than the Dryad's\nAcorns. The memories of the Dryad are so delicious that they purge all poisons."
+  - id: i159
+    name: "Jelli Pilaf"
+    iconIndex: 1965
+    description: "An uncommon Erocian dish, according to nature lover.\nA strangely jiggly pilaf that smells much better than it looks."
+  - id: i160
+    name: "Lemonroasted Carrots"
+    iconIndex: 280
+    description: "An uncommon Erocian dish, according to nature lover.\nA spread of carrots that have been drizzled with a lemon butter before roasting."
+  - id: i161
+    name: "Mushroom Bisque"
+    iconIndex: 2117
+    description: "An uncommon Erocian dish, according to nature lover.\nA tiny bowl of bisque crafted from a variety of wild fungus."
+  - id: i162
+    name: "Tasty Stew"
+    iconIndex: 240
+    description: "A rare Erocian dish, according to nature lover.\nA sumptuous stew with a never-before-seen amount of umami delivering 💯%."
+  - id: i163
+    name: "TODO:MOVE Medicinal Salts"
+    iconIndex: 355
+    description: "A small pile of medicinal smelling salts that will snap the whole party back from the dead.\nAlso heals some Life (15% + 150)."
+  - id: i164
+    name: "Steamed Imp Tongue"
+    iconIndex: 2119
+    description: "A big fat imp tongue that someone cooked up and seasoned.\nSupposedly it tastes like chocolate, but are you even brave enough to find out?"
+  - id: i165
+    name: "Wilted Wolftrap Salad"
+    iconIndex: 1963
+    description: "A bright and green salad, with vines that are still wriggling in it.\nIt is probably a good idea to eat it quick lest it eat you first."
+  - id: i166
+    name: "Tender Coral and Cod"
+    iconIndex: 319
+    description: "Apparently around Erocia, it is common to straight up eat coral.\nHowever, this coral is questionably tender, almost as tender as the delicious cod it compliments."
+  - id: i167
+    name: "Bloody Trap Soup"
+    iconIndex: 794
+    description: "A soup derived from the roots and vines of a bloodtrap.\nThe leaves are preposterously healthy despite being juicy with blood-like liquid."
+  - id: i168
+    name: "Vanilla Bleu Cone"
+    iconIndex: 2139
+    description: "Light and swirly cone of refreshing vanilla bleu.\nConsider drizzling chocolate syrup over it for the ultimate treat!"
+  - id: i169
+    name: "Molten Fried Rice"
+    iconIndex: 1965
+    description: "A massive mound of fried rice, leveraging raw elemental energy to empower tastes.\nIt also leverages the various fried rice ingredients, but who cares about those."
+  - id: i170
+    name: "Flame-kissed Rack"
+    iconIndex: 2099
+    description: "A colossal rack of ribs- probably ripped straight out of the Lamia while she was alive.\nGrilling ribs of any kind over high heat though can really bring out some amazing flavor."
+  - id: i171
+    name: "Mahogany Melody"
+    iconIndex: 2332
+    description: "A beautiful melody of mushrooms.\nNo, that is not a typo for \"medley\", these mushrooms are literally singing- all of them, and its fucking creepy."
+  - id: i172
+    name: "Erociberry Toast"
+    iconIndex: 2123
+    description: "A beautiful pairing of delicately toasted white bread decorated with hand-made erociberry jam.\nThe pinnacle of breakfast cookery."
+  - id: i173
+    name: "Beef Shakshuka"
+    iconIndex: 1932
+    description: "Nothing beats the sumptuousness of \\Armor[348] layered with egg and tomato goodness.\nNot even the dead can resist its hearty and filling flavor."
+  - id: i174
+    name: "Seeing Jambalaya"
+    iconIndex: 1926
+    description: "Jambalaya is a dish known in many forms across the universe.\nErocia's famous variant uses eyeballs for the primary protein, making it look up at you while you eat it."
+  - id: i175
+    name: "Herbal Tea"
+    iconIndex: 2084
+    description: "A nice and healthy combination of herbs and tea and monster bits.\nAdd a squirt of lemon for a nice little after-zing."
+  - id: i176
+    name: "Gel-o"
+    iconIndex: 342
+    description: "A wildly jiggly substance that somehow retains its shape like a living actual slime.\nIts jiggle is irresistably enjoyable, don't stop yourself from playing with it if it calls to you!"
+  - id: i177
+    name: "Ghastly Goulash"
+    iconIndex: 1932
+    description: "onion, beef, olive oil, tomato, noodles,\ngarlic, seasoning"
+  - id: i178
+    name: "River Smoothie"
+    iconIndex: 1987
+    description: ""
+  - id: i179
+    name: "Slime Puree"
+    iconIndex: 1890
+    description: ""
+  - id: i180
+    name: "Jelli Hors d'Oeuvres"
+    iconIndex: 1995
+    description: ""
+  - id: i181
+    name: "Blood-seared Asp"
+    iconIndex: 2134
+    description: ""
+  - id: i182
+    name: "Grim Flankebobs"
+    iconIndex: 2097
+    description: ""
+
+pantry:   # staple ingredients, the 73-99 block
+  - id: i73
+    name: "Container"
+    iconIndex: 2083
+    description: "Not everything should rest directly in your infinite bag of holding. For those\ncases, you should consider putting them in a container such as this."
+  - id: i74
+    name: "Earthy Herbs"
+    iconIndex: 181
+    description: "A bundle of some of earthy, savory-smelling herbs.\nAdding these to your dishes will surely add the umami you seek!"
+  - id: i75
+    name: "Minty Herbs"
+    iconIndex: 272
+    description: "A bundle of some of fresh and crisp-smelling herbs.\nAdding these to your dishes will surely add the freshness you seek!"
+  - id: i76
+    name: "Spicy Herbs"
+    iconIndex: 273
+    description: "A bundle of some of fiery, and spicy-smelling herbs.\nAdding these to your dishes will surely add the lava you seek!"
+  - id: i77
+    name: "Water"
+    iconIndex: 176
+    description: "Your basic in H2O, bottled up for your RPG convenience."
+  - id: i78
+    name: "Bell Pepper"
+    iconIndex: 276
+    description: "Though its called a pepper, the capsaicin is fairly low.\nEven the most spice-sensitive can usually tolerate these."
+  - id: i79
+    name: "Tomato"
+    iconIndex: 277
+    description: "A juicy and luscious tomato. Almost as versatile as a potato.\nThis can be used in all sorts of dishes."
+  - id: i80
+    name: "Green Beans"
+    iconIndex: 278
+    description: "A pod of green beans, right off the vine.\nThese are great for adding texture and healthiness to your cuisine."
+  - id: i81
+    name: "Lettuce"
+    iconIndex: 279
+    description: "Usually rather tasteless, but goes great with salads or\nburgers due to the variance of texture."
+  - id: i82
+    name: "Carrot"
+    iconIndex: 280
+    description: "Carrots are well-known for their rabbit consumers, but rabbits\nif you added this to a stew, it would definitely add earthiness!"
+  - id: i83
+    name: "Onion"
+    iconIndex: 281
+    description: "Your basic yellow onion. Slightly sweet, but has a delicate\naroma that wafts deep into your happy little nostrils."
+  - id: i84
+    name: "Potato"
+    iconIndex: 282
+    description: "The most versatile of roots, the potato can be used for\nso many things its an absolute atrocity you don't have 999 of them."
+  - id: i85
+    name: "Nuts"
+    iconIndex: 283
+    description: "Your basic variety of nut. What kind is that, you ask?\nThe nutty kind."
+  - id: i86
+    name: "Mushrooms"
+    iconIndex: 284
+    description: "A generic mushroom with a cap that does mushroom things.\nGrows up and looks gross, but can fill a variety of roles in food."
+  - id: i87
+    name: "Broccoli"
+    iconIndex: 285
+    description: "Sometimes known as a superfood, broccoli is a great addition\nto any dish."
+  - id: i88
+    name: "Erociberries"
+    iconIndex: 267
+    description: "A small bunch of cherry-like berries, providing the perfect amount of\nsweetness and tart. Eating them straight is tempting."
+  - id: i89
+    name: "Pasta"
+    iconIndex: 1968
+    description: "Various shapes and forms of pasta.\nThe versatility in dish formation is unrivaled."
+  - id: i90
+    name: "Cheese"
+    iconIndex: 241
+    description: "Though cheese has a multitude of subcategories, similar to\nmushrooms, for the sake of this adventure, there is only \"cheese\"."
+  - id: i91
+    name: "Malk"
+    iconIndex: 1953
+    description: "The source from which this white viscous liquid comes from is yet to be determined.\nHowever, it does appear to function identically to milk in a cooking context."
+  - id: i92
+    name: "Eggs"
+    iconIndex: 248
+    description: "It is presumed that these eggs came from this planet's equivalent\nof a chicken or something, because they are about the same shape and size."
+  - id: i93
+    name: "Rice"
+    iconIndex: 303
+    description: "The king of starches, can be used to make so many things that\nits a miracle it exists everywhere you go."
+  - id: i94
+    name: "Bread"
+    iconIndex: 246
+    description: "A single loaf of freshly baked sourdough bread.\nThe smell makes you drool a bit."
+  - id: i95
+    name: "Coconut"
+    iconIndex: 261
+    description: "One of the only fruits that appear to grow in this land.\nFortunately, it can be used for both its milk, and its flesh."
+  - id: i96
+    name: "Lemon"
+    iconIndex: 263
+    description: "A golden yellow lemon, almost bursting with juice.\nThough, you probably want to use the juice sparingly, its very tart."
+  - id: i97
+    name: "Seasoning"
+    iconIndex: 250
+    description: "An all-purpose seasoning salt of sorts. The precise blend is\na well-guarded secret of the chef who made it."
+  - id: i98
+    name: "Butter"
+    iconIndex: 291
+    description: "Butter... such a legendary ingredient in its versatility of use\nand flavor profile. You can use it for both cooking and baking."
+  - id: i99
+    name: "Cooking Oil"
+    iconIndex: 2089
+    description: "The oil is well-refined and works wonders for searing all sorts of goods."
+
+tools:    # items required by cooking recipes, not consumed
+  - id: i101
+    name: "Soup Pot"
+    iconIndex: 2376
+    description: "An old hand-me-down utensil. Can be used to boil and stew a variety\nof different soup-like dishes!"
+  - id: i102
+    name: "Spoon"
+    iconIndex: 2109
+    description: "A fine cooking utensil. Some dishes require the ability to\nstir the contents without your bare hands to produce sanitary results."
+  - id: i103
+    name: "Frying Pan"
+    iconIndex: 2107
+    description: "An old hand-me-down utensil. Can be used to saute, fry, or sear\na variety of different ingredients!"
+  - id: i104
+    name: "Spatula"
+    iconIndex: 2108
+    description: "A fine cooking utensil. Some dishes require the finesse of\na turner like this to safely flip to the other side for even cooking."
+  - id: i107
+    name: "Gripper"
+    iconIndex: 227
+    description: "A multi-purpose tool. It can be used to grab things from a safe distance,\nor just lock things in place while you operate on them- food or weapons or whatever."
+  - id: i112
+    name: "Obliterator"
+    iconIndex: 1758
+    description: "Similar to what most know as a \"blender\" in function, except used for other products.\nThrow anything into it, and it'll spit out a hyper-fine blended variant of the inputs- enemies not included."
+
+materials:   # armor-type ingredients cooking currently consumes; needed to read the recipe backup
+  - id: a321
+    name: "Dead Greens"
+    iconIndex: 797
+    description: "1️⃣These greens were probably alive once, but they were trampled\nall over, shit on, and half-digested. They are actually very gross."
+  - id: a332
+    name: "Odorful Powder"
+    iconIndex: 303
+    description: "2️⃣Now that it can be smelled, it is undecided as to which is worse:\nbeing able to smell it, or not being able to smell it."
+  - id: a333
+    name: "Ghastly Powder"
+    iconIndex: 303
+    description: "3️⃣A truly ghastly-smelling powder that you probably should not have picked up.\nWhy did you pick up a pile of this anyway? It is literal death."
+  - id: a343
+    name: "River Coral"
+    iconIndex: 319
+    description: "3️⃣The kind of coral you probably see kappas holding onto for some unknown reason.\nThey must miss their rivers, and here you are farming them for their home's keepsakes."
+  - id: a348
+    name: "Beefy Tail"
+    iconIndex: 320
+    description: "3️⃣Do not mistake the name for this being a thick and juicy tail.\nThere appears to be actual beef(!!!) or beef-like meat on this tail left."
+  - id: a357
+    name: "Lacerated Eyeball"
+    iconIndex: 324
+    description: "2️⃣An eyeball of which has been gravely sliced from edge to edge.\nEven if this was attached, which its not, it would not be of great use."
+  - id: a368
+    name: "Earthen Bone"
+    iconIndex: 326
+    description: "3️⃣A femur that likely came from a large feline of some sort.\nIt appears completely intact."
+  - id: a372
+    name: "Coagulated Blood"
+    iconIndex: 327
+    description: "2️⃣After bleeding a while, blood will start to coagulate and get thick.\nThis is that blood, its actually kinda gross that you picked this off some beast."
+  - id: a386
+    name: "Bearcat Flank"
+    iconIndex: 330
+    description: "1️⃣Bearcat meat is well-known for being terrible in flavor, gamey as all hell,\nand like chewing through leather at any temp of cook."
+  - id: a388
+    name: "Grim Flank"
+    iconIndex: 330
+    description: "3️⃣When it comes to premium flank cuts, you always look to the Grim.\nThough the Grim can be tough to hunt, its flank is worth its weight in G."
+  - id: a391
+    name: "Imp Tongue"
+    iconIndex: 331
+    description: "1️⃣An imp's tongue is most commonly used in a variety of\nwitch's tinctures. Their sense of taste supposedly makes brews taste better."
+  - id: a396
+    name: "Boney Ribs"
+    iconIndex: 332
+    description: "1️⃣Though the ribs and rib meat all look intact, the animal you\nchose to destroy to get these ribs must've been nearly starved."
+  - id: a397
+    name: "Lamia Ribs"
+    iconIndex: 332
+    description: "2️⃣The ribs of a super long lamia.\nAs a result, there are a fuckton of them."
+  - id: a398
+    name: "Serpent Ribs"
+    iconIndex: 332
+    description: "3️⃣The serpent's ribs are usually kind of flexible due to the need to\nconstantly be wriggling."
+  - id: a401
+    name: "Big Gelatin"
+    iconIndex: 333
+    description: "1️⃣Slime monsters keep it all together with the power of science!\nAnd also gelatin."
+  - id: a403
+    name: "Huge Gelatin"
+    iconIndex: 333
+    description: "3️⃣A huge ass glob of gelatin probably carved from a kingly slime or something.\nIt strangely has no smell."
+  - id: a412
+    name: "Beast Heart"
+    iconIndex: 336
+    description: "2️⃣The heart of your foes serves as a fine prize for their defeat.\nThere are probably other uses, beyond holding it proudly."
+  - id: a413
+    name: "Hydro Heart"
+    iconIndex: 336
+    description: "3️⃣A heart from the aquatic sort are strange and more core-like or something.\nIt is certainly pulsing still; you should probably store it while it still can exist outside of water."
+  - id: a418
+    name: "Slimy Slime"
+    iconIndex: 342
+    description: "3️⃣The ways in english of saying \"this is gross\" are countless.\nBut this slime is downright nasty, offending all 8 of your senses."
+  - id: a426
+    name: "Smelly Fish"
+    iconIndex: 245
+    description: "1️⃣It appears to be a standard freshwater cod.\nUnfortunately, it is well past its prime and will likely be questionable in taste when cooked."
+  - id: a427
+    name: "Ordinary Fish"
+    iconIndex: 245
+    description: "2️⃣A regular trout that probably lived in some nearby lake."
+  - id: a431
+    name: "Faerie Petal"
+    iconIndex: 347
+    description: "1️⃣Most would believe these are the wings of a faerie, but really it\nis a petal- literally a flake from their flesh."
+  - id: a436
+    name: "Bug Eggs"
+    iconIndex: 349
+    description: "1️⃣They are wiggling, slimy, and extra tiny. These are quite possibly\nthe grossest thing you've carried around on purpose."
+  - id: a446
+    name: "Wolftrap Vine"
+    iconIndex: 794
+    description: "1️⃣One of the 8 vines a wolftrap possesses. The plant has a ton of great\nnutritional benefits, but is best known for restoring mental accuity."
+  - id: a447
+    name: "Bloodtrap Vine"
+    iconIndex: 794
+    description: "2️⃣One of the 8 vines a bloodtrap possesses. Contrary to the\nwolftrap, many of the components of a bloodtrap are mostly toxic."

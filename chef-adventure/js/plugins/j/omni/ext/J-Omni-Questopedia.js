@@ -3401,7 +3401,7 @@ Game_Party.prototype.updateTrackedOmniQuestsFromConfig = function() {
 			foundTracking.objectives.forEach((objective, index) => {
 				if (!omniquest.objectives.at(index)) return;
 				const sourceObjective = omniquest.objectives.at(index);
-				objective.populateFulfillmentData(sourceObjective === undefined ? undefined : sourceObjective.fulfillment);
+				objective.populateFulfillmentData(sourceObjective.fulfillment);
 				const newObjective = newTracking.objectives.at(index);
 				objective.hidden = newObjective.hidden;
 				objective.optional = newObjective.optional;
@@ -3465,9 +3465,6 @@ Game_Party.prototype.translateQuestopediaSaveablesToCache = function() {
 * Synchronizes the questopedia cache into the saveable datas.
 */
 Game_Party.prototype.synchronizeQuestopediaDataBeforeSave = function() {
-	if (!this.isOmnipediaInitialized()) {
-		this.initOmnipediaMembers();
-	}
 	this.translateQuestopediaCacheToSaveables();
 	this.translateQuestopediaSaveablesToCache();
 };
@@ -3475,9 +3472,6 @@ Game_Party.prototype.synchronizeQuestopediaDataBeforeSave = function() {
 * Synchronize the questopedia saveable datas into the cache.
 */
 Game_Party.prototype.synchronizeQuestopediaAfterLoad = function() {
-	if (!this.isOmnipediaInitialized()) {
-		this.initOmnipediaMembers();
-	}
 	this.translateQuestopediaSaveablesToCache();
 	this.translateQuestopediaCacheToSaveables();
 };

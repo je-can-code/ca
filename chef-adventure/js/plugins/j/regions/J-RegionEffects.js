@@ -281,7 +281,6 @@ Game_Map.prototype.canRefreshRegionEffects = function() {
 */
 Game_Map.prototype.refreshAllowRegionEffects = function() {
 	const allowedRegions = RPGManager.getArrayFromNotesByRegex({ note: this.note() }, J.REGIONS.RegExp.AllowRegions);
-	if (!allowedRegions) return;
 	allowedRegions.forEach(this.addAllowEffectRegionId, this);
 };
 /**
@@ -289,7 +288,6 @@ Game_Map.prototype.refreshAllowRegionEffects = function() {
 */
 Game_Map.prototype.refreshDenyRegionEffects = function() {
 	const deniedRegions = RPGManager.getArrayFromNotesByRegex({ note: this.note() }, J.REGIONS.RegExp.DenyRegions);
-	if (!deniedRegions) return;
 	deniedRegions.forEach(this.addDenyEffectRegionId, this);
 };
 /**

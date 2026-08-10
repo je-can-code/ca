@@ -31,9 +31,20 @@
       ],
       "ingredients": [
         {
-          "id": 401,
-          "type": "a",
-          "count": 1
+          "id": 0,
+          "type": "i",
+          "count": 1,
+          "categories": [
+            "gel"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 1,
+          "categories": [
+            "flank"
+          ]
         }
       ],
       "outputs": [
@@ -68,17 +79,12 @@
       ],
       "ingredients": [
         {
-          "id": 436,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 74,
+          "id": 411,
           "type": "i",
           "count": 1
         },
         {
-          "id": 77,
+          "id": 416,
           "type": "i",
           "count": 1
         }
@@ -110,22 +116,17 @@
       ],
       "ingredients": [
         {
-          "id": 386,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 74,
+          "id": 411,
           "type": "i",
           "count": 1
         },
         {
-          "id": 83,
+          "id": 296,
           "type": "i",
           "count": 1
         },
         {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         }
@@ -162,17 +163,12 @@
       ],
       "ingredients": [
         {
-          "id": 426,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         },
         {
-          "id": 98,
+          "id": 376,
           "type": "i",
           "count": 1
         }
@@ -214,17 +210,17 @@
           "count": 1
         },
         {
-          "id": 90,
+          "id": 361,
           "type": "i",
           "count": 2
         },
         {
-          "id": 98,
+          "id": 376,
           "type": "i",
           "count": 1
         },
         {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         }
@@ -268,22 +264,17 @@
       ],
       "ingredients": [
         {
-          "id": 84,
+          "id": 311,
           "type": "i",
           "count": 1
         },
         {
-          "id": 386,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 83,
+          "id": 296,
           "type": "i",
           "count": 1
         },
         {
-          "id": 90,
+          "id": 361,
           "type": "i",
           "count": 1
         }
@@ -315,17 +306,12 @@
       ],
       "ingredients": [
         {
-          "id": 396,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 74,
+          "id": 411,
           "type": "i",
           "count": 1
         },
         {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         }
@@ -351,12 +337,12 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 85,
+          "id": 316,
           "type": "i",
           "count": 1
         },
         {
-          "id": 75,
+          "id": 412,
           "type": "i",
           "count": 1
         },
@@ -366,13 +352,8 @@
           "count": 1
         },
         {
-          "id": 98,
+          "id": 376,
           "type": "i",
-          "count": 1
-        },
-        {
-          "id": 431,
-          "type": "a",
           "count": 1
         }
       ],
@@ -408,22 +389,22 @@
           "count": 1
         },
         {
-          "id": 98,
+          "id": 376,
           "type": "i",
           "count": 1
         },
         {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         },
         {
-          "id": 83,
+          "id": 296,
           "type": "i",
           "count": 1
         },
         {
-          "id": 74,
+          "id": 411,
           "type": "i",
           "count": 1
         }
@@ -455,17 +436,17 @@
       ],
       "ingredients": [
         {
-          "id": 82,
+          "id": 291,
           "type": "i",
           "count": 1
         },
         {
-          "id": 99,
+          "id": 426,
           "type": "i",
           "count": 1
         },
         {
-          "id": 96,
+          "id": 346,
           "type": "i",
           "count": 1
         }
@@ -502,32 +483,32 @@
       ],
       "ingredients": [
         {
-          "id": 86,
+          "id": 301,
           "type": "i",
           "count": 1
         },
         {
-          "id": 74,
+          "id": 411,
           "type": "i",
           "count": 1
         },
         {
-          "id": 77,
+          "id": 416,
           "type": "i",
           "count": 1
         },
         {
-          "id": 90,
+          "id": 361,
           "type": "i",
           "count": 1
         },
         {
-          "id": 98,
+          "id": 376,
           "type": "i",
           "count": 1
         },
         {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         }
@@ -564,53 +545,48 @@
       ],
       "ingredients": [
         {
-          "id": 73,
+          "id": 406,
           "type": "i",
           "count": 1
         },
         {
-          "id": 74,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 75,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 76,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 82,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 83,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 87,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 77,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 97,
+          "id": 411,
           "type": "i",
           "count": 1
         },
         {
           "id": 412,
-          "type": "a",
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 413,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 291,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 296,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 281,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 416,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 421,
+          "type": "i",
           "count": 1
         }
       ],
@@ -658,12 +634,12 @@
           "count": 1
         },
         {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         },
         {
-          "id": 99,
+          "id": 426,
           "type": "i",
           "count": 1
         }
@@ -700,12 +676,7 @@
       ],
       "ingredients": [
         {
-          "id": 436,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         },
@@ -713,11 +684,6 @@
           "id": 321,
           "type": "a",
           "count": 3
-        },
-        {
-          "id": 446,
-          "type": "a",
-          "count": 2
         }
       ],
       "outputs": [
@@ -752,12 +718,7 @@
           "count": 2
         },
         {
-          "id": 343,
-          "type": "a",
-          "count": 2
-        },
-        {
-          "id": 99,
+          "id": 426,
           "type": "i",
           "count": 1
         }
@@ -794,12 +755,12 @@
           "count": 3
         },
         {
-          "id": 77,
+          "id": 416,
           "type": "i",
           "count": 1
         },
         {
-          "id": 79,
+          "id": 256,
           "type": "i",
           "count": 2
         }
@@ -878,27 +839,22 @@
           "count": 2
         },
         {
-          "id": 418,
-          "type": "a",
-          "count": 2
-        },
-        {
           "id": 11,
           "type": "i",
           "count": 1
         },
         {
-          "id": 76,
+          "id": 413,
           "type": "i",
           "count": 5
         },
         {
-          "id": 82,
+          "id": 291,
           "type": "i",
           "count": 1
         },
         {
-          "id": 80,
+          "id": 266,
           "type": "i",
           "count": 1
         },
@@ -935,12 +891,7 @@
       ],
       "ingredients": [
         {
-          "id": 397,
-          "type": "a",
-          "count": 2
-        },
-        {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         },
@@ -950,12 +901,12 @@
           "count": 2
         },
         {
-          "id": 96,
+          "id": 346,
           "type": "i",
           "count": 1
         },
         {
-          "id": 75,
+          "id": 412,
           "type": "i",
           "count": 2
         }
@@ -999,27 +950,22 @@
       ],
       "ingredients": [
         {
-          "id": 86,
+          "id": 301,
           "type": "i",
           "count": 3
         },
         {
-          "id": 431,
-          "type": "a",
-          "count": 2
-        },
-        {
-          "id": 83,
+          "id": 296,
           "type": "i",
           "count": 2
         },
         {
-          "id": 74,
+          "id": 411,
           "type": "i",
           "count": 1
         },
         {
-          "id": 98,
+          "id": 376,
           "type": "i",
           "count": 1
         }
@@ -1056,7 +1002,7 @@
       ],
       "ingredients": [
         {
-          "id": 88,
+          "id": 336,
           "type": "i",
           "count": 5
         },
@@ -1066,7 +1012,7 @@
           "count": 2
         },
         {
-          "id": 98,
+          "id": 376,
           "type": "i",
           "count": 1
         }
@@ -1103,27 +1049,22 @@
       ],
       "ingredients": [
         {
-          "id": 348,
-          "type": "a",
-          "count": 3
-        },
-        {
-          "id": 76,
+          "id": 413,
           "type": "i",
           "count": 2
         },
         {
-          "id": 79,
+          "id": 256,
           "type": "i",
           "count": 2
         },
         {
-          "id": 82,
+          "id": 291,
           "type": "i",
           "count": 2
         },
         {
-          "id": 84,
+          "id": 311,
           "type": "i",
           "count": 2
         },
@@ -1133,12 +1074,12 @@
           "count": 2
         },
         {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         },
         {
-          "id": 73,
+          "id": 406,
           "type": "i",
           "count": 3
         }
@@ -1185,17 +1126,17 @@
           "count": 3
         },
         {
-          "id": 77,
+          "id": 416,
           "type": "i",
           "count": 1
         },
         {
-          "id": 78,
+          "id": 251,
           "type": "i",
           "count": 2
         },
         {
-          "id": 83,
+          "id": 296,
           "type": "i",
           "count": 1
         },
@@ -1205,7 +1146,7 @@
           "count": 2
         },
         {
-          "id": 99,
+          "id": 426,
           "type": "i",
           "count": 1
         }
@@ -1242,29 +1183,24 @@
       ],
       "ingredients": [
         {
-          "id": 73,
+          "id": 406,
           "type": "i",
           "count": 1
         },
         {
-          "id": 74,
+          "id": 411,
           "type": "i",
           "count": 1
         },
         {
-          "id": 77,
+          "id": 416,
           "type": "i",
           "count": 1
         },
         {
-          "id": 96,
+          "id": 346,
           "type": "i",
           "count": 1
-        },
-        {
-          "id": 431,
-          "type": "a",
-          "count": 2
         }
       ],
       "outputs": [
@@ -1293,11 +1229,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 418,
-          "type": "a",
-          "count": 2
-        },
         {
           "id": 403,
           "type": "a",
@@ -1353,12 +1284,12 @@
       ],
       "ingredients": [
         {
-          "id": 83,
+          "id": 296,
           "type": "i",
           "count": 3
         },
         {
-          "id": 99,
+          "id": 426,
           "type": "i",
           "count": 1
         },
@@ -1395,7 +1326,7 @@
       ],
       "ingredients": [
         {
-          "id": 77,
+          "id": 416,
           "type": "i",
           "count": 2
         },
@@ -1405,22 +1336,17 @@
           "count": 1
         },
         {
-          "id": 413,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 91,
           "type": "i",
           "count": 2
         },
         {
-          "id": 88,
+          "id": 336,
           "type": "i",
           "count": 1
         },
         {
-          "id": 73,
+          "id": 406,
           "type": "i",
           "count": 1
         }
@@ -1451,11 +1377,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 418,
-          "type": "a",
-          "count": 5
-        },
         {
           "id": 368,
           "type": "a",
@@ -1509,7 +1430,7 @@
           "count": 1
         },
         {
-          "id": 75,
+          "id": 412,
           "type": "i",
           "count": 2
         }
@@ -1551,12 +1472,12 @@
           "count": 1
         },
         {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         },
         {
-          "id": 98,
+          "id": 376,
           "type": "i",
           "count": 1
         }
@@ -1598,17 +1519,17 @@
           "count": 3
         },
         {
-          "id": 74,
+          "id": 411,
           "type": "i",
           "count": 3
         },
         {
-          "id": 78,
+          "id": 251,
           "type": "i",
           "count": 2
         },
         {
-          "id": 97,
+          "id": 421,
           "type": "i",
           "count": 1
         }
@@ -3315,11 +3236,6 @@
           "count": 2
         },
         {
-          "id": 371,
-          "type": "a",
-          "count": 10
-        },
-        {
           "id": 46,
           "type": "i",
           "count": 1
@@ -3412,11 +3328,6 @@
           "id": 33,
           "type": "i",
           "count": 5
-        },
-        {
-          "id": 373,
-          "type": "a",
-          "count": 10
         },
         {
           "id": 313,
@@ -5224,11 +5135,6 @@
           "id": 30,
           "type": "i",
           "count": 1
-        },
-        {
-          "id": 446,
-          "type": "a",
-          "count": 2
         }
       ],
       "outputs": [
@@ -5617,11 +5523,6 @@
           "id": 32,
           "type": "i",
           "count": 8
-        },
-        {
-          "id": 412,
-          "type": "a",
-          "count": 2
         }
       ],
       "outputs": [
@@ -5664,11 +5565,6 @@
           "id": 32,
           "type": "i",
           "count": 8
-        },
-        {
-          "id": 412,
-          "type": "a",
-          "count": 2
         }
       ],
       "outputs": [
@@ -5711,11 +5607,6 @@
           "id": 32,
           "type": "i",
           "count": 8
-        },
-        {
-          "id": 412,
-          "type": "a",
-          "count": 2
         }
       ],
       "outputs": [
@@ -5758,11 +5649,6 @@
           "id": 32,
           "type": "i",
           "count": 8
-        },
-        {
-          "id": 412,
-          "type": "a",
-          "count": 2
         }
       ],
       "outputs": [
@@ -5805,11 +5691,6 @@
           "id": 32,
           "type": "i",
           "count": 8
-        },
-        {
-          "id": 412,
-          "type": "a",
-          "count": 2
         }
       ],
       "outputs": [
@@ -6573,11 +6454,6 @@
           "id": 312,
           "type": "a",
           "count": 6
-        },
-        {
-          "id": 417,
-          "type": "a",
-          "count": 8
         }
       ],
       "outputs": [
@@ -6615,11 +6491,6 @@
           "id": 312,
           "type": "a",
           "count": 6
-        },
-        {
-          "id": 417,
-          "type": "a",
-          "count": 8
         },
         {
           "id": 46,
@@ -6662,11 +6533,6 @@
           "id": 312,
           "type": "a",
           "count": 6
-        },
-        {
-          "id": 417,
-          "type": "a",
-          "count": 8
         }
       ],
       "outputs": [
@@ -6704,11 +6570,6 @@
           "id": 312,
           "type": "a",
           "count": 6
-        },
-        {
-          "id": 417,
-          "type": "a",
-          "count": 8
         }
       ],
       "outputs": [
@@ -6746,11 +6607,6 @@
           "id": 312,
           "type": "a",
           "count": 6
-        },
-        {
-          "id": 417,
-          "type": "a",
-          "count": 8
         }
       ],
       "outputs": [
@@ -6788,11 +6644,6 @@
           "id": 312,
           "type": "a",
           "count": 6
-        },
-        {
-          "id": 417,
-          "type": "a",
-          "count": 8
         }
       ],
       "outputs": [
@@ -9413,11 +9264,6 @@
           "count": 1
         },
         {
-          "id": 422,
-          "type": "a",
-          "count": 4
-        },
-        {
           "id": 451,
           "type": "a",
           "count": 1
@@ -9453,11 +9299,6 @@
           "id": 34,
           "type": "a",
           "count": 1
-        },
-        {
-          "id": 422,
-          "type": "a",
-          "count": 4
         },
         {
           "id": 451,
@@ -9497,11 +9338,6 @@
           "count": 1
         },
         {
-          "id": 422,
-          "type": "a",
-          "count": 4
-        },
-        {
           "id": 451,
           "type": "a",
           "count": 1
@@ -9537,11 +9373,6 @@
           "id": 36,
           "type": "a",
           "count": 1
-        },
-        {
-          "id": 422,
-          "type": "a",
-          "count": 4
         },
         {
           "id": 451,
@@ -9581,11 +9412,6 @@
           "count": 1
         },
         {
-          "id": 422,
-          "type": "a",
-          "count": 4
-        },
-        {
           "id": 451,
           "type": "a",
           "count": 1
@@ -9623,11 +9449,6 @@
           "count": 1
         },
         {
-          "id": 422,
-          "type": "a",
-          "count": 4
-        },
-        {
           "id": 451,
           "type": "a",
           "count": 1
@@ -9663,11 +9484,6 @@
           "id": 39,
           "type": "a",
           "count": 1
-        },
-        {
-          "id": 422,
-          "type": "a",
-          "count": 4
         },
         {
           "id": 451,
@@ -10215,11 +10031,6 @@
         {
           "id": 33,
           "type": "i",
-          "count": 4
-        },
-        {
-          "id": 418,
-          "type": "a",
           "count": 4
         }
       ],
@@ -11466,11 +11277,6 @@
           "count": 1
         },
         {
-          "id": 371,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 30,
           "type": "i",
           "count": 1
@@ -11502,11 +11308,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 412,
-          "type": "a",
-          "count": 1
-        },
         {
           "id": 372,
           "type": "a",
@@ -11545,16 +11346,6 @@
       ],
       "ingredients": [
         {
-          "id": 413,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 373,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 38,
           "type": "i",
           "count": 1
@@ -11586,11 +11377,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 414,
-          "type": "a",
-          "count": 1
-        },
         {
           "id": 374,
           "type": "a",
@@ -11634,11 +11420,6 @@
           "count": 1
         },
         {
-          "id": 375,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 44,
           "type": "i",
           "count": 1
@@ -11672,11 +11453,6 @@
       "ingredients": [
         {
           "id": 391,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 371,
           "type": "a",
           "count": 1
         },
@@ -11760,11 +11536,6 @@
           "count": 1
         },
         {
-          "id": 373,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 38,
           "type": "i",
           "count": 1
@@ -11840,11 +11611,6 @@
       "ingredients": [
         {
           "id": 395,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 375,
           "type": "a",
           "count": 1
         },
@@ -13527,11 +13293,6 @@
           "count": 10
         },
         {
-          "id": 343,
-          "type": "a",
-          "count": 2
-        },
-        {
           "id": 37,
           "type": "i",
           "count": 2
@@ -13572,11 +13333,6 @@
           "id": 27,
           "type": "i",
           "count": 10
-        },
-        {
-          "id": 417,
-          "type": "a",
-          "count": 2
         },
         {
           "id": 37,
@@ -13621,11 +13377,6 @@
           "count": 10
         },
         {
-          "id": 448,
-          "type": "a",
-          "count": 2
-        },
-        {
           "id": 37,
           "type": "i",
           "count": 2
@@ -13666,11 +13417,6 @@
           "id": 12,
           "type": "i",
           "count": 10
-        },
-        {
-          "id": 413,
-          "type": "a",
-          "count": 2
         },
         {
           "id": 37,
@@ -13960,11 +13706,6 @@
           "count": 10
         },
         {
-          "id": 424,
-          "type": "a",
-          "count": 20
-        },
-        {
           "id": 41,
           "type": "i",
           "count": 10
@@ -14010,11 +13751,6 @@
           "id": 25,
           "type": "i",
           "count": 10
-        },
-        {
-          "id": 429,
-          "type": "a",
-          "count": 20
         },
         {
           "id": 41,
@@ -14195,6 +13931,344 @@
       "iconIndex": 0,
       "description": "The alchemy of gems is a wild science that many correlate with the Philosopher's Stone or\r\nwith turning shit into gold. How about turning shit into gems that give your stats a boost?",
       "unlockedByDefault": false
+    }
+  ],
+  "ingredientTypes": [
+    {
+      "key": "protein",
+      "name": "Protein",
+      "iconIndex": 244,
+      "description": ""
+    },
+    {
+      "key": "egg",
+      "name": "Egg",
+      "iconIndex": 249,
+      "description": ""
+    },
+    {
+      "key": "meat",
+      "name": "Meat",
+      "iconIndex": 332,
+      "description": ""
+    },
+    {
+      "key": "tail",
+      "name": "Tail",
+      "iconIndex": 320,
+      "description": ""
+    },
+    {
+      "key": "flank",
+      "name": "Flank",
+      "iconIndex": 330,
+      "description": ""
+    },
+    {
+      "key": "ribs",
+      "name": "Ribs",
+      "iconIndex": 2099,
+      "description": ""
+    },
+    {
+      "key": "wing",
+      "name": "Wing",
+      "iconIndex": 362,
+      "description": ""
+    },
+    {
+      "key": "offal",
+      "name": "Offal",
+      "iconIndex": 321,
+      "description": ""
+    },
+    {
+      "key": "eyeball",
+      "name": "Eyeball",
+      "iconIndex": 323,
+      "description": ""
+    },
+    {
+      "key": "blood",
+      "name": "Blood",
+      "iconIndex": 327,
+      "description": ""
+    },
+    {
+      "key": "heart",
+      "name": "Heart",
+      "iconIndex": 336,
+      "description": ""
+    },
+    {
+      "key": "gel",
+      "name": "Gel",
+      "iconIndex": 333,
+      "description": ""
+    },
+    {
+      "key": "fish",
+      "name": "Fish",
+      "iconIndex": 345,
+      "description": ""
+    },
+    {
+      "key": "vegetable",
+      "name": "Vegetable",
+      "iconIndex": 1177,
+      "description": ""
+    },
+    {
+      "key": "pepper",
+      "name": "Pepper",
+      "iconIndex": 1970,
+      "description": ""
+    },
+    {
+      "key": "tomato",
+      "name": "Tomato",
+      "iconIndex": 277,
+      "description": ""
+    },
+    {
+      "key": "vine",
+      "name": "Vine",
+      "iconIndex": 794,
+      "description": ""
+    },
+    {
+      "key": "pod",
+      "name": "Pod",
+      "iconIndex": 286,
+      "description": ""
+    },
+    {
+      "key": "sprout",
+      "name": "Sprout",
+      "iconIndex": 273,
+      "description": ""
+    },
+    {
+      "key": "leaf",
+      "name": "Leaf",
+      "iconIndex": 357,
+      "description": ""
+    },
+    {
+      "key": "salad",
+      "name": "Salad",
+      "iconIndex": 279,
+      "description": ""
+    },
+    {
+      "key": "greens",
+      "name": "Greens",
+      "iconIndex": 306,
+      "description": ""
+    },
+    {
+      "key": "petal",
+      "name": "Petal",
+      "iconIndex": 2322,
+      "description": ""
+    },
+    {
+      "key": "root",
+      "name": "Root",
+      "iconIndex": 1332,
+      "description": ""
+    },
+    {
+      "key": "carrot",
+      "name": "Carrot",
+      "iconIndex": 280,
+      "description": ""
+    },
+    {
+      "key": "onion",
+      "name": "Onion",
+      "iconIndex": 281,
+      "description": ""
+    },
+    {
+      "key": "fungus",
+      "name": "Fungus",
+      "iconIndex": 284,
+      "description": ""
+    },
+    {
+      "key": "coral",
+      "name": "Coral",
+      "iconIndex": 319,
+      "description": ""
+    },
+    {
+      "key": "carb",
+      "name": "Carb",
+      "iconIndex": 246,
+      "description": ""
+    },
+    {
+      "key": "tuber",
+      "name": "Tuber",
+      "iconIndex": 282,
+      "description": ""
+    },
+    {
+      "key": "seed",
+      "name": "Seed",
+      "iconIndex": 1326,
+      "description": ""
+    },
+    {
+      "key": "noodle",
+      "name": "Noodle",
+      "iconIndex": 1147,
+      "description": ""
+    },
+    {
+      "key": "grain",
+      "name": "Grain",
+      "iconIndex": 1341,
+      "description": ""
+    },
+    {
+      "key": "bread",
+      "name": "Bread",
+      "iconIndex": 1144,
+      "description": ""
+    },
+    {
+      "key": "fruit",
+      "name": "Fruit",
+      "iconIndex": 270,
+      "description": ""
+    },
+    {
+      "key": "berry",
+      "name": "Berry",
+      "iconIndex": 264,
+      "description": ""
+    },
+    {
+      "key": "tropical",
+      "name": "Tropical",
+      "iconIndex": 1980,
+      "description": ""
+    },
+    {
+      "key": "citrus",
+      "name": "Citrus",
+      "iconIndex": 263,
+      "description": ""
+    },
+    {
+      "key": "orchard",
+      "name": "Orchard",
+      "iconIndex": 268,
+      "description": ""
+    },
+    {
+      "key": "rind",
+      "name": "Rind",
+      "iconIndex": 262,
+      "description": ""
+    },
+    {
+      "key": "dairy",
+      "name": "Dairy",
+      "iconIndex": 1953,
+      "description": ""
+    },
+    {
+      "key": "cheese",
+      "name": "Cheese",
+      "iconIndex": 241,
+      "description": ""
+    },
+    {
+      "key": "milk",
+      "name": "Milk",
+      "iconIndex": 1312,
+      "description": ""
+    },
+    {
+      "key": "cream",
+      "name": "Cream",
+      "iconIndex": 1097,
+      "description": ""
+    },
+    {
+      "key": "butter",
+      "name": "Butter",
+      "iconIndex": 1966,
+      "description": ""
+    },
+    {
+      "key": "yogurt",
+      "name": "Yogurt",
+      "iconIndex": 1148,
+      "description": ""
+    },
+    {
+      "key": "sweet",
+      "name": "Sweet",
+      "iconIndex": 1952,
+      "description": ""
+    },
+    {
+      "key": "sugar",
+      "name": "Sugar",
+      "iconIndex": 1956,
+      "description": ""
+    },
+    {
+      "key": "jelly",
+      "name": "Jelly",
+      "iconIndex": 1092,
+      "description": ""
+    },
+    {
+      "key": "chocolate",
+      "name": "Chocolate",
+      "iconIndex": 1210,
+      "description": ""
+    },
+    {
+      "key": "gummy",
+      "name": "Gummy",
+      "iconIndex": 1240,
+      "description": ""
+    },
+    {
+      "key": "vessel",
+      "name": "Vessel",
+      "iconIndex": 366,
+      "description": ""
+    },
+    {
+      "key": "herb",
+      "name": "Herb",
+      "iconIndex": 272,
+      "description": ""
+    },
+    {
+      "key": "liquid",
+      "name": "Liquid",
+      "iconIndex": 1296,
+      "description": ""
+    },
+    {
+      "key": "spice",
+      "name": "Spice",
+      "iconIndex": 1327,
+      "description": ""
+    },
+    {
+      "key": "oil",
+      "name": "Oil",
+      "iconIndex": 252,
+      "description": ""
     }
   ]
 }

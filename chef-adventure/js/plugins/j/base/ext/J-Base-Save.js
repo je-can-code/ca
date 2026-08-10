@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.1 BASE-SAVE] Saves as readable JSON instead of a compressed heap dump.
+ * @plugindesc [v1.0.2 BASE-SAVE] Saves as readable JSON instead of a compressed heap dump.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -84,6 +84,11 @@
  * converter. Install it before a project has saves worth keeping.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Declared the equipment-contribution cache J-Base added to Game_Actor as
+ *    transient. It holds a Map, which is a registered type, so left undeclared
+ *    it would have persisted into every savefile and come back stale after a
+ *    load rather than being rebuilt from what is currently equipped.
  * - 1.0.1
  *    The retainedSaveGenerations parameter is now read as a number rather than
  *    as the string RMMZ hands over, so a configured value survives arithmetic
@@ -175,7 +180,7 @@ J.BASE.EXT.SAVE.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.BASE.EXT.SAVE.Metadata = new J_BaseSavePluginMetadata("J-Base-Save", "1.0.1");
+J.BASE.EXT.SAVE.Metadata = new J_BaseSavePluginMetadata("J-Base-Save", "1.0.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1946,7 +1951,8 @@ SerializableRegistry.register(Game_Actor, {
 		"_j._base._cachedAllTraits": () => null,
 		"_j._base._cachedAllNotes": () => null,
 		"_j._base._cachedMaxTpBonuses": () => null,
-		"_j._base._cachedHarFactor": () => null
+		"_j._base._cachedHarFactor": () => null,
+		"_j._base._cachedEquipContributions": () => null
 	}
 });
 /**
@@ -4129,7 +4135,9 @@ var Window_FilesList = class extends Window_Command {
 	* @returns {SaveFileEntry|null} The row, or null while nothing is highlighted.
 	*/
 	currentEntry() {
-		return this.entries().at(this.index()) ?? null;
+		const index = this.index();
+		if (index < 0) return null;
+		return this.entries().at(index) ?? null;
 	}
 	/**
 	* How many rows are visible at once.

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 CMS-EQUIP] A redesign of the equip menu.
+ * [v1.2.0 CMS-EQUIP] A redesign of the equip menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -21,6 +21,14 @@
  * redesign of the native equip menu.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    The equipment list now orders by database id rather than by the datastore
+ *    slot each row happens to occupy. A refined equip keeps the id of the thing
+ *    it was refined from and only takes a new slot, so slot order stranded every
+ *    refined copy in a block at the bottom of the list, far from the plain one it
+ *    came from. Id order sits them together, plain one first, and puts two copies
+ *    of the same equip next to each other. The empty row meaning "take this slot
+ *    off" has no id and stays pinned last.
  * - 1.1.0
  *    Added a context action on the equip slot list to unequip the
  *    currently-selected slot directly, without opening the item list.
@@ -72,7 +80,7 @@ J.CMS.EXT.EQUIP = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS.EXT.EQUIP.Metadata = new J_CmsEquip_PluginMetadata("J-CMS-Equip", "1.1.0");
+J.CMS.EXT.EQUIP.Metadata = new J_CmsEquip_PluginMetadata("J-CMS-Equip", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -628,6 +636,26 @@ Window_EquipItem.prototype.initialize = function(rect) {
 	* @type {Window_MoreEquipData}
 	*/
 	this._moreDataWindow = null;
+};
+/**
+* Extends {@link #makeItemList}.<br/>
+* Orders the list by database id rather than by the datastore slot each row happens to occupy.
+*
+* A refined equip keeps the id of the thing it was refined from and only takes a new slot, so slot order
+* strands every refined copy in a block at the bottom of the list, far from the plain one it came from.
+* Ordering by id sits them together, which is how a player thinks of them - one weapon, several states of
+* it - and it makes two copies of the same equip adjacent instead of scattered.
+*
+* The empty row that means "take this slot off" is not an item and has no id, so it stays pinned last.
+*/
+J.CMS.EXT.EQUIP.Aliased.Window_EquipItem.set("makeItemList", Window_EquipItem.prototype.makeItemList);
+Window_EquipItem.prototype.makeItemList = function() {
+	J.CMS.EXT.EQUIP.Aliased.Window_EquipItem.get("makeItemList").call(this);
+	this.data().sort((left, right) => {
+		if (left === null) return 1;
+		if (right === null) return -1;
+		return left.id - right.id || left._index() - right._index();
+	});
 };
 /**
 * Refreshes the more data window.

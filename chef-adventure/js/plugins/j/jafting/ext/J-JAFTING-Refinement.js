@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
+ * [v1.4.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -148,6 +148,45 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.4.0
+ *    A refinement now costs the base exactly one count, whatever the donor had
+ *    accumulated. Previously a donor's own history was added to the output and
+ *    charged against the base's ceiling, which meant a fully-refined weapon
+ *    could not be spent on anything - the pairing was barred before it could be
+ *    offered. A maxed donor hands over everything it gathered for the price of a
+ *    single count, which is what makes building one worth doing.
+ *    The refine-count ceiling no longer consults the donor either, so the case
+ *    that used to read as an unexplained refusal now simply projects one more
+ *    than the base has spent.
+ *    Added the transferrableEffectsBelow note tag, the note-side counterpart to
+ *    the divider trait. Everything above it describes what an equip is and never
+ *    leaves it; everything below is what a donor hands over when consumed. An
+ *    equip without the tag offers no note effects at all - the absence means
+ *    nothing transfers rather than everything does, which is what keeps an
+ *    equip's own identity from being launderable.
+ *    Note effects now merge on refinement, where previously only traits did. The
+ *    base keeps its retained half verbatim and the two transferable halves
+ *    combine beneath a fresh divider, so an output is itself donatable. Numeric
+ *    tags total, distinct formulas and arrays stack side by side, and identical
+ *    lines collapse to one.
+ *    The refinement result column shows what an equip will be worth rather than
+ *    the raw trait values behind it: a before and after per parameter, with the
+ *    percentage responsible in a third column. A percentage landing on a stat the
+ *    item has none of now reads plainly as zero to zero instead of looking like a
+ *    gain.
+ *    Transferable note effects are listed too, as authored - tag key on the left,
+ *    value on the right, both sides shown when a value moves. Nothing interprets
+ *    what a tag means yet, so these read as written rather than as a friendlier
+ *    guess.
+ *    The column headings are drawn on the output's name line and no longer depend
+ *    on a numeric row existing, so switching between donors that grant an amount
+ *    and donors that grant a name stopped moving every row a line.
+ *    An effect the base already carried is no longer dimmed. The rightmost column
+ *    says what happened to every row, and grey is what the donor list already
+ *    uses for rows that cannot be picked.
+ *    Fixed the details panel continuing to project a merge after backing out of
+ *    the donor list. The last-highlighted donor stayed selected internally while
+ *    nothing on screen said which one it was.
  * - 1.3.0
  *    Fixed refinement lineage collapsing on save/load. A refined item's
  *    ancestry was detected by comparing the datum's id against the refinement
@@ -498,6 +537,15 @@ var JaftingManager = class JaftingManager {
 	*/
 	static StartingIndex = 2001;
 	/**
+	* The literal note line separating an equip's own effects from the ones it hands over when consumed.
+	*
+	* Written verbatim onto a refinement output, so a refined equip can itself be donated later. The
+	* matching pattern lives on {@link J.JAFTING.EXT.REFINE.RegExp.TransferrableEffectsBelow}; this is the
+	* text, because a RegExp cannot be turned back into the thing it recognizes.
+	* @type {string}
+	*/
+	static TransferrableEffectsDivider = "<transferrableEffectsBelow>";
+	/**
 	* Parses all traits off the equipment that are below the "divider".
 	* The divider is NOT parameterized, the "collapse effect" trait is the perfect trait
 	* to use for this purpose since it has 0 use on actor equipment.
@@ -512,6 +560,159 @@ var JaftingManager = class JaftingManager {
 		if (availableTraits.length === 0) return Array.empty;
 		const consolidated = TraitResolver.consolidate(availableTraits);
 		return consolidated.map((t) => new JAFTING_Trait(t.code, t.dataId, t.value));
+	}
+	/**
+	* The note text below the transferable divider - what this equip hands over when consumed.
+	*
+	* No divider means no note effects transfer at all. That is the deliberate default and the mirror of
+	* {@link parseTraits}: an equip says what it is willing to give away, and silence means nothing. The
+	* alternative - transferring everything unless told otherwise - would hand a donor's identity over,
+	* including the `<this{PARAM}:N>` bases that make a percentage bounded by the item carrying it.
+	* @param {RPG_EquipItem} equip An equip to read transferable effects from.
+	* @returns {string} The transferable note text, or an empty string when there is none.
+	*/
+	static parseNoteEffects(equip) {
+		const lines = this.#noteLinesOf(equip);
+		const dividerIndex = this.#dividerIndexOf(lines);
+		if (dividerIndex === -1) return String.empty;
+		return lines.slice(dividerIndex + 1).join("\n");
+	}
+	/**
+	* The note text at and above the transferable divider - what an equip keeps no matter what.
+	*
+	* An equip with no divider keeps its whole note, since none of it was ever offered.
+	* @param {RPG_EquipItem} equip An equip to read retained effects from.
+	* @returns {string} The retained note text.
+	*/
+	static parseRetainedNote(equip) {
+		const lines = this.#noteLinesOf(equip);
+		const dividerIndex = this.#dividerIndexOf(lines);
+		if (dividerIndex === -1) {
+			return lines.join("\n");
+		}
+		return lines.slice(0, dividerIndex).join("\n");
+	}
+	/**
+	* Splits a note into its non-empty lines.
+	* @param {RPG_EquipItem} equip The equip whose note to split.
+	* @returns {string[]}
+	*/
+	static #noteLinesOf(equip) {
+		const note = equip.note || String.empty;
+		return note.split(/[\r\n]+/).filter((line) => line.length > 0);
+	}
+	/**
+	* Locates the transferable divider among a note's lines.
+	* @param {string[]} lines The note's lines.
+	* @returns {number} The divider's line index, or -1 when absent.
+	*/
+	static #dividerIndexOf(lines) {
+		const pattern = J.JAFTING.EXT.REFINE.RegExp.TransferrableEffectsBelow;
+		return lines.findIndex((line) => pattern.test(line));
+	}
+	/**
+	* Decides how each tag key in a pair of transferable notes should merge.
+	*
+	* Derived from the shape of the values rather than from a list of known keys, because the divider is
+	* what declares a tag transferable - so the set of keys that can arrive here is whatever an author
+	* writes, not something this plugin can enumerate ahead of time.
+	*
+	* A key whose every value is a plain number **sums**: two `<bonusHits:2>` become four hits, which is
+	* what a player refining the same material twice expects. Everything else - arrays, formulas, booleans,
+	* prose - **accumulates**: distinct lines stack side by side, and identical ones collapse to one, which
+	* lands exactly where the same formula appearing twice ought to.
+	* @param {string} baseNote The base's transferable note text.
+	* @param {string} overlayNote The donor's transferable note text.
+	* @returns {{accumulatingKeys: string[], summingKeys: string[]}}
+	*/
+	static transferPolicyFor(baseNote, overlayNote) {
+		const scalarShape = /^<([^:]+):\s*(-?\d+(?:\.\d+)?)\s*>$/;
+		const tags = [...this.#tagsOf(baseNote), ...this.#tagsOf(overlayNote)];
+		const scalarByKey = new Map();
+		tags.forEach((tag) => {
+			const inner = tag.substring(1, tag.length - 1);
+			const colonIndex = inner.indexOf(":");
+			const rawKey = colonIndex === -1 ? inner : inner.substring(0, colonIndex);
+			const key = rawKey.trim().toLowerCase();
+			const isScalar = scalarShape.test(tag);
+			if (scalarByKey.has(key) === false) {
+				scalarByKey.set(key, isScalar);
+				return;
+			}
+			if (isScalar === false) scalarByKey.set(key, false);
+		});
+		const summingKeys = [];
+		const accumulatingKeys = [];
+		scalarByKey.forEach((isScalar, key) => {
+			if (isScalar) {
+				summingKeys.push(key);
+				return;
+			}
+			accumulatingKeys.push(key);
+		});
+		return {
+			accumulatingKeys,
+			summingKeys
+		};
+	}
+	/**
+	* Extracts the angle-bracketed tags from a note.
+	* @param {string} note The note text to read.
+	* @returns {string[]}
+	*/
+	static #tagsOf(note) {
+		const text = note || String.empty;
+		return text.match(/<[^>]+>/g) || [];
+	}
+	/**
+	* Groups a note's tags into their authored values, keyed by tag key.
+	*
+	* Values are kept exactly as written, brackets and all. Nothing here interprets what a tag *means* -
+	* that is a job for a tag registry, and inventing a friendlier reading in the meantime would produce
+	* something confidently wrong rather than something plainly unfinished.
+	*
+	* A boolean tag has no value to report, so its presence is the value.
+	* @param {string} note The note text to read.
+	* @returns {Map<string, string[]>} Each key's authored values, in the order written.
+	*/
+	static tagValuesOf(note) {
+		const values = new Map();
+		this.#tagsOf(note).forEach((tag) => {
+			const inner = tag.substring(1, tag.length - 1);
+			const colonIndex = inner.indexOf(":");
+			const key = colonIndex === -1 ? inner.trim() : inner.substring(0, colonIndex).trim();
+			const value = colonIndex === -1 ? "yes" : inner.substring(colonIndex + 1).trim();
+			if (values.has(key) === false) {
+				values.set(key, []);
+			}
+			const existing = values.get(key);
+			if (existing.includes(value) === false) existing.push(value);
+		});
+		return values;
+	}
+	/**
+	* Pairs the base's transferable note effects against the projected output's, per tag key.
+	*
+	* Only the output's keys are walked, because the merge cannot drop one: every key the base carried is
+	* appended in some form, whether it stood alone, accumulated, or was totalled. A key with no `before`
+	* is therefore genuinely arriving from the donor.
+	* @param {RPG_EquipItem} base The equip being refined.
+	* @param {RPG_EquipItem} result The projected refinement output.
+	* @returns {{key: string, before: (string|null), after: string}[]} One row per key, key-ordered.
+	*/
+	static buildNoteEffectComparison(base, result) {
+		const before = this.tagValuesOf(this.parseNoteEffects(base));
+		const after = this.tagValuesOf(this.parseNoteEffects(result));
+		const rows = [];
+		after.forEach((values, key) => {
+			const beforeValues = before.has(key) ? before.get(key).join(", ") : null;
+			rows.push({
+				key,
+				before: beforeValues,
+				after: values.join(", ")
+			});
+		});
+		return rows.sort((left, right) => left.key.localeCompare(right.key));
 	}
 	/**
 	* Determines the result of refining a given base with a given material.
@@ -534,10 +735,35 @@ var JaftingManager = class JaftingManager {
 			output.traits.splice(dividerIndex + 1);
 		}
 		mergedTraits.forEach((t) => output.traits.push(t));
-		if (material.jaftingRefinedCount > 0) {
-			output.jaftingRefinedCount += material.jaftingRefinedCount - 1;
-		}
+		output.note = this.mergeTransferableNotes(base, material);
 		return output;
+	}
+	/**
+	* Builds the note a refinement output carries.
+	*
+	* The base's retained half is reproduced verbatim, then the two transferable halves are merged and
+	* written back beneath a divider - so the output is itself donatable, carrying forward everything it
+	* was given without ever offering the identity it kept.
+	*
+	* A divider is only written when there is something under it. An output with nothing transferable
+	* should not advertise an empty payload, and an equip that never had a divider should not gain one for
+	* free.
+	* @param {RPG_EquipItem} base The equip being refined.
+	* @param {RPG_EquipItem} material The equip being consumed.
+	* @returns {string} The output's note.
+	*/
+	static mergeTransferableNotes(base, material) {
+		const retained = this.parseRetainedNote(base);
+		const baseTransferable = this.parseNoteEffects(base);
+		const materialTransferable = this.parseNoteEffects(material);
+		const { accumulatingKeys, summingKeys } = this.transferPolicyFor(baseTransferable, materialTransferable);
+		const merged = NoteResolver.merge(baseTransferable, materialTransferable, accumulatingKeys, summingKeys);
+		if (merged.length === 0) return retained;
+		const divider = JaftingManager.TransferrableEffectsDivider;
+		if (retained.length === 0) {
+			return `${divider}\n${merged}`;
+		}
+		return `${retained}\n${divider}\n${merged}`;
 	}
 	/**
 	* Stamps a freshly-merged output equip with the identity a refined row carries: one more refine on
@@ -658,9 +884,13 @@ var JaftingManager = class JaftingManager {
 	static createRefinedOutput(outputEquip, baseLineage, materialLineage) {
 		if (outputEquip.wtypeId) {
 			this.generateRefinedEquip($dataWeapons, outputEquip, this.RefinementTypes.Weapon, baseLineage, materialLineage);
-		} else if (outputEquip.atypeId) {
-			this.generateRefinedEquip($dataArmors, outputEquip, this.RefinementTypes.Armor, baseLineage, materialLineage);
+			return;
 		}
+		if (outputEquip.atypeId) {
+			this.generateRefinedEquip($dataArmors, outputEquip, this.RefinementTypes.Armor, baseLineage, materialLineage);
+			return;
+		}
+		throw new Error("a refinement output was neither weapon nor armor, so there is no datastore for it.");
 	}
 	/**
 	* Generates the new entry in the corresponding datastore for the new equip data that was refined.
@@ -899,7 +1129,7 @@ J.JAFTING.EXT.REFINE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.3.0");
+J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.4.0");
 /**
 * A helpful mapping of the various messages that we use in JAFTING.
 */
@@ -999,6 +1229,7 @@ J.JAFTING.EXT.REFINE.Aliased.Game_System = new Map();
 J.JAFTING.EXT.REFINE.Aliased.RPG_Base = new Map();
 J.JAFTING.EXT.REFINE.Aliased.RPG_EquipItem = new Map();
 J.JAFTING.EXT.REFINE.Aliased.Scene_Jafting = new Map();
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map = new Map();
 J.JAFTING.EXT.REFINE.Aliased.Window_JaftingList = new Map();
 /**
 * All regular expressions used by this plugin.
@@ -1010,6 +1241,32 @@ J.JAFTING.EXT.REFINE.RegExp.Unrefinable = /<noRefine>/i;
 J.JAFTING.EXT.REFINE.RegExp.MaxRefineCount = /<maxRefineCount:[ ]?(\d+)>/i;
 J.JAFTING.EXT.REFINE.RegExp.MaxRefinedTraits = /<maxRefinedTraits:[ ]?(\d+)>/i;
 J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
+/**
+* Marks the point in a note past which effects are refinement payload.
+*
+* Everything above it describes what the equip *is* and never leaves it; everything below is what a donor
+* hands over when consumed. The absence of this tag means an equip has no note effects to give - not that
+* all of them transfer - which is what keeps a weapon's own identity from being launderable.
+*
+* This is the note-side counterpart to the code-63 trait divider {@link JaftingManager.parseTraits} reads.
+*
+* <pre>
+* Structure:
+*  <transferrableEffectsBelow>
+*
+* Example:
+*  <skillId:1>
+*  <maxRefineCount:6>
+*  <transferrableEffectsBelow>
+*  <bonusHits:2>
+*
+* Translation:
+*  This equip uses skill 1 and refines six times, neither of which transfers.
+*  A donor consuming it hands over two bonus hits.
+* </pre>
+* @type {RegExp}
+*/
+J.JAFTING.EXT.REFINE.RegExp.TransferrableEffectsBelow = /<transferrableEffectsBelow>/i;
 
 //#endregion
 //#region src/plugins/jafting/ext/refine/database/RPG_Base.js
@@ -1256,6 +1513,223 @@ Game_System.prototype.onAfterLoad = function() {
 };
 
 //#endregion
+//#region src/plugins/jafting/ext/refine/managers/RefinementEligibility.js
+/**
+* Answers whether one equip may take part in refinement right now, and why not when it may not.
+*
+* **This exists so the list can be sorted.** The eligibility rules used to be computed while each row was being
+* built, which meant the ordering pass ran before any row knew whether it was usable and had nothing to sort on -
+* so a player hunting for the one valid donor scrolled past every invalid one to find it. Deciding first and
+* drawing second is the whole point, and it happens to put the rules somewhere they can be tested without a scene.
+*
+* **Two kinds of "no", and they are treated differently.**
+*
+* - **Permanent** - this equip can never fill this role, in any circumstance. Those rows are dropped entirely,
+*   because showing a player something they will never be allowed to pick is a tease. JAFTING already did this for
+*   {@link RPG_EquipItem.jaftingUnrefinable}; this widens it to the per-role flags that mean the same thing.
+* - **Situational** - this equip is fine in principle but not against the base currently chosen, or has been
+*   improved as far as it goes. Those rows stay, disabled and carrying a reason, and sort to the bottom. Filtering
+*   them would be actively worse: a maxed-out weapon is an achievement the player wants to see rather than an
+*   error, and a "not with this base" row becomes valid the moment they back out and choose differently, so hiding
+*   it would make the list change shape while it is being read.
+*/
+var RefinementEligibility = class RefinementEligibility {
+	/**
+	* Icon shown on a row that is barred outright, whether by rule or by the chosen base.
+	* @type {number}
+	*/
+	static BlockedIcon = 90;
+	/**
+	* Icon marking the physical copy the player already committed as the base.
+	* @type {number}
+	*/
+	static ChosenBaseIcon = 91;
+	/**
+	* Icon shown on a row that has hit a ceiling - fully refined, or at its trait cap.
+	* @type {number}
+	*/
+	static CappedIcon = 92;
+	/**
+	* Whether this equip can never fill this role, so the list should not offer it at all.
+	*
+	* @param {RPG_EquipItem} equip The equip being considered.
+	* @param {boolean} isPrimary True when filling the base slot, false when filling the donor slot.
+	* @returns {boolean}
+	*/
+	static isPermanentlyExcluded(equip, isPrimary) {
+		if (equip.jaftingUnrefinable) {
+			return true;
+		}
+		if (isPrimary) {
+			return equip.jaftingNotRefinementBase;
+		}
+		return equip.jaftingNotRefinementMaterial;
+	}
+	/**
+	* Judges one equip for the role currently being filled.
+	*
+	* Deliberately answers about the **template** rather than a particular copy of it. Which physical copy the player
+	* is pointing at only matters for refusing to feed a base to itself, and that is the list's own business - every
+	* copy of one template shares the verdict returned here, which is exactly what lets the sort treat them as a
+	* block.
+	*
+	* @param {RPG_EquipItem} equip The equip being considered.
+	* @param {boolean} isPrimary True when filling the base slot, false when filling the donor slot.
+	* @param {RPG_EquipItem|null} baseSelection The already-chosen base, or null while choosing one.
+	* @returns {{ enabled: boolean, iconIndex: number, errorText: string }}
+	*/
+	static evaluate(equip, isPrimary, baseSelection) {
+		if (isPrimary) {
+			return RefinementEligibility.evaluateAsBase(equip);
+		}
+		return RefinementEligibility.evaluateAsMaterial(equip, baseSelection);
+	}
+	/**
+	* Judges an equip offered as the thing being improved.
+	*
+	* @param {RPG_EquipItem} equip The equip being considered.
+	* @returns {{ enabled: boolean, iconIndex: number, errorText: string }}
+	*/
+	static evaluateAsBase(equip) {
+		const verdict = {
+			enabled: true,
+			iconIndex: equip.iconIndex,
+			errorText: String.empty
+		};
+		const refineCap = equip.jaftingMaxRefineCount;
+		const isMaxRefined = refineCap === 0 ? false : refineCap <= equip.jaftingRefinedCount;
+		if (isMaxRefined) {
+			verdict.enabled = false;
+			verdict.iconIndex = RefinementEligibility.CappedIcon;
+			verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxRefineCount}\n`;
+		}
+		const traitCap = equip.jaftingMaxTraitCount;
+		const currentTraits = JaftingManager.parseTraits(equip).length;
+		const hasMaxTraits = traitCap === 0 ? false : traitCap <= currentTraits;
+		if (hasMaxTraits) {
+			verdict.enabled = false;
+			verdict.iconIndex = RefinementEligibility.CappedIcon;
+			verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxTraitCount}\n`;
+		}
+		return verdict;
+	}
+	/**
+	* Judges an equip offered as the thing being consumed.
+	*
+	* @param {RPG_EquipItem} equip The equip being considered.
+	* @param {RPG_EquipItem|null} baseSelection The already-chosen base, or null while choosing one.
+	* @returns {{ enabled: boolean, iconIndex: number, errorText: string }}
+	*/
+	static evaluateAsMaterial(equip, baseSelection) {
+		const verdict = {
+			enabled: true,
+			iconIndex: equip.iconIndex,
+			errorText: String.empty
+		};
+		if (JaftingManager.parseTraits(equip).length === 0) {
+			verdict.enabled = false;
+			verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.NoTraitsOnMaterial}\n`;
+		}
+		if (baseSelection === null) {
+			return verdict;
+		}
+		RefinementEligibility.applyRefineCountCeiling(verdict, equip, baseSelection);
+		RefinementEligibility.applyTraitCountCeiling(verdict, equip, baseSelection);
+		return verdict;
+	}
+	/**
+	* Bars a donor when the base has already been refined as many times as it is allowed to be.
+	*
+	* The donor itself is not consulted. Every refinement costs the base exactly one count regardless of
+	* how much history the donor brought with it, so what a donor accumulated has no bearing on whether
+	* the base can accept it.
+	*
+	* @param {{ enabled: boolean, iconIndex: number, errorText: string }} verdict The verdict being amended.
+	* @param {RPG_EquipItem} _equip The donor being considered, which this ceiling does not depend on.
+	* @param {RPG_EquipItem} baseSelection The chosen base.
+	*/
+	static applyRefineCountCeiling(verdict, _equip, baseSelection) {
+		const cap = baseSelection.jaftingMaxRefineCount;
+		if (cap === 0) {
+			return;
+		}
+		const projected = baseSelection.jaftingRefinedCount + 1;
+		if (cap >= projected) {
+			return;
+		}
+		verdict.enabled = false;
+		verdict.iconIndex = RefinementEligibility.BlockedIcon;
+		verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedRefineCount} ${projected}/${cap}.<br>\n`;
+	}
+	/**
+	* Whether this equip should sort with the crafted goods rather than the stock ones.
+	*
+	* Anything carrying dismantle history or a refine counter has a story, and those are the rows a player browsing
+	* this list is usually looking for. Note this asks about the **template**, never a single copy of it - ordering on
+	* a per-copy value would reshuffle identical rows every time the list refreshed.
+	*
+	* @param {RPG_EquipItem} equip The equip being considered.
+	* @returns {boolean}
+	*/
+	static hasStampedLineage(equip) {
+		if (equip.jaftingRefinedCount > 0) {
+			return true;
+		}
+		const ledger = JaftingSalvageManager.getLedgerForDatum(equip);
+		if (ledger === null) {
+			return false;
+		}
+		return ledger.rows.length > 0;
+	}
+	/**
+	* Orders two judged rows for display.
+	*
+	* **Usable first, and that is the point of the whole exercise.** Everything after it is the ordering this list
+	* always had: rows with a history above stock equipment, weapons before armor, then by id so copies of one
+	* template stay together.
+	*
+	* @param {{ equip: RPG_EquipItem, verdict: { enabled: boolean } }} left The row being placed.
+	* @param {{ equip: RPG_EquipItem, verdict: { enabled: boolean } }} right The row it is compared against.
+	* @returns {number}
+	*/
+	static compareCandidates(left, right) {
+		if (left.verdict.enabled !== right.verdict.enabled) {
+			return left.verdict.enabled ? -1 : 1;
+		}
+		const leftStamped = RefinementEligibility.hasStampedLineage(left.equip);
+		const rightStamped = RefinementEligibility.hasStampedLineage(right.equip);
+		if (leftStamped !== rightStamped) {
+			return leftStamped ? -1 : 1;
+		}
+		if (left.equip.etypeId !== right.equip.etypeId) {
+			return left.equip.etypeId - right.equip.etypeId;
+		}
+		return left.equip.id - right.equip.id;
+	}
+	/**
+	* Bars a donor whose traits would push the merged result past the base's trait ceiling.
+	*
+	* @param {{ enabled: boolean, iconIndex: number, errorText: string }} verdict The verdict being amended.
+	* @param {RPG_EquipItem} equip The donor being considered.
+	* @param {RPG_EquipItem} baseSelection The chosen base.
+	*/
+	static applyTraitCountCeiling(verdict, equip, baseSelection) {
+		const cap = baseSelection.jaftingMaxTraitCount;
+		if (cap === 0) {
+			return;
+		}
+		const projectedOutput = JaftingManager.determineRefinementOutput(baseSelection, equip);
+		const projectedTraits = JaftingManager.parseTraits(projectedOutput).length;
+		if (cap >= projectedTraits) {
+			return;
+		}
+		verdict.enabled = false;
+		verdict.iconIndex = RefinementEligibility.CappedIcon;
+		verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedTraitCount} ${projectedTraits}/${cap}.<br>\n`;
+	}
+};
+
+//#endregion
 //#region src/plugins/jafting/ext/refine/windows/Window_RefinementStepHint.js
 /**
 * Short workflow copy above the refinable lists so the base vs material steps read clearly.
@@ -1309,33 +1783,16 @@ var Window_RefinementDescription = class extends Window_Help {
 //#endregion
 //#region src/plugins/jafting/ext/refine/windows/Window_RefinableList.js
 /**
-* Refinement equip list helpers + {@link Window_RefinableList}.<br>
+* Refinement equip list + its one remaining paint helper.<br>
 * <br>
-* **Two different questions:** {@link refinableEquipTemplateSortHasSalvageLineage} drives **list ordering** (anything
-* with dismantle history or a refine counter sorts like a “stamped” row). {@link refinableEquipHasSalvageStamp} drives
-* **per-row paint** when the stack UI passes a `unitOrdinal` so only the expanded slot shows the hollow diamond from
+* **Two different questions, and only one of them lives here now.** Whether a row is usable, and how usable rows
+* order against unusable ones, is {@link RefinementEligibility} - decided for every row before any row is drawn,
+* because a sort cannot put the usable ones first while each row only learns its own verdict as it is built.
+* {@link refinableEquipHasSalvageStamp} stays, and drives **per-row paint** when the stack UI passes a `unitOrdinal`
+* so only the expanded copy shows the hollow diamond from
 * {@link J.JAFTING.EXT.REFINE.Messages.RefinableListSalvageStampPrefix}.<br>
-* Keep those roles split—sorting on `unitOrdinal` would scramble templates every frame.
+* Keep those roles split—ordering on a `unitOrdinal` would scramble identical rows every refresh.
 */
-/**
-* True when this row should sort with stamped-lineage priority (salvage bag, dynamic ledger, or any refine +N).
-*
-* @param {RPG_EquipItem} equip The equip driving this step.
-* @returns {boolean}
-*/
-function refinableEquipTemplateSortHasSalvageLineage(equip) {
-	if (equip.jaftingRefinedCount > 0) {
-		return true;
-	}
-	const ledger = JaftingSalvageManager.getLedgerForDatum(equip);
-	if (ledger === null || ledger === undefined) {
-		return false;
-	}
-	if (!ledger.rows || ledger.rows.length === 0) {
-		return false;
-	}
-	return true;
-}
 /**
 * True when this row should show dismantle lineage styling (per stack slot when expanded).
 *
@@ -1364,6 +1821,7 @@ var Window_RefinableList = class extends Window_Command {
 	*/
 	constructor(rect) {
 		super(rect);
+		this.opacity = 0;
 	}
 	/**
 	* Initializes the properties of this class.
@@ -1460,148 +1918,147 @@ var Window_RefinableList = class extends Window_Command {
 				return true;
 			});
 		}
-		equips.sort((a, b) => {
-			const stampA = refinableEquipTemplateSortHasSalvageLineage(a) ? 1 : 0;
-			const stampB = refinableEquipTemplateSortHasSalvageLineage(b) ? 1 : 0;
-			if (stampA !== stampB) {
-				return stampB - stampA;
-			}
-			if (a.etypeId > b.etypeId) return 1;
-			if (a.etypeId < b.etypeId) return -1;
-			if (a.id > b.id) return 1;
-			if (a.id < b.id) return -1;
-			return 0;
-		});
-		equips.forEach((equip) => {
-			if (equip.jaftingUnrefinable) {
-				return;
-			}
+		const offerable = equips.filter((equip) => !RefinementEligibility.isPermanentlyExcluded(equip, this.isPrimary));
+		const judged = offerable.map((equip) => ({
+			equip,
+			verdict: RefinementEligibility.evaluate(equip, this.isPrimary, this.baseSelection)
+		}));
+		judged.sort(RefinementEligibility.compareCandidates);
+		judged.forEach((candidate) => {
+			const { equip, verdict } = candidate;
 			const isStackCountedRow = JaftingSalvageLedger.isStackCountedRefinableEquip(equip);
 			const count = $gameParty.numItems(equip);
 			if (count < 1) {
 				return;
 			}
 			if (isStackCountedRow) {
-				this.addRefinableEquipCommand(equip, null);
+				this.addRefinableEquipCommand(equip, null, verdict);
 				return;
 			}
 			for (let u = 0; u < count; u++) {
-				this.addRefinableEquipCommand(equip, {
+				const unitSlot = {
 					unitOrdinal: u,
 					unitsTotal: count
-				});
+				};
+				this.addRefinableEquipCommand(equip, unitSlot, verdict);
 			}
 		});
 	}
 	/**
-	* Builds and appends refinable rows (enable rules, icons, salvage stamp label, optional stack counts).
+	* Builds and appends one refinable row (salvage stamp label, optional stack count, per-copy markers).
+	*
+	* The verdict arrives already decided by {@link RefinementEligibility}, shared by every copy of this template.
+	* What is left here is genuinely per-copy: marking the exact copy the player committed as the base, and refusing
+	* to feed that copy to itself. Neither is knowable from the template alone.
 	*
 	* @param {RPG_EquipItem} equip The equip driving this step.
 	* @param {{ unitOrdinal: number, unitsTotal: number }|null} unitSlot Pass null for stack-counted material rows.
+	* @param {{ enabled: boolean, iconIndex: number, errorText: string }} verdict This template's eligibility.
 	*/
-	addRefinableEquipCommand(equip, unitSlot) {
-		if (equip.jaftingUnrefinable) {
-			return;
-		}
-		const equipCount = $gameParty.numItems(equip);
+	addRefinableEquipCommand(equip, unitSlot, verdict) {
 		const isStackCountedRow = JaftingSalvageLedger.isStackCountedRefinableEquip(equip);
-		const hasUnit = unitSlot !== null && unitSlot !== undefined;
-		if (isStackCountedRow && hasUnit) {
+		const hasUnit = unitSlot !== null;
+		if (isStackCountedRow === hasUnit) {
 			return;
 		}
-		if (!isStackCountedRow && !hasUnit) {
-			return;
-		}
-		let rightText = String.empty;
-		if (isStackCountedRow) {
-			rightText = `x${equipCount}`;
-		}
-		const hasSalvageStamp = refinableEquipHasSalvageStamp(equip, hasUnit ? unitSlot.unitOrdinal : undefined);
-		const hasRefinementAccent = equip.jaftingRefinedCount > 0;
-		const stamped = hasSalvageStamp || hasRefinementAccent;
-		const rowName = stamped ? `${J.JAFTING.EXT.REFINE.Messages.RefinableListSalvageStampPrefix}${equip.name}` : equip.name;
-		const nameColorIndex = stamped ? 6 : 0;
-		const sameTemplate = equip === this.baseSelection;
 		const rowOrdinal = hasUnit ? unitSlot.unitOrdinal : null;
-		const baseOrdinal = this.baseSelectionUnitOrdinal;
-		let samePhysicalUnit = false;
-		if (sameTemplate) {
-			if (rowOrdinal !== null && rowOrdinal !== undefined && baseOrdinal !== null && baseOrdinal !== undefined) {
-				samePhysicalUnit = rowOrdinal === baseOrdinal;
-			}
-		}
-		const templateStack = this.baseSelection ? $gameParty.numItems(this.baseSelection) : 0;
-		const canSelectThisMaterial = sameTemplate === false || templateStack > 1 && samePhysicalUnit === false;
-		let enabled = this.isPrimary ? true : canSelectThisMaterial;
-		let { iconIndex } = equip;
-		let errorText = "";
-		if (equip.jaftingUnrefinable) {
-			enabled = false;
-			iconIndex = 90;
-		}
-		if (!this.isPrimary) {
-			if (!JaftingManager.parseTraits(equip).length) {
-				enabled = false;
-				errorText += `${J.JAFTING.EXT.REFINE.Messages.NoTraitsOnMaterial}\n`;
-			}
-			if (equip.jaftingNotRefinementMaterial) {
-				enabled = false;
-				iconIndex = 90;
-			}
-			if (this.baseSelection) {
-				const primaryHasMaxRefineCount = this.baseSelection.jaftingMaxRefineCount > 0;
-				if (primaryHasMaxRefineCount) {
-					const primaryMaxRefineCount = this.baseSelection.jaftingMaxRefineCount;
-					const projectedCount = this.baseSelection.jaftingRefinedCount + equip.jaftingRefinedCount;
-					const overRefinementCount = primaryMaxRefineCount < projectedCount;
-					if (overRefinementCount) {
-						enabled = false;
-						iconIndex = 90;
-						errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedRefineCount} ${projectedCount}/${primaryMaxRefineCount}.<br>\n`;
-					}
-				}
-				const baseMaxTraitCount = this.baseSelection.jaftingMaxTraitCount;
-				const projectedResult = JaftingManager.determineRefinementOutput(this.baseSelection, equip);
-				const projectedResultTraitCount = JaftingManager.parseTraits(projectedResult).length;
-				const overMaxTraitCount = baseMaxTraitCount > 0 && projectedResultTraitCount > baseMaxTraitCount;
-				if (overMaxTraitCount) {
-					enabled = false;
-					iconIndex = 92;
-					errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedTraitCount} ${projectedResultTraitCount}/${baseMaxTraitCount}.<br>\n`;
-				}
-			}
-		} else {
-			const equipIsMaxRefined = equip.jaftingMaxRefineCount === 0 ? false : equip.jaftingMaxRefineCount <= equip.jaftingRefinedCount;
-			const equipHasMaxTraits = equip.jaftingMaxTraitCount === 0 ? false : equip.jaftingMaxTraitCount <= JaftingManager.parseTraits(equip).length;
-			if (equipIsMaxRefined) {
-				enabled = false;
-				iconIndex = 92;
-				errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxRefineCount}\n`;
-			}
-			if (equipHasMaxTraits) {
-				enabled = false;
-				iconIndex = 92;
-				errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxTraitCount}\n`;
-			}
-			if (equip.jaftingNotRefinementBase) {
-				enabled = false;
-				iconIndex = 92;
-			}
-		}
-		const isChosenBaseRow = sameTemplate && rowOrdinal !== null && rowOrdinal !== undefined && baseOrdinal !== null && baseOrdinal !== undefined && rowOrdinal === baseOrdinal;
-		if (isChosenBaseRow) {
-			iconIndex = 91;
-		}
+		const isChosenBaseCopy = this.isChosenBaseCopy(equip, rowOrdinal);
+		const label = this.rowLabelFor(equip, rowOrdinal);
+		const enabled = verdict.enabled && this.isSpendableCopy(equip, isChosenBaseCopy);
+		const iconIndex = isChosenBaseCopy ? RefinementEligibility.ChosenBaseIcon : verdict.iconIndex;
+		const rightText = isStackCountedRow ? `x${$gameParty.numItems(equip)}` : String.empty;
 		const extData = {
 			data: equip,
-			error: errorText
+			error: verdict.errorText
 		};
 		if (hasUnit) {
 			extData.unitOrdinal = unitSlot.unitOrdinal;
 			extData.unitsTotal = unitSlot.unitsTotal;
 		}
-		const command = new WindowCommandBuilder(rowName).setSymbol("refine-object").setEnabled(enabled).setExtensionData(extData).setIconIndex(iconIndex).setColorIndex(nameColorIndex).setRightText(rightText).setHelpText(equip.description).build();
+		const helpText = enabled ? equip.description : this.blockedReasonText(verdict);
+		const command = new WindowCommandBuilder(label.name).setSymbol("refine-object").setEnabled(enabled).setExtensionData(extData).setIconIndex(iconIndex).setColorIndex(label.colorIndex).setRightText(rightText).setHelpText(helpText).build();
 		this.addBuiltCommand(command);
+	}
+	/**
+	* The verdict's reasons, tidied into something a two-line help window can show.
+	*
+	* The reasons accumulate as a run-on string because more than one can apply at once, and they are not
+	* consistent about how they end - some close with a newline, some with `<br>`. Normalizing here rather
+	* than at each message keeps the messages readable as sentences.
+	* @param {{ enabled: boolean, iconIndex: number, errorText: string }} verdict This row's eligibility.
+	* @returns {string}
+	*/
+	blockedReasonText(verdict) {
+		return verdict.errorText.replaceAll("<br>", String.empty).split("\n").map((line) => line.trim()).filter((line) => line.length > 0).join("\n");
+	}
+	/**
+	* Whether this row is the exact physical copy the player already committed as the base.
+	*
+	* Both halves matter. The same template is not enough - a player who owns three of a weapon may refine one into
+	* another - and an ordinal only means something once a base copy has actually been locked in.
+	*
+	* @param {RPG_EquipItem} equip The equip this row draws.
+	* @param {number|null} rowOrdinal Which copy this row is, or null for a stack-counted row.
+	* @returns {boolean}
+	*/
+	isChosenBaseCopy(equip, rowOrdinal) {
+		if (equip !== this.baseSelection) {
+			return false;
+		}
+		if (rowOrdinal === null) {
+			return false;
+		}
+		const baseOrdinal = this.baseSelectionUnitOrdinal;
+		if (baseOrdinal === null) {
+			return false;
+		}
+		return rowOrdinal === baseOrdinal;
+	}
+	/**
+	* Whether this copy may be spent as the donor.
+	*
+	* A template can be fed to itself - two of the same sword merging is legitimate - but only when a second copy
+	* exists to be consumed, and never using the very copy standing in as the base.
+	*
+	* @param {RPG_EquipItem} equip The equip this row draws.
+	* @param {boolean} isChosenBaseCopy Whether this row is the committed base copy.
+	* @returns {boolean}
+	*/
+	isSpendableCopy(equip, isChosenBaseCopy) {
+		if (this.isPrimary) {
+			return true;
+		}
+		if (equip !== this.baseSelection) {
+			return true;
+		}
+		const templateStack = $gameParty.numItems(this.baseSelection);
+		return templateStack > 1 && isChosenBaseCopy === false;
+	}
+	/**
+	* The name and colour a row draws with.
+	*
+	* Dismantle lineage earns the hollow diamond, and a refine counter earns the same accent even when the merged
+	* salvage rows came out empty - a `+N` output should not look like stock gear just because its donor was a
+	* vendor shell with nothing to refund.
+	*
+	* @param {RPG_EquipItem} equip The equip this row draws.
+	* @param {number|null} rowOrdinal Which copy this row is, or null for a stack-counted row.
+	* @returns {{ name: string, colorIndex: number }}
+	*/
+	rowLabelFor(equip, rowOrdinal) {
+		const hasSalvageStamp = refinableEquipHasSalvageStamp(equip, rowOrdinal);
+		const stamped = hasSalvageStamp || equip.jaftingRefinedCount > 0;
+		if (!stamped) {
+			return {
+				name: equip.name,
+				colorIndex: 0
+			};
+		}
+		const { RefinableListSalvageStampPrefix } = J.JAFTING.EXT.REFINE.Messages;
+		return {
+			name: `${RefinableListSalvageStampPrefix}${equip.name}`,
+			colorIndex: 6
+		};
 	}
 };
 
@@ -1610,7 +2067,7 @@ var Window_RefinableList = class extends Window_Command {
 /**
 * The window containing the chosen equips for refinement and also the projected results.
 */
-var Window_RefinementDetails = class extends Window_Base {
+var Window_RefinementDetails = class Window_RefinementDetails extends Window_Base {
 	/**
 	* @constructor
 	* @param {Rectangle} rect The rectangle that represents this window.
@@ -1687,129 +2144,506 @@ var Window_RefinementDetails = class extends Window_Base {
 		this._resultingEquip = equip;
 	}
 	/**
-	* Width of each preview column (base / material / output) from {@link #innerWidth}.
+	* The width each of the two list columns occupies.
+	*
+	* Fixed rather than a share of the panel, so an equip name has a predictable amount of room no matter
+	* how wide the screen is. The result column takes whatever remains, which is deliberate - the result
+	* is the answer the scene exists to give, so it should be the widest thing on it.
 	* @returns {number}
 	*/
-	refinementColumnWidth() {
-		return Math.max(96, Math.floor(this.innerWidth / 3));
+	static ListColumnWidthCap = 470;
+	/**
+	* The width one list column takes out of a given inner width.
+	*
+	* A share rather than a constant, capped so it stops growing once a name has all the room it could
+	* want. A fixed width starved the result column at lower resolutions; an uncapped share made the lists
+	* absurdly wide at higher ones.
+	*
+	* **This is the single source for the split** - the scene positions its two list windows against this
+	* same function, so the columns and the headings above them cannot disagree.
+	* @param {number} innerWidth The drawable width of the panel.
+	* @returns {number}
+	*/
+	static listColumnWidthFromInner(innerWidth) {
+		return Math.min(Window_RefinementDetails.ListColumnWidthCap, Math.floor(innerWidth * .3));
 	}
 	/**
-	* Max draw width for names and traits inside one column.
+	* The three column origins, in this window's inner coordinates.
+	* @returns {number[]}
+	*/
+	columnXs() {
+		const listWidth = Window_RefinementDetails.listColumnWidthFromInner(this.innerWidth);
+		return [
+			0,
+			listWidth,
+			listWidth * 2
+		];
+	}
+	/**
+	* The width of the result column, which is everything the two lists did not take.
 	* @returns {number}
 	*/
-	refinementColumnTextWidth() {
-		return Math.max(64, this.refinementColumnWidth() - 12);
+	resultColumnWidth() {
+		const listWidth = Window_RefinementDetails.listColumnWidthFromInner(this.innerWidth);
+		return Math.max(96, this.innerWidth - listWidth * 2);
+	}
+	/**
+	* Max draw width for text inside one column.
+	* @param {number} columnWidth The width of the column being drawn into.
+	* @returns {number}
+	*/
+	columnTextWidth(columnWidth) {
+		return Math.max(64, columnWidth - 12);
+	}
+	/**
+	* The inner Y where each column's content begins - below the titles and the rule under them.
+	*
+	* The scene positions the two list windows against this, which is the reason the headers live on this
+	* window rather than on three of their own: one measurement, one baseline, and the columns cannot
+	* drift apart.
+	* @returns {number}
+	*/
+	columnContentInnerStartY() {
+		return this.lineHeight() * 2 + 10;
 	}
 	refresh() {
 		this.contents.clear();
 		this.drawContent();
 	}
 	/**
+	* The heading each column carries, paired with a line saying what the column is for.
+	*
+	* The lists themselves used to be unlabelled entirely, which was survivable while only one was on
+	* screen at a time and a hint bar narrated which phase you were in. Two similar-looking columns of
+	* equipment need saying which is which.
+	* @returns {{title: string, subtext: string}[]}
+	*/
+	columnHeadings() {
+		return [
+			{
+				title: J.JAFTING.EXT.REFINE.Messages.TitleBase,
+				subtext: "The equipment being upgraded."
+			},
+			{
+				title: J.JAFTING.EXT.REFINE.Messages.TitleMaterial,
+				subtext: "Consumed; its effects merge into the base."
+			},
+			{
+				title: J.JAFTING.EXT.REFINE.Messages.TitleOutput,
+				subtext: "What you get if you confirm."
+			}
+		];
+	}
+	/**
 	* Draws all content in this window.
+	*
+	* The headers draw unconditionally: they are the labels for two list windows that are always on
+	* screen, so withholding them until something is selected would leave those lists unlabelled exactly
+	* when the player most needs to know what they are choosing between.
 	*/
 	drawContent() {
-		if (!this.primaryEquip) return;
 		this.drawRefinementHeaders();
-		this.drawRefinementTarget();
-		this.drawRefinementMaterial();
 		this.drawRefinementResult();
 	}
 	/**
-	* Draws all columns' titles.
+	* Draws every column's title, its explanatory line, and the rule that separates them from content.
 	*/
 	drawRefinementHeaders() {
-		const columnWidth = this.refinementColumnWidth();
-		const labelWidth = this.refinementColumnTextWidth();
-		const ox = 0;
-		this.modFontSize(6);
-		this.toggleBold(true);
-		const baseX = ox + columnWidth * 0;
-		this.drawText(J.JAFTING.EXT.REFINE.Messages.TitleBase, baseX, 0, labelWidth);
-		const consumableX = ox + columnWidth * 1;
-		this.drawText(J.JAFTING.EXT.REFINE.Messages.TitleMaterial, consumableX, 0, labelWidth);
-		const outputX = ox + columnWidth * 2;
-		this.drawText(J.JAFTING.EXT.REFINE.Messages.TitleOutput, outputX, 0, labelWidth);
-		this.resetFontSettings();
-	}
-	/**
-	* Draws the primary equip that is being used as a base for refinement.
-	* Will draw whatever is being hovered over if nothing is selected.
-	*/
-	drawRefinementTarget() {
-		this.drawEquip(this.primaryEquip, 0, "base");
-	}
-	/**
-	* Draws the secondary equip that is being used as a material for refinement.
-	* Will draw whatever is being hovered over if nothing is selected.
-	*/
-	drawRefinementMaterial() {
-		if (!this.secondaryEquip) return;
-		this.drawEquip(this.secondaryEquip, this.refinementColumnWidth(), "material");
-	}
-	/**
-	* Draws one column of a piece of equip and it's traits.
-	* @param {RPG_EquipItem} equip The equip to draw details for.
-	* @param {number} x The `x` coordinate to start drawing at.
-	* @param {string} type Which column this is.
-	*/
-	drawEquip(equip, x, type) {
-		const parsedTraits = JaftingManager.parseTraits(equip);
-		this.drawEquipTitle(equip, x, type);
-		this.drawEquipTraits(parsedTraits, x);
-	}
-	/**
-	* Draws the title for this portion of the equip details.
-	* @param {RPG_EquipItem} equip The equip to draw details for.
-	* @param {number} x The `x` coordinate to start drawing at.
-	* @param {string} type Which column this is.
-	*/
-	drawEquipTitle(equip, x, type) {
-		const lh = this.lineHeight();
-		const textW = this.refinementColumnTextWidth();
-		if (type === "output") {
-			if (equip.jaftingRefinedCount === 0) {
-				this.drawTextEx(`\\I[${equip.iconIndex}] \\C[6]${equip.name} +1\\C[0]`, x, lh * 1, textW);
-			} else {
-				const suffix = `+${equip.jaftingRefinedCount + 1}`;
-				const index = equip.name.lastIndexOf("+");
-				if (index > -1) {
-					const name = `${equip.name.slice(0, index)}${suffix}`;
-					this.drawTextEx(`\\I[${equip.iconIndex}] \\C[6]${name}\\C[0]`, x, lh * 1, textW);
-				} else {
-					const name = `${equip.name} ${suffix}`;
-					this.drawTextEx(`\\I[${equip.iconIndex}] \\C[6]${name}\\C[0]`, x, lh * 1, textW);
-				}
-			}
-		} else {
-			this.drawTextEx(`\\I[${equip.iconIndex}] \\C[6]${equip.name}\\C[0]`, x, lh * 1, textW);
-		}
-	}
-	/**
-	* Draws all transferable traits on this piece of equipment.
-	* @param {JAFTING_Trait[]} traits A list of transferable traits.
-	* @param {number} x The `x` coordinate to start drawing at.
-	*/
-	drawEquipTraits(traits, x) {
-		const lh = this.lineHeight();
-		const textW = this.refinementColumnTextWidth();
-		if (!traits.length) {
-			this.drawTextEx(`${J.JAFTING.EXT.REFINE.Messages.NoTransferableTraits}`, x, lh * 2, textW);
-			return;
-		}
-		traits.sort((a, b) => a._code - b._code);
-		traits.forEach((trait, index) => {
-			const y = lh * 2 + index * lh;
-			this.drawTextEx(`${trait.nameAndValue}`, x, y, textW);
+		const headings = this.columnHeadings();
+		const columnXs = this.columnXs();
+		const listWidth = Window_RefinementDetails.listColumnWidthFromInner(this.innerWidth);
+		const ruleY = this.columnContentInnerStartY() - 8;
+		headings.forEach((heading, index) => {
+			const columnWidth = index === 2 ? this.resultColumnWidth() : listWidth;
+			const textWidth = this.columnTextWidth(columnWidth);
+			const x = columnXs[index];
+			this.resetFontSettings();
+			this.modFontSize(4);
+			this.toggleBold(true);
+			this.drawText(heading.title, x, 0, textWidth, Window_Base.TextAlignments.Left);
+			this.toggleBold(false);
+			this.resetFontSettings();
+			this.modFontSize(-4);
+			this.changeTextColor(ColorManager.textColor(7));
+			this.drawText(heading.subtext, x, this.lineHeight(), textWidth, Window_Base.TextAlignments.Left);
+			this.resetTextColor();
+			this.resetFontSettings();
+			this.drawHorizontalLine(x, ruleY, textWidth);
 		});
 	}
 	/**
-	* Draws the projected refinement result of fusing the material into the base.
+	* The name a refined output carries, with its `+N` suffix advanced by one.
+	* @param {RPG_EquipItem} equip The projected output.
+	* @returns {string}
+	*/
+	outputDisplayName(equip) {
+		const suffix = `+${equip.jaftingRefinedCount + 1}`;
+		const plusIndex = equip.name.lastIndexOf("+");
+		if (plusIndex === -1) return `${equip.name} ${suffix}`;
+		return `${equip.name.slice(0, plusIndex)}${suffix}`;
+	}
+	/**
+	* Pairs up what the base has now against what the projected result would have, per effect.
+	*
+	* Keyed on code and dataId together, because that pair is what identifies an effect - two traits
+	* sharing a code are different stats. An effect the base does not carry arrives with a null `before`,
+	* which is what lets the column say "new" rather than quietly listing it alongside the rest.
+	* @param {RPG_EquipItem} result The projected refinement output.
+	* @returns {{key: string, trait: JAFTING_Trait, before: (JAFTING_Trait|null)}[]}
+	*/
+	buildResultComparison(result) {
+		const keyOf = (trait) => `${trait.code()}:${trait.dataId()}`;
+		const baseTraits = new Map();
+		JaftingManager.parseTraits(this.primaryEquip).forEach((trait) => baseTraits.set(keyOf(trait), trait));
+		const resultTraits = new Map();
+		JaftingManager.parseTraits(result).forEach((trait) => resultTraits.set(keyOf(trait), trait));
+		const keys = [...new Set([...baseTraits.keys(), ...resultTraits.keys()])];
+		const rows = keys.map((key) => {
+			const before = baseTraits.has(key) ? baseTraits.get(key) : null;
+			const after = resultTraits.has(key) ? resultTraits.get(key) : null;
+			return {
+				key,
+				before,
+				after
+			};
+		});
+		return rows.sort((a, b) => {
+			const left = a.after === null ? a.before : a.after;
+			const right = b.after === null ? b.before : b.after;
+			return left.code() - right.code() || left.dataId() - right.dataId();
+		});
+	}
+	/**
+	* The neutral value a trait code sits at when nothing is contributing to it.
+	*
+	* Needed to size the gain on an effect the base did not carry: the "before" is not zero, it is whatever
+	* that code treats as no-effect, and the two differ. Matches what {@link TraitResolver} uses when it
+	* combines same-code traits.
+	* @param {number} code The trait code.
+	* @returns {number}
+	*/
+	neutralValueForCode(code) {
+		if (code === 22) return 0;
+		return 1;
+	}
+	/**
+	* Draws the projected refinement result into the third column, as a before-and-after.
+	*
+	* Only the result is drawn here now. The base and the donor are each visible in their own list, so
+	* repeating them in this window was showing the player two things they had just chosen and calling it
+	* detail. What is genuinely only knowable here is the *change*, which is what this column reports.
 	*/
 	drawRefinementResult() {
 		if (!this.primaryEquip || !this.secondaryEquip) return;
 		const result = JaftingManager.determineRefinementOutput(this.primaryEquip, this.secondaryEquip);
-		this.drawEquip(result, this.refinementColumnWidth() * 2, "output");
+		const [, , x] = this.columnXs();
+		const columnWidth = this.resultColumnWidth();
+		const textWidth = this.columnTextWidth(columnWidth);
+		const lh = this.lineHeight();
+		let y = this.columnContentInnerStartY();
+		this.drawTextEx(`\\I[${result.iconIndex}] \\C[6]${this.outputDisplayName(result)}\\C[0]`, x, y, textWidth);
+		this.drawResultComparisonHeadings(x, y, textWidth);
+		y += Math.floor(lh * 1.5);
+		const comparison = this.buildResultComparison(result);
+		if (comparison.length === 0) {
+			this.drawTextEx(`${J.JAFTING.EXT.REFINE.Messages.NoTransferableTraits}`, x, y, textWidth);
+		} else {
+			const quantified = comparison.filter((row) => this.isQuantifiedRow(row));
+			const granted = comparison.filter((row) => !this.isQuantifiedRow(row));
+			quantified.forEach((row) => {
+				this.drawResultComparisonRow(row, result, x, y, textWidth);
+				y += lh;
+			});
+			if (quantified.length > 0 && granted.length > 0) y += Math.floor(lh * .5);
+			granted.forEach((row) => {
+				this.drawGrantedRow(row, x, y, textWidth);
+				y += lh;
+			});
+		}
+		const noteEffects = JaftingManager.buildNoteEffectComparison(this.primaryEquip, result);
+		if (noteEffects.length > 0) {
+			y += Math.floor(lh * .5);
+			y = this.drawNoteEffectsHeading(x, y, textWidth);
+			noteEffects.forEach((row) => {
+				this.drawNoteEffectRow(row, x, y, textWidth);
+				y += lh;
+			});
+		}
+		this.drawRefinementCounter(result, x, y + Math.floor(lh * .5), textWidth);
 		this.outputEquip = result;
+	}
+	/**
+	* Whether this row's effect is an amount that can be compared, rather than a thing that is simply had.
+	*
+	* Only the three parameter codes carry a value worth putting in a before-and-after. Everything else
+	* formats as a name - a skill to learn, an element to strike with, a slot to seal - and the only news
+	* about one of those is whether the merge brought it along.
+	* @param {{before: (JAFTING_Trait|null), after: (JAFTING_Trait|null)}} row The paired effect.
+	* @returns {boolean}
+	*/
+	isQuantifiedRow(row) {
+		const sample = row.after === null ? row.before : row.after;
+		const code = sample.code();
+		return code === 21 || code === 22 || code === 23;
+	}
+	/**
+	* Draws an effect that is had rather than measured, on one full-width line.
+	*
+	* The whole row width goes to the label, because these read as sentences - "Learn: Palate Cleanser" -
+	* and the only column beside it says whether it is arriving, leaving, or staying put.
+	* @param {{before: (JAFTING_Trait|null), after: (JAFTING_Trait|null)}} row The paired effect.
+	* @param {number} x The column origin.
+	* @param {number} y The vertical position to draw at.
+	* @param {number} textWidth The drawable width of the result column.
+	*/
+	drawGrantedRow(row, x, y, textWidth) {
+		const { colW } = this.resultComparisonColumns(textWidth);
+		const sample = row.after === null ? row.before : row.after;
+		const iconIndex = sample.convertToRmTrait().iconIndex();
+		const labelWidth = textWidth - colW - 8;
+		const label = iconIndex > 0 ? `\\I[${iconIndex}]${sample.nameAndValue}` : sample.nameAndValue;
+		this.drawTextEx(label, x, y, labelWidth);
+		this.drawGrantedVerdict(row, x + labelWidth + 8, y, colW);
+	}
+	/**
+	* Draws what became of one granted effect, in the column its numeric siblings use for their modifier.
+	*
+	* Every row gets an answer here, including the ones that arrived untouched. The alternative - dimming
+	* the label of a carried effect and leaving this column empty - meant brightness carried meaning for
+	* one row shape and none for the other, and grey is already what this scene's donor list uses for rows
+	* you cannot pick. A carried effect is the opposite of unavailable.
+	* @param {{before: (JAFTING_Trait|null), after: (JAFTING_Trait|null)}} row The paired effect.
+	* @param {number} x The verdict column's absolute origin.
+	* @param {number} y The vertical position to draw at.
+	* @param {number} colW The verdict column's width.
+	*/
+	drawGrantedVerdict(row, x, y, colW) {
+		const alignRight = Window_Base.TextAlignments.Right;
+		if (row.after === null) {
+			this.changeTextColor(ColorManager.textColor(18));
+			this.drawText("lost", x, y, colW, alignRight);
+			this.resetTextColor();
+			return;
+		}
+		if (row.before === null) {
+			this.changeTextColor(ColorManager.textColor(24));
+			this.drawText("new", x, y, colW, alignRight);
+			this.resetTextColor();
+			return;
+		}
+		this.changeTextColor(ColorManager.textColor(7));
+		this.drawText("-", x, y, colW, alignRight);
+		this.resetTextColor();
+	}
+	/**
+	* Labels the note-effect block, so a raw tag key is not mistaken for a broken trait row.
+	*
+	* These rows read differently from everything above them - a key as authored on the left, a value as
+	* authored on the right - and saying so is what stops `cdmBuffPlus` looking like a rendering fault.
+	* @param {number} x The column origin.
+	* @param {number} y The vertical position to draw at.
+	* @param {number} textWidth The drawable width of the result column.
+	* @returns {number} The vertical position the first row should start at.
+	*/
+	drawNoteEffectsHeading(x, y, textWidth) {
+		this.modFontSize(-4);
+		this.changeTextColor(ColorManager.textColor(7));
+		this.drawText("note effects", x, y, textWidth, Window_Base.TextAlignments.Left);
+		this.resetTextColor();
+		this.resetFontSettings();
+		return y + this.lineHeight();
+	}
+	/**
+	* Draws one transferable note effect: its tag key, and what its value becomes.
+	*
+	* Presented exactly as authored, because nothing here knows what a tag means. A value that changed
+	* shows both sides so the movement is visible; one arriving from the donor shows only what it will be,
+	* since it had no previous value to move from.
+	* @param {{key: string, before: (string|null), after: string}} row The paired effect.
+	* @param {number} x The column origin.
+	* @param {number} y The vertical position to draw at.
+	* @param {number} textWidth The drawable width of the result column.
+	*/
+	drawNoteEffectRow(row, x, y, textWidth) {
+		const { nameWidth } = this.resultComparisonColumns(textWidth);
+		const valueWidth = textWidth - nameWidth - 8;
+		this.drawText(row.key, x, y, nameWidth, Window_Base.TextAlignments.Left);
+		const isNew = row.before === null;
+		const isUnchanged = row.before === row.after;
+		const valueText = isNew || isUnchanged ? row.after : `${row.before} -> ${row.after}`;
+		const colorIndex = isUnchanged ? 7 : 24;
+		this.changeTextColor(ColorManager.textColor(colorIndex));
+		this.drawText(valueText, x + nameWidth + 8, y, valueWidth, Window_Base.TextAlignments.Right);
+		this.resetTextColor();
+	}
+	/**
+	* The x offsets, relative to the column origin, of the before / after / delta columns.
+	*
+	* The three numeric columns are kept deliberately narrow and adjacent rather than spread across the
+	* full width. Three numbers that belong to one row have to be readable as a group; spacing them evenly
+	* across the column made each row look like three unrelated facts.
+	* @param {number} textWidth The drawable width of the result column.
+	* @returns {{beforeX: number, afterX: number, deltaX: number, colW: number, nameWidth: number}}
+	*/
+	resultComparisonColumns(textWidth) {
+		const colW = 96;
+		const groupWidth = colW * 3;
+		const nameWidth = Math.max(120, textWidth - groupWidth - 8);
+		return {
+			beforeX: nameWidth + 8,
+			afterX: nameWidth + 8 + colW,
+			deltaX: nameWidth + 8 + colW * 2,
+			colW,
+			nameWidth
+		};
+	}
+	/**
+	* Labels the three numeric columns, on the same line as the output's name.
+	*
+	* Drawn on every refresh rather than only when a numeric row exists, so the block beneath keeps one
+	* fixed starting height. Switching between a donor that grants an amount and one that grants a name
+	* otherwise moved every row a line up or down, which read as the panel twitching.
+	* @param {number} x The column origin.
+	* @param {number} y The vertical position to draw at, shared with the output's name.
+	* @param {number} textWidth The drawable width of the result column.
+	*/
+	drawResultComparisonHeadings(x, y, textWidth) {
+		const { beforeX, afterX, deltaX, colW } = this.resultComparisonColumns(textWidth);
+		this.modFontSize(-4);
+		this.changeTextColor(ColorManager.textColor(7));
+		this.drawText("now", x + beforeX, y, colW, Window_Base.TextAlignments.Right);
+		this.drawText("after", x + afterX, y, colW, Window_Base.TextAlignments.Right);
+		this.drawText("mod", x + deltaX, y, colW, Window_Base.TextAlignments.Right);
+		this.resetTextColor();
+		this.resetFontSettings();
+	}
+	/**
+	* Draws one effect's before, after, and the percentage responsible for the difference.
+	*
+	* The projected output arrives as a parameter rather than being read off {@link outputEquip}, which is
+	* not assigned until this column has finished drawing - reading it here would measure the previous
+	* pairing the player looked at.
+	* @param {{trait: JAFTING_Trait, before: (JAFTING_Trait|null)}} row The paired effect.
+	* @param {RPG_EquipItem} result The projected refinement output.
+	* @param {number} x The column origin.
+	* @param {number} y The vertical position to draw at.
+	* @param {number} textWidth The drawable width of the result column.
+	*/
+	drawResultComparisonRow(row, result, x, y, textWidth) {
+		const { beforeX, afterX, deltaX, colW, nameWidth } = this.resultComparisonColumns(textWidth);
+		const sample = row.after === null ? row.before : row.after;
+		const iconIndex = sample.convertToRmTrait().iconIndex();
+		const label = iconIndex > 0 ? `\\I[${iconIndex}]${sample.name}` : sample.name;
+		this.drawTextEx(label, x, y, nameWidth);
+		const code = sample.code();
+		const dataId = sample.dataId();
+		const before = this.localWorthFor(this.primaryEquip, code, dataId);
+		const after = this.localWorthFor(result, code, dataId);
+		this.drawText(`${before}`, x + beforeX, y, colW, Window_Base.TextAlignments.Right);
+		this.drawText(`${after}`, x + afterX, y, colW, Window_Base.TextAlignments.Right);
+		this.drawResultComparisonModifier(row, x + deltaX, y, colW);
+	}
+	/**
+	* What an equip is worth for one parameter on its own, as a whole number ready to draw.
+	*
+	* Its base for that stat amplified by its own percentages - the same arithmetic the battler performs
+	* when it asks equipment what it contributes, so this column cannot disagree with the stat screen.
+	* Base parameters read a flat amount; the other two families are already whole percents.
+	* @param {RPG_EquipItem} equip The equip to measure.
+	* @param {number} code The trait code: 21, 22, or 23.
+	* @param {number} dataId The parameter id within that family.
+	* @returns {number}
+	*/
+	localWorthFor(equip, code, dataId) {
+		const ownRate = equip.ownRate(code, dataId);
+		if (code === 21) {
+			return Math.round(equip.thisBParam(dataId) * ownRate);
+		}
+		if (code === 22) {
+			return Math.round(equip.thisXParam(dataId) * ownRate);
+		}
+		return Math.round(equip.thisSParam(dataId) * ownRate);
+	}
+	/**
+	* Draws the percentage the projected result carries for this row.
+	*
+	* The two columns to the left say what the equip is worth before and after, which is the number a
+	* player acts on. This column says what is producing that difference - the modifier itself - so a row
+	* reads as a claim and its evidence rather than as a bare percentage of nothing in particular.
+	* @param {{before: (JAFTING_Trait|null), after: (JAFTING_Trait|null)}} row The paired effect.
+	* @param {number} x The modifier column's absolute origin.
+	* @param {number} y The vertical position to draw at.
+	* @param {number} colW The modifier column's width.
+	*/
+	drawResultComparisonModifier(row, x, y, colW) {
+		const alignRight = Window_Base.TextAlignments.Right;
+		if (row.after === null) {
+			this.changeTextColor(ColorManager.textColor(18));
+			this.drawText("lost", x, y, colW, alignRight);
+			this.resetTextColor();
+			return;
+		}
+		const points = this.rowModifierPoints(row);
+		if (points === null) {
+			const colorIndex = row.before === null ? 24 : 7;
+			this.changeTextColor(ColorManager.textColor(colorIndex));
+			this.drawText(row.before === null ? "new" : "-", x, y, colW, alignRight);
+			this.resetTextColor();
+			return;
+		}
+		if (points === 0) {
+			this.changeTextColor(ColorManager.textColor(7));
+			this.drawText("-", x, y, colW, alignRight);
+			this.resetTextColor();
+			return;
+		}
+		const isGain = points > 0;
+		this.changeTextColor(ColorManager.textColor(isGain ? 24 : 18));
+		this.drawText(`${isGain ? "+" : ""}${points}%`, x, y, colW, alignRight);
+		this.resetTextColor();
+	}
+	/**
+	* The percentage the projected result carries for one row, in whole points.
+	*
+	* Read off the result's own value rather than the difference between the two sides, because this column
+	* answers "what is this item's modifier now" - the movement is already visible in the before and after
+	* beside it. Codes 21 and 23 store their values as deltas from 1.0 and code 22 from 0, which is the only
+	* thing separating the two arms here.
+	*
+	* **The row must have an `after`.** A merge that dropped an effect has no modifier left to report, and
+	* {@link drawResultComparisonModifier} answers that case itself before reaching this.
+	* @param {{before: (JAFTING_Trait|null), after: JAFTING_Trait}} row The paired effect, still present in the result.
+	* @returns {number|null} The modifier in whole percents, or null for a code with no numeric reading.
+	*/
+	rowModifierPoints(row) {
+		const code = row.after.code();
+		if (code !== 21 && code !== 22 && code !== 23) return null;
+		const neutral = this.neutralValueForCode(code);
+		const { value } = row.after.convertToRmTrait();
+		return Math.round((value - neutral) * 100);
+	}
+	/**
+	* Draws how many refinements this equip will have used, against its ceiling.
+	* @param {RPG_EquipItem} result The projected refinement output.
+	* @param {number} x The column origin.
+	* @param {number} y The vertical position to draw at.
+	* @param {number} textWidth The drawable width of the result column.
+	*/
+	drawRefinementCounter(result, x, y, textWidth) {
+		const { beforeX, afterX, deltaX, colW, nameWidth } = this.resultComparisonColumns(textWidth);
+		const cap = this.primaryEquip.jaftingMaxRefineCount;
+		this.modFontSize(-2);
+		this.changeTextColor(ColorManager.systemColor());
+		this.drawText("refinements", x, y, nameWidth, Window_Base.TextAlignments.Left);
+		this.resetTextColor();
+		this.drawText(`${this.primaryEquip.jaftingRefinedCount}`, x + beforeX, y, colW, Window_Base.TextAlignments.Right);
+		this.drawText(`${result.jaftingRefinedCount + 1}`, x + afterX, y, colW, Window_Base.TextAlignments.Right);
+		if (cap > 0) {
+			this.changeTextColor(ColorManager.textColor(7));
+			this.drawText(`of ${cap}`, x + deltaX, y, colW, Window_Base.TextAlignments.Right);
+			this.resetTextColor();
+		}
+		this.resetFontSettings();
 	}
 };
 
@@ -2015,9 +2849,9 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 	createAllWindows() {
 		this.createRefinementStepHintWindow();
 		this.createRefinementDescriptionWindow();
+		this.createRefinementDetailsWindow();
 		this.createBaseRefinableListWindow();
 		this.createConsumableRefinableListWindow();
-		this.createRefinementDetailsWindow();
 		this.createRefinementConfirmationWindow();
 	}
 	/**
@@ -2071,18 +2905,21 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		return this._cachedRefinementStepHintHeight;
 	}
 	/**
-	* @returns {number} Width shared by the left refinable lists (~10% wider than the original 350px column).
+	* @returns {number} Width shared by the two refinable lists, as the panel itself computes it.
 	*/
 	getBaseRefinableListColumnWidth() {
-		return Math.round(350 * 1.1);
+		const panelRect = this.getRefinementPanelRectangle();
+		const panelWindow = this.getRefinementDetailsWindow();
+		const innerWidth = panelRect.width - panelWindow.padding * 2;
+		return Window_RefinementDetails.listColumnWidthFromInner(innerWidth);
 	}
 	/**
 	* @returns {Rectangle}
 	*/
 	getRefinementStepHintRectangle() {
 		const [ox, oy] = Graphics.boxOrigin;
-		const x = ox + Graphics.horizontalPadding;
-		const width = Graphics.boxWidth - Graphics.horizontalPadding * 2;
+		const x = ox;
+		const width = Graphics.boxWidth - Graphics.horizontalPadding;
 		const height = this.getRefinementStepHintHeight();
 		return new Rectangle(x, oy, width, height);
 	}
@@ -2144,13 +2981,58 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	getRefinementDescriptionRectangle() {
-		const listRect = this.getBaseRefinableListRectangle();
-		const [ox] = Graphics.boxOrigin;
-		const x = listRect.x + listRect.width + Graphics.horizontalPadding;
-		const { y } = listRect;
-		const width = ox + Graphics.boxWidth - x - Graphics.horizontalPadding;
-		const height = 100;
+		const [ox, oy] = Graphics.boxOrigin;
+		const x = ox;
+		const y = oy + this.getRefinementStepHintHeight();
+		const width = Graphics.boxWidth - Graphics.horizontalPadding;
+		const height = this.calcWindowHeight(2, false);
 		return new Rectangle(x, y, width, height);
+	}
+	/**
+	* The panel every column of the refinement workflow is drawn inside.
+	*
+	* One backing window rather than a header per column: it owns the titles, the rules beneath them, and
+	* the result itself, so the three columns share a baseline by construction instead of by three
+	* windows agreeing with each other.
+	* @returns {Rectangle}
+	*/
+	getRefinementPanelRectangle() {
+		const [ox, oy] = Graphics.boxOrigin;
+		const descriptionRect = this.getRefinementDescriptionRectangle();
+		const x = ox;
+		const y = descriptionRect.y + descriptionRect.height;
+		const width = Graphics.boxWidth - Graphics.horizontalPadding;
+		const height = oy + Graphics.boxHeight - y - Graphics.verticalPadding;
+		return new Rectangle(x, y, width, height);
+	}
+	/**
+	* The shared column geometry for everything drawn inside the refinement panel.
+	*
+	* The two lists take a fixed column each and the result takes whatever is left, because the result is
+	* the answer the scene exists to give - it should be the widest thing on screen, not an equal third.
+	* @returns {{listWidth: number, resultWidth: number, columnX: number[], contentY: number, height: number}}
+	*/
+	getRefinementPanelLayout() {
+		const panelRect = this.getRefinementPanelRectangle();
+		const panelWindow = this.getRefinementDetailsWindow();
+		const pad = panelWindow.padding;
+		const innerX = panelRect.x + pad;
+		const innerWidth = panelRect.width - pad * 2;
+		const listWidth = this.getBaseRefinableListColumnWidth();
+		const resultWidth = innerWidth - listWidth * 2;
+		const contentY = panelRect.y + pad + panelWindow.columnContentInnerStartY();
+		const height = panelRect.y + panelRect.height - contentY - pad;
+		return {
+			listWidth,
+			resultWidth,
+			columnX: [
+				innerX,
+				innerX + listWidth,
+				innerX + listWidth * 2
+			],
+			contentY,
+			height
+		};
 	}
 	/**
 	* Gets the RefinementDescription window being tracked.
@@ -2186,11 +3068,8 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	getBaseRefinableListRectangle() {
-		const [ox, oy] = Graphics.boxOrigin;
-		const hintHeight = this.getRefinementStepHintHeight();
-		const width = this.getBaseRefinableListColumnWidth();
-		const height = Graphics.boxHeight - Graphics.verticalPadding - hintHeight;
-		return new Rectangle(ox, oy + hintHeight, width, height);
+		const layout = this.getRefinementPanelLayout();
+		return new Rectangle(layout.columnX[0], layout.contentY, layout.listWidth, layout.height);
 	}
 	/**
 	* Gets the RefinableList window being tracked.
@@ -2213,7 +3092,6 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 	}
 	deselectBaseRefinableListWindow() {
 		const listWindow = this.getBaseRefinableListWindow();
-		listWindow.hide();
 		listWindow.deactivate();
 	}
 	onBaseRefinableListIndexChange() {
@@ -2258,7 +3136,8 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	getConsumableRefinableListRectangle() {
-		return this.getBaseRefinableListRectangle();
+		const layout = this.getRefinementPanelLayout();
+		return new Rectangle(layout.columnX[1], layout.contentY, layout.listWidth, layout.height);
 	}
 	/**
 	* Gets the consumable RefinableList window being tracked.
@@ -2300,6 +3179,7 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 	}
 	onConsumableRefinableListCancel() {
 		this.refinementSession().returnToBaseSelection();
+		this.getRefinementDetailsWindow().secondaryEquip = null;
 		this.deselectConsumableRefinableListWindow();
 		this.selectBaseRefinableListWindow();
 	}
@@ -2328,14 +3208,7 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	getRefinementDetailsRectangle() {
-		const [ox, oy] = Graphics.boxOrigin;
-		const listRect = this.getBaseRefinableListRectangle();
-		const descWindow = this.getRefinementDescriptionWindow();
-		const x = listRect.x + listRect.width + Graphics.horizontalPadding;
-		const y = listRect.y + descWindow.height + Graphics.verticalPadding;
-		const width = ox + Graphics.boxWidth - x - Graphics.horizontalPadding;
-		const height = oy + Graphics.boxHeight - y - Graphics.verticalPadding;
-		return new Rectangle(x, y, width, height);
+		return this.getRefinementPanelRectangle();
 	}
 	/**
 	* Gets the RefinementDetails window being tracked.
@@ -2450,6 +3323,34 @@ Scene_Jafting.prototype.onRootJaftingSelection = function() {
 Scene_Jafting.prototype.jaftingRefinementSelected = function() {
 	this.closeRootJaftingWindows();
 	Scene_JaftingRefine.callScene();
+};
+
+//#endregion
+//#region src/plugins/jafting/ext/refine/scenes/Scene_Map.js
+/**
+* Extends {@link Scene_Map.prototype.start}.<br/>
+* Collects any refinement slot the playthrough can no longer reach.
+*
+* **Why the map, and why not the moment a row leaves inventory.** Refinement mints rows into `$dataWeapons` /
+* `$dataArmors` and the party tracks their provenance, so both need tidying once the player parts with one for
+* good. The tempting place to do that is the `loseItem` hook, and it is wrong: equipping spends a row out of the
+* bag before installing it in the slot, so an item mid-equip is momentarily held nowhere, and selling, dismantling
+* and story-driven removals each settle at their own pace. Collecting from inside any of those means reading a
+* transitional state as a final one.
+*
+* `Scene_Map.start` is the point where none of that is in flight. It runs on map transfer *and* on the return from
+* any menu, shop, or battle, because `SceneManager.pop` constructs a fresh scene rather than resuming the old one -
+* so every path that could have released a refined equip passes through here afterward, with the transaction
+* finished. Collection being late costs nothing: the slot allocator only ever counts upward, so no future
+* refinement is waiting on a freed slot.
+*
+* This lives in Refinement rather than JAFTING core because Refinement is what creates dynamic rows in the first
+* place. A project without it has none, and therefore wants no sweep.
+*/
+J.JAFTING.EXT.REFINE.Aliased.Scene_Map.set("start", Scene_Map.prototype.start);
+Scene_Map.prototype.start = function() {
+	J.JAFTING.EXT.REFINE.Aliased.Scene_Map.get("start").call(this);
+	JaftingSalvageManager.reclaimUnreferencedDynamicSlots();
 };
 
 //#endregion

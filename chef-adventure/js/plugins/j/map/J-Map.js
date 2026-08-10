@@ -240,7 +240,7 @@ var J_MAP__PluginMetadata = class extends PluginMetadata {
 		this.initializeMetadata();
 	}
 	initializeMetadata() {
-		const pp = this.parsedPluginParameters ?? {};
+		const pp = this.parsedPluginParameters;
 		/**
 		* The minimap's X position in pixels; -1 = auto bottom-right.
 		* @type {number}

@@ -27,6 +27,10 @@ As such, while the plugins living in my [other repository can be found over here
 - [SDP archetype mapping (design)][23]
 - [database decode cheatsheet (traits, ids, CLI)][25]
 - [SDP panel parameters cheatsheet (P4-1 stat rows)][26]
+- [the recipe system (components, cuisines, methods, unlocks)][30]
+- [ingredient roster (every food item/armor, bucketed and tagged)][33]
+- [food chain durations and colors][31]
+- [progression bands (play order, enemy levels, per-map table)][32]
 
 And of course, a list of unlockables and their details:
 - [Flux Drive locations][15]
@@ -55,3 +59,11 @@ And of course, a list of unlockables and their details:
 [27]: ./story-canon.md
 [28]: ./prequel-jr2.md
 [29]: ./origins-the-roleplay.md
+
+[30]: ./food/recipe-system.md
+
+[31]: ./food/food-chain-durations.md
+
+[32]: ./maps/progression-bands.md
+
+[33]: ./food/ingredient-roster.md

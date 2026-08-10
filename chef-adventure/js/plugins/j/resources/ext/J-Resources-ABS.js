@@ -614,9 +614,9 @@ var HealEventManager = class {
 		const globalMaxDepth = J.RESOURCES.EXT.ABS.Metadata.healChainDepth;
 		const tuples = [];
 		for (const databaseData of notes) {
-			if (specificRegexp) {
-				const results = RPGManager.getArraysFromNotesByRegex(databaseData, specificRegexp);
-				for (const result of results) {
+			[specificRegexp, anyRegexp].forEach((regexp) => {
+				const results = RPGManager.getArraysFromNotesByRegex(databaseData, regexp);
+				results.forEach((result) => {
 					if (Array.isArray(result) && result.length >= 2) {
 						const maxDepth = result.length >= 3 ? Number(result[2]) : globalMaxDepth;
 						tuples.push([
@@ -625,21 +625,8 @@ var HealEventManager = class {
 							maxDepth
 						]);
 					}
-				}
-			}
-			if (anyRegexp) {
-				const results = RPGManager.getArraysFromNotesByRegex(databaseData, anyRegexp);
-				for (const result of results) {
-					if (Array.isArray(result) && result.length >= 2) {
-						const maxDepth = result.length >= 3 ? Number(result[2]) : globalMaxDepth;
-						tuples.push([
-							Number(result[0]),
-							Number(result[1]),
-							maxDepth
-						]);
-					}
-				}
-			}
+				});
+			});
 		}
 		return tuples;
 	}

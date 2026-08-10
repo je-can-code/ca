@@ -891,7 +891,6 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 * @returns {Record<string, AptitudeProgress>}
 */
 Game_Actor.prototype.getAllAptitudeProgresses = function() {
-	if (!this._j._aptitude) this.initAptitudeMembers();
 	return this.progress();
 };
 /**
@@ -899,7 +898,6 @@ Game_Actor.prototype.getAllAptitudeProgresses = function() {
 * @returns {Record<number, AptitudeSkill>}
 */
 Game_Actor.prototype.getAllAptitudeSkillsLearned = function() {
-	if (!this._j._aptitude) this.initAptitudeMembers();
 	return this.learned();
 };
 /**
@@ -930,7 +928,6 @@ Game_Actor.prototype.getAptitudeSkillAggregates = function() {
 * @returns {AptitudeProgress|null} The aptitude progress for the given key.
 */
 Game_Actor.prototype.getAptitudeProgress = function(key) {
-	if (!this._j._aptitude) this.initAptitudeMembers();
 	return this.progress()[key] ?? null;
 };
 /**

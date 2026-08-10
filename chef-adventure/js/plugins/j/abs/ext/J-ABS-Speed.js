@@ -141,7 +141,7 @@ J.ABS.EXT.SPEED.RegExp = { WalkSpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi };
 * @type {number|null}
 */
 Object.defineProperty(RPG_Base.prototype, "jabsSpeedBoost", { get: function() {
-	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.EXT.SPEED.RegExp.WalkSpeedBoost, true);
+	return RPGManager.getSumFromNoteByRegex(this, J.ABS.EXT.SPEED.RegExp.WalkSpeedBoost, true);
 } });
 
 //#endregion
