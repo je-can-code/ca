@@ -485,7 +485,9 @@ This makes combinatorial volume free. Whether there are 60 components or 600, th
 the handful they can cook right now, and none of them cost an unlock event.
 
 `maskedUntilCrafted` already exists on every recipe row in `config.crafting.json` and is the discovered
-flag this needs.
+flag this needs — **but it comes off anything purchasable.** A recipe you can read in the shop cannot
+sensibly be a `???` in your own crafting menu afterwards, and buying blind is a worse offer than buying
+a goal. Masking survives only where nothing ever sells the recipe.
 
 ### What actually gets unlocked
 
@@ -509,6 +511,55 @@ Items 461-463 and common events 161-163. Their own descriptions give the failure
 fried rice and a rack of ribs. Six food families in one drop. The problem was never that there were only
 three journals; it was that a random drop taught seven unrelated dishes at once, so nothing was earned,
 nothing was chosen, and the family lanes stayed invisible.
+
+### Recipe pages replace them
+
+**Resolved 2026-08-11.** Enemies drop **recipe pages** at a low rate, and pages are spent at a vendor on
+a recipe **the player picks**.
+
+**Pages are a currency, not a lottery ticket**, and that is the entire difference between this and the
+Journals. A page that granted a random recipe would keep the half of the old failure that mattered —
+nothing was chosen. Spending pages on a named dish makes every recipe learned a decision, and it makes
+an unaffordable one a goal rather than a disappointment.
+
+- **Rarity is the price.** A common dish costs a couple of pages, a signature dish costs many. No new
+  rarity stat; the ladder already established by slot specificity just gets a second expression.
+- **Learning a recipe you cannot yet cook is intended**, and follows directly from cuisines staying
+  visible when unmakeable. It tells the player where to go.
+- **The page economy is what makes a large roster affordable.** A flagship cuisine costs a scene to
+  deliver, so there are only 15-20 of them. Everything else costs nothing to deliver — it simply enters
+  the vendor's list — so the roster can grow to whatever size the ingredient grid supports.
+- **A low drop rate is legitimate here**, despite the rule that RNG must never gate a temporary buff. A
+  recipe is permanent, and the doc's own test is that a permanent reward can justify a rare roll.
+
+### The study shop
+
+A custom scene, and it is smaller than it sounds because three pieces already exist.
+
+| Piece | Status |
+|---|---|
+| The unlock action | **exists** — `$gameParty.unlockRecipe(key)` in `jafting/ext/create/objects/Game_Party.js` |
+| Cost checking and spending | **exists** — give a recipe a `cost` in the `{ id, type, count }` component shape and `CraftingComponent` already answers `hasEnough()` and consumes |
+| Which categories to show | **exists** — the scene reads whatever is unlocked, exactly as `call-menu` does |
+
+**Pages are plain items, not a custom currency.** One item per family, where the balance is
+`$gameParty.numItems(page)` and the spend is `loseItem`. No currency system, no new save state, no new
+display concept.
+
+**Category scoping reuses the station pattern.** Common events 18 / 21 / 24 / 27 already wrap the
+crafting menu in `unlock-categories` … `call-menu` … `lock-categories`, so the vendor does the same
+around `call-recipe-shop`. **L2/R2 cycles the categories that are unlocked at that moment**, which means
+adding a lane later only lengthens one argument list.
+
+**Known recipes sort to the bottom of the list and grey out** rather than disappearing, so the screen
+carries a visible completion count.
+
+**This scene belongs to J-JAFTING-Creation** rather than a new ship, because recipes and their unlock
+state already live there. It also pays for itself twice: the alchemy "journal pages scattered to the
+four winds" on maps 34 and 35 is the same mechanic with a different page item.
+
+**Open:** whether pages are **per-family** — which lines each shop tab up with exactly one balance — or
+a **single global page** the player spends wherever they like.
 
 ---
 
@@ -676,6 +727,11 @@ recipe's output already works — River Smoothie and Jelli Hors d'Oeuvres do it 
 
 | Date | Decision |
 |---|---|
+| 2026-08-11 | **Recipe pages are a currency, not a lottery ticket.** They drop from enemies and are spent at a vendor on a recipe the player names. Rarity is the price. |
+| 2026-08-11 | **The study shop is a custom scene inside J-JAFTING-Creation.** Per-recipe unlock items were rejected outright — that pattern was already abandoned on SDP for being unmanageable. |
+| 2026-08-11 | **Pages are plain items**, so there is no custom currency to build. |
+| 2026-08-11 | **The shop scopes categories the way the stations already do** — unlock, call, lock — and L2/R2 cycles whatever is unlocked. |
+| 2026-08-11 | **`maskedUntilCrafted` comes off anything purchasable**, and known recipes sort to the bottom of the shop greyed out rather than vanishing. |
 | 2026-08-10 | **Crafting categories are the six food lanes**, plus Pantry Paradise for laneless outputs. `cook-meal` and `cook-drink` retire. |
 | 2026-08-10 | **A recipe lives in its output's lane**, read from `<food:>` or `<ingredientType:>`. The two vocabularies already agree on the six names. |
 | 2026-08-10 | **Method is never a tab.** It is a tool requirement, an unlock moment, and the dish-name generator — the same role Hammer + Mitts plays in smithing. |
