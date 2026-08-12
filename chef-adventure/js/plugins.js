@@ -68,6 +68,7 @@ var $plugins =
 {"name":"j/extend/J-Extend","status":true,"description":"[v1.7.0 EXTEND] Extends the capabilities of skills/actions.","parameters":{}},
 {"name":"j/extend/ext/J-Extend-ABS","status":true,"description":"[v1.0.0 EXTEND-ABS] J-ABS integration for J-Extend.","parameters":{}},
 {"name":"j/prof/J-Proficiency","status":true,"description":"[v2.1.0 PROF] Enables skill proficiency tracking.","parameters":{}},
+{"name":"j/prof/ext/J-Proficiency-Knowledge","status":true,"description":"[v1.0.0 PROF-KNOWLEDGE] A currency earned by using skills.","parameters":{}},
 {"name":"j/elem/J-Elementalistics","status":true,"description":"[v1.3.0 ELEM] Enables greater control over elements.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"others/HIME_LargeChoices","status":true,"description":"v1.2 - Combines multiple show choice commands into a single,\nlarge list.","parameters":{}},
