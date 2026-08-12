@@ -1513,7 +1513,7 @@
       "outputs": []
     },
     {
-      "key": "ingot-iron",
+      "key": "ingot-001",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1545,7 +1545,7 @@
       ]
     },
     {
-      "key": "ingot-silver",
+      "key": "ingot-002",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1577,7 +1577,7 @@
       ]
     },
     {
-      "key": "ingot-bleu",
+      "key": "ingot-003",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1609,7 +1609,7 @@
       ]
     },
     {
-      "key": "ingot-sandwraith",
+      "key": "ingot-004",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1641,7 +1641,7 @@
       ]
     },
     {
-      "key": "ingot-engle",
+      "key": "ingot-005",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1673,7 +1673,7 @@
       ]
     },
     {
-      "key": "ingot-deep",
+      "key": "ingot-006",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1705,7 +1705,7 @@
       ]
     },
     {
-      "key": "ingot-might",
+      "key": "ingot-007",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1737,7 +1737,7 @@
       ]
     },
     {
-      "key": "ingot-ultanium",
+      "key": "ingot-008",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1781,7 +1781,7 @@
       "outputs": []
     },
     {
-      "key": "paper-basic",
+      "key": "paper-001",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1813,7 +1813,7 @@
       ]
     },
     {
-      "key": "paper-lofty",
+      "key": "paper-002",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1845,7 +1845,7 @@
       ]
     },
     {
-      "key": "paper-dense",
+      "key": "paper-003",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1877,7 +1877,7 @@
       ]
     },
     {
-      "key": "paper-grim",
+      "key": "paper-004",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1909,7 +1909,7 @@
       ]
     },
     {
-      "key": "paper-sheer",
+      "key": "paper-005",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1941,7 +1941,7 @@
       ]
     },
     {
-      "key": "paper-decadent",
+      "key": "paper-006",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -1969,6 +1969,310 @@
           "id": 58,
           "type": "i",
           "count": 5
+        }
+      ]
+    },
+    {
+      "key": "__CIRCUITS",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [],
+      "tools": [],
+      "ingredients": [],
+      "outputs": []
+    },
+    {
+      "key": "circuit-001",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 115,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 72,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 75,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "circuit-002",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 115,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 72,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 76,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "circuit-003",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 115,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 72,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 73,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 35,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 77,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "circuit-004",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 115,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 73,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 39,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 67,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 78,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "circuit-005",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 115,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 73,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 41,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 69,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 79,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "circuit-006",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 115,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 74,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 45,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 71,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 80,
+          "type": "i",
+          "count": 1
         }
       ]
     },
