@@ -1,9 +1,20 @@
 # The recipe system
 
-> **Status: ingredient layer built 2026-08-10, recipe layer unbuilt.** `config.crafting.json` carries all
+> **Status: the machinery is built 2026-08-11; the content is not.** `config.crafting.json` carries all
 > 56 `ingredientTypes`, 180 items in `i201-i432` carry their `<ingredientType:>` tags, and recipe
 > ingredient slots accept categories — though only one recipe has been converted to use them so far.
-> Categories, tools and the recipes themselves are still ahead. This is the plan for how cooking content gets
+>
+> Since then the plugins and the editor have caught up with this document. **J-Proficiency-Knowledge**
+> turns skill use into a spendable currency and trades it for items; recipes carry a `cost` and the
+> **study shop** sells them; the menu's gold strip is now a **currency strip** anything can register
+> with; and the editor authors all of it. What remains is data: the knowledge blocks, the four currency
+> items, the categories, the tools, and the recipes themselves.
+>
+> **One ordering rule while that data gets written.** The editor's fix for saving the new proficiency
+> blocks lives on `feat/knowledge-and-recipe-cost-authoring`. Until that merges, opening the Proficiency
+> board from `main` rebuilds the file out of `conditionals` alone and deletes everything else in it.
+>
+> This is the plan for how cooking content gets
 > authored from here on. It replaces "invent another dish and see how it feels," which produced 31
 > good recipes and then a wall.
 >
