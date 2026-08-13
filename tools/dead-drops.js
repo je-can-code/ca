@@ -103,6 +103,29 @@ const retargetNote = (note, moves) =>
 };
 
 /**
+ * Verifies the retired armor rows are still empty.
+ *
+ * This tool identifies its targets by armor id, and those ids only mean "a retired food tier" for as
+ * long as nothing else occupies them. Reordering the material block refilled that range, so every id
+ * below now names a live material - and a run at that point would rewrite legitimate drop tags into
+ * item drops. The migration this tool performs is one-shot and already complete; the guard exists so
+ * that a later run reports the reason rather than doing damage.
+ * @param {any[]} armors The parsed armor list.
+ * @returns {void}
+ */
+const assertSourcesRetired = armors => RETARGETS.forEach(retarget =>
+{
+  const row = armors[retarget.from];
+
+  if (row && row.name)
+  {
+    throw new Error(`a${retarget.from} is now "${row.name}", not the retired "${retarget.was}". ` +
+      'The material block has been renumbered since this migration ran, so these ids no longer mean ' +
+      'what this table says. This tool is spent - its 274 tags were migrated on 2026-08-13.');
+  }
+});
+
+/**
  * Verifies that every replacement lands on a real item, so a typo in the table above fails loudly
  * rather than trading one silent dead drop for another.
  * @param {any[]} items The parsed item list.
@@ -168,7 +191,9 @@ const runPlan = async () =>
 {
   const items = await readData('Items.json');
   const enemies = await readData('Enemies.json');
+  const armors = await readData('Armors.json');
 
+  assertSourcesRetired(armors);
   assertTargetsExist(items);
 
   const moves = retargetsById();
@@ -202,7 +227,9 @@ const runApply = async () =>
 {
   const items = await readData('Items.json');
   const enemies = await readData('Enemies.json');
+  const armors = await readData('Armors.json');
 
+  assertSourcesRetired(armors);
   assertTargetsExist(items);
 
   const moves = retargetsById();
