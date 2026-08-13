@@ -655,11 +655,6 @@
           "id": 421,
           "type": "i",
           "count": 1
-        },
-        {
-          "id": 321,
-          "type": "a",
-          "count": 3
         }
       ],
       "outputs": [
@@ -688,11 +683,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 427,
-          "type": "a",
-          "count": 2
-        },
         {
           "id": 426,
           "type": "i",
@@ -725,11 +715,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 447,
-          "type": "a",
-          "count": 3
-        },
         {
           "id": 416,
           "type": "i",
@@ -1077,11 +1062,6 @@
       ],
       "ingredients": [
         {
-          "id": 357,
-          "type": "a",
-          "count": 2
-        },
-        {
           "id": 93,
           "type": "i",
           "count": 3
@@ -1185,11 +1165,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 403,
-          "type": "a",
-          "count": 1
-        },
         {
           "id": 332,
           "type": "a",
@@ -1376,11 +1351,6 @@
           "count": 2
         },
         {
-          "id": 398,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 412,
           "type": "i",
           "count": 2
@@ -1412,16 +1382,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 372,
-          "type": "a",
-          "count": 4
-        },
-        {
-          "id": 398,
-          "type": "a",
-          "count": 1
-        },
         {
           "id": 421,
           "type": "i",
@@ -1459,11 +1419,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 388,
-          "type": "a",
-          "count": 3
-        },
         {
           "id": 411,
           "type": "i",
@@ -5644,11 +5599,6 @@
           "count": 5
         },
         {
-          "id": 447,
-          "type": "a",
-          "count": 8
-        },
-        {
           "id": 46,
           "type": "i",
           "count": 1
@@ -5689,11 +5639,6 @@
           "id": 32,
           "type": "i",
           "count": 5
-        },
-        {
-          "id": 447,
-          "type": "a",
-          "count": 8
         }
       ],
       "outputs": [
@@ -5731,11 +5676,6 @@
           "id": 32,
           "type": "i",
           "count": 5
-        },
-        {
-          "id": 447,
-          "type": "a",
-          "count": 8
         }
       ],
       "outputs": [
@@ -5773,11 +5713,6 @@
           "id": 32,
           "type": "i",
           "count": 5
-        },
-        {
-          "id": 447,
-          "type": "a",
-          "count": 8
         }
       ],
       "outputs": [
@@ -5815,11 +5750,6 @@
           "id": 32,
           "type": "i",
           "count": 5
-        },
-        {
-          "id": 447,
-          "type": "a",
-          "count": 8
         }
       ],
       "outputs": [
@@ -5857,11 +5787,6 @@
           "id": 32,
           "type": "i",
           "count": 5
-        },
-        {
-          "id": 447,
-          "type": "a",
-          "count": 8
         }
       ],
       "outputs": [
@@ -6868,11 +6793,6 @@
           "id": 311,
           "type": "a",
           "count": 2
-        },
-        {
-          "id": 416,
-          "type": "a",
-          "count": 4
         }
       ],
       "outputs": [
@@ -9774,11 +9694,6 @@
           "id": 301,
           "type": "a",
           "count": 2
-        },
-        {
-          "id": 421,
-          "type": "a",
-          "count": 1
         }
       ],
       "outputs": [
@@ -9824,11 +9739,6 @@
         },
         {
           "id": 302,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 421,
           "type": "a",
           "count": 1
         },
@@ -11910,11 +11820,6 @@
       ],
       "ingredients": [
         {
-          "id": 411,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 30,
           "type": "i",
           "count": 1
@@ -11946,11 +11851,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 372,
-          "type": "a",
-          "count": 1
-        },
         {
           "id": 34,
           "type": "i",
@@ -12016,11 +11916,6 @@
       ],
       "ingredients": [
         {
-          "id": 374,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 42,
           "type": "i",
           "count": 1
@@ -12052,11 +11947,6 @@
         }
       ],
       "ingredients": [
-        {
-          "id": 415,
-          "type": "a",
-          "count": 1
-        },
         {
           "id": 44,
           "type": "i",
@@ -12142,11 +12032,6 @@
           "count": 1
         },
         {
-          "id": 372,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 34,
           "type": "i",
           "count": 1
@@ -12227,11 +12112,6 @@
       "ingredients": [
         {
           "id": 394,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 374,
           "type": "a",
           "count": 1
         },
