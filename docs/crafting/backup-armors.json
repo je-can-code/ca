@@ -6,7 +6,7 @@
   "_counts": {
     "materials": 80,
     "recipeReferences": 158,
-    "dropReferences": 1227
+    "dropReferences": 953
   },
   "materials": [
     {
@@ -1601,126 +1601,6 @@
     ],
     "drops": [
       {
-        "enemyId": 1,
-        "enemyName": "*Grass (Erocian)",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 1,
-        "enemyName": "*Grass (Erocian)",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 2,
-        "enemyName": "*Grass (Dream)",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 2,
-        "enemyName": "*Grass (Dream)",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 2,
-        "enemyName": "*Grass (Dream)",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 2,
-        "enemyName": "*Grass (Dream)",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 2,
-        "enemyName": "*Grass (Dream)",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 3,
-        "enemyName": "*Puff (Earthen)",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 4,
-        "enemyName": "*Grass (Grotto)",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 4,
-        "enemyName": "*Grass (Grotto)",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 6,
-        "enemyName": "=== TBD Grass",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 6,
-        "enemyName": "=== TBD Grass",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 7,
-        "enemyName": "=== TBD Grass",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 7,
-        "enemyName": "=== TBD Grass",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 8,
-        "enemyName": "=== TBD Grass",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 8,
-        "enemyName": "=== TBD Grass",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 9,
-        "enemyName": "=== TBD Grass",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 9,
-        "enemyName": "=== TBD Grass",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 10,
-        "enemyName": "=== TBD Grass",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 10,
-        "enemyName": "=== TBD Grass",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
         "enemyId": 21,
         "enemyName": "*Deposit (Iron)",
         "id": 336,
@@ -2947,12 +2827,6 @@
       {
         "enemyId": 153,
         "enemyName": "Asp",
-        "id": 398,
-        "name": "<<blank a398>>"
-      },
-      {
-        "enemyId": 153,
-        "enemyName": "Asp",
         "id": 377,
         "name": "Lizard Scales"
       },
@@ -2983,12 +2857,6 @@
       {
         "enemyId": 154,
         "enemyName": "=== TBD Snake",
-        "id": 398,
-        "name": "<<blank a398>>"
-      },
-      {
-        "enemyId": 154,
-        "enemyName": "=== TBD Snake",
         "id": 377,
         "name": "Lizard Scales"
       },
@@ -3019,12 +2887,6 @@
       {
         "enemyId": 155,
         "enemyName": "=== TBD Snake",
-        "id": 398,
-        "name": "<<blank a398>>"
-      },
-      {
-        "enemyId": 155,
-        "enemyName": "=== TBD Snake",
         "id": 377,
         "name": "Lizard Scales"
       },
@@ -3051,12 +2913,6 @@
         "enemyName": "=== TBD Snake",
         "id": 364,
         "name": "Powerful Fangs"
-      },
-      {
-        "enemyId": 156,
-        "enemyName": "=== TBD Snake",
-        "id": 398,
-        "name": "<<blank a398>>"
       },
       {
         "enemyId": 156,
@@ -3091,12 +2947,6 @@
       {
         "enemyId": 157,
         "enemyName": "=== TBD Snake",
-        "id": 398,
-        "name": "<<blank a398>>"
-      },
-      {
-        "enemyId": 157,
-        "enemyName": "=== TBD Snake",
         "id": 377,
         "name": "Lizard Scales"
       },
@@ -3123,12 +2973,6 @@
         "enemyName": "=== TBD Snake",
         "id": 364,
         "name": "Powerful Fangs"
-      },
-      {
-        "enemyId": 158,
-        "enemyName": "=== TBD Snake",
-        "id": 398,
-        "name": "<<blank a398>>"
       },
       {
         "enemyId": 158,
@@ -3163,12 +3007,6 @@
       {
         "enemyId": 159,
         "enemyName": "=== TBD Snake",
-        "id": 398,
-        "name": "<<blank a398>>"
-      },
-      {
-        "enemyId": 159,
-        "enemyName": "=== TBD Snake",
         "id": 377,
         "name": "Lizard Scales"
       },
@@ -3195,12 +3033,6 @@
         "enemyName": "=== TBD Snake",
         "id": 364,
         "name": "Powerful Fangs"
-      },
-      {
-        "enemyId": 160,
-        "enemyName": "=== TBD Snake",
-        "id": 398,
-        "name": "<<blank a398>>"
       },
       {
         "enemyId": 160,
@@ -4303,12 +4135,6 @@
       {
         "enemyId": 203,
         "enemyName": "Kappa Shaman",
-        "id": 342,
-        "name": "<<blank a342>>"
-      },
-      {
-        "enemyId": 203,
-        "enemyName": "Kappa Shaman",
         "id": 376,
         "name": "Loose Scales"
       },
@@ -4317,18 +4143,6 @@
         "enemyName": "Kappa Shaman",
         "id": 377,
         "name": "Lizard Scales"
-      },
-      {
-        "enemyId": 203,
-        "enemyName": "Kappa Shaman",
-        "id": 427,
-        "name": "<<blank a427>>"
-      },
-      {
-        "enemyId": 204,
-        "enemyName": "Kappa Myrmidon",
-        "id": 342,
-        "name": "<<blank a342>>"
       },
       {
         "enemyId": 204,
@@ -4347,12 +4161,6 @@
         "enemyName": "Kappa Myrmidon",
         "id": 377,
         "name": "Lizard Scales"
-      },
-      {
-        "enemyId": 204,
-        "enemyName": "Kappa Myrmidon",
-        "id": 427,
-        "name": "<<blank a427>>"
       },
       {
         "enemyId": 205,
@@ -4415,12 +4223,6 @@
         "name": "Lizard Scales"
       },
       {
-        "enemyId": 212,
-        "enemyName": "Spitting Frog",
-        "id": 427,
-        "name": "<<blank a427>>"
-      },
-      {
         "enemyId": 213,
         "enemyName": "=== TBD Amphibian",
         "id": 376,
@@ -4437,12 +4239,6 @@
         "enemyName": "=== TBD Amphibian",
         "id": 377,
         "name": "Lizard Scales"
-      },
-      {
-        "enemyId": 213,
-        "enemyName": "=== TBD Amphibian",
-        "id": 427,
-        "name": "<<blank a427>>"
       },
       {
         "enemyId": 214,
@@ -4463,12 +4259,6 @@
         "name": "Lizard Scales"
       },
       {
-        "enemyId": 214,
-        "enemyName": "=== TBD Amphibian",
-        "id": 427,
-        "name": "<<blank a427>>"
-      },
-      {
         "enemyId": 215,
         "enemyName": "=== TBD Amphibian",
         "id": 376,
@@ -4485,12 +4275,6 @@
         "enemyName": "=== TBD Amphibian",
         "id": 377,
         "name": "Lizard Scales"
-      },
-      {
-        "enemyId": 215,
-        "enemyName": "=== TBD Amphibian",
-        "id": 427,
-        "name": "<<blank a427>>"
       },
       {
         "enemyId": 216,
@@ -4511,12 +4295,6 @@
         "name": "Lizard Scales"
       },
       {
-        "enemyId": 216,
-        "enemyName": "=== TBD Amphibian",
-        "id": 427,
-        "name": "<<blank a427>>"
-      },
-      {
         "enemyId": 217,
         "enemyName": "=== TBD Amphibian",
         "id": 376,
@@ -4533,12 +4311,6 @@
         "enemyName": "=== TBD Amphibian",
         "id": 377,
         "name": "Lizard Scales"
-      },
-      {
-        "enemyId": 217,
-        "enemyName": "=== TBD Amphibian",
-        "id": 427,
-        "name": "<<blank a427>>"
       },
       {
         "enemyId": 218,
@@ -4559,12 +4331,6 @@
         "name": "Lizard Scales"
       },
       {
-        "enemyId": 218,
-        "enemyName": "=== TBD Amphibian",
-        "id": 427,
-        "name": "<<blank a427>>"
-      },
-      {
         "enemyId": 219,
         "enemyName": "=== TBD Amphibian",
         "id": 376,
@@ -4583,12 +4349,6 @@
         "name": "Lizard Scales"
       },
       {
-        "enemyId": 219,
-        "enemyName": "=== TBD Amphibian",
-        "id": 427,
-        "name": "<<blank a427>>"
-      },
-      {
         "enemyId": 220,
         "enemyName": "=== TBD Amphibian",
         "id": 376,
@@ -4605,12 +4365,6 @@
         "enemyName": "=== TBD Amphibian",
         "id": 377,
         "name": "Lizard Scales"
-      },
-      {
-        "enemyId": 220,
-        "enemyName": "=== TBD Amphibian",
-        "id": 427,
-        "name": "<<blank a427>>"
       },
       {
         "enemyId": 221,
@@ -4623,18 +4377,6 @@
         "enemyName": "Crimson Vice",
         "id": 338,
         "name": "Circular Stone"
-      },
-      {
-        "enemyId": 221,
-        "enemyName": "Crimson Vice",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
-        "enemyId": 222,
-        "enemyName": "!Distorting Melter",
-        "id": 437,
-        "name": "<<blank a437>>"
       },
       {
         "enemyId": 222,
@@ -4655,12 +4397,6 @@
         "name": "Circular Stone"
       },
       {
-        "enemyId": 223,
-        "enemyName": "=== TBD Crustacean",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
         "enemyId": 224,
         "enemyName": "=== TBD Crustacean",
         "id": 337,
@@ -4671,12 +4407,6 @@
         "enemyName": "=== TBD Crustacean",
         "id": 338,
         "name": "Circular Stone"
-      },
-      {
-        "enemyId": 224,
-        "enemyName": "=== TBD Crustacean",
-        "id": 437,
-        "name": "<<blank a437>>"
       },
       {
         "enemyId": 225,
@@ -4691,12 +4421,6 @@
         "name": "Circular Stone"
       },
       {
-        "enemyId": 225,
-        "enemyName": "=== TBD Crustacean",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
         "enemyId": 226,
         "enemyName": "=== TBD Crustacean",
         "id": 337,
@@ -4707,12 +4431,6 @@
         "enemyName": "=== TBD Crustacean",
         "id": 338,
         "name": "Circular Stone"
-      },
-      {
-        "enemyId": 226,
-        "enemyName": "=== TBD Crustacean",
-        "id": 437,
-        "name": "<<blank a437>>"
       },
       {
         "enemyId": 227,
@@ -4727,12 +4445,6 @@
         "name": "Circular Stone"
       },
       {
-        "enemyId": 227,
-        "enemyName": "=== TBD Crustacean",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
         "enemyId": 228,
         "enemyName": "=== TBD Crustacean",
         "id": 337,
@@ -4743,12 +4455,6 @@
         "enemyName": "=== TBD Crustacean",
         "id": 338,
         "name": "Circular Stone"
-      },
-      {
-        "enemyId": 228,
-        "enemyName": "=== TBD Crustacean",
-        "id": 437,
-        "name": "<<blank a437>>"
       },
       {
         "enemyId": 229,
@@ -4763,12 +4469,6 @@
         "name": "Circular Stone"
       },
       {
-        "enemyId": 229,
-        "enemyName": "=== TBD Crustacean",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
         "enemyId": 230,
         "enemyName": "=== TBD Crustacean",
         "id": 337,
@@ -4779,12 +4479,6 @@
         "enemyName": "=== TBD Crustacean",
         "id": 338,
         "name": "Circular Stone"
-      },
-      {
-        "enemyId": 230,
-        "enemyName": "=== TBD Crustacean",
-        "id": 437,
-        "name": "<<blank a437>>"
       },
       {
         "enemyId": 231,
@@ -4799,12 +4493,6 @@
         "name": "Circular Stone"
       },
       {
-        "enemyId": 231,
-        "enemyName": "=== TBD Fish",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
         "enemyId": 232,
         "enemyName": "=== TBD Fish",
         "id": 337,
@@ -4815,12 +4503,6 @@
         "enemyName": "=== TBD Fish",
         "id": 338,
         "name": "Circular Stone"
-      },
-      {
-        "enemyId": 232,
-        "enemyName": "=== TBD Fish",
-        "id": 437,
-        "name": "<<blank a437>>"
       },
       {
         "enemyId": 233,
@@ -4835,12 +4517,6 @@
         "name": "Circular Stone"
       },
       {
-        "enemyId": 233,
-        "enemyName": "=== TBD Fish",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
         "enemyId": 234,
         "enemyName": "=== TBD Fish",
         "id": 337,
@@ -4851,12 +4527,6 @@
         "enemyName": "=== TBD Fish",
         "id": 338,
         "name": "Circular Stone"
-      },
-      {
-        "enemyId": 234,
-        "enemyName": "=== TBD Fish",
-        "id": 437,
-        "name": "<<blank a437>>"
       },
       {
         "enemyId": 235,
@@ -4871,12 +4541,6 @@
         "name": "Circular Stone"
       },
       {
-        "enemyId": 235,
-        "enemyName": "=== TBD Fish",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
         "enemyId": 236,
         "enemyName": "=== TBD Fish",
         "id": 337,
@@ -4887,12 +4551,6 @@
         "enemyName": "=== TBD Fish",
         "id": 338,
         "name": "Circular Stone"
-      },
-      {
-        "enemyId": 236,
-        "enemyName": "=== TBD Fish",
-        "id": 437,
-        "name": "<<blank a437>>"
       },
       {
         "enemyId": 237,
@@ -4907,12 +4565,6 @@
         "name": "Circular Stone"
       },
       {
-        "enemyId": 237,
-        "enemyName": "=== TBD Fish",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
         "enemyId": 238,
         "enemyName": "=== TBD Fish",
         "id": 337,
@@ -4923,12 +4575,6 @@
         "enemyName": "=== TBD Fish",
         "id": 338,
         "name": "Circular Stone"
-      },
-      {
-        "enemyId": 238,
-        "enemyName": "=== TBD Fish",
-        "id": 437,
-        "name": "<<blank a437>>"
       },
       {
         "enemyId": 239,
@@ -4943,12 +4589,6 @@
         "name": "Circular Stone"
       },
       {
-        "enemyId": 239,
-        "enemyName": "=== TBD Fish",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
         "enemyId": 240,
         "enemyName": "=== TBD Fish",
         "id": 337,
@@ -4959,168 +4599,12 @@
         "enemyName": "=== TBD Fish",
         "id": 338,
         "name": "Circular Stone"
-      },
-      {
-        "enemyId": 240,
-        "enemyName": "=== TBD Fish",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
-        "enemyId": 251,
-        "enemyName": "Hard Syrup",
-        "id": 416,
-        "name": "<<blank a416>>"
-      },
-      {
-        "enemyId": 252,
-        "enemyName": "Wet Mousse",
-        "id": 416,
-        "name": "<<blank a416>>"
-      },
-      {
-        "enemyId": 253,
-        "enemyName": "Sandy Pudding",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
-        "enemyId": 253,
-        "enemyName": "Sandy Pudding",
-        "id": 416,
-        "name": "<<blank a416>>"
-      },
-      {
-        "enemyId": 254,
-        "enemyName": "Radiant Flan",
-        "id": 416,
-        "name": "<<blank a416>>"
-      },
-      {
-        "enemyId": 255,
-        "enemyName": "Blinking Custard",
-        "id": 416,
-        "name": "<<blank a416>>"
-      },
-      {
-        "enemyId": 255,
-        "enemyName": "Blinking Custard",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
-        "enemyId": 256,
-        "enemyName": "Molten Souffle",
-        "id": 357,
-        "name": "<<blank a357>>"
-      },
-      {
-        "enemyId": 256,
-        "enemyName": "Molten Souffle",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
-        "enemyId": 256,
-        "enemyName": "Molten Souffle",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
-        "enemyId": 256,
-        "enemyName": "Molten Souffle",
-        "id": 403,
-        "name": "<<blank a403>>"
-      },
-      {
-        "enemyId": 256,
-        "enemyName": "Molten Souffle",
-        "id": 416,
-        "name": "<<blank a416>>"
-      },
-      {
-        "enemyId": 261,
-        "enemyName": "Roper",
-        "id": 372,
-        "name": "<<blank a372>>"
-      },
-      {
-        "enemyId": 262,
-        "enemyName": "Whipper",
-        "id": 372,
-        "name": "<<blank a372>>"
-      },
-      {
-        "enemyId": 263,
-        "enemyName": "=== TBD Tentacled",
-        "id": 372,
-        "name": "<<blank a372>>"
-      },
-      {
-        "enemyId": 264,
-        "enemyName": "=== TBD Tentacled",
-        "id": 372,
-        "name": "<<blank a372>>"
-      },
-      {
-        "enemyId": 265,
-        "enemyName": "=== TBD Tentacled",
-        "id": 372,
-        "name": "<<blank a372>>"
-      },
-      {
-        "enemyId": 266,
-        "enemyName": "=== TBD Tentacled",
-        "id": 372,
-        "name": "<<blank a372>>"
-      },
-      {
-        "enemyId": 267,
-        "enemyName": "=== TBD Tentacled",
-        "id": 372,
-        "name": "<<blank a372>>"
-      },
-      {
-        "enemyId": 268,
-        "enemyName": "=== TBD Tentacled",
-        "id": 372,
-        "name": "<<blank a372>>"
-      },
-      {
-        "enemyId": 269,
-        "enemyName": "=== TBD Tentacled",
-        "id": 372,
-        "name": "<<blank a372>>"
-      },
-      {
-        "enemyId": 270,
-        "enemyName": "=== TBD Tentacled",
-        "id": 372,
-        "name": "<<blank a372>>"
       },
       {
         "enemyId": 271,
         "enemyName": "Jelly",
         "id": 406,
         "name": "Inert Veil"
-      },
-      {
-        "enemyId": 272,
-        "enemyName": "Jelliton",
-        "id": 342,
-        "name": "<<blank a342>>"
-      },
-      {
-        "enemyId": 272,
-        "enemyName": "Jelliton",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
-        "enemyId": 272,
-        "enemyName": "Jelliton",
-        "id": 403,
-        "name": "<<blank a403>>"
       },
       {
         "enemyId": 272,
@@ -5189,34 +4673,10 @@
         "name": "Dense Pelt"
       },
       {
-        "enemyId": 281,
-        "enemyName": "Goo Bat",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 281,
-        "enemyName": "Goo Bat",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
         "enemyId": 282,
         "enemyName": "!Magi Goo Bat",
         "id": 301,
         "name": "Dense Pelt"
-      },
-      {
-        "enemyId": 282,
-        "enemyName": "!Magi Goo Bat",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 282,
-        "enemyName": "!Magi Goo Bat",
-        "id": 402,
-        "name": "<<blank a402>>"
       },
       {
         "enemyId": 283,
@@ -5225,34 +4685,10 @@
         "name": "Dense Pelt"
       },
       {
-        "enemyId": 283,
-        "enemyName": "=== TBD Aerial",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 283,
-        "enemyName": "=== TBD Aerial",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
         "enemyId": 284,
         "enemyName": "=== TBD Aerial",
         "id": 301,
         "name": "Dense Pelt"
-      },
-      {
-        "enemyId": 284,
-        "enemyName": "=== TBD Aerial",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 284,
-        "enemyName": "=== TBD Aerial",
-        "id": 402,
-        "name": "<<blank a402>>"
       },
       {
         "enemyId": 285,
@@ -5261,34 +4697,10 @@
         "name": "Dense Pelt"
       },
       {
-        "enemyId": 285,
-        "enemyName": "=== TBD Aerial",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 285,
-        "enemyName": "=== TBD Aerial",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
         "enemyId": 286,
         "enemyName": "=== TBD Aerial",
         "id": 301,
         "name": "Dense Pelt"
-      },
-      {
-        "enemyId": 286,
-        "enemyName": "=== TBD Aerial",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 286,
-        "enemyName": "=== TBD Aerial",
-        "id": 402,
-        "name": "<<blank a402>>"
       },
       {
         "enemyId": 287,
@@ -5297,34 +4709,10 @@
         "name": "Dense Pelt"
       },
       {
-        "enemyId": 287,
-        "enemyName": "=== TBD Aerial",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 287,
-        "enemyName": "=== TBD Aerial",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
         "enemyId": 288,
         "enemyName": "=== TBD Aerial",
         "id": 301,
         "name": "Dense Pelt"
-      },
-      {
-        "enemyId": 288,
-        "enemyName": "=== TBD Aerial",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 288,
-        "enemyName": "=== TBD Aerial",
-        "id": 402,
-        "name": "<<blank a402>>"
       },
       {
         "enemyId": 289,
@@ -5333,34 +4721,10 @@
         "name": "Dense Pelt"
       },
       {
-        "enemyId": 289,
-        "enemyName": "=== TBD Aerial",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 289,
-        "enemyName": "=== TBD Aerial",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
         "enemyId": 290,
         "enemyName": "=== TBD Aerial",
         "id": 301,
         "name": "Dense Pelt"
-      },
-      {
-        "enemyId": 290,
-        "enemyName": "=== TBD Aerial",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 290,
-        "enemyName": "=== TBD Aerial",
-        "id": 402,
-        "name": "<<blank a402>>"
       },
       {
         "enemyId": 291,
@@ -5369,34 +4733,10 @@
         "name": "Dense Pelt"
       },
       {
-        "enemyId": 291,
-        "enemyName": "=== TBD Cube",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 291,
-        "enemyName": "=== TBD Cube",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
         "enemyId": 292,
         "enemyName": "=== TBD Cube",
         "id": 301,
         "name": "Dense Pelt"
-      },
-      {
-        "enemyId": 292,
-        "enemyName": "=== TBD Cube",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 292,
-        "enemyName": "=== TBD Cube",
-        "id": 402,
-        "name": "<<blank a402>>"
       },
       {
         "enemyId": 293,
@@ -5405,34 +4745,10 @@
         "name": "Dense Pelt"
       },
       {
-        "enemyId": 293,
-        "enemyName": "=== TBD Cube",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 293,
-        "enemyName": "=== TBD Cube",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
         "enemyId": 294,
         "enemyName": "=== TBD Cube",
         "id": 301,
         "name": "Dense Pelt"
-      },
-      {
-        "enemyId": 294,
-        "enemyName": "=== TBD Cube",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 294,
-        "enemyName": "=== TBD Cube",
-        "id": 402,
-        "name": "<<blank a402>>"
       },
       {
         "enemyId": 295,
@@ -5441,34 +4757,10 @@
         "name": "Dense Pelt"
       },
       {
-        "enemyId": 295,
-        "enemyName": "=== TBD Cube",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 295,
-        "enemyName": "=== TBD Cube",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
         "enemyId": 296,
         "enemyName": "=== TBD Cube",
         "id": 301,
         "name": "Dense Pelt"
-      },
-      {
-        "enemyId": 296,
-        "enemyName": "=== TBD Cube",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 296,
-        "enemyName": "=== TBD Cube",
-        "id": 402,
-        "name": "<<blank a402>>"
       },
       {
         "enemyId": 297,
@@ -5477,34 +4769,10 @@
         "name": "Dense Pelt"
       },
       {
-        "enemyId": 297,
-        "enemyName": "=== TBD Cube",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 297,
-        "enemyName": "=== TBD Cube",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
         "enemyId": 298,
         "enemyName": "=== TBD Cube",
         "id": 301,
         "name": "Dense Pelt"
-      },
-      {
-        "enemyId": 298,
-        "enemyName": "=== TBD Cube",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 298,
-        "enemyName": "=== TBD Cube",
-        "id": 402,
-        "name": "<<blank a402>>"
       },
       {
         "enemyId": 299,
@@ -5513,46 +4781,16 @@
         "name": "Dense Pelt"
       },
       {
-        "enemyId": 299,
-        "enemyName": "=== TBD Cube",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 299,
-        "enemyName": "=== TBD Cube",
-        "id": 402,
-        "name": "<<blank a402>>"
-      },
-      {
         "enemyId": 300,
         "enemyName": "=== TBD Cube",
         "id": 301,
         "name": "Dense Pelt"
-      },
-      {
-        "enemyId": 300,
-        "enemyName": "=== TBD Cube",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 300,
-        "enemyName": "=== TBD Cube",
-        "id": 402,
-        "name": "<<blank a402>>"
       },
       {
         "enemyId": 301,
         "enemyName": "Wolftrap",
         "id": 311,
         "name": "Dead Branch"
-      },
-      {
-        "enemyId": 301,
-        "enemyName": "Wolftrap",
-        "id": 321,
-        "name": "<<blank a321>>"
       },
       {
         "enemyId": 302,
@@ -5567,28 +4805,10 @@
         "name": "Dry Branch"
       },
       {
-        "enemyId": 302,
-        "enemyName": "Bloodtrap",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 302,
-        "enemyName": "Bloodtrap",
-        "id": 447,
-        "name": "<<blank a447>>"
-      },
-      {
         "enemyId": 303,
         "enemyName": "=== TBD Trap",
         "id": 311,
         "name": "Dead Branch"
-      },
-      {
-        "enemyId": 303,
-        "enemyName": "=== TBD Trap",
-        "id": 321,
-        "name": "<<blank a321>>"
       },
       {
         "enemyId": 304,
@@ -5597,22 +4817,10 @@
         "name": "Dead Branch"
       },
       {
-        "enemyId": 304,
-        "enemyName": "=== TBD Trap",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
         "enemyId": 305,
         "enemyName": "=== TBD Trap",
         "id": 311,
         "name": "Dead Branch"
-      },
-      {
-        "enemyId": 305,
-        "enemyName": "=== TBD Trap",
-        "id": 321,
-        "name": "<<blank a321>>"
       },
       {
         "enemyId": 306,
@@ -5621,22 +4829,10 @@
         "name": "Dead Branch"
       },
       {
-        "enemyId": 306,
-        "enemyName": "=== TBD Trap",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
         "enemyId": 307,
         "enemyName": "=== TBD Trap",
         "id": 311,
         "name": "Dead Branch"
-      },
-      {
-        "enemyId": 307,
-        "enemyName": "=== TBD Trap",
-        "id": 321,
-        "name": "<<blank a321>>"
       },
       {
         "enemyId": 308,
@@ -5645,25 +4841,7 @@
         "name": "Dead Branch"
       },
       {
-        "enemyId": 308,
-        "enemyName": "=== TBD Trap",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
         "enemyId": 309,
-        "enemyName": "=== TBD Trap",
-        "id": 311,
-        "name": "Dead Branch"
-      },
-      {
-        "enemyId": 309,
-        "enemyName": "=== TBD Trap",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 310,
         "enemyName": "=== TBD Trap",
         "id": 311,
         "name": "Dead Branch"
@@ -5671,8 +4849,8 @@
       {
         "enemyId": 310,
         "enemyName": "=== TBD Trap",
-        "id": 321,
-        "name": "<<blank a321>>"
+        "id": 311,
+        "name": "Dead Branch"
       },
       {
         "enemyId": 311,
@@ -5813,366 +4991,6 @@
         "name": "Dead Branch"
       },
       {
-        "enemyId": 321,
-        "enemyName": "Dryad",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 321,
-        "enemyName": "Dryad",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 322,
-        "enemyName": "!Queen of Stone",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 322,
-        "enemyName": "!Queen of Stone",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 323,
-        "enemyName": "Mimi",
-        "id": 423,
-        "name": "<<blank a423>>"
-      },
-      {
-        "enemyId": 323,
-        "enemyName": "Mimi",
-        "id": 433,
-        "name": "<<blank a433>>"
-      },
-      {
-        "enemyId": 324,
-        "enemyName": "=== TBD Fae",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 324,
-        "enemyName": "=== TBD Fae",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 325,
-        "enemyName": "=== TBD Fae",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 325,
-        "enemyName": "=== TBD Fae",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 326,
-        "enemyName": "=== TBD Fae",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 326,
-        "enemyName": "=== TBD Fae",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 327,
-        "enemyName": "=== TBD Fae",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 327,
-        "enemyName": "=== TBD Fae",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 328,
-        "enemyName": "=== TBD Fae",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 328,
-        "enemyName": "=== TBD Fae",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 329,
-        "enemyName": "=== TBD Fae",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 329,
-        "enemyName": "=== TBD Fae",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 330,
-        "enemyName": "=== TBD Fae",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 330,
-        "enemyName": "=== TBD Fae",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 331,
-        "enemyName": "=== TBD Treant",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 331,
-        "enemyName": "=== TBD Treant",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 332,
-        "enemyName": "=== TBD Treant",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 332,
-        "enemyName": "=== TBD Treant",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 333,
-        "enemyName": "=== TBD Treant",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 333,
-        "enemyName": "=== TBD Treant",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 334,
-        "enemyName": "=== TBD Treant",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 334,
-        "enemyName": "=== TBD Treant",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 335,
-        "enemyName": "=== TBD Treant",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 335,
-        "enemyName": "=== TBD Treant",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 336,
-        "enemyName": "=== TBD Treant",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 336,
-        "enemyName": "=== TBD Treant",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 337,
-        "enemyName": "=== TBD Treant",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 337,
-        "enemyName": "=== TBD Treant",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 338,
-        "enemyName": "=== TBD Treant",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 338,
-        "enemyName": "=== TBD Treant",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 339,
-        "enemyName": "=== TBD Treant",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 339,
-        "enemyName": "=== TBD Treant",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 340,
-        "enemyName": "=== TBD Treant",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 340,
-        "enemyName": "=== TBD Treant",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 341,
-        "enemyName": "=== TBD Flower",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 341,
-        "enemyName": "=== TBD Flower",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 342,
-        "enemyName": "=== TBD Flower",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 342,
-        "enemyName": "=== TBD Flower",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 343,
-        "enemyName": "=== TBD Flower",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 343,
-        "enemyName": "=== TBD Flower",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 344,
-        "enemyName": "=== TBD Flower",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 344,
-        "enemyName": "=== TBD Flower",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 345,
-        "enemyName": "=== TBD Flower",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 345,
-        "enemyName": "=== TBD Flower",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 346,
-        "enemyName": "=== TBD Flower",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 346,
-        "enemyName": "=== TBD Flower",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 347,
-        "enemyName": "=== TBD Flower",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 347,
-        "enemyName": "=== TBD Flower",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 348,
-        "enemyName": "=== TBD Flower",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 348,
-        "enemyName": "=== TBD Flower",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 349,
-        "enemyName": "=== TBD Flower",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 349,
-        "enemyName": "=== TBD Flower",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
-        "enemyId": 350,
-        "enemyName": "=== TBD Flower",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 350,
-        "enemyName": "=== TBD Flower",
-        "id": 321,
-        "name": "<<blank a321>>"
-      },
-      {
         "enemyId": 351,
         "enemyName": "Bearcat",
         "id": 301,
@@ -6245,18 +5063,6 @@
         "name": "Hooked Talon"
       },
       {
-        "enemyId": 353,
-        "enemyName": "Grimfang",
-        "id": 372,
-        "name": "<<blank a372>>"
-      },
-      {
-        "enemyId": 353,
-        "enemyName": "Grimfang",
-        "id": 388,
-        "name": "<<blank a388>>"
-      },
-      {
         "enemyId": 354,
         "enemyName": "!Ghostfang",
         "id": 302,
@@ -6291,12 +5097,6 @@
         "enemyName": "!Ghostfang",
         "id": 353,
         "name": "Hooked Talon"
-      },
-      {
-        "enemyId": 354,
-        "enemyName": "!Ghostfang",
-        "id": 372,
-        "name": "<<blank a372>>"
       },
       {
         "enemyId": 355,
@@ -6383,24 +5183,6 @@
         "name": "Flimsy Fangs"
       },
       {
-        "enemyId": 361,
-        "enemyName": "Cave Bat",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 362,
-        "enemyName": "Redeye",
-        "id": 357,
-        "name": "<<blank a357>>"
-      },
-      {
-        "enemyId": 362,
-        "enemyName": "Redeye",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
         "enemyId": 365,
         "enemyName": "=== TBD Winger",
         "id": 301,
@@ -6411,12 +5193,6 @@
         "enemyName": "=== TBD Winger",
         "id": 361,
         "name": "Flimsy Fangs"
-      },
-      {
-        "enemyId": 365,
-        "enemyName": "=== TBD Winger",
-        "id": 421,
-        "name": "<<blank a421>>"
       },
       {
         "enemyId": 366,
@@ -6431,12 +5207,6 @@
         "name": "Flimsy Fangs"
       },
       {
-        "enemyId": 366,
-        "enemyName": "=== TBD Winger",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
         "enemyId": 367,
         "enemyName": "=== TBD Winger",
         "id": 301,
@@ -6447,12 +5217,6 @@
         "enemyName": "=== TBD Winger",
         "id": 361,
         "name": "Flimsy Fangs"
-      },
-      {
-        "enemyId": 367,
-        "enemyName": "=== TBD Winger",
-        "id": 421,
-        "name": "<<blank a421>>"
       },
       {
         "enemyId": 368,
@@ -6467,12 +5231,6 @@
         "name": "Flimsy Fangs"
       },
       {
-        "enemyId": 368,
-        "enemyName": "=== TBD Winger",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
         "enemyId": 369,
         "enemyName": "=== TBD Winger",
         "id": 301,
@@ -6485,12 +5243,6 @@
         "name": "Flimsy Fangs"
       },
       {
-        "enemyId": 369,
-        "enemyName": "=== TBD Winger",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
         "enemyId": 370,
         "enemyName": "=== TBD Winger",
         "id": 301,
@@ -6501,12 +5253,6 @@
         "enemyName": "=== TBD Winger",
         "id": 361,
         "name": "Flimsy Fangs"
-      },
-      {
-        "enemyId": 370,
-        "enemyName": "=== TBD Winger",
-        "id": 421,
-        "name": "<<blank a421>>"
       },
       {
         "enemyId": 381,
@@ -7233,12 +5979,6 @@
         "enemyName": "Needler",
         "id": 326,
         "name": "Cracked Stinger"
-      },
-      {
-        "enemyId": 401,
-        "enemyName": "Needler",
-        "id": 421,
-        "name": "<<blank a421>>"
       },
       {
         "enemyId": 402,
@@ -7251,18 +5991,6 @@
         "enemyName": "Penetrator",
         "id": 327,
         "name": "Intact Stinger"
-      },
-      {
-        "enemyId": 402,
-        "enemyName": "Penetrator",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 402,
-        "enemyName": "Penetrator",
-        "id": 437,
-        "name": "<<blank a437>>"
       },
       {
         "enemyId": 403,
@@ -7283,34 +6011,10 @@
         "name": "Offensive Stinger"
       },
       {
-        "enemyId": 403,
-        "enemyName": "Driller",
-        "id": 423,
-        "name": "<<blank a423>>"
-      },
-      {
-        "enemyId": 403,
-        "enemyName": "Driller",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
-        "enemyId": 403,
-        "enemyName": "Driller",
-        "id": 437,
-        "name": "<<blank a437>>"
-      },
-      {
         "enemyId": 404,
         "enemyName": "=== TBD Hivemind",
         "id": 326,
         "name": "Cracked Stinger"
-      },
-      {
-        "enemyId": 404,
-        "enemyName": "=== TBD Hivemind",
-        "id": 421,
-        "name": "<<blank a421>>"
       },
       {
         "enemyId": 405,
@@ -7319,22 +6023,10 @@
         "name": "Cracked Stinger"
       },
       {
-        "enemyId": 405,
-        "enemyName": "=== TBD Hivemind",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
         "enemyId": 406,
         "enemyName": "=== TBD Hivemind",
         "id": 326,
         "name": "Cracked Stinger"
-      },
-      {
-        "enemyId": 406,
-        "enemyName": "=== TBD Hivemind",
-        "id": 421,
-        "name": "<<blank a421>>"
       },
       {
         "enemyId": 407,
@@ -7343,22 +6035,10 @@
         "name": "Cracked Stinger"
       },
       {
-        "enemyId": 407,
-        "enemyName": "=== TBD Hivemind",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
         "enemyId": 408,
         "enemyName": "=== TBD Hivemind",
         "id": 326,
         "name": "Cracked Stinger"
-      },
-      {
-        "enemyId": 408,
-        "enemyName": "=== TBD Hivemind",
-        "id": 421,
-        "name": "<<blank a421>>"
       },
       {
         "enemyId": 409,
@@ -7367,28 +6047,10 @@
         "name": "Cracked Stinger"
       },
       {
-        "enemyId": 409,
-        "enemyName": "=== TBD Hivemind",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
         "enemyId": 410,
         "enemyName": "=== TBD Hivemind",
         "id": 326,
         "name": "Cracked Stinger"
-      },
-      {
-        "enemyId": 410,
-        "enemyName": "=== TBD Hivemind",
-        "id": 421,
-        "name": "<<blank a421>>"
-      },
-      {
-        "enemyId": 411,
-        "enemyName": "Crawler",
-        "id": 346,
-        "name": "<<blank a346>>"
       },
       {
         "enemyId": 411,
@@ -7433,36 +6095,12 @@
         "name": "Double Fangs"
       },
       {
-        "enemyId": 412,
-        "enemyName": "Magma Worm",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 412,
-        "enemyName": "Magma Worm",
-        "id": 347,
-        "name": "<<blank a347>>"
-      },
-      {
         "enemyId": 413,
         "enemyName": "Wriggle Worm",
         "id": 378,
         "name": "Enduring Scales"
       },
       {
-        "enemyId": 413,
-        "enemyName": "Wriggle Worm",
-        "id": 349,
-        "name": "<<blank a349>>"
-      },
-      {
-        "enemyId": 414,
-        "enemyName": "=== TBD Worm",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
         "enemyId": 414,
         "enemyName": "=== TBD Worm",
         "id": 306,
@@ -7479,12 +6117,6 @@
         "enemyName": "=== TBD Worm",
         "id": 307,
         "name": "Red Spines"
-      },
-      {
-        "enemyId": 415,
-        "enemyName": "=== TBD Worm",
-        "id": 346,
-        "name": "<<blank a346>>"
       },
       {
         "enemyId": 415,
@@ -7507,12 +6139,6 @@
       {
         "enemyId": 416,
         "enemyName": "=== TBD Worm",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 416,
-        "enemyName": "=== TBD Worm",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7531,12 +6157,6 @@
       {
         "enemyId": 417,
         "enemyName": "=== TBD Worm",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 417,
-        "enemyName": "=== TBD Worm",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7555,12 +6175,6 @@
       {
         "enemyId": 418,
         "enemyName": "=== TBD Worm",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 418,
-        "enemyName": "=== TBD Worm",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7579,12 +6193,6 @@
       {
         "enemyId": 419,
         "enemyName": "=== TBD Worm",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 419,
-        "enemyName": "=== TBD Worm",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7603,12 +6211,6 @@
       {
         "enemyId": 420,
         "enemyName": "=== TBD Worm",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 420,
-        "enemyName": "=== TBD Worm",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7627,12 +6229,6 @@
       {
         "enemyId": 421,
         "enemyName": "Brood",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 421,
-        "enemyName": "Brood",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7651,12 +6247,6 @@
       {
         "enemyId": 422,
         "enemyName": "=== TBD Lonewolf",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 422,
-        "enemyName": "=== TBD Lonewolf",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7675,12 +6265,6 @@
       {
         "enemyId": 423,
         "enemyName": "=== TBD Lonewolf",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 423,
-        "enemyName": "=== TBD Lonewolf",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7699,12 +6283,6 @@
       {
         "enemyId": 424,
         "enemyName": "=== TBD Lonewolf",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 424,
-        "enemyName": "=== TBD Lonewolf",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7723,12 +6301,6 @@
       {
         "enemyId": 425,
         "enemyName": "=== TBD Lonewolf",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 425,
-        "enemyName": "=== TBD Lonewolf",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7747,12 +6319,6 @@
       {
         "enemyId": 426,
         "enemyName": "=== TBD Lonewolf",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 426,
-        "enemyName": "=== TBD Lonewolf",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7771,12 +6337,6 @@
       {
         "enemyId": 427,
         "enemyName": "=== TBD Lonewolf",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 427,
-        "enemyName": "=== TBD Lonewolf",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7795,12 +6355,6 @@
       {
         "enemyId": 428,
         "enemyName": "=== TBD Lonewolf",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 428,
-        "enemyName": "=== TBD Lonewolf",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7819,12 +6373,6 @@
       {
         "enemyId": 429,
         "enemyName": "=== TBD Lonewolf",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 429,
-        "enemyName": "=== TBD Lonewolf",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7843,12 +6391,6 @@
       {
         "enemyId": 430,
         "enemyName": "=== TBD Lonewolf",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 430,
-        "enemyName": "=== TBD Lonewolf",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7867,12 +6409,6 @@
       {
         "enemyId": 431,
         "enemyName": "Scorplite",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 431,
-        "enemyName": "Scorplite",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7891,12 +6427,6 @@
       {
         "enemyId": 432,
         "enemyName": "=== TBD Jumper",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 432,
-        "enemyName": "=== TBD Jumper",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7915,12 +6445,6 @@
       {
         "enemyId": 433,
         "enemyName": "=== TBD Jumper",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 433,
-        "enemyName": "=== TBD Jumper",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7939,12 +6463,6 @@
       {
         "enemyId": 434,
         "enemyName": "=== TBD Jumper",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 434,
-        "enemyName": "=== TBD Jumper",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7963,12 +6481,6 @@
       {
         "enemyId": 435,
         "enemyName": "=== TBD Jumper",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 435,
-        "enemyName": "=== TBD Jumper",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -7987,12 +6499,6 @@
       {
         "enemyId": 436,
         "enemyName": "=== TBD Jumper",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 436,
-        "enemyName": "=== TBD Jumper",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8011,12 +6517,6 @@
       {
         "enemyId": 437,
         "enemyName": "=== TBD Jumper",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 437,
-        "enemyName": "=== TBD Jumper",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8035,12 +6535,6 @@
       {
         "enemyId": 438,
         "enemyName": "=== TBD Jumper",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 438,
-        "enemyName": "=== TBD Jumper",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8059,12 +6553,6 @@
       {
         "enemyId": 439,
         "enemyName": "=== TBD Jumper",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 439,
-        "enemyName": "=== TBD Jumper",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8083,12 +6571,6 @@
       {
         "enemyId": 440,
         "enemyName": "=== TBD Jumper",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 440,
-        "enemyName": "=== TBD Jumper",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8107,12 +6589,6 @@
       {
         "enemyId": 441,
         "enemyName": "Parasite",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 441,
-        "enemyName": "Parasite",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8131,12 +6607,6 @@
       {
         "enemyId": 442,
         "enemyName": "=== TBD Parasite",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 442,
-        "enemyName": "=== TBD Parasite",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8155,12 +6625,6 @@
       {
         "enemyId": 443,
         "enemyName": "=== TBD Parasite",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 443,
-        "enemyName": "=== TBD Parasite",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8179,12 +6643,6 @@
       {
         "enemyId": 444,
         "enemyName": "=== TBD Parasite",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 444,
-        "enemyName": "=== TBD Parasite",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8203,12 +6661,6 @@
       {
         "enemyId": 445,
         "enemyName": "=== TBD Parasite",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 445,
-        "enemyName": "=== TBD Parasite",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8227,12 +6679,6 @@
       {
         "enemyId": 446,
         "enemyName": "=== TBD Parasite",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 446,
-        "enemyName": "=== TBD Parasite",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8251,12 +6697,6 @@
       {
         "enemyId": 447,
         "enemyName": "=== TBD Parasite",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 447,
-        "enemyName": "=== TBD Parasite",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8271,12 +6711,6 @@
         "enemyName": "=== TBD Parasite",
         "id": 307,
         "name": "Red Spines"
-      },
-      {
-        "enemyId": 448,
-        "enemyName": "=== TBD Parasite",
-        "id": 346,
-        "name": "<<blank a346>>"
       },
       {
         "enemyId": 448,
@@ -8299,12 +6733,6 @@
       {
         "enemyId": 449,
         "enemyName": "=== TBD Parasite",
-        "id": 346,
-        "name": "<<blank a346>>"
-      },
-      {
-        "enemyId": 449,
-        "enemyName": "=== TBD Parasite",
         "id": 306,
         "name": "Loose Spines"
       },
@@ -8319,12 +6747,6 @@
         "enemyName": "=== TBD Parasite",
         "id": 307,
         "name": "Red Spines"
-      },
-      {
-        "enemyId": 450,
-        "enemyName": "=== TBD Parasite",
-        "id": 346,
-        "name": "<<blank a346>>"
       },
       {
         "enemyId": 450,
@@ -8351,28 +6773,10 @@
         "name": "Broken Horn"
       },
       {
-        "enemyId": 451,
-        "enemyName": "Minitaur",
-        "id": 411,
-        "name": "<<blank a411>>"
-      },
-      {
-        "enemyId": 452,
-        "enemyName": "Megataur",
-        "id": 411,
-        "name": "<<blank a411>>"
-      },
-      {
         "enemyId": 453,
         "enemyName": "=== TBD Bull",
         "id": 316,
         "name": "Broken Horn"
-      },
-      {
-        "enemyId": 453,
-        "enemyName": "=== TBD Bull",
-        "id": 411,
-        "name": "<<blank a411>>"
       },
       {
         "enemyId": 454,
@@ -8381,22 +6785,10 @@
         "name": "Broken Horn"
       },
       {
-        "enemyId": 454,
-        "enemyName": "=== TBD Bull",
-        "id": 411,
-        "name": "<<blank a411>>"
-      },
-      {
         "enemyId": 455,
         "enemyName": "=== TBD Bull",
         "id": 316,
         "name": "Broken Horn"
-      },
-      {
-        "enemyId": 455,
-        "enemyName": "=== TBD Bull",
-        "id": 411,
-        "name": "<<blank a411>>"
       },
       {
         "enemyId": 456,
@@ -8405,22 +6797,10 @@
         "name": "Broken Horn"
       },
       {
-        "enemyId": 456,
-        "enemyName": "=== TBD Bull",
-        "id": 411,
-        "name": "<<blank a411>>"
-      },
-      {
         "enemyId": 457,
         "enemyName": "=== TBD Bull",
         "id": 316,
         "name": "Broken Horn"
-      },
-      {
-        "enemyId": 457,
-        "enemyName": "=== TBD Bull",
-        "id": 411,
-        "name": "<<blank a411>>"
       },
       {
         "enemyId": 458,
@@ -8429,25 +6809,7 @@
         "name": "Broken Horn"
       },
       {
-        "enemyId": 458,
-        "enemyName": "=== TBD Bull",
-        "id": 411,
-        "name": "<<blank a411>>"
-      },
-      {
         "enemyId": 459,
-        "enemyName": "=== TBD Bull",
-        "id": 316,
-        "name": "Broken Horn"
-      },
-      {
-        "enemyId": 459,
-        "enemyName": "=== TBD Bull",
-        "id": 411,
-        "name": "<<blank a411>>"
-      },
-      {
-        "enemyId": 460,
         "enemyName": "=== TBD Bull",
         "id": 316,
         "name": "Broken Horn"
@@ -8455,8 +6817,8 @@
       {
         "enemyId": 460,
         "enemyName": "=== TBD Bull",
-        "id": 411,
-        "name": "<<blank a411>>"
+        "id": 316,
+        "name": "Broken Horn"
       },
       {
         "enemyId": 461,
@@ -8955,12 +7317,6 @@
         "enemyName": "Vampire Shade",
         "id": 407,
         "name": "Dead Veil"
-      },
-      {
-        "enemyId": 592,
-        "enemyName": "Vampire Shade",
-        "id": 374,
-        "name": "<<blank a374>>"
       }
     ]
   }
