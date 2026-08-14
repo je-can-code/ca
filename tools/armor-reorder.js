@@ -141,6 +141,65 @@ const paramOf = row =>
 };
 
 /**
+ * The notetag each note-granted parameter is written with, and whether it expects a formula.
+ *
+ * Everything from long-param 28 up has no trait form - trait codes 21/22/23 cover 0-27 and stop - and
+ * neither does `mtp`, which is long-param 30. Each is instead summed off `getAllNotes()`, so a material
+ * grants one by carrying the tag beneath the transfer divider.
+ *
+ * The three `formula` entries take a bracketed expression rather than a bare number, so a plain
+ * `<cdr:1>` does not match their pattern at all. A constant inside the brackets is a valid formula and
+ * is what they are seeded with.
+ * @type {Object<string, { tag: string, formula: boolean }>}
+ */
+const NOTE_TAGS = {
+  mtp: { tag: 'maxTp', formula: false },
+  cdm: { tag: 'critMultiplier', formula: false },
+  ctr: { tag: 'critReduction', formula: false },
+  msb: { tag: 'speedBoost', formula: false },
+  prof: { tag: 'proficiencyBonus', formula: false },
+  sdr: { tag: 'sdpMultiplier', formula: false },
+  lst: { tag: 'lst', formula: false },
+  mst: { tag: 'mst', formula: false },
+  tst: { tag: 'tst', formula: false },
+  sar: { tag: 'sar', formula: false },
+  ser: { tag: 'ser', formula: false },
+  apr: { tag: 'aptMultiplier', formula: false },
+  gdr: { tag: 'goldMultiplier', formula: false },
+  dor: { tag: 'dropMultiplier', formula: false },
+  hcr: { tag: 'hcr', formula: true },
+  cdr: { tag: 'cdr', formula: true },
+  per: { tag: 'per', formula: true },
+  har: { tag: 'har', formula: false },
+};
+
+/**
+ * The divider a material writes its transferable payload beneath.
+ *
+ * Mandatory rather than decorative: `JaftingManager.parseNoteEffects` returns nothing at all for an
+ * equip whose note has no divider, so a tag written above it - or with no divider present - transfers
+ * nowhere and the material silently does nothing.
+ * @type {string}
+ */
+const TRANSFER_DIVIDER = '<transferrableEffectsBelow>';
+
+/**
+ * The note a reserved row carries so its family arrives already wired to its parameter.
+ * @param {string} param The parameter the block is reserved for.
+ * @param {number} tier The row's position in its family, 1 through 5.
+ * @returns {string}
+ */
+const notePayloadFor = (param, tier) =>
+{
+  const { tag, formula } = NOTE_TAGS[param];
+  const value = formula
+    ? `[${tier}]`
+    : `${tier}`;
+
+  return `${TRANSFER_DIVIDER}\n<${tag}:${value}>`;
+};
+
+/**
  * The name given to the rows of a block whose parameter has no family yet.
  *
  * The `===` prefix is this project's established marker for a reserved row that holds no real data -
@@ -447,7 +506,125 @@ const buildLabels = armors =>
   };
 };
 
+/**
+ * Seeds the note payload on every reserved block whose parameter is note-granted.
+ *
+ * Values run 1 through 5 by tier - a placeholder curve, not a balanced one - so that naming a family
+ * is the only work left before it functions. Blocks already holding real materials are never touched.
+ * @param {any[]} armors The parsed armor list.
+ * @returns {{ next: any[], seeded: object[] }}
+ */
+const buildNotePayloads = armors =>
+{
+  const next = JSON.parse(JSON.stringify(armors));
+  const seeded = [];
+
+  LAYOUT.forEach((entry, index) =>
+  {
+    const spec = NOTE_TAGS[entry.param];
+
+    // trait-granted parameters carry their payload in `traits`, and `lp34` has no tag to write.
+    if (spec === undefined) return;
+
+    const start = BLOCK_START + index * FAMILY_SIZE;
+    const rows = [];
+
+    for (let offset = 0; offset < FAMILY_SIZE; offset++)
+    {
+      rows.push(armors[start + offset]);
+    }
+
+    // a designed family owns its own note; only reserved rows get seeded.
+    if (rows.some(isMaterial)) return;
+
+    const notes = rows.map((row, offset) => notePayloadFor(entry.param, offset + 1));
+    const already = rows.every((row, offset) => row.note === notes[offset]);
+
+    if (already) return;
+
+    rows.forEach((row, offset) =>
+    {
+      const seededRow = JSON.parse(JSON.stringify(row));
+
+      seededRow.note = notes[offset];
+      next[start + offset] = seededRow;
+    });
+
+    seeded.push({
+      param: entry.param,
+      start,
+      end: start + FAMILY_SIZE - 1,
+      tag: spec.tag,
+      sample: notes[0].split('\n')[1],
+    });
+  });
+
+  return {
+    next,
+    seeded,
+  };
+};
+
 //region subcommands
+
+/**
+ * Writes the placeholder note payload onto every note-granted reserved block.
+ * @param {boolean} write Whether to write the result or only report it.
+ * @returns {Promise<void>}
+ */
+const runPayloads = async write =>
+{
+  const armors = JSON.parse(await Bun.file(ARMORS_PATH).text());
+  const { next, seeded } = buildNotePayloads(armors);
+
+  seeded.forEach(entry => console.log(`  a${entry.start}-${entry.end}   ${entry.param.padEnd(5)} ` +
+    `${entry.sample} .. <${entry.tag}:${entry.sample.endsWith(']>') ? '[5]' : '5'}>`));
+
+  if (seeded.length === 0)
+  {
+    console.log('every note-granted reserved block is already seeded.');
+    return;
+  }
+
+  console.log(`\n${seeded.length} block(s), ${seeded.length * FAMILY_SIZE} rows.`);
+
+  if (write === false)
+  {
+    console.log('(dry run; pass `payloads-apply` to write)');
+    return;
+  }
+
+  // only the note may differ, and only on rows that hold no material.
+  next.forEach((row, id) =>
+  {
+    if (JSON.stringify(row) === JSON.stringify(armors[id])) return;
+
+    if (isMaterial(armors[id]))
+    {
+      throw new Error(`a${id} holds a material; nothing was written.`);
+    }
+
+    const before = {
+      ...armors[id],
+      note: null,
+    };
+    const after = {
+      ...row,
+      note: null,
+    };
+
+    if (JSON.stringify(before) !== JSON.stringify(after))
+    {
+      throw new Error(`a${id} changed outside its note; nothing was written.`);
+    }
+  });
+
+  const body = next.map(row => JSON.stringify(row)).join(',\n');
+
+  await Bun.write(ARMORS_PATH, `[\n${body}\n]`);
+
+  console.log('written.');
+};
 
 /**
  * Writes a `=== TBD <param>` label onto every reserved block.
@@ -589,7 +766,15 @@ else if (subcommand === 'label-apply')
 {
   await runLabel(true);
 }
+else if (subcommand === 'payloads')
+{
+  await runPayloads(false);
+}
+else if (subcommand === 'payloads-apply')
+{
+  await runPayloads(true);
+}
 else
 {
-  console.log('usage: bun tools/armor-reorder.js plan | apply | label | label-apply');
+  console.log('usage: bun tools/armor-reorder.js plan | apply | label | label-apply | payloads | payloads-apply');
 }
