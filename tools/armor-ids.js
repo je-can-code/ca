@@ -27,6 +27,23 @@ const BLOCK_START = 301;
 const BLOCK_END = 455;
 
 /**
+ * Whether a row is an actual material rather than an empty or reserved slot.
+ *
+ * A reserved slot is named `=== TBD <param>`, marking which family still has to be designed for that
+ * block. It is a label, not data: counting one as a material would put five identical names into the
+ * snapshot and have every later run report them as lost.
+ * @param {object} row The armor row.
+ * @returns {boolean}
+ */
+const isMaterial = row =>
+{
+  if (!row) return false;
+  if (!row.name) return false;
+
+  return row.name.startsWith('===') === false;
+};
+
+/**
  * The parameter a material grants, as `code/dataId`, or null when it has no payload.
  * @param {object} row The armor row.
  * @returns {string|null}
@@ -77,7 +94,7 @@ const armorDropsIn = note =>
 const collectReferences = (crafting, enemies, armors) =>
 {
   const inBlock = id => id >= BLOCK_START && id <= BLOCK_END;
-  const nameOf = id => ((armors[id] && armors[id].name)
+  const nameOf = id => (isMaterial(armors[id])
     ? armors[id].name
     : `<<blank a${id}>>`);
 
@@ -134,7 +151,7 @@ const idByName = armors =>
   const counts = new Map();
   armors.forEach(row =>
   {
-    if (!row || !row.name) return;
+    if (isMaterial(row) === false) return;
 
     counts.set(row.name, (counts.get(row.name) ?? 0) + 1);
   });
@@ -142,7 +159,7 @@ const idByName = armors =>
   const map = new Map();
   armors.forEach(row =>
   {
-    if (!row || !row.name) return;
+    if (isMaterial(row) === false) return;
     if (counts.get(row.name) > 1) return;
 
     map.set(row.name, row.id);
@@ -169,7 +186,7 @@ const runSnapshot = async outPath =>
   {
     const row = armors[id];
 
-    if (!row || !row.name) continue;
+    if (isMaterial(row) === false) continue;
 
     materials.push({
       id,

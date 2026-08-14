@@ -113,6 +113,30 @@ const paramOf = row =>
 };
 
 /**
+ * The name given to the rows of a block whose parameter has no family yet.
+ *
+ * The `===` prefix is this project's established marker for a reserved row that holds no real data -
+ * `Enemies.json` uses it the same way - so a labelled gap announces what belongs there without ever
+ * being mistaken for a material.
+ * @param {string} param The parameter the block is reserved for.
+ * @returns {string}
+ */
+const gapLabelFor = param => `=== TBD ${param}`;
+
+/**
+ * Whether a row is an actual material rather than an empty or reserved slot.
+ * @param {object} row The armor row.
+ * @returns {boolean}
+ */
+const isMaterial = row =>
+{
+  if (!row) return false;
+  if (!row.name) return false;
+
+  return row.name.startsWith('===') === false;
+};
+
+/**
  * A row's identity for permutation checking, which is everything about it except where it lives.
  * @param {object} row The armor row.
  * @returns {string}
@@ -129,12 +153,32 @@ const identityOf = row => JSON.stringify({
  */
 const buildLayout = armors =>
 {
+  // `from` names where each family sat *before* the reorder, so this may only run against a block that
+  // has not been reordered yet. Once it has, those ids hold different families and a second run would
+  // shuffle the block against a map that no longer describes it.
+  const stale = LAYOUT.filter(entry =>
+  {
+    if (entry.from === null) return false;
+
+    return paramOf(armors[entry.from]) !== entry.param;
+  });
+
+  if (stale.length > 0)
+  {
+    const example = stale[0];
+
+    throw new Error(`a${example.from} no longer holds the ${example.param} family, so this block has ` +
+      'already been reordered. The `from` column describes the original arrangement and is not a ' +
+      'description of the file as it stands - re-running would scramble it. Use `label` instead.');
+  }
+
   const next = JSON.parse(JSON.stringify(armors));
 
   // gap rows are cloned from a blank the file already contains, so their shape cannot drift from the
-  // ones RMMZ wrote.
+  // ones RMMZ wrote. The search runs past the block because once the gaps carry their labels there is
+  // no unnamed row left inside it, and a second run must still find a template.
   let blankTemplate = null;
-  for (let id = BLOCK_START; id <= BLOCK_END; id++)
+  for (let id = BLOCK_START; id < armors.length; id++)
   {
     if (armors[id] && armors[id].name === '')
     {
@@ -159,7 +203,13 @@ const buildLayout = armors =>
     {
       for (let offset = 0; offset < FAMILY_SIZE; offset++)
       {
-        rows.push(JSON.parse(JSON.stringify(blankTemplate)));
+        const gap = JSON.parse(JSON.stringify(blankTemplate));
+
+        // the label is what makes the layout legible in the editor: an empty five-row run says nothing,
+        // while "=== TBD agi" says exactly which family is missing.
+        gap.name = gapLabelFor(entry.param);
+
+        rows.push(gap);
       }
     }
     else
@@ -168,9 +218,9 @@ const buildLayout = armors =>
       {
         const source = armors[entry.from + offset];
 
-        if (!source || !source.name)
+        if (isMaterial(source) === false)
         {
-          throw new Error(`a${entry.from + offset} is blank, but ${entry.param} expects a family there.`);
+          throw new Error(`a${entry.from + offset} holds no material, but ${entry.param} expects a family there.`);
         }
 
         rows.push(JSON.parse(JSON.stringify(source)));
@@ -200,7 +250,8 @@ const buildLayout = armors =>
       grants: entry.from === null
         ? null
         : paramOf(rows[0]),
-      values: rows.filter(row => row.name).map(row => row.traits.find(trait => trait.code !== 63).value),
+      values: rows.filter(isMaterial)
+        .map(row => row.traits.find(trait => trait.code !== 63).value),
     });
 
     cursor += FAMILY_SIZE;
@@ -236,8 +287,8 @@ const assertSound = (armors, next, blocks) =>
   const after = [];
   for (let id = BLOCK_START; id <= BLOCK_END; id++)
   {
-    if (armors[id] && armors[id].name) before.push(identityOf(armors[id]));
-    if (next[id] && next[id].name) after.push(identityOf(next[id]));
+    if (isMaterial(armors[id])) before.push(identityOf(armors[id]));
+    if (isMaterial(next[id])) after.push(identityOf(next[id]));
   }
 
   if (before.length !== after.length)
@@ -299,7 +350,134 @@ const assertSound = (armors, next, blocks) =>
   });
 };
 
+/**
+ * Labels every reserved block with the parameter that belongs there.
+ *
+ * Unlike the reorder this reads position rather than the `from` column, which is exactly what the
+ * reorder bought: once the block is in parameter order, `(id - 301) / 5` names the parameter, so the
+ * labels can be derived from where a row sits instead of from a record of where it came from. That
+ * makes this safe to re-run at any time.
+ * @param {any[]} armors The parsed armor list.
+ * @returns {{ next: any[], labels: object[] }}
+ */
+const buildLabels = armors =>
+{
+  const next = JSON.parse(JSON.stringify(armors));
+  const labels = [];
+
+  LAYOUT.forEach((entry, index) =>
+  {
+    const start = BLOCK_START + index * FAMILY_SIZE;
+    const rows = [];
+
+    for (let offset = 0; offset < FAMILY_SIZE; offset++)
+    {
+      rows.push(armors[start + offset]);
+    }
+
+    const held = rows.filter(isMaterial);
+
+    // a block holding real materials is a family already designed, and is never relabelled.
+    if (held.length > 0)
+    {
+      const grants = paramOf(held[0]);
+
+      if (grants !== entry.param)
+      {
+        throw new Error(`a${start}-${start + FAMILY_SIZE - 1} should be the ${entry.param} block ` +
+          `but holds a family granting ${grants}; the block is not in parameter order.`);
+      }
+
+      return;
+    }
+
+    const label = gapLabelFor(entry.param);
+    const already = rows.every(row => row.name === label);
+
+    if (already) return;
+
+    rows.forEach((row, offset) =>
+    {
+      const id = start + offset;
+      const labelled = JSON.parse(JSON.stringify(row));
+
+      labelled.name = label;
+      next[id] = labelled;
+    });
+
+    labels.push({
+      param: entry.param,
+      start,
+      end: start + FAMILY_SIZE - 1,
+      label,
+    });
+  });
+
+  return {
+    next,
+    labels,
+  };
+};
+
 //region subcommands
+
+/**
+ * Writes a `=== TBD <param>` label onto every reserved block.
+ * @param {boolean} write Whether to write the result or only report it.
+ * @returns {Promise<void>}
+ */
+const runLabel = async write =>
+{
+  const armors = JSON.parse(await Bun.file(ARMORS_PATH).text());
+  const { next, labels } = buildLabels(armors);
+
+  labels.forEach(entry => console.log(`  a${entry.start}-${entry.end}   ${entry.label}`));
+
+  if (labels.length === 0)
+  {
+    console.log('every reserved block is already labelled.');
+    return;
+  }
+
+  console.log(`\n${labels.length} block(s), ${labels.length * FAMILY_SIZE} rows.`);
+
+  if (write === false)
+  {
+    console.log('(dry run; pass `label-apply` to write)');
+    return;
+  }
+
+  // only the name may differ, and only on rows that were empty to begin with.
+  next.forEach((row, id) =>
+  {
+    if (JSON.stringify(row) === JSON.stringify(armors[id])) return;
+
+    if (isMaterial(armors[id]))
+    {
+      throw new Error(`a${id} holds a material; nothing was written.`);
+    }
+
+    const before = {
+      ...armors[id],
+      name: null,
+    };
+    const after = {
+      ...row,
+      name: null,
+    };
+
+    if (JSON.stringify(before) !== JSON.stringify(after))
+    {
+      throw new Error(`a${id} changed outside its name; nothing was written.`);
+    }
+  });
+
+  const body = next.map(row => JSON.stringify(row)).join(',\n');
+
+  await Bun.write(ARMORS_PATH, `[\n${body}\n]`);
+
+  console.log('written.');
+};
 
 /**
  * Reports the layout and runs every check, without writing.
@@ -375,7 +553,15 @@ else if (subcommand === 'apply')
 {
   await runApply();
 }
+else if (subcommand === 'label')
+{
+  await runLabel(false);
+}
+else if (subcommand === 'label-apply')
+{
+  await runLabel(true);
+}
 else
 {
-  console.log('usage: bun tools/armor-reorder.js plan | apply');
+  console.log('usage: bun tools/armor-reorder.js plan | apply | label | label-apply');
 }
