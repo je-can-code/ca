@@ -42,38 +42,51 @@ x-params (22) and s-params (23) take a **flat rate**.
 `mtp` sits with the other two resource pools rather than in numeric order. It is long-param 30 and has
 no trait form, so it is authored like the custom parameters below.
 
-## Note-granted (long-param 28+)
+## Note-granted (long-param 28+, plus mtp)
 
 Trait codes 21/22/23 cover ids 0-27 and stop, so **every parameter here is granted by a notetag**
 placed under the transfer divider rather than by a payload trait:
 
 ```
 <transferrableEffectsBelow>
-<someNotetag:5>
+<critMultiplier:5>
 ```
 
-| # | Key | Block |
-|---:|---|---|
-| 28 | cdm | a446-450 |
-| 29 | ctr | a451-455 |
-| 31 | msb | a456-460 |
-| 32 | prof | a461-465 |
-| 33 | sdr | a466-470 |
-| 34 | lp34 | a471-475 |
-| 35 | lst | a476-480 |
-| 36 | mst | a481-485 |
-| 37 | tst | a486-490 |
-| 38 | sar | a491-495 |
-| 39 | ser | a496-500 |
-| 40 | apr | a501-505 |
-| 41 | gdr | a506-510 |
-| 42 | dor | a511-515 |
-| 43 | hcr | a516-520 |
-| 44 | cdr | a521-525 |
-| 45 | per | a526-530 |
-| 46 | har | a531-535 |
+Refinement carries these because `JaftingManager.mergeTransferableNotes` moves everything below the
+divider onto the output, and each parameter is summed off `getAllNotes()`, which includes equipment.
+
+| # | Key | Block | Notetag | Value | Defined in |
+|---:|---|---|---|---|---|
+| 30 | mtp | a311-315 | `<maxTp:N>` | signed int | J-Base |
+| 28 | cdm | a446-450 | `<critMultiplier:N>` | int, **no minus** | J-Critical |
+| 29 | ctr | a451-455 | `<critReduction:N>` | int, **no minus** | J-Critical |
+| 31 | msb | a456-460 | `<speedBoost:N>` | signed int | J-ABS-Speed |
+| 32 | prof | a461-465 | `<proficiencyBonus:N>` | int, **no minus** | J-Proficiency |
+| 33 | sdr | a466-470 | `<sdpMultiplier:N>` | decimal, signed | J-SDP |
+| 34 | lp34 | a471-475 | — | — | *unassigned* |
+| 35 | lst | a476-480 | `<lst:N>` | signed int, **percent** | J-Resources-ABS |
+| 36 | mst | a481-485 | `<mst:N>` | signed int, **percent** | J-Resources-ABS |
+| 37 | tst | a486-490 | `<tst:N>` | signed int, **percent** | J-Resources-ABS |
+| 38 | sar | a491-495 | `<sar:N>` | signed int | J-ABS-Shield |
+| 39 | ser | a496-500 | `<ser:N>` | signed int | J-ABS-Shield |
+| 40 | apr | a501-505 | `<aptMultiplier:N>` | signed int | J-Aptitudes |
+| 41 | gdr | a506-510 | `<goldMultiplier:N>` | signed int | J-Drops |
+| 42 | dor | a511-515 | `<dropMultiplier:N>` | signed int | J-Drops |
+| 43 | hcr | a516-520 | `<hcr:[FORMULA]>` | **formula** | J-Resources |
+| 44 | cdr | a521-525 | `<cdr:[FORMULA]>` | **formula** | J-ABS |
+| 45 | per | a526-530 | `<per:[FORMULA]>` | **formula** | J-ABS |
+| 46 | har | a531-535 | `<har:N>` | signed int | J-Base |
+
+Three of these take a **formula in brackets** rather than a plain number — `<cdr:[(a.level * 0.5)]>` —
+so their families author differently from the rest.
+
+`lst` / `mst` / `tst` are divided by 100 when read, so `<lst:5>` is 5%.
 
 Long-param 34 has no key in `ParameterKeys`; its block is reserved as `lp34` until something claims it.
+
+Do not confuse these with the **Natural growth** tags of similar name — `<cdmGrowthPlus:[…]>`,
+`<ctrBuffRate:[…]>`, `<harGrowthPlus:[…]>` and friends drive per-level growth on a battler, not a flat
+grant, and are the wrong tag for a material.
 
 ## Status
 
