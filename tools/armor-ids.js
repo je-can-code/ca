@@ -24,7 +24,7 @@ const DATA_DIR = `${ROOT}/chef-adventure/data`;
 const DEFAULT_SNAPSHOT_PATH = `${ROOT}/docs/crafting/backup-armors.json`;
 
 const BLOCK_START = 301;
-const BLOCK_END = 455;
+const BLOCK_END = 530;
 
 /**
  * Whether a row is an actual material rather than an empty or reserved slot.

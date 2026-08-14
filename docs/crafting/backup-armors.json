@@ -1,5 +1,5 @@
 {
-  "_backup": "Material armors a301-a455 and every reference to them, before the block was reordered.",
+  "_backup": "Material armors a301-a530 and every reference to them, before the block was reordered.",
   "_captured": "2026-08-13",
   "_source": "chef-adventure/data/Armors.json, config.crafting.json, Enemies.json",
   "_howToRemap": "Run `bun tools/armor-ids.js plan` after reordering, then `apply`.",

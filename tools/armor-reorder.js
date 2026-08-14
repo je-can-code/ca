@@ -28,7 +28,7 @@ const ROOT = `${import.meta.dir}/..`;
 const ARMORS_PATH = `${ROOT}/chef-adventure/data/Armors.json`;
 
 const BLOCK_START = 301;
-const BLOCK_END = 455;
+const BLOCK_END = 530;
 const FAMILY_SIZE = 5;
 
 /**
@@ -79,6 +79,28 @@ const LAYOUT = [
   { param: 'mdr', from: null },
   { param: 'fdr', from: null },
   { param: 'exr', from: null },
+
+  // Everything past this point is a parameter this project added, continuing in long-param id order
+  // from 28. None of them has a trait form - trait codes 21/22/23 cover ids 0-27 and stop - so each is
+  // granted by its own notetag, the way `mtp` is. Long-param 34 is deliberately absent: the registry
+  // assigns no key to it.
+  { param: 'cdm', from: null },   // 28
+  { param: 'ctr', from: null },   // 29
+  { param: 'msb', from: null },   // 31
+  { param: 'prof', from: null },  // 32
+  { param: 'sdr', from: null },   // 33
+  { param: 'lst', from: null },   // 35
+  { param: 'mst', from: null },   // 36
+  { param: 'tst', from: null },   // 37
+  { param: 'sar', from: null },   // 38
+  { param: 'ser', from: null },   // 39
+  { param: 'apr', from: null },   // 40
+  { param: 'gdr', from: null },   // 41
+  { param: 'dor', from: null },   // 42
+  { param: 'hcr', from: null },   // 43
+  { param: 'cdr', from: null },   // 44
+  { param: 'per', from: null },   // 45
+  { param: 'har', from: null },   // 46
 ];
 
 /**
