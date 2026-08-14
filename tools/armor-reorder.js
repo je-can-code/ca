@@ -28,7 +28,7 @@ const ROOT = `${import.meta.dir}/..`;
 const ARMORS_PATH = `${ROOT}/chef-adventure/data/Armors.json`;
 
 const BLOCK_START = 301;
-const BLOCK_END = 530;
+const BLOCK_END = 535;
 const FAMILY_SIZE = 5;
 
 /**
@@ -82,13 +82,19 @@ const LAYOUT = [
 
   // Everything past this point is a parameter this project added, continuing in long-param id order
   // from 28. None of them has a trait form - trait codes 21/22/23 cover ids 0-27 and stop - so each is
-  // granted by its own notetag, the way `mtp` is. Long-param 34 is deliberately absent: the registry
-  // assigns no key to it.
+  // granted by its own notetag, the way `mtp` is.
+  //
+  // Long-param 30 is skipped rather than missing: that is `mtp`, and it sits up with the other two
+  // resource pools between `mmp` and `atk` instead of down here in numeric order.
+  //
+  // Long-param 34 has no key in the registry at all, so its block is reserved under the id itself and
+  // is renamed the day something claims it.
   { param: 'cdm', from: null },   // 28
   { param: 'ctr', from: null },   // 29
   { param: 'msb', from: null },   // 31
   { param: 'prof', from: null },  // 32
   { param: 'sdr', from: null },   // 33
+  { param: 'lp34', from: null },  // 34, unassigned
   { param: 'lst', from: null },   // 35
   { param: 'mst', from: null },   // 36
   { param: 'tst', from: null },   // 37
