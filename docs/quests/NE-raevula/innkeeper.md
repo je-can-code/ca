@@ -72,16 +72,18 @@ right.)
   Rupert: concerned. Yelena: beaming.
 - Yelena's muscular-men appreciation now includes specific, technical respect for the duo's form.
 
-### Reconciliation with the SHIPPING Recipe Journal system (2026-07-24)
-Recipe Journals I–III (Items 461–463) already exist and are wired into ~353 enemy drop tables, tier-scaled by
-region — that system is untouched. The reconciliation is LORE, not mechanics: the journals' own item text says
-they're pages from "a journal of **some famous chef**." The famous chef is **Yelena's family** — the
-hunter-cooks ranged the whole continent for generations, and their field journals are still out there, carried
-by the wilds. Every journal the player has ever looted was a page of her family's life coming home.
+### Reconciliation with the recipe-page system (updated 2026-08-14)
+Recipe Journals I–III were retired 2026-08-11 in favor of **recipe pages** — a low-rate enemy drop spent at a
+vendor on a recipe the player picks (see [recipe-system.md](../../food/recipe-system.md), "Recipe pages replace
+them"). The lore layer survives the swap intact, and honestly lands better: loose PAGES of field journals,
+scattered across the continent's monsters, are exactly what a ranging family of hunter-cooks would leave
+behind. The famous chef is **Yelena's family** — the hunter-cooks ranged the whole continent for generations,
+and their field journals are still out there, carried by the wilds, a page at a time. Every page the player
+has ever looted was a piece of her family's life coming home.
 
 - **The lampshade (early, comedy):** Rupert, at some point pre-chain: "why does every monster on this continent
   carry cooking literature?" No answer. It's an RPG.
-- **The recognition beat (quest 3):** mid Surf & Turf, Yelena spots a Recipe Journal in the duo's haul and goes
+- **The recognition beat (quest 3):** mid Surf & Turf, Yelena spots a recipe page in the duo's haul and goes
   quiet for exactly one line — "...where did you find this?" — her only serious line in the whole chain. Not
   grief (the no-buried-wound ruling holds): *wonder*. The family's work is still alive out there, and the duo
   keeps bringing it home. The lampshade gets its answer two chapters later.
@@ -95,17 +97,17 @@ gather. The duo are the first partners worthy of it.
 She hands it over: **the Family Cookbook — the master volume** the field journals were always excerpts of,
 bound in the hide of something they killed together. Top-tier cooking unlocks.
 
-**Nana's Ledger (the journal-currency shop):** Yelena's counter gains a second shop tab where **Recipe
-Journals I–III are the currency** — recipes for sale, priced in pages ("that's nana's coastal series — give it
-here"). Staged unlock: a basic tier opens at quest 3 (the recognition beat — she'll trade for family pages the
-moment she knows they're out there), the premium tier opens here at quest 5. The journals KEEP their existing
-use-to-learn function (CE161–163) — which creates the real decision: **consume a journal now** for its bundled
-common recipes, **or bank it** as currency toward the premium list. Price the premium offerings above
-consume-value so the tradeoff stays honest. The "pile of excess journals" problem becomes an incentive engine:
-every drop is now either lunch or savings.
+**Nana's Ledger (the page-currency shop):** Yelena's counter gains a second shop tab where **recipe pages
+are the currency** — recipes for sale, priced in pages ("that's nana's coastal series — give it here").
+Staged unlock: a basic tier opens at quest 3 (the recognition beat — she'll trade for family pages the
+moment she knows they're out there), the premium tier opens here at quest 5. The old journals'
+use-to-learn function retired with them, so the lunch-or-savings decision is gone; what replaces it is the
+study shop's own pick-what-you-learn economy (recipe-system.md), priced so the premium list stays a goal.
+How the Ledger composes with the study-shop vendor is the Maker's call — the clean reading is that Nana's
+Ledger IS the cooking lane of the study shop, with the premium tier as this chain's reward.
 
 #### After effects of "The Family Cookbook"
 - The Family Cookbook unlocks top-tier cooking; Nana's Ledger reaches its premium tier.
-- Every Recipe Journal I–III item the player finds afterward reads differently. Same items. New meaning.
+- Every recipe page the player finds afterward reads differently. Same drops. New meaning.
 - Her final dialogue state: nothing changes. She's still at the counter, still admiring physiques, still
   sharpening something. She was never broken. That was the point.

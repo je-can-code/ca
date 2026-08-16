@@ -379,10 +379,13 @@ var J_ProficiencyPluginMetadata = class J_ProficiencyPluginMetadata extends Plug
 	}
 	/**
 	* Initializes the proficiencies from database and external data.
+	*
+	* The file itself was already read when the namespace was set up; only the classification and the
+	* per-actor mapping happen here. Both need `$dataActors`, which is why this waits for the boot scene
+	* rather than running alongside the read.
 	*/
 	initializeProficiencies() {
-		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Proficiency").configName("proficiency configuration").mapper(J_ProficiencyPluginMetadata.classifyConditionals.bind(J_ProficiencyPluginMetadata)).logSummary((result) => [`- ${result.length} proficiency conditionals`]).build();
-		const classifiedConditionalData = ExternalJsonConfigLoader.load(J_ProficiencyPluginMetadata.CONFIG_PATH, options);
+		const classifiedConditionalData = J_ProficiencyPluginMetadata.classifyConditionals(this.ExternalConfig);
 		/**
 		* The collection of all defined skill proficiencies.
 		* @type {ProficiencyConditional[]}
@@ -414,10 +417,40 @@ globalThis.J ||= {};
 */
 J.PROF = {};
 /**
+* The umbrella for all extensions of this plugin.<br/>
+* Extensions live in `prof/ext/*` and hang their own namespace beneath this one.
+*/
+J.PROF.EXT = {};
+/**
+* A collection of helpers used across this ship at runtime.
+*/
+J.PROF.Helpers = {};
+/**
+* Loads the external proficiency configuration off the project filesystem.
+*
+* The whole parsed root is kept rather than only the slice this plugin uses, because extensions read
+* their own blocks off it. Doing the read here instead of during classification means an extension can
+* see its configuration in its own `postInitialize`, which is the only moment it has before the game
+* boots. This is the same arrangement J-ABS uses for the extensions that read `config.jabs.json`.
+* @param {string=} configPath The project-relative path to the external config.
+* @returns {object} The parsed root blob.
+*/
+J.PROF.Helpers.loadExternalConfig = (configPath = J_ProficiencyPluginMetadata.CONFIG_PATH) => {
+	const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Proficiency").configName("proficiency configuration").logSummary((result) => [`- ${result.conditionals.length} proficiency conditionals`]).build();
+	const parsedConfig = ExternalJsonConfigLoader.load(configPath, options);
+	const metadata = J.PROF.Metadata;
+	if (metadata === undefined) {
+		throw new Error("J.PROF.Metadata must be assigned before J.PROF.Helpers.loadExternalConfig().");
+	}
+	metadata.ExternalConfig = parsedConfig;
+	return parsedConfig;
+};
+/**
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
 J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.3.0");
+J.PROF.Helpers.loadExternalConfig();
 /**
 * The various aliases associated with this plugin.
 */

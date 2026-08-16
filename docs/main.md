@@ -36,7 +36,7 @@ As such, while the plugins living in my [other repository can be found over here
 
 And of course, a list of unlockables and their details:
 - [Flux Drive locations][15]
-- [Recipe Journal locations][16]
+- [Recipe Pages (the retired Journals)][16]
 - [Blueprint Scrap locations][17]
 - [Alchemy Page locations][18]
 

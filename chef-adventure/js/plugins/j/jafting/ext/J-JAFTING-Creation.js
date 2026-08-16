@@ -201,6 +201,10 @@
  * @text Call the Creation Menu
  * @desc Calls the JAFTING Creation scene.
  *
+ * @command call-study-shop
+ * @text Call the Study Shop
+ * @desc Calls the scene for buying recipes. Scope it the same way the crafting menu is scoped.
+ *
  * @command unlock-categories
  * @text Unlock Categories
  * @desc Unlocks all crafting categories matching the provided keys.
@@ -787,7 +791,20 @@ var CraftingRecipe = class {
 	* @type {CraftingComponent[]}
 	*/
 	outputs = [];
-	constructor(name, key, categoryKeys, iconIndex, description, unlockedByDefault, maskedUntilCrafted, ingredients, tools, outputs) {
+	/**
+	* The components that must be paid once, to learn this recipe from somebody who knows it.
+	*
+	* **This is not part of crafting, and must never be iterated alongside the three arrays above it.**
+	* Rolling all four together is the obvious tidy-up and it is wrong: the cost buys the knowledge a
+	* single time, so a recipe swept into `canCraft` or the consume loop would charge its tuition again
+	* on every single craft forever after.
+	*
+	* An empty cost means the recipe is not for sale, which is what every recipe authored before this
+	* existed says by saying nothing.
+	* @type {CraftingComponent[]}
+	*/
+	cost = [];
+	constructor(name, key, categoryKeys, iconIndex, description, unlockedByDefault, maskedUntilCrafted, ingredients, tools, outputs, cost = []) {
 		this.name = name;
 		this.key = key;
 		this.categoryKeys = categoryKeys;
@@ -798,6 +815,33 @@ var CraftingRecipe = class {
 		this.ingredients = ingredients;
 		this.tools = tools;
 		this.outputs = outputs;
+		this.cost = cost;
+	}
+	/**
+	* Whether this recipe is something a shop could sell.
+	*
+	* A recipe with nothing to pay is not free, it is simply not for sale- every recipe authored before
+	* study existed says exactly that by having no cost at all.
+	* @returns {boolean}
+	*/
+	isPurchasable() {
+		return this.cost.length > 0;
+	}
+	/**
+	* Whether the party is currently carrying everything this recipe's tuition asks for.
+	* @returns {boolean}
+	*/
+	canAffordStudy() {
+		return this.cost.every((component) => component.hasEnough());
+	}
+	/**
+	* Hands over everything this recipe's tuition asks for.
+	*
+	* Unlike crafting, there is no shared tally to allocate against, because a cost is paid once and the
+	* thing it buys cannot be bought twice.
+	*/
+	payStudyCost() {
+		this.cost.forEach((component) => component.consume());
 	}
 	/**
 	* Checks if the party has the required materials to perform the crafting.
@@ -927,7 +971,7 @@ var CraftingRecipe = class {
 	* @return {string}
 	*/
 	getRecipeName() {
-		let name = !this.name.trim().length ? this.getPrimaryOutput().name : this.name;
+		let name = this.getUnmaskedRecipeName();
 		if (this.needsMasking()) {
 			name = name.replace(/[A-Za-z\-!?',.]/gi, "?");
 		}
@@ -951,11 +995,31 @@ var CraftingRecipe = class {
 	* @return {number}
 	*/
 	getRecipeIcon() {
-		let iconIndex = this.iconIndex <= -1 ? this.getPrimaryOutput().iconIndex : this.iconIndex;
+		let iconIndex = this.getUnmaskedRecipeIcon();
 		if (this.needsMasking()) {
 			iconIndex = 93;
 		}
 		return iconIndex;
+	}
+	/**
+	* Gets the recipe's name without ever masking it.
+	*
+	* A shop needs this. Every recipe it has to sell is by definition one nobody has crafted, so asking
+	* for the masked name would price a row of question marks and leave the player buying a mystery -
+	* which is a different offer from the one being made. What stays hidden until it is crafted is the
+	* description and what goes into it; the name on the price tag is the point of the price tag.
+	* @return {string}
+	*/
+	getUnmaskedRecipeName() {
+		return !this.name.trim().length ? this.getPrimaryOutput().name : this.name;
+	}
+	/**
+	* Gets the recipe's icon index without ever masking it.<br/>
+	* Wanted for the same reason as {@link #getUnmaskedRecipeName}.
+	* @return {number}
+	*/
+	getUnmaskedRecipeIcon() {
+		return this.iconIndex <= -1 ? this.getPrimaryOutput().iconIndex : this.iconIndex;
 	}
 	/**
 	* Gets the underlying item for the primary output of this recipe.
@@ -1392,11 +1456,13 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 			const parsedIngredients = mappableRecipe.ingredients.map(componentMapper, this);
 			const parsedTools = mappableRecipe.tools.map(componentMapper, this);
 			const parsedOutputs = mappableRecipe.outputs.map(componentMapper, this);
+			const rawCost = mappableRecipe.cost ?? [];
+			const parsedCost = rawCost.map(componentMapper, this);
 			const categoricalOutput = parsedOutputs.find((output) => output.isCategorical());
 			if (categoricalOutput !== undefined) {
 				throw new Error(`recipe '${mappableRecipe.key}' declares a categorical output, which cannot be produced.`);
 			}
-			const newJaftingRecipe = new CraftingRecipe(mappableRecipe.name, mappableRecipe.key, mappableRecipe.categoryKeys, mappableRecipe.iconIndex, mappableRecipe.description, mappableRecipe.unlockedByDefault, mappableRecipe.maskedUntilCrafted, parsedIngredients, parsedTools, parsedOutputs);
+			const newJaftingRecipe = new CraftingRecipe(mappableRecipe.name, mappableRecipe.key, mappableRecipe.categoryKeys, mappableRecipe.iconIndex, mappableRecipe.description, mappableRecipe.unlockedByDefault, mappableRecipe.maskedUntilCrafted, parsedIngredients, parsedTools, parsedOutputs, parsedCost);
 			return newJaftingRecipe;
 		};
 		/** @type {CraftingRecipe[]} */
@@ -1696,6 +1762,76 @@ var RecipeSpendResolver = class RecipeSpendResolver {
 };
 
 //#endregion
+//#region src/plugins/jafting/ext/create/managers/StudyPurchaseService.js
+/**
+* A static service for buying the knowledge of a recipe from somebody who already has it.
+*
+* A purchase is three questions and two writes, and none of it belongs in the scene that triggers it -
+* a rule kept inside a window is a rule nothing can test. The scene asks for an outcome and decides
+* what noise to make about it; everything that decides whether the transaction happens lives here.
+*
+* Buying is not crafting, and the difference is the whole reason this is separate: crafting spends
+* ingredients against a shared tally every time it runs, while a cost is paid once for a thing that
+* cannot be bought twice.
+*/
+var StudyPurchaseService = class StudyPurchaseService {
+	/**
+	* Constructor.<br/>
+	* This is a static class; it should not be instantiated.
+	*/
+	constructor() {
+		throw new Error("The StudyPurchaseService is a static class.");
+	}
+	/**
+	* The reasons a purchase can fail to happen.
+	* @type {Object<string, string>}
+	*/
+	static Reasons = {
+		NoRecipe: "no_recipe",
+		NotForSale: "not_for_sale",
+		AlreadyKnown: "already_known",
+		CannotAfford: "cannot_afford"
+	};
+	/**
+	* Buys a recipe, if everything about it permits being bought.
+	* @param {CraftingRecipe|null|undefined} recipe The recipe being purchased.
+	* @returns {{ purchased: boolean, reason: string|null }}
+	*/
+	static tryPurchase(recipe) {
+		if (recipe === null || recipe === undefined) {
+			return StudyPurchaseService.#refusal(StudyPurchaseService.Reasons.NoRecipe);
+		}
+		if (recipe.isPurchasable() === false) {
+			return StudyPurchaseService.#refusal(StudyPurchaseService.Reasons.NotForSale);
+		}
+		const tracking = $gameParty.getRecipeTrackingByKey(recipe.key);
+		if (tracking.isUnlocked() === true) {
+			return StudyPurchaseService.#refusal(StudyPurchaseService.Reasons.AlreadyKnown);
+		}
+		if (recipe.canAffordStudy() === false) {
+			return StudyPurchaseService.#refusal(StudyPurchaseService.Reasons.CannotAfford);
+		}
+		recipe.payStudyCost();
+		$gameParty.unlockRecipe(recipe.key);
+		return {
+			purchased: true,
+			reason: null
+		};
+	}
+	/**
+	* Builds the outcome of a purchase that did not happen.
+	* @param {string} reason Which of {@link StudyPurchaseService.Reasons} explains it.
+	* @returns {{ purchased: boolean, reason: string }}
+	*/
+	static #refusal(reason) {
+		return {
+			purchased: false,
+			reason
+		};
+	}
+};
+
+//#endregion
 //#region src/plugins/jafting/ext/create/database/RPG_Base.js
 /**
 * The ingredient types this entry can satisfy when a recipe asks for a category rather than a
@@ -1845,6 +1981,29 @@ Game_Party.prototype.getUnlockedRecipesByCategory = function(categoryKey) {
 	const recipes = this.getUnlockedRecipes();
 	const unlocked = recipes.filter((recipe) => recipe.categoryKeys.includes(categoryKey));
 	return unlocked;
+};
+/**
+* Gets every recipe of a given category that a shop could put on its shelf.
+*
+* Three filters, and leaving any one of them out breaks the shop in a different way:
+*
+* - **Carries a cost.** Nothing authored before study existed has one, so without this the shelf holds
+*   every recipe in the game, priced at nothing.
+* - **{@link #canGainEntry}.** The divider rows that pad the configuration are never *unlocked*, which
+*   is the only reason nobody has ever seen one. A shelf built out of what is locked is built out of
+*   precisely the rows that guard exists to hide.
+* - **Belongs to the category.** The shop shows one category at a time, as the crafting menu does.
+*
+* Note that this deliberately does *not* filter out what the party already knows. A recipe already
+* learned still belongs on the shelf, greyed and sorted to the bottom, because a shop that hides what
+* you have bought cannot show you how much of it there was.
+* @param {string} categoryKey The category to get all purchasable recipes for.
+* @returns {CraftingRecipe[]}
+*/
+Game_Party.prototype.getPurchasableRecipesByCategory = function(categoryKey) {
+	const recipesMap = this.getAllRecipesAsMap();
+	const allRecipes = Array.from(recipesMap.values());
+	return allRecipes.filter((recipe) => recipe.isPurchasable()).filter((recipe) => this.canGainEntry(recipe.key)).filter((recipe) => recipe.categoryKeys.includes(categoryKey));
 };
 /**
 * Gets all unlocked recipes that are a part of a given category that have
@@ -3611,6 +3770,201 @@ var Window_CraftConfirmation = class Window_CraftConfirmation extends Window_Com
 };
 
 //#endregion
+//#region src/plugins/jafting/ext/create/windows/Window_StudyRecipeList.js
+/**
+* The shelf: every recipe of the current category that somebody is willing to teach.
+*
+* Recipes already known stay on the shelf rather than vanishing from it, greyed and sorted to the
+* bottom. A shop that hides what you have already bought cannot tell you how much of a category there
+* was, and "nine of fourteen" is the pull that gets somebody to come back.
+*
+* Names and icons are read unmasked. Everything here is by definition uncrafted, so the masked
+* accessors would price a row of question marks- which is a different offer from the one being made.
+*/
+var Window_StudyRecipeList = class extends Window_Command {
+	/**
+	* Implements {@link Window_Command.initMembers}.
+	*
+	* Seeded here rather than as a class field or in the constructor, because `Window_Command.initialize`
+	* refreshes- and therefore calls `makeCommandList`- before either of those has run.
+	*/
+	initMembers() {
+		/**
+		* The category whose shelf is currently being shown.
+		* @type {string}
+		*/
+		this.currentCategory = String.empty;
+	}
+	/**
+	* The category whose shelf is currently being shown.
+	* @returns {string}
+	*/
+	getCurrentCategory() {
+		return this.currentCategory;
+	}
+	/**
+	* Switches the shelf to a different category.
+	* @param {string} newCategory The category key to show.
+	*/
+	setCurrentCategory(newCategory) {
+		if (this.currentCategory === newCategory) return;
+		this.currentCategory = newCategory;
+		this.refresh();
+	}
+	/**
+	* Implements {@link Window_Command.makeCommandList}.
+	*/
+	makeCommandList() {
+		this.clearCommandList();
+		const commands = this.buildCommands();
+		commands.forEach(this.addBuiltCommand, this);
+	}
+	/**
+	* Builds a command for every recipe on this category's shelf.
+	* @returns {BuiltWindowCommand[]}
+	*/
+	buildCommands() {
+		const currentCategory = this.getCurrentCategory();
+		const recipes = $gameParty.getPurchasableRecipesByCategory(currentCategory);
+		const unknown = recipes.filter((recipe) => this.isAlreadyKnown(recipe) === false);
+		const known = recipes.filter((recipe) => this.isAlreadyKnown(recipe));
+		const sorted = unknown.concat(known);
+		return sorted.map(this.buildCommand, this);
+	}
+	/**
+	* Whether the party has already learned a given recipe.
+	* @param {CraftingRecipe} recipe The recipe being examined.
+	* @returns {boolean}
+	*/
+	isAlreadyKnown(recipe) {
+		return $gameParty.getRecipeTrackingByKey(recipe.key).isUnlocked();
+	}
+	/**
+	* Builds a single row of the shelf.
+	* @param {CraftingRecipe} recipe The recipe the row represents.
+	* @returns {BuiltWindowCommand}
+	*/
+	buildCommand(recipe) {
+		const alreadyKnown = this.isAlreadyKnown(recipe);
+		const affordable = recipe.canAffordStudy();
+		const selectable = alreadyKnown === false && affordable;
+		const subtexts = [];
+		if (alreadyKnown) {
+			subtexts.push("Already learned.");
+		}
+		const name = recipe.getUnmaskedRecipeName();
+		const iconIndex = recipe.getUnmaskedRecipeIcon();
+		return new WindowCommandBuilder(name).setSymbol(recipe.key).setExtensionData(recipe).setIconIndex(iconIndex).setHelpText(name).setEnabled(selectable).setTextLines(subtexts).build();
+	}
+	/**
+	* Overwrites {@link #itemHeight}.<br/>
+	* One line per row, since a shelf is a list of names rather than a set of cards.
+	* @returns {number}
+	*/
+	itemHeight() {
+		return this.lineHeight();
+	}
+	/**
+	* Overwrites {@link #drawBackgroundRect}.<br/>
+	* The per-row backdrop fights the greying that marks a row unavailable, so it is not drawn.
+	* @param {Rectangle} _ The rectangle that would have been drawn into.
+	*/
+	drawBackgroundRect(_) {}
+};
+
+//#endregion
+//#region src/plugins/jafting/ext/create/windows/Window_StudyCostList.js
+/**
+* The price tag: what the highlighted recipe asks in exchange for being taught.
+*
+* Deliberately the same shape as the tool and ingredient columns of the crafting scene, down to the
+* colours. A player who has learned to read "x3" in green as *enough* and in red as *short* should not
+* have to learn it a second time because this is a different screen.
+*/
+var Window_StudyCostList = class extends Window_Command {
+	/**
+	* Implements {@link Window_Command.initMembers}.
+	*
+	* Seeded here because `Window_Command.initialize` refreshes before a constructor body would run.
+	*/
+	initMembers() {
+		/**
+		* The components making up the price currently shown.
+		* @type {CraftingComponent[]}
+		*/
+		this._components = [];
+	}
+	/**
+	* The components making up the price currently shown.
+	* @returns {CraftingComponent[]}
+	*/
+	components() {
+		return this._components;
+	}
+	/**
+	* Shows the price of a different recipe.
+	* @param {CraftingComponent[]} components The components making up the new price.
+	*/
+	setComponents(components) {
+		this._components = components;
+		this.refresh();
+	}
+	/**
+	* Implements {@link Window_Command.makeCommandList}.
+	*/
+	makeCommandList() {
+		this.clearCommandList();
+		const commands = this.buildCommands();
+		commands.forEach(this.addBuiltCommand, this);
+	}
+	/**
+	* Builds a command for every part of the price.
+	* @returns {BuiltWindowCommand[]}
+	*/
+	buildCommands() {
+		return this.components().map(this.buildCommand, this);
+	}
+	/**
+	* Builds a single line of the price tag.
+	* @param {CraftingComponent} component One part of what the recipe costs.
+	* @returns {BuiltWindowCommand}
+	*/
+	buildCommand(component) {
+		const need = component.quantity();
+		const have = component.getHandledQuantity();
+		const haveTextColor = have >= need ? 24 : 18;
+		const needQuantity = `x${need}`;
+		const subtexts = [];
+		let missingMessage = `(have: ${have})`;
+		if (have < need) {
+			missingMessage += ` (missing: ${need - have})`;
+		}
+		subtexts.push(missingMessage);
+		const name = component.getName();
+		return new WindowCommandBuilder(name).setSymbol(`${name}-${this.index()}`).setExtensionData(component).setIconIndex(component.getIconIndex()).setHelpText(name).setRightText(needQuantity).setRightColorIndex(haveTextColor).setTextLines(subtexts).build();
+	}
+	/**
+	* Extends {@link #drawAllItems}.<br/>
+	* Also says so plainly when there is no recipe highlighted to have a price.
+	*/
+	drawAllItems() {
+		if (this.components().length === 0) {
+			this.resetFontSettings();
+			this.changeTextColor(ColorManager.normalColor());
+			this.drawText("Nothing selected.", 0, 0, this.innerWidth, Window_Base.TextAlignments.Center);
+			return;
+		}
+		Window_Command.prototype.drawAllItems.call(this);
+	}
+	/**
+	* Overwrites {@link #drawBackgroundRect}.<br/>
+	* A price tag is read, not chosen from, so its rows want no selection backdrop.
+	* @param {Rectangle} _ The rectangle that would have been drawn into.
+	*/
+	drawBackgroundRect(_) {}
+};
+
+//#endregion
 //#region src/plugins/jafting/ext/create/scenes/Scene_JaftingCreate.js
 var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 	/**
@@ -4646,6 +5000,425 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 };
 
 //#endregion
+//#region src/plugins/jafting/ext/create/scenes/Scene_JaftingStudy.js
+/**
+* A scene for buying the knowledge of a recipe from somebody who already has it.
+*
+* Deliberately a shorter scene than crafting's. Crafting has to ask which of several eligible entries
+* to spend and how many times to run; buying asks one question, which is whether to buy the thing being
+* looked at. So there is no selection flow and no quantity prompt- a recipe is bought once or not.
+*
+* Which categories are on offer is decided before the scene opens, exactly as the crafting stations
+* decide it: the event unlocks what its vendor deals in, opens this, then locks it again. That is why
+* nothing here filters by vendor- the caller already did.
+*/
+var Scene_JaftingStudy = class Scene_JaftingStudy extends Scene_MenuBase {
+	/**
+	* The symbol representing the command for this scene from other menus.
+	* @type {string}
+	*/
+	static KEY = "jafting-study";
+	/**
+	* Whether there is anything at all for sale right now.
+	*
+	* Note this cannot lean on {@link CraftingCategory.hasAnyRecipes}, which counts what is *unlocked*-
+	* the opposite of what a shop stocks.
+	* @returns {boolean}
+	*/
+	static isAccessible() {
+		const categories = $gameParty.getUnlockedCategories();
+		return categories.some((category) => $gameParty.getPurchasableRecipesByCategory(category.key).length > 0);
+	}
+	/**
+	* Opens the scene, refusing audibly when there is nothing to sell.
+	*/
+	static callScene() {
+		if (Scene_JaftingStudy.isAccessible() === false) {
+			SoundManager.playBuzzer();
+			return;
+		}
+		SceneManager.push(this);
+	}
+	/**
+	* Constructor.
+	*/
+	constructor() {
+		super();
+		this.initialize();
+	}
+	/**
+	* Extends {@link #initialize}.
+	*/
+	initialize() {
+		super.initialize();
+		this.initMembers();
+	}
+	/**
+	* Initializes all properties for this scene.
+	*/
+	initMembers() {
+		super.initMembers();
+		/**
+		* The shared root namespace for all of J's plugin data.
+		*/
+		this._j ||= {};
+		/**
+		* A grouping of all properties associated with the crafting system.
+		*/
+		this._j._crafting ||= {};
+		/**
+		* A grouping of all properties associated with studying recipes.
+		*/
+		this._j._crafting._study = {};
+		/**
+		* The window explaining whatever is currently highlighted.
+		* @type {Window_CreationDescription|null}
+		*/
+		this._j._crafting._study._description = null;
+		/**
+		* The badge naming the category currently being browsed.
+		* @type {Window_CreationCategoryBadge|null}
+		*/
+		this._j._crafting._study._categoryBadge = null;
+		/**
+		* The shelf of recipes for sale.
+		* @type {Window_StudyRecipeList|null}
+		*/
+		this._j._crafting._study._recipeList = null;
+		/**
+		* The price of whatever is highlighted on the shelf.
+		* @type {Window_StudyCostList|null}
+		*/
+		this._j._crafting._study._costList = null;
+		/**
+		* Which of the unlocked categories is being browsed.
+		* @type {number}
+		*/
+		this._j._crafting._study._categoryIndex = 0;
+	}
+	/**
+	* Extends {@link #create}.
+	*/
+	create() {
+		super.create();
+		this.createDisplayObjects();
+	}
+	/**
+	* Creates the display objects for this scene.
+	*/
+	createDisplayObjects() {
+		this.createAllWindows();
+		this.refreshCategory();
+	}
+	/**
+	* Creates all windows in this scene.
+	*/
+	createAllWindows() {
+		this.createStudyDescriptionWindow();
+		this.createStudyCategoryBadgeWindow();
+		this.createStudyRecipeListWindow();
+		this.createStudyCostListWindow();
+	}
+	/**
+	* Overwrites {@link #createBackground}.<br/>
+	* Keeps the map faintly visible behind the shop, as the crafting scene does.
+	*/
+	createBackground() {
+		this.setBackgroundFilter(new PIXI.filters.AlphaFilter(.1));
+		this.setBackgroundSprite(new Sprite());
+		this.backgroundSprite().bitmap = SceneManager.backgroundBitmap();
+		this.backgroundSprite().filters = [this.backgroundFilter()];
+		this.addChild(this.backgroundSprite());
+	}
+	/**
+	* Overwrites {@link #createButtons}.<br/>
+	* The scene is driven entirely by the shelf, so the touch buttons have nothing to point at.
+	*/
+	createButtons() {}
+	/**
+	* Creates the description window.
+	*/
+	createStudyDescriptionWindow() {
+		const window = this.buildStudyDescriptionWindow();
+		this.setStudyDescriptionWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Builds the description window.
+	* @returns {Window_CreationDescription}
+	*/
+	buildStudyDescriptionWindow() {
+		const rectangle = this.getStudyDescriptionRectangle();
+		return new Window_CreationDescription(rectangle);
+	}
+	/**
+	* Gets the rectangle for the description window.
+	* @returns {Rectangle}
+	*/
+	getStudyDescriptionRectangle() {
+		const [ox, oy] = Graphics.boxOrigin;
+		const listColumnWidth = this.getStudyListColumnWidth();
+		const x = ox + listColumnWidth + Graphics.horizontalPadding;
+		const width = ox + Graphics.boxWidth - x - Graphics.horizontalPadding;
+		return new Rectangle(x, oy, width, this.studyHeaderBandHeight());
+	}
+	/**
+	* Gets the description window being tracked.
+	* @returns {Window_CreationDescription}
+	*/
+	getStudyDescriptionWindow() {
+		return this._j._crafting._study._description;
+	}
+	/**
+	* Sets the description window being tracked.
+	* @param {Window_CreationDescription} window The window to track.
+	*/
+	setStudyDescriptionWindow(window) {
+		this._j._crafting._study._description = window;
+	}
+	/**
+	* Creates the category badge window.
+	*/
+	createStudyCategoryBadgeWindow() {
+		const window = this.buildStudyCategoryBadgeWindow();
+		this.setStudyCategoryBadgeWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Builds the category badge window.
+	* @returns {Window_CreationCategoryBadge}
+	*/
+	buildStudyCategoryBadgeWindow() {
+		const rectangle = this.getStudyCategoryBadgeRectangle();
+		return new Window_CreationCategoryBadge(rectangle);
+	}
+	/**
+	* Gets the rectangle for the category badge.
+	* @returns {Rectangle}
+	*/
+	getStudyCategoryBadgeRectangle() {
+		const [ox, oy] = Graphics.boxOrigin;
+		return new Rectangle(ox, oy, this.getStudyListColumnWidth(), this.studyHeaderBandHeight());
+	}
+	/**
+	* Gets the category badge window being tracked.
+	* @returns {Window_CreationCategoryBadge}
+	*/
+	getStudyCategoryBadgeWindow() {
+		return this._j._crafting._study._categoryBadge;
+	}
+	/**
+	* Sets the category badge window being tracked.
+	* @param {Window_CreationCategoryBadge} window The window to track.
+	*/
+	setStudyCategoryBadgeWindow(window) {
+		this._j._crafting._study._categoryBadge = window;
+	}
+	/**
+	* Creates the shelf of recipes for sale.
+	*/
+	createStudyRecipeListWindow() {
+		const window = this.buildStudyRecipeListWindow();
+		this.setStudyRecipeListWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Builds the shelf of recipes for sale.
+	* @returns {Window_StudyRecipeList}
+	*/
+	buildStudyRecipeListWindow() {
+		const rectangle = this.getStudyRecipeListRectangle();
+		const window = new Window_StudyRecipeList(rectangle);
+		window.setHandler("cancel", this.onStudyCancel.bind(this));
+		window.setHandler("ok", this.onStudySelection.bind(this));
+		window.setHandler("content-prev", this.onPreviousCategory.bind(this));
+		window.setHandler("content-next", this.onNextCategory.bind(this));
+		window.onIndexChange = this.onStudyIndexChange.bind(this);
+		window.activate();
+		return window;
+	}
+	/**
+	* Gets the rectangle for the shelf.
+	* @returns {Rectangle}
+	*/
+	getStudyRecipeListRectangle() {
+		const [ox, oy] = Graphics.boxOrigin;
+		const y = oy + this.studyHeaderBandHeight() + Graphics.verticalPadding;
+		const height = oy + Graphics.boxHeight - y - Graphics.verticalPadding;
+		return new Rectangle(ox, y, this.getStudyListColumnWidth(), height);
+	}
+	/**
+	* Gets the shelf window being tracked.
+	* @returns {Window_StudyRecipeList}
+	*/
+	getStudyRecipeListWindow() {
+		return this._j._crafting._study._recipeList;
+	}
+	/**
+	* Sets the shelf window being tracked.
+	* @param {Window_StudyRecipeList} window The window to track.
+	*/
+	setStudyRecipeListWindow(window) {
+		this._j._crafting._study._recipeList = window;
+	}
+	/**
+	* Creates the price tag.
+	*/
+	createStudyCostListWindow() {
+		const window = this.buildStudyCostListWindow();
+		this.setStudyCostListWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Builds the price tag.
+	* @returns {Window_StudyCostList}
+	*/
+	buildStudyCostListWindow() {
+		const rectangle = this.getStudyCostListRectangle();
+		const window = new Window_StudyCostList(rectangle);
+		window.deactivate();
+		return window;
+	}
+	/**
+	* Gets the rectangle for the price tag.
+	* @returns {Rectangle}
+	*/
+	getStudyCostListRectangle() {
+		const description = this.getStudyDescriptionRectangle();
+		const recipeList = this.getStudyRecipeListRectangle();
+		return new Rectangle(description.x, recipeList.y, description.width, recipeList.height);
+	}
+	/**
+	* Gets the price tag window being tracked.
+	* @returns {Window_StudyCostList}
+	*/
+	getStudyCostListWindow() {
+		return this._j._crafting._study._costList;
+	}
+	/**
+	* Sets the price tag window being tracked.
+	* @param {Window_StudyCostList} window The window to track.
+	*/
+	setStudyCostListWindow(window) {
+		this._j._crafting._study._costList = window;
+	}
+	/**
+	* The shared height of the description band and the category badge beside it.
+	* @returns {number}
+	*/
+	studyHeaderBandHeight() {
+		return 100;
+	}
+	/**
+	* The width of the left column the shelf and its badge share.
+	* @returns {number}
+	*/
+	getStudyListColumnWidth() {
+		return Math.round(300 * 1.1);
+	}
+	/**
+	* Which of the unlocked categories is currently being browsed.
+	* @returns {number}
+	*/
+	categoryIndex() {
+		return this._j._crafting._study._categoryIndex;
+	}
+	/**
+	* Sets which of the unlocked categories is being browsed.
+	* @param {number} index The index into the unlocked categories.
+	*/
+	setCategoryIndex(index) {
+		this._j._crafting._study._categoryIndex = index;
+	}
+	/**
+	* The categories this vendor is dealing in, which the calling event decided before opening the scene.
+	* @returns {CraftingCategory[]}
+	*/
+	availableCategories() {
+		return $gameParty.getUnlockedCategories();
+	}
+	/**
+	* Moves to the previous category, wrapping around the end.
+	*/
+	onPreviousCategory() {
+		this.stepCategoryBy(-1);
+	}
+	/**
+	* Moves to the next category, wrapping around the end.
+	*/
+	onNextCategory() {
+		this.stepCategoryBy(1);
+	}
+	/**
+	* Walks the category selection by a given number of places.
+	*
+	* Categories with nothing for sale are stepped onto rather than skipped. A shoulder button that
+	* sometimes moves one place and sometimes three reads as broken, and an empty shelf is information-
+	* it says to come back later rather than that nothing exists.
+	* @param {number} step How many places to move, which may be negative.
+	*/
+	stepCategoryBy(step) {
+		const categories = this.availableCategories();
+		const total = categories.length;
+		const current = this.categoryIndex();
+		const next = (current + step + total) % total;
+		this.setCategoryIndex(next);
+		this.refreshCategory();
+		SoundManager.playCursor();
+	}
+	/**
+	* Points every window at whichever category is now selected.
+	*/
+	refreshCategory() {
+		const categories = this.availableCategories();
+		const category = categories.at(this.categoryIndex());
+		this.getStudyCategoryBadgeWindow().setCategory(category);
+		const recipeListWindow = this.getStudyRecipeListWindow();
+		recipeListWindow.setCurrentCategory(category.key);
+		recipeListWindow.select(0);
+		this.onStudyIndexChange();
+	}
+	/**
+	* Repoints the price tag and the description at whatever is now highlighted.
+	*/
+	onStudyIndexChange() {
+		const recipeListWindow = this.getStudyRecipeListWindow();
+		/** @type {CraftingRecipe} */
+		const currentRecipe = recipeListWindow.currentExt();
+		const costListWindow = this.getStudyCostListWindow();
+		const descriptionWindow = this.getStudyDescriptionWindow();
+		if (currentRecipe === null || currentRecipe === undefined) {
+			costListWindow.setComponents([]);
+			descriptionWindow.setText(String.empty);
+			return;
+		}
+		costListWindow.setComponents(currentRecipe.cost);
+		descriptionWindow.setText(currentRecipe.getRecipeDescription());
+	}
+	/**
+	* Buys whatever is highlighted, if it can be bought.
+	*/
+	onStudySelection() {
+		const recipeListWindow = this.getStudyRecipeListWindow();
+		/** @type {CraftingRecipe} */
+		const currentRecipe = recipeListWindow.currentExt();
+		const outcome = StudyPurchaseService.tryPurchase(currentRecipe);
+		if (outcome.purchased === true) {
+			SoundManager.playShop();
+		}
+		recipeListWindow.refresh();
+		this.onStudyIndexChange();
+		recipeListWindow.activate();
+	}
+	/**
+	* Leaves the shop.
+	*/
+	onStudyCancel() {
+		SceneManager.pop();
+	}
+};
+
+//#endregion
 //#region src/plugins/jafting/ext/create/scenes/Scene_Jafting.js
 /**
 * Extends {@link #onRootJaftingSelection}.<br/>
@@ -4696,6 +5469,13 @@ Window_JaftingList.prototype.buildCreationCommand = function() {
 */
 PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "call-menu", () => {
 	Scene_JaftingCreate.callScene();
+});
+/**
+* A plugin command.<br>
+* Calls the menu for buying recipes from somebody who knows them.
+*/
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "call-study-shop", () => {
+	Scene_JaftingStudy.callScene();
 });
 /**
 * A plugin command.<br>

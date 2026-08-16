@@ -3638,6 +3638,134 @@ var ExternalJsonConfigLoaderOptionsBuilder = class {
 };
 
 //#endregion
+//#region src/plugins/_base/core/models/FilterCycle.js
+/**
+* An ordered ring of filter positions with a cursor, driving the L2/R2 tab strip above a filterable list.
+*
+* This is deliberately the dumbest possible thing that can hold a cycle: it owns an order and an index and
+* nothing else. It does not know what a position means, where the positions came from, or whether any of
+* them would produce an empty list- because the two scenes that already do this disagree about that last
+* one on purpose. SDP omits families the actor has no panels in, so a filter over your own things can never
+* dead-end; the study shop deliberately steps onto empty shelves, because a shoulder button that sometimes
+* moves one place and sometimes three reads as broken, and an empty shelf says "come back later" rather
+* than "this does not exist". Both are right for their scene, so the choice lives at the call site that
+* builds the positions, and this class holds no opinion at all.
+*/
+var FilterCycle = class FilterCycle {
+	/**
+	* The reserved key for the position that matches everything.
+	* @type {string}
+	*/
+	static ALL = "__all__";
+	/**
+	* The reserved key for the position collecting entries that resolve to no other position.
+	* @type {string}
+	*/
+	static UNKNOWN = "__unknown__";
+	/**
+	* The position handed back when the cycle holds nothing, so callers never receive null.
+	* @type {{key: string, name: string, iconIndex: number}}
+	*/
+	static EMPTY_POSITION = Object.freeze({
+		key: FilterCycle.ALL,
+		name: String.empty,
+		iconIndex: 0
+	});
+	/**
+	* The ordered positions this cycle walks.
+	* @type {Array<{key: string, name: string, iconIndex: number}>}
+	*/
+	#positions = [];
+	/**
+	* The index into {@link #positions} currently selected.
+	* @type {number}
+	*/
+	#index = 0;
+	/**
+	* @constructor
+	* @param {Array<{key: string, name: string, iconIndex: number}>=} positions The positions to start with.
+	*/
+	constructor(positions = []) {
+		this.setPositions(positions);
+	}
+	/**
+	* Replaces the positions this cycle walks.
+	*
+	* The active key is preserved across a rebuild whenever it still exists, because the positions get rebuilt
+	* for reasons that have nothing to do with the player- switching party member, learning a recipe- and
+	* silently moving the tab out from under them on an unrelated event reads as the menu losing its place.
+	* @param {Array<{key: string, name: string, iconIndex: number}>} positions The positions driving this step.
+	*/
+	setPositions(positions) {
+		const previousKey = this.activeKey();
+		this.#positions = positions;
+		const survivingIndex = positions.findIndex((position) => position.key === previousKey);
+		this.#index = survivingIndex === -1 ? 0 : survivingIndex;
+	}
+	/**
+	* The positions this cycle is currently walking.
+	* @returns {Array<{key: string, name: string, iconIndex: number}>}
+	*/
+	positions() {
+		return this.#positions;
+	}
+	/**
+	* Whether there is anywhere to move to.
+	*
+	* A single position is not a cycle- pressing the shoulder button would land you exactly where you already
+	* are, so the caller buzzes instead of pretending something happened.
+	* @returns {boolean}
+	*/
+	canCycle() {
+		return this.#positions.length > 1;
+	}
+	/**
+	* The position currently selected, or {@link FilterCycle.EMPTY_POSITION} when the cycle holds nothing.
+	* @returns {{key: string, name: string, iconIndex: number}}
+	*/
+	activePosition() {
+		if (this.#positions.length === 0) {
+			return FilterCycle.EMPTY_POSITION;
+		}
+		return this.#positions.at(this.#index);
+	}
+	/**
+	* The key of the position currently selected.
+	*
+	* An empty cycle answers {@link FilterCycle.ALL}, so a list asked to filter by it shows everything rather
+	* than nothing- an unbuilt cycle should never look like a filter that excluded every row.
+	* @returns {string}
+	*/
+	activeKey() {
+		return this.activePosition().key;
+	}
+	/**
+	* Moves the cursor forward one place, wrapping past the end.
+	*/
+	next() {
+		this.#step(1);
+	}
+	/**
+	* Moves the cursor back one place, wrapping past the front.
+	*/
+	previous() {
+		this.#step(-1);
+	}
+	/**
+	* Walks the cursor by a number of places, wrapping in either direction.
+	*
+	* A single position needs no special case: the wrap arithmetic already lands back on index 0. Only the
+	* empty ring is worth naming, because a modulo by zero would poison the index rather than clamp it.
+	* @param {number} step How many places to move, which may be negative.
+	*/
+	#step(step) {
+		const total = this.#positions.length;
+		if (total === 0) return;
+		this.#index = (this.#index + step + total) % total;
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/core/models/WindowGaugeOptions.js
 /**
 * The options for a gauge that shows up in the window.
@@ -15203,6 +15331,203 @@ Window_EquipItem.prototype.statusWindow = function() {
 */
 Window_EquipItem.prototype.slotId = function() {
 	return this._slotId;
+};
+
+//#endregion
+//#region src/plugins/_base/core/windows/Window_FilterStrip.js
+/**
+* A thin strip above a filterable list, naming the tab the player is currently on.
+*
+* The strip renders a {@link FilterCycle} position directly rather than resolving a key into a label and an
+* icon on every draw. A position already carries its own name and icon because whatever built the cycle had
+* to know both anyway- so resolving here would be doing the same lookup once per frame that the cycle
+* builder already did once per rebuild.
+*/
+var Window_FilterStrip = class extends Window_Base {
+	/**
+	* The position being named, defaulting to the empty one so the strip can draw before a cycle exists.
+	* @type {{key: string, name: string, iconIndex: number}}
+	*/
+	_position = FilterCycle.EMPTY_POSITION;
+	/**
+	* @param {Rectangle} rect The dimensions of the window.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.initialize(rect);
+	}
+	/**
+	* Sets the position this strip names and redraws.
+	* @param {{key: string, name: string, iconIndex: number}} position The position driving this step.
+	*/
+	setPosition(position) {
+		this._position = position;
+		this.refresh();
+	}
+	/**
+	* The position this strip is currently naming.
+	* @returns {{key: string, name: string, iconIndex: number}}
+	*/
+	position() {
+		return this._position;
+	}
+	/**
+	* Implements {@link Window_Base.drawContent}.<br/>
+	* Renders the active position's icon and label.
+	*/
+	drawContent() {
+		const { name, iconIndex } = this.position();
+		const iconPad = 4;
+		const hasIcon = iconIndex > 0;
+		const textX = hasIcon ? ImageManager.iconWidth + iconPad : 0;
+		if (hasIcon) {
+			this.drawIcon(iconIndex, iconPad, 0);
+		}
+		this.resetFontSettings();
+		this.drawText(name, textX, 0, this.innerWidth - textX, Window_Base.TextAlignments.Left);
+		this.resetFontSettings();
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/windows/Window_FilterableList.js
+/**
+* A command list narrowed by two independent filters: the tab the player is cycling with L2/R2, and an
+* on/off toggle that hides rows they cannot act on.
+*
+* The two axes are genuinely independent and both are needed. The tab answers "which family of things am I
+* looking at", the toggle answers "and only the ones I can do something with right now"- a maxed SDP panel
+* and an uncraftable recipe are the same idea wearing different words.
+*
+* Subclasses supply the policy and never override {@link #makeCommandList}. The pipeline is fixed on
+* purpose: filter the source, then sort, then build one command per surviving row. Building commands first
+* and discarding them afterwards- which is how one of the two lists this replaces did it- pays to construct
+* rows nobody sees, and forces a null return out of a builder whose whole job is to return a command.
+*/
+var Window_FilterableList = class extends Window_Command {
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Seeds both filters.
+	*
+	* These cannot be class field declarations, and they cannot live in a constructor body either:
+	* `Window_Command.initialize` ends by refreshing, refreshing calls `makeCommandList`, and that reads both
+	* of these. Anything assigned after `super()` returns is assigned too late to be seen by the first build.
+	*/
+	initMembers() {
+		/**
+		* The key of the tab currently selected.
+		* @type {string}
+		*/
+		this._filterKey = FilterCycle.ALL;
+		/**
+		* Whether rows the player cannot act on are hidden.
+		* @type {boolean}
+		*/
+		this._actionableOnly = false;
+	}
+	/**
+	* The key of the tab currently selected.
+	* @returns {string}
+	*/
+	filterKey() {
+		return this._filterKey;
+	}
+	/**
+	* Sets the tab and rebuilds the list.
+	* @param {string} filterKey The filter key driving this step.
+	*/
+	setFilterKey(filterKey) {
+		if (this._filterKey === filterKey) return;
+		this._filterKey = filterKey;
+		this.refresh();
+	}
+	/**
+	* Whether rows the player cannot act on are currently hidden.
+	* @returns {boolean}
+	*/
+	isActionableOnly() {
+		return this._actionableOnly;
+	}
+	/**
+	* Flips the actionable-only filter and rebuilds the list.
+	*
+	* The rebuild is the whole point. A setter that flips its flag and returns leaves the player looking at
+	* rows that no longer answer the filter they just asked for, and because a command list is only rebuilt on
+	* refresh, nothing else will notice until some unrelated action happens to refresh it.
+	*/
+	toggleActionableOnly() {
+		this._actionableOnly = !this._actionableOnly;
+		this.refresh();
+	}
+	/**
+	* Implements {@link Window_Command.makeCommandList}.<br/>
+	* Filters, orders, and builds the rows.
+	*/
+	makeCommandList() {
+		this.buildCommands().forEach(this.addBuiltCommand, this);
+	}
+	/**
+	* Narrows the source down to the rows that survive both filters, in display order.
+	* @returns {BuiltWindowCommand[]}
+	*/
+	buildCommands() {
+		const filterKey = this.filterKey();
+		return this.sourceItems().filter((item) => this.matchesFilter(item, filterKey)).filter((item) => this.isVisibleUnderActionableFilter(item)).sort((left, right) => this.compareItems(left, right)).map(this.buildCommand, this);
+	}
+	/**
+	* Whether a row survives the actionable-only toggle.
+	* @param {*} item The item driving this step.
+	* @returns {boolean}
+	*/
+	isVisibleUnderActionableFilter(item) {
+		if (this.isActionableOnly() === false) return true;
+		return this.isActionable(item);
+	}
+	/**
+	* The unfiltered list of things this window could show.
+	* Subclasses answer with their own domain objects.
+	* @returns {*[]}
+	*/
+	sourceItems() {
+		return [];
+	}
+	/**
+	* Whether a row belongs under the active tab.
+	* Subclasses that only ever show one tab leave this alone.
+	* @param {*} _item The item driving this step.
+	* @param {string} _filterKey The active tab's key.
+	* @returns {boolean}
+	*/
+	matchesFilter(_item, _filterKey) {
+		return true;
+	}
+	/**
+	* Whether the player can still do something with this row- rank it up, cook it, buy it.
+	* Subclasses that have no such notion leave this alone and the toggle becomes a no-op for them.
+	* @param {*} _item The item driving this step.
+	* @returns {boolean}
+	*/
+	isActionable(_item) {
+		return true;
+	}
+	/**
+	* Orders two rows against each other, as {@link Array.prototype.sort} expects.
+	* The default ties every pair, which preserves the source's own order.
+	* @param {*} _left The first item driving this step.
+	* @param {*} _right The second item driving this step.
+	* @returns {number}
+	*/
+	compareItems(_left, _right) {
+		return 0;
+	}
+	/**
+	* Builds the command representing a single row.
+	* @param {*} _item The item driving this step.
+	* @returns {BuiltWindowCommand}
+	*/
+	buildCommand(_item) {
+		throw new Error("A Window_FilterableList must implement buildCommand.");
+	}
 };
 
 //#endregion
