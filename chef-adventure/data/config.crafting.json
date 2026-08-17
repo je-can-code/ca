@@ -61,7 +61,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-02",
@@ -112,7 +113,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-03",
@@ -163,7 +165,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-04",
@@ -214,7 +217,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-05",
@@ -265,7 +269,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-06",
@@ -308,7 +313,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-07",
@@ -367,7 +373,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-08",
@@ -418,7 +425,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-09",
@@ -469,7 +477,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-10",
@@ -520,7 +529,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-11",
@@ -571,7 +581,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-12",
@@ -622,7 +633,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-13",
@@ -681,7 +693,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-14",
@@ -732,7 +745,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-15",
@@ -791,7 +805,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-16",
@@ -842,7 +857,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-17",
@@ -893,7 +909,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-18",
@@ -928,7 +945,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-19",
@@ -987,7 +1005,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-20",
@@ -1046,7 +1065,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-21",
@@ -1097,7 +1117,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-22",
@@ -1148,7 +1169,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-23",
@@ -1207,7 +1229,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-protein-t2-01",
@@ -1263,7 +1286,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-02",
@@ -1319,7 +1343,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-03",
@@ -1375,7 +1400,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-04",
@@ -1431,7 +1457,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-05",
@@ -1487,7 +1514,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-06",
@@ -1532,7 +1560,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-07",
@@ -1593,7 +1622,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-protein-t3-01",
@@ -1648,7 +1678,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-protein-t3-02",
@@ -1701,7 +1732,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-protein-t3-03",
@@ -1759,7 +1791,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-protein-t3-04",
@@ -1812,7 +1845,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-protein-t3-05",
@@ -1870,7 +1904,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-protein-t3-06",
@@ -1920,7 +1955,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-protein-t4-01",
@@ -1977,7 +2013,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-protein-t4-02",
@@ -2029,7 +2066,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-protein-t4-03",
@@ -2081,7 +2119,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-protein-t4-04",
@@ -2143,7 +2182,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-carb-t1-01",
@@ -2202,7 +2242,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-02",
@@ -2245,7 +2286,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-03",
@@ -2309,7 +2351,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-04",
@@ -2360,7 +2403,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-05",
@@ -2411,7 +2455,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-06",
@@ -2462,7 +2507,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-07",
@@ -2521,7 +2567,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-08",
@@ -2572,7 +2619,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-09",
@@ -2631,7 +2679,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-10",
@@ -2682,7 +2731,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-11",
@@ -2725,7 +2775,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-12",
@@ -2776,7 +2827,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-13",
@@ -2835,7 +2887,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-14",
@@ -2894,7 +2947,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-15",
@@ -2953,7 +3007,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-16",
@@ -2996,7 +3051,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-17",
@@ -3055,7 +3111,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-18",
@@ -3098,7 +3155,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-19",
@@ -3157,7 +3215,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-20",
@@ -3216,7 +3275,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-21",
@@ -3275,7 +3335,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-22",
@@ -3331,7 +3392,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-carb-t2-01",
@@ -3379,7 +3441,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-02",
@@ -3427,7 +3490,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-03",
@@ -3483,7 +3547,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-04",
@@ -3531,7 +3596,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-05",
@@ -3571,7 +3637,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-06",
@@ -3619,7 +3686,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-07",
@@ -3682,7 +3750,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-08",
@@ -3722,7 +3791,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-09",
@@ -3786,7 +3856,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-10",
@@ -3839,7 +3910,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-carb-t3-01",
@@ -3884,7 +3956,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-carb-t3-02",
@@ -3937,7 +4010,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-carb-t3-03",
@@ -3995,7 +4069,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-carb-t3-04",
@@ -4045,7 +4120,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-carb-t4-01",
@@ -4102,7 +4178,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-carb-t4-02",
@@ -4159,7 +4236,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-carb-t4-03",
@@ -4221,7 +4299,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-carb-t4-04",
@@ -4273,7 +4352,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-vegetable-t1-01",
@@ -4324,7 +4404,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-02",
@@ -4375,7 +4456,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-03",
@@ -4434,7 +4516,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-04",
@@ -4493,7 +4576,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-05",
@@ -4544,7 +4628,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-06",
@@ -4603,7 +4688,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-07",
@@ -4662,7 +4748,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-08",
@@ -4713,7 +4800,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-09",
@@ -4764,7 +4852,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-10",
@@ -4823,7 +4912,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-11",
@@ -4874,7 +4964,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-12",
@@ -4933,7 +5024,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-13",
@@ -4992,7 +5084,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-14",
@@ -5059,7 +5152,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-15",
@@ -5110,7 +5204,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-16",
@@ -5169,7 +5264,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-17",
@@ -5220,7 +5316,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-18",
@@ -5271,7 +5368,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-19",
@@ -5327,7 +5425,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-20",
@@ -5386,7 +5485,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t2-01",
@@ -5434,7 +5534,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-02",
@@ -5482,7 +5583,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-03",
@@ -5546,7 +5648,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-04",
@@ -5594,7 +5697,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-05",
@@ -5631,7 +5735,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-06",
@@ -5676,7 +5781,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-07",
@@ -5732,7 +5838,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-08",
@@ -5782,7 +5889,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-09",
@@ -5830,7 +5938,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-10",
@@ -5877,7 +5986,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-11",
@@ -5933,7 +6043,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t3-01",
@@ -5986,7 +6097,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-vegetable-t3-02",
@@ -6039,7 +6151,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-vegetable-t3-03",
@@ -6092,7 +6205,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-vegetable-t3-04",
@@ -6145,7 +6259,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-vegetable-t3-05",
@@ -6202,7 +6317,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-vegetable-t4-01",
@@ -6254,7 +6370,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-vegetable-t4-02",
@@ -6306,7 +6423,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-vegetable-t4-03",
@@ -6363,7 +6481,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-vegetable-t4-04",
@@ -6415,7 +6534,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-dairy-t1-01",
@@ -6458,7 +6578,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-02",
@@ -6501,7 +6622,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-03",
@@ -6560,7 +6682,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-04",
@@ -6603,7 +6726,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-05",
@@ -6670,7 +6794,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-06",
@@ -6721,7 +6846,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-07",
@@ -6780,7 +6906,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-08",
@@ -6839,7 +6966,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-09",
@@ -6890,7 +7018,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-10",
@@ -6933,7 +7062,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-11",
@@ -6984,7 +7114,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-12",
@@ -7027,7 +7158,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-13",
@@ -7070,7 +7202,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-14",
@@ -7129,7 +7262,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-dairy-t2-01",
@@ -7169,7 +7303,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-02",
@@ -7209,7 +7344,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-03",
@@ -7257,7 +7393,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-04",
@@ -7302,7 +7439,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-05",
@@ -7342,7 +7480,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-06",
@@ -7390,7 +7529,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-07",
@@ -7438,7 +7578,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-08",
@@ -7478,7 +7619,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-09",
@@ -7531,7 +7673,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-10",
@@ -7592,7 +7735,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-11",
@@ -7640,7 +7784,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-12",
@@ -7696,7 +7841,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-13",
@@ -7752,7 +7898,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-14",
@@ -7805,7 +7952,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-dairy-t3-01",
@@ -7850,7 +7998,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-02",
@@ -7895,7 +8044,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-03",
@@ -7940,7 +8090,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-04",
@@ -7985,7 +8136,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-05",
@@ -8030,7 +8182,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-06",
@@ -8075,7 +8228,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-07",
@@ -8128,7 +8282,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-08",
@@ -8181,7 +8336,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-dairy-t4-01",
@@ -8238,7 +8394,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-dairy-t4-02",
@@ -8295,7 +8452,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-dairy-t4-03",
@@ -8352,7 +8510,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-dairy-t4-04",
@@ -8409,7 +8568,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-fruit-t1-01",
@@ -8468,7 +8628,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-02",
@@ -8511,7 +8672,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-03",
@@ -8562,7 +8724,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-04",
@@ -8613,7 +8776,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-05",
@@ -8664,7 +8828,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-06",
@@ -8723,7 +8888,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-07",
@@ -8766,7 +8932,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-08",
@@ -8809,7 +8976,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-09",
@@ -8868,7 +9036,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-10",
@@ -8919,7 +9088,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-11",
@@ -8978,7 +9148,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-12",
@@ -9037,7 +9208,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-13",
@@ -9096,7 +9268,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-14",
@@ -9155,7 +9328,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-15",
@@ -9206,7 +9380,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-16",
@@ -9249,7 +9424,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-17",
@@ -9308,7 +9484,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-18",
@@ -9359,7 +9536,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-19",
@@ -9418,7 +9596,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-fruit-t2-01",
@@ -9458,7 +9637,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-02",
@@ -9516,7 +9696,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-03",
@@ -9569,7 +9750,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-04",
@@ -9630,7 +9812,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-05",
@@ -9683,7 +9866,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-06",
@@ -9736,7 +9920,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-07",
@@ -9792,7 +9977,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-08",
@@ -9853,7 +10039,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-09",
@@ -9906,7 +10093,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-10",
@@ -9954,7 +10142,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-11",
@@ -10004,7 +10193,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-fruit-t3-01",
@@ -10054,7 +10244,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-fruit-t3-02",
@@ -10107,7 +10298,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-fruit-t3-03",
@@ -10165,7 +10357,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-fruit-t3-04",
@@ -10215,7 +10408,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-fruit-t3-05",
@@ -10265,7 +10459,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-fruit-t3-06",
@@ -10315,7 +10510,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-fruit-t4-01",
@@ -10372,7 +10568,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-fruit-t4-02",
@@ -10429,7 +10626,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-fruit-t4-03",
@@ -10486,7 +10684,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-fruit-t4-04",
@@ -10543,7 +10742,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-sweet-t1-01",
@@ -10586,7 +10786,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-02",
@@ -10637,7 +10838,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-03",
@@ -10693,7 +10895,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-04",
@@ -10744,7 +10947,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-05",
@@ -10795,7 +10999,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-06",
@@ -10854,7 +11059,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-07",
@@ -10913,7 +11119,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-08",
@@ -10972,7 +11179,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-09",
@@ -11031,7 +11239,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-10",
@@ -11082,7 +11291,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-11",
@@ -11133,7 +11343,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-12",
@@ -11192,7 +11403,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-13",
@@ -11251,7 +11463,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-14",
@@ -11302,7 +11515,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-15",
@@ -11361,7 +11575,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-16",
@@ -11420,7 +11635,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-17",
@@ -11471,7 +11687,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-18",
@@ -11538,7 +11755,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-19",
@@ -11597,7 +11815,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-sweet-t2-01",
@@ -11637,7 +11856,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-02",
@@ -11677,7 +11897,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-03",
@@ -11725,7 +11946,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-04",
@@ -11767,7 +11989,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-05",
@@ -11820,7 +12043,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-06",
@@ -11876,7 +12100,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-07",
@@ -11932,7 +12157,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-08",
@@ -11985,7 +12211,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-09",
@@ -12033,7 +12260,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-10",
@@ -12086,7 +12314,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "food-sweet-t3-01",
@@ -12131,7 +12360,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-02",
@@ -12176,7 +12406,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-03",
@@ -12226,7 +12457,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-04",
@@ -12276,7 +12508,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-05",
@@ -12326,7 +12559,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-06",
@@ -12376,7 +12610,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-07",
@@ -12426,7 +12661,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "food-sweet-t4-01",
@@ -12483,7 +12719,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-sweet-t4-02",
@@ -12540,7 +12777,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-sweet-t4-03",
@@ -12597,7 +12835,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-sweet-t4-04",
@@ -12649,7 +12888,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "food-pantry-t1-01",
@@ -12692,7 +12932,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-02",
@@ -12735,7 +12976,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-03",
@@ -12778,7 +13020,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-04",
@@ -12821,7 +13064,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-05",
@@ -12864,7 +13108,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-06",
@@ -12907,7 +13152,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-07",
@@ -12939,7 +13185,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-08",
@@ -12979,7 +13226,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-09",
@@ -13011,7 +13259,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-10",
@@ -13043,7 +13292,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "_RECIPES-2",

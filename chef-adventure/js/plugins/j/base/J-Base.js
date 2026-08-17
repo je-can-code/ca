@@ -15418,12 +15418,24 @@ var Window_FilterableList = class extends Window_Command {
 		* The key of the tab currently selected.
 		* @type {string}
 		*/
-		this._filterKey = FilterCycle.ALL;
+		this._filterKey = this.initialFilterKey();
 		/**
 		* Whether rows the player cannot act on are hidden.
 		* @type {boolean}
 		*/
 		this._actionableOnly = false;
+	}
+	/**
+	* The tab a freshly built list starts on, before any scene has pointed it anywhere.
+	*
+	* {@link FilterCycle.ALL} suits a list that holds everything and narrows it, because showing everything
+	* is the honest answer to "no tab chosen yet". A list whose source is a keyed query wants the opposite
+	* and should override this: asking its provider for the everything-sentinel would be asking for a
+	* category that does not exist.
+	* @returns {string}
+	*/
+	initialFilterKey() {
+		return FilterCycle.ALL;
 	}
 	/**
 	* The key of the tab currently selected.
