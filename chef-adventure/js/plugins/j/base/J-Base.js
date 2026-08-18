@@ -15000,11 +15000,13 @@ Window_Command.prototype.drawItem = function(index) {
 	let commandNameY = rectY;
 	const hasSubtexts = subtexts.length > 0 && isSubtext;
 	const hasMultilineText = extraLines.length > 0 && !isSubtext;
+	const subtextLift = subtexts.length * this.subtextLineHeight() / 2;
+	const multilineLift = extraLines.length * this.multilineLineHeight() / 2;
 	if (hasSubtexts) {
 		commandName = this.boldenText(commandName);
-		commandNameY -= this.subtextLineHeight();
+		commandNameY -= subtextLift;
 	} else if (hasMultilineText) {
-		commandNameY -= this.multilineLineHeight();
+		commandNameY -= multilineLift;
 	}
 	const [faceName, faceIndex] = this.commandFaceData(index);
 	const hasFaceData = faceName !== String.empty && faceIndex > -1 && faceIndex < 8;
@@ -15026,7 +15028,7 @@ Window_Command.prototype.drawItem = function(index) {
 		let rightTextY = rectY;
 		if (hasSubtexts) {
 			this.toggleBold(true);
-			rightTextY -= this.subtextLineHeight();
+			rightTextY -= subtextLift;
 		}
 		this.processColorChange(this.commandRightColorIndex(index));
 		this.drawText(rightText, rightTextX, rightTextY, textWidth, "right");
@@ -15035,20 +15037,17 @@ Window_Command.prototype.drawItem = function(index) {
 	if (hasSubtexts) {
 		subtexts.forEach((subtext, subtextIndex) => {
 			const realSubtextIndex = subtextIndex + 0;
-			const subtextX = rectX + 32;
-			const subtextY = rectY + realSubtextIndex * this.subtextLineHeight() + 2;
+			const subtextX = commandNameX;
+			const subtextY = rectY - subtextLift + (realSubtextIndex + 1) * this.subtextLineHeight() + 2;
 			const italicsSubtext = this.italicizeText(subtext);
 			const sizedSubtext = this.modFontSizeForText(-4, italicsSubtext);
 			this.drawTextEx(sizedSubtext, subtextX, subtextY, rectWidth);
 		}, this);
 	} else if (hasMultilineText) {
-		let extraLineX = !commandIcon && !hasFaceData ? rectX + 4 : rectX + 32;
-		if (hasFaceData) {
-			extraLineX += 44;
-		}
+		const extraLineX = commandNameX;
 		extraLines.forEach((extraLine, extraLineIndex) => {
 			const actualIndex = extraLineIndex + 0;
-			const extraLineY = rectY + actualIndex * this.multilineLineHeight() + 2;
+			const extraLineY = rectY - multilineLift + (actualIndex + 1) * this.multilineLineHeight() + 2;
 			this.drawTextEx(extraLine, extraLineX, extraLineY, rectWidth);
 		}, this);
 	}
@@ -15539,6 +15538,30 @@ var Window_FilterableList = class extends Window_Command {
 	*/
 	buildCommand(_item) {
 		throw new Error("A Window_FilterableList must implement buildCommand.");
+	}
+	/**
+	* What to say when the list has nothing in it, since an empty frame reads as one that failed to draw.
+	* Answer {@link String.empty} to stay silent.
+	* @returns {string}
+	*/
+	emptyListText() {
+		return "Nothing here.";
+	}
+	/**
+	* Overwrites {@link Window_Selectable.drawAllItems}.<br/>
+	* Explains an empty list rather than presenting a blank frame.
+	* @override
+	*/
+	drawAllItems() {
+		if (this.maxItems() > 0) {
+			Window_Command.prototype.drawAllItems.call(this);
+			return;
+		}
+		const message = this.emptyListText();
+		if (message === String.empty) return;
+		this.resetFontSettings();
+		this.changeTextColor(ColorManager.systemColor());
+		this.drawText(message, 0, 0, this.innerWidth, Window_Base.TextAlignments.Center);
 	}
 };
 
