@@ -460,6 +460,7 @@ J.PROF.Aliased = {
 	Game_Battler: new Map(),
 	Game_Enemy: new Map(),
 	Game_System: new Map(),
+	JABS_Battler: new Map(),
 	IconManager: new Map(),
 	Scene_Boot: new Map(),
 	TextManager: new Map()
@@ -986,7 +987,9 @@ if (J.ABS) {
 	Game_Action.prototype.gainProficiencyFromGuarding = function(jabsBattler) {
 		if (!this.canGainProficiencyFromGuarding(jabsBattler)) return;
 		const skillId = jabsBattler.getGuardSkillId();
-		jabsBattler.getBattler().increaseSkillProficiency(skillId, 1);
+		const battler = jabsBattler.getBattler();
+		const amount = battler.skillProficiencyAmount();
+		battler.increaseSkillProficiency(skillId, amount);
 	};
 	/**
 	* Determines whether or not this battle can gain proficiency for the guard skill.
@@ -1021,6 +1024,47 @@ Game_System.prototype.updateProficienciesFromPluginMetadata = function() {
 		J.PROF.Metadata.actorConditionalsMap.set(actorId, actorConditionals);
 	});
 };
+
+//#endregion
+//#region src/plugins/prof/core/objects/JABS_Battler.js
+/**
+* Extends {@link JABS_Battler.onDodge}.<br/>
+* Also gains proficiency for the dodge skill that was executed.
+*
+* Dodging cannot earn proficiency through the ordinary path the way an attack does. That path hangs off
+* {@link Game_Action.apply} and requires the target to have been hit, but a dodge skill targets the user
+* with no damage and no effects- so RMMZ's own `testApply` answers false, the result is never marked
+* used, and there is nothing for the proficiency check to see. Crediting it here is the only way a
+* dodge counts for anything.
+*/
+if (J.ABS) {
+	J.PROF.Aliased.JABS_Battler.set("onDodge", JABS_Battler.prototype.onDodge);
+	JABS_Battler.prototype.onDodge = function(skill) {
+		J.PROF.Aliased.JABS_Battler.get("onDodge").call(this, skill);
+		this.gainProficiencyFromDodging(skill);
+	};
+	/**
+	* Gains proficiency when dodging.
+	* @param {RPG_Skill} skill The dodge skill that was executed.
+	*/
+	JABS_Battler.prototype.gainProficiencyFromDodging = function(skill) {
+		if (!this.canGainProficiencyFromDodging(skill)) return;
+		const battler = this.getBattler();
+		const amount = battler.skillProficiencyAmount();
+		battler.increaseSkillProficiency(skill.id, amount);
+	};
+	/**
+	* Determines whether this battler can gain proficiency for the dodge skill.
+	* @param {RPG_Skill} skill The dodge skill that was executed.
+	* @returns {boolean} True if we can gain proficiency, false otherwise.
+	*/
+	JABS_Battler.prototype.canGainProficiencyFromDodging = function(skill) {
+		if (!skill) return false;
+		const canGainProficiency = this.getBattler().canGainProficiency();
+		if (!canGainProficiency) return false;
+		return true;
+	};
+}
 
 //#endregion
 //#region src/plugins/prof/core/managers/TextManager.js

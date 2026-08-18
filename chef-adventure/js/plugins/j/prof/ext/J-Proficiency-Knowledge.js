@@ -429,7 +429,8 @@ var J_KnowledgePluginMetadata = class extends PluginMetadata {
 	*/
 	exchangeByKey(exchangeKey) {
 		if (this.exchangesMap.has(exchangeKey) === false) {
-			throw new Error(`there is no knowledge exchange with the key of '${exchangeKey}'.`);
+			const known = [...this.exchangesMap.keys()].join(", ");
+			throw new Error(`there is no knowledge exchange with the key of '${exchangeKey}'. known exchanges: ${known}.`);
 		}
 		return this.exchangesMap.get(exchangeKey);
 	}

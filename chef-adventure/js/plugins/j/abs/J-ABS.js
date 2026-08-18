@@ -14903,7 +14903,18 @@ var JABS_Battler = class JABS_Battler {
 		actions.forEach((a) => a.setCooldownType(JABS_Button.Dodge));
 		$jabsEngine.executeMapActions(this, actions);
 		this.setDodging(true);
+		this.onDodge(skill);
 	}
+	/**
+	* A hook to perform all side effects of executing a dodge skill.
+	*
+	* Dodging needs a hook of its own because it is initiated rather than reacted to- parry and guard
+	* both happen inside an incoming action, which is why their hooks hang off {@link Game_Action}, and
+	* a dodge has no such action to hang from. Extensions alias this to add telemetry, resource gain,
+	* or other behavior.
+	* @param {RPG_Skill} _skill The dodge skill that was executed.
+	*/
+	onDodge(_skill) {}
 	/**
 	* AI-only: spends dodge toward open tile away from an opposing battler when interrupt logic demands it.
 	* @param {JABS_Battler} threatBattler The hostile pressure source.
