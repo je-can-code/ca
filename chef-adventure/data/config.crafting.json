@@ -13397,7 +13397,8 @@
           "type": "i",
           "count": 2
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "ingot-02",
@@ -13429,7 +13430,8 @@
           "type": "i",
           "count": 2
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "ingot-03",
@@ -13461,7 +13463,8 @@
           "type": "i",
           "count": 2
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "ingot-04",
@@ -13493,7 +13496,8 @@
           "type": "i",
           "count": 2
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "ingot-05",
@@ -13525,7 +13529,8 @@
           "type": "i",
           "count": 2
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "ingot-06",
@@ -13557,7 +13562,8 @@
           "type": "i",
           "count": 2
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "ingot-07",
@@ -13589,7 +13595,8 @@
           "type": "i",
           "count": 2
         }
-      ]
+      ],
+      "tier": 7
     },
     {
       "key": "ingot-08",
@@ -13621,7 +13628,8 @@
           "type": "i",
           "count": 2
         }
-      ]
+      ],
+      "tier": 8
     },
     {
       "key": "__PAPER",
@@ -13665,7 +13673,8 @@
           "type": "i",
           "count": 5
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "paper-02",
@@ -13697,7 +13706,8 @@
           "type": "i",
           "count": 5
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "paper-03",
@@ -13729,7 +13739,8 @@
           "type": "i",
           "count": 5
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "paper-04",
@@ -13761,7 +13772,8 @@
           "type": "i",
           "count": 5
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "paper-05",
@@ -13793,7 +13805,8 @@
           "type": "i",
           "count": 5
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "paper-06",
@@ -13825,7 +13838,8 @@
           "type": "i",
           "count": 5
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "__CIRCUITS",
@@ -13879,7 +13893,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "circuit-02",
@@ -13921,7 +13936,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "circuit-03",
@@ -13968,7 +13984,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "circuit-04",
@@ -14020,7 +14037,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "circuit-05",
@@ -14077,7 +14095,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "circuit-06",
@@ -14129,7 +14148,8 @@
           "type": "i",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "__WEAPONS",
@@ -14144,7 +14164,7 @@
       "outputs": []
     },
     {
-      "key": "w-sword-1",
+      "key": "w-blade-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14173,10 +14193,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-sword-2",
+      "key": "w-blade-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14210,62 +14231,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-sword-3",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-blade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 2,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 5
-        },
-        {
-          "id": 23,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 3,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-sword-4",
+      "key": "w-blade-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14305,14 +14275,15 @@
       ],
       "outputs": [
         {
-          "id": 4,
+          "id": 3,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-sword-6",
+      "key": "w-blade-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14340,7 +14311,7 @@
       ],
       "ingredients": [
         {
-          "id": 4,
+          "id": 3,
           "type": "w",
           "count": 1
         },
@@ -14362,14 +14333,15 @@
       ],
       "outputs": [
         {
-          "id": 5,
+          "id": 4,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-sword-7",
+      "key": "w-blade-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14385,38 +14357,39 @@
           "count": 1
         },
         {
-          "id": 116,
+          "id": 113,
           "type": "i",
           "count": 1
         }
       ],
       "ingredients": [
         {
-          "id": 3,
+          "id": 4,
           "type": "w",
           "count": 1
         },
         {
-          "id": 37,
+          "id": 43,
           "type": "i",
           "count": 10
         },
         {
-          "id": 24,
+          "id": 28,
           "type": "i",
           "count": 10
         }
       ],
       "outputs": [
         {
-          "id": 6,
+          "id": 5,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-sword-9",
+      "key": "w-blade-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14446,71 +14419,25 @@
         {
           "id": 43,
           "type": "i",
-          "count": 10
+          "count": 15
         },
         {
           "id": 28,
           "type": "i",
-          "count": 10
+          "count": 15
         }
       ],
       "outputs": [
-        {
-          "id": 7,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-sword-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-blade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
         {
           "id": 6,
           "type": "w",
           "count": 1
-        },
-        {
-          "id": 45,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 25,
-          "type": "i",
-          "count": 10
         }
       ],
-      "outputs": [
-        {
-          "id": 8,
-          "type": "w",
-          "count": 1
-        }
-      ]
+      "tier": 6
     },
     {
-      "key": "w-greatsword-2",
+      "key": "w-claymore-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14544,10 +14471,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-greatsword-4",
+      "key": "w-claymore-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14591,72 +14519,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-greatsword-5",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-blade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 11,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 15
-        },
-        {
-          "id": 20,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 21,
-          "type": "i",
-          "count": 5
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 13,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-greatsword-6",
+      "key": "w-claymore-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14706,14 +14573,15 @@
       ],
       "outputs": [
         {
-          "id": 14,
+          "id": 13,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-greatsword-8",
+      "key": "w-claymore-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14729,7 +14597,7 @@
           "count": 1
         },
         {
-          "id": 116,
+          "id": 113,
           "type": "i",
           "count": 1
         }
@@ -14741,26 +14609,27 @@
           "count": 1
         },
         {
-          "id": 41,
+          "id": 43,
           "type": "i",
           "count": 15
         },
         {
-          "id": 21,
+          "id": 19,
           "type": "i",
           "count": 10
         }
       ],
       "outputs": [
         {
-          "id": 15,
+          "id": 14,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-greatsword-9",
+      "key": "w-claymore-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14790,24 +14659,25 @@
         {
           "id": 43,
           "type": "i",
-          "count": 15
+          "count": 23
         },
         {
           "id": 19,
           "type": "i",
-          "count": 10
+          "count": 15
         }
       ],
       "outputs": [
         {
-          "id": 16,
+          "id": 15,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-greatsword-10",
+      "key": "w-claymore-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14835,26 +14705,27 @@
           "count": 1
         },
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
-          "count": 15
+          "count": 30
         },
         {
-          "id": 22,
+          "id": 19,
           "type": "i",
-          "count": 10
+          "count": 20
         }
       ],
       "outputs": [
         {
-          "id": 17,
+          "id": 16,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-dualsword-2",
+      "key": "w-edge-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14893,57 +14764,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-dualsword-3a",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-blade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 31,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 22,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-dualsword-3b",
+      "key": "w-edge-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14978,103 +14803,15 @@
       ],
       "outputs": [
         {
-          "id": 23,
+          "id": 22,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-dualsword-4",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-blade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 33,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 37,
-          "type": "i",
-          "count": 5
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 24,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-dualsword-6",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-blade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 24,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 36,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 37,
-          "type": "i",
-          "count": 5
-        }
-      ],
-      "outputs": [
-        {
-          "id": 25,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-dualsword-7",
+      "key": "w-edge-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15109,14 +14846,58 @@
       ],
       "outputs": [
         {
-          "id": 26,
+          "id": 23,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-dualsword-8",
+      "key": "w-edge-04",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 21,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 38,
+          "type": "i",
+          "count": 20
+        },
+        {
+          "id": 39,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "outputs": [
+        {
+          "id": 24,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 4
+    },
+    {
+      "key": "w-edge-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15141,108 +14922,25 @@
         {
           "id": 38,
           "type": "i",
-          "count": 20
+          "count": 30
         },
         {
           "id": 39,
           "type": "i",
-          "count": 5
+          "count": 10
         }
       ],
       "outputs": [
-        {
-          "id": 27,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-dualsword-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-blade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 21,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 38,
-          "type": "i",
-          "count": 20
-        },
-        {
-          "id": 39,
-          "type": "i",
-          "count": 5
-        }
-      ],
-      "outputs": [
-        {
-          "id": 28,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-dualsword-10a",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-blade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
         {
           "id": 25,
           "type": "w",
           "count": 1
-        },
-        {
-          "id": 38,
-          "type": "i",
-          "count": 20
-        },
-        {
-          "id": 39,
-          "type": "i",
-          "count": 5
         }
       ],
-      "outputs": [
-        {
-          "id": 29,
-          "type": "w",
-          "count": 1
-        }
-      ]
+      "tier": 5
     },
     {
-      "key": "w-dualsword-10b",
+      "key": "w-edge-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15260,521 +14958,353 @@
       ],
       "ingredients": [
         {
-          "id": 26,
+          "id": 24,
           "type": "w",
           "count": 1
         },
         {
           "id": 38,
           "type": "i",
-          "count": 20
+          "count": 30
         },
         {
           "id": 39,
           "type": "i",
-          "count": 5
-        }
-      ],
-      "outputs": [
-        {
-          "id": 30,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-spear-1",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 371,
-          "type": "a",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 31,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-spear-2",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 31,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 30,
-          "type": "i",
-          "count": 2
-        },
-        {
-          "id": 371,
-          "type": "a",
-          "count": 2
-        }
-      ],
-      "outputs": [
-        {
-          "id": 32,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-spear-3",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 32,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 31,
-          "type": "i",
-          "count": 5
-        },
-        {
-          "id": 372,
-          "type": "a",
-          "count": 2
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 33,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-spear-5",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 32,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 2
-        },
-        {
-          "id": 372,
-          "type": "a",
-          "count": 2
-        }
-      ],
-      "outputs": [
-        {
-          "id": 34,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-spear-6",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 33,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 5
-        },
-        {
-          "id": 373,
-          "type": "a",
-          "count": 15
-        }
-      ],
-      "outputs": [
-        {
-          "id": 35,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-spear-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 34,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 5
-        },
-        {
-          "id": 373,
-          "type": "a",
-          "count": 15
-        }
-      ],
-      "outputs": [
-        {
-          "id": 36,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-spear-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 36,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 5
-        },
-        {
-          "id": 373,
-          "type": "a",
-          "count": 15
-        }
-      ],
-      "outputs": [
-        {
-          "id": 37,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-spear-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 35,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 5
-        },
-        {
-          "id": 373,
-          "type": "a",
-          "count": 15
-        }
-      ],
-      "outputs": [
-        {
-          "id": 38,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-basher-2",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 31,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 30,
-          "type": "i",
-          "count": 2
-        },
-        {
-          "id": 47,
-          "type": "i",
-          "count": 2
-        }
-      ],
-      "outputs": [
-        {
-          "id": 41,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-basher-4",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 41,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 30,
-          "type": "i",
-          "count": 2
-        },
-        {
-          "id": 47,
-          "type": "i",
-          "count": 2
-        },
-        {
-          "id": 20,
-          "type": "i",
           "count": 10
-        },
+        }
+      ],
+      "outputs": [
         {
-          "id": 21,
-          "type": "i",
-          "count": 5
-        },
+          "id": 26,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 6
+    },
+    {
+      "key": "w-spear-01",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
         {
-          "id": 46,
+          "id": 112,
           "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 371,
+          "type": "a",
           "count": 1
         }
       ],
       "outputs": [
         {
-          "id": 42,
+          "id": 31,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-basher-5",
+      "key": "w-spear-02",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 31,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 371,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 32,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "w-spear-03",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 32,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 372,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 33,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "w-spear-04",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 33,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 373,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "outputs": [
+        {
+          "id": 34,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 4
+    },
+    {
+      "key": "w-spear-05",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 34,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 373,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "outputs": [
+        {
+          "id": 35,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 5
+    },
+    {
+      "key": "w-spear-06",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 35,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 373,
+          "type": "a",
+          "count": 23
+        }
+      ],
+      "outputs": [
+        {
+          "id": 36,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 6
+    },
+    {
+      "key": "w-warstaff-01",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 31,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 41,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "w-warstaff-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15814,61 +15344,15 @@
       ],
       "outputs": [
         {
-          "id": 43,
+          "id": 42,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-basher-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 43,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 34,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 51,
-          "type": "i",
-          "count": 5
-        }
-      ],
-      "outputs": [
-        {
-          "id": 44,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-basher-8",
+      "key": "w-warstaff-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15908,14 +15392,63 @@
       ],
       "outputs": [
         {
-          "id": 45,
+          "id": 43,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-basher-9",
+      "key": "w-warstaff-04",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 43,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 34,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 51,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "outputs": [
+        {
+          "id": 44,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 4
+    },
+    {
+      "key": "w-warstaff-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15945,24 +15478,25 @@
         {
           "id": 34,
           "type": "i",
-          "count": 10
+          "count": 15
         },
         {
           "id": 51,
           "type": "i",
-          "count": 5
+          "count": 8
         }
       ],
       "outputs": [
         {
-          "id": 46,
+          "id": 45,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-basher-10",
+      "key": "w-warstaff-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15992,24 +15526,25 @@
         {
           "id": 34,
           "type": "i",
-          "count": 10
+          "count": 20
         },
         {
           "id": 51,
           "type": "i",
-          "count": 5
+          "count": 10
         }
       ],
       "outputs": [
         {
-          "id": 47,
+          "id": 46,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-javelin-2",
+      "key": "w-javelin-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16048,62 +15583,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-javelin-3",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 51,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 346,
-          "type": "a",
-          "count": 1
-        },
-        {
-          "id": 47,
-          "type": "i",
-          "count": 2
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 52,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-javelin-5",
+      "key": "w-javelin-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16138,14 +15622,58 @@
       ],
       "outputs": [
         {
+          "id": 52,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "w-javelin-03",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 52,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 51,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 348,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "outputs": [
+        {
           "id": 53,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-javelin-6",
+      "key": "w-javelin-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16184,10 +15712,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-javelin-7",
+      "key": "w-javelin-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16205,19 +15734,19 @@
       ],
       "ingredients": [
         {
-          "id": 52,
+          "id": 54,
           "type": "w",
           "count": 1
         },
         {
           "id": 51,
           "type": "i",
-          "count": 4
+          "count": 6
         },
         {
           "id": 348,
           "type": "a",
-          "count": 15
+          "count": 23
         }
       ],
       "outputs": [
@@ -16226,10 +15755,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-javelin-9",
+      "key": "w-javelin-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16247,19 +15777,19 @@
       ],
       "ingredients": [
         {
-          "id": 54,
+          "id": 55,
           "type": "w",
           "count": 1
         },
         {
           "id": 51,
           "type": "i",
-          "count": 4
+          "count": 8
         },
         {
           "id": 348,
           "type": "a",
-          "count": 15
+          "count": 30
         }
       ],
       "outputs": [
@@ -16268,52 +15798,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-javelin-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-spear"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 55,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 51,
-          "type": "i",
-          "count": 4
-        },
-        {
-          "id": 348,
-          "type": "a",
-          "count": 15
-        }
-      ],
-      "outputs": [
-        {
-          "id": 57,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-pistol-1",
+      "key": "w-handgun-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16352,10 +15841,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-pistol-2",
+      "key": "w-handgun-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16409,77 +15899,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-pistol-4",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-gun"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 62,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 30,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 47,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 306,
-          "type": "a",
-          "count": 2
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 63,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-pistol-5",
+      "key": "w-handgun-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16519,14 +15943,15 @@
       ],
       "outputs": [
         {
-          "id": 64,
+          "id": 63,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-pistol-7",
+      "key": "w-handgun-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16566,14 +15991,15 @@
       ],
       "outputs": [
         {
-          "id": 65,
+          "id": 64,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-pistol-8",
+      "key": "w-handgun-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16613,61 +16039,15 @@
       ],
       "outputs": [
         {
-          "id": 66,
+          "id": 65,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-pistol-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-gun"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 66,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 4
-        },
-        {
-          "id": 307,
-          "type": "a",
-          "count": 6
-        }
-      ],
-      "outputs": [
-        {
-          "id": 67,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-pistol-10",
+      "key": "w-handgun-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16697,24 +16077,25 @@
         {
           "id": 32,
           "type": "i",
-          "count": 4
+          "count": 6
         },
         {
           "id": 307,
           "type": "a",
-          "count": 6
+          "count": 9
         }
       ],
       "outputs": [
         {
-          "id": 68,
+          "id": 66,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-taser-2",
+      "key": "w-taser-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16758,10 +16139,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-taser-3",
+      "key": "w-taser-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16778,11 +16160,6 @@
         },
         {
           "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1
         }
@@ -16802,11 +16179,6 @@
           "id": 377,
           "type": "a",
           "count": 4
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
         }
       ],
       "outputs": [
@@ -16815,10 +16187,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-taser-4",
+      "key": "w-taser-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16841,7 +16214,7 @@
       ],
       "ingredients": [
         {
-          "id": 71,
+          "id": 72,
           "type": "w",
           "count": 1
         },
@@ -16862,10 +16235,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-taser-6",
+      "key": "w-taser-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16909,10 +16283,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-taser-7",
+      "key": "w-taser-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16935,19 +16310,19 @@
       ],
       "ingredients": [
         {
-          "id": 72,
+          "id": 74,
           "type": "w",
           "count": 1
         },
         {
           "id": 32,
           "type": "i",
-          "count": 10
+          "count": 15
         },
         {
           "id": 377,
           "type": "a",
-          "count": 4
+          "count": 6
         }
       ],
       "outputs": [
@@ -16956,10 +16331,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-taser-9",
+      "key": "w-taser-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16982,19 +16358,19 @@
       ],
       "ingredients": [
         {
-          "id": 74,
+          "id": 75,
           "type": "w",
           "count": 1
         },
         {
           "id": 32,
           "type": "i",
-          "count": 10
+          "count": 20
         },
         {
           "id": 377,
           "type": "a",
-          "count": 4
+          "count": 8
         }
       ],
       "outputs": [
@@ -17003,57 +16379,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-taser-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-gun"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 75,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 377,
-          "type": "a",
-          "count": 4
-        }
-      ],
-      "outputs": [
-        {
-          "id": 77,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-shotgun-2",
+      "key": "w-boomstick-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17097,10 +16427,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-shotgun-3",
+      "key": "w-boomstick-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17119,22 +16450,12 @@
           "id": 112,
           "type": "i",
           "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
         }
       ],
       "ingredients": [
         {
           "id": 81,
           "type": "w",
-          "count": 1
-        },
-        {
-          "id": 46,
-          "type": "i",
           "count": 1
         },
         {
@@ -17146,11 +16467,6 @@
           "id": 49,
           "type": "i",
           "count": 6
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
         }
       ],
       "outputs": [
@@ -17159,10 +16475,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-shotgun-4",
+      "key": "w-boomstick-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17185,7 +16502,7 @@
       ],
       "ingredients": [
         {
-          "id": 81,
+          "id": 82,
           "type": "w",
           "count": 1
         },
@@ -17206,10 +16523,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-shotgun-6",
+      "key": "w-boomstick-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17253,10 +16571,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-shotgun-8",
+      "key": "w-boomstick-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17279,19 +16598,19 @@
       ],
       "ingredients": [
         {
-          "id": 82,
+          "id": 84,
           "type": "w",
           "count": 1
         },
         {
           "id": 32,
           "type": "i",
-          "count": 6
+          "count": 9
         },
         {
           "id": 49,
           "type": "i",
-          "count": 6
+          "count": 9
         }
       ],
       "outputs": [
@@ -17300,10 +16619,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-shotgun-9",
+      "key": "w-boomstick-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17326,19 +16646,19 @@
       ],
       "ingredients": [
         {
-          "id": 84,
+          "id": 85,
           "type": "w",
           "count": 1
         },
         {
           "id": 32,
           "type": "i",
-          "count": 6
+          "count": 12
         },
         {
           "id": 49,
           "type": "i",
-          "count": 6
+          "count": 12
         }
       ],
       "outputs": [
@@ -17347,57 +16667,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-shotgun-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-gun"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 85,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 6
-        },
-        {
-          "id": 49,
-          "type": "i",
-          "count": 6
-        }
-      ],
-      "outputs": [
-        {
-          "id": 87,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-hatchet-1",
+      "key": "w-hatchet-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17426,10 +16700,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-hatchet-2",
+      "key": "w-hatchet-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17463,57 +16738,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-hatchet-3",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-axe"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 91,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 5
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 93,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-hatchet-5",
+      "key": "w-hatchet-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17543,14 +16772,15 @@
       ],
       "outputs": [
         {
-          "id": 94,
+          "id": 93,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-hatchet-6",
+      "key": "w-hatchet-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17580,14 +16810,15 @@
       ],
       "outputs": [
         {
-          "id": 95,
+          "id": 94,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-hatchet-7",
+      "key": "w-hatchet-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17617,51 +16848,15 @@
       ],
       "outputs": [
         {
-          "id": 96,
+          "id": 95,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-hatchet-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-axe"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 96,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 5
-        }
-      ],
-      "outputs": [
-        {
-          "id": 97,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-hatchet-10",
+      "key": "w-hatchet-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17686,19 +16881,20 @@
         {
           "id": 32,
           "type": "i",
-          "count": 5
+          "count": 8
         }
       ],
       "outputs": [
         {
-          "id": 98,
+          "id": 96,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-battleaxe-2",
+      "key": "w-glaive-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17732,57 +16928,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-battleaxe-4",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-axe"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 101,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 30,
-          "type": "i",
-          "count": 4
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 102,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-battleaxe-5",
+      "key": "w-glaive-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17812,14 +16962,15 @@
       ],
       "outputs": [
         {
-          "id": 103,
+          "id": 102,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-battleaxe-7",
+      "key": "w-glaive-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17838,6 +16989,44 @@
       "ingredients": [
         {
           "id": 102,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 8
+        }
+      ],
+      "outputs": [
+        {
+          "id": 103,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "w-glaive-04",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 103,
           "type": "w",
           "count": 1
         },
@@ -17853,10 +17042,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-battleaxe-8",
+      "key": "w-glaive-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17874,14 +17064,14 @@
       ],
       "ingredients": [
         {
-          "id": 103,
+          "id": 104,
           "type": "w",
           "count": 1
         },
         {
           "id": 32,
           "type": "i",
-          "count": 8
+          "count": 12
         }
       ],
       "outputs": [
@@ -17890,10 +17080,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-battleaxe-9",
+      "key": "w-glaive-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -17918,7 +17109,7 @@
         {
           "id": 32,
           "type": "i",
-          "count": 8
+          "count": 16
         }
       ],
       "outputs": [
@@ -17927,47 +17118,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-battleaxe-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-axe"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 104,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 8
-        }
-      ],
-      "outputs": [
-        {
-          "id": 107,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-twinaxe-2",
+      "key": "w-breaker-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18011,72 +17166,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-twinaxe-3",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-axe"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 111,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 6
-        },
-        {
-          "id": 49,
-          "type": "i",
-          "count": 6
-        },
-        {
-          "id": 358,
-          "type": "a",
-          "count": 4
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 112,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-twinaxe-4",
+      "key": "w-breaker-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18121,14 +17215,68 @@
       ],
       "outputs": [
         {
+          "id": 112,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "w-breaker-03",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 112,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 358,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
           "id": 113,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-twinaxe-6",
+      "key": "w-breaker-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18177,10 +17325,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-twinaxe-7",
+      "key": "w-breaker-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18203,24 +17352,24 @@
       ],
       "ingredients": [
         {
-          "id": 112,
+          "id": 114,
           "type": "w",
           "count": 1
         },
         {
           "id": 32,
           "type": "i",
-          "count": 6
+          "count": 9
         },
         {
           "id": 49,
           "type": "i",
-          "count": 6
+          "count": 9
         },
         {
           "id": 358,
           "type": "a",
-          "count": 4
+          "count": 6
         }
       ],
       "outputs": [
@@ -18229,10 +17378,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-twinaxe-9",
+      "key": "w-breaker-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18255,24 +17405,24 @@
       ],
       "ingredients": [
         {
-          "id": 114,
+          "id": 115,
           "type": "w",
           "count": 1
         },
         {
           "id": 32,
           "type": "i",
-          "count": 6
+          "count": 12
         },
         {
           "id": 49,
           "type": "i",
-          "count": 6
+          "count": 12
         },
         {
           "id": 358,
           "type": "a",
-          "count": 4
+          "count": 8
         }
       ],
       "outputs": [
@@ -18281,62 +17431,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-twinaxe-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-axe"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 115,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 6
-        },
-        {
-          "id": 49,
-          "type": "i",
-          "count": 6
-        },
-        {
-          "id": 358,
-          "type": "a",
-          "count": 4
-        }
-      ],
-      "outputs": [
-        {
-          "id": 117,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-staff-1",
+      "key": "w-cane-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18365,10 +17464,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-staff-2",
+      "key": "w-cane-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18402,62 +17502,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-staff-3",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-wand"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 122,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 49,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 322,
-          "type": "a",
-          "count": 7
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 123,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-staff-5",
+      "key": "w-cane-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18492,14 +17541,15 @@
       ],
       "outputs": [
         {
-          "id": 124,
+          "id": 123,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-staff-6",
+      "key": "w-cane-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18534,14 +17584,15 @@
       ],
       "outputs": [
         {
-          "id": 125,
+          "id": 124,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-staff-7",
+      "key": "w-cane-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18576,56 +17627,15 @@
       ],
       "outputs": [
         {
-          "id": 126,
+          "id": 125,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-staff-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-wand"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 126,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 49,
-          "type": "i",
-          "count": 10
-        },
-        {
-          "id": 322,
-          "type": "a",
-          "count": 7
-        }
-      ],
-      "outputs": [
-        {
-          "id": 127,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-staff-10",
+      "key": "w-cane-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18650,24 +17660,25 @@
         {
           "id": 49,
           "type": "i",
-          "count": 10
+          "count": 15
         },
         {
           "id": 322,
           "type": "a",
-          "count": 7
+          "count": 11
         }
       ],
       "outputs": [
         {
-          "id": 128,
+          "id": 126,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-wand-2",
+      "key": "w-rod-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18701,10 +17712,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-wand-3",
+      "key": "w-rod-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18738,10 +17750,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-wand-4",
+      "key": "w-rod-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18753,11 +17766,6 @@
       "tools": [
         {
           "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1
         }
@@ -18772,11 +17780,6 @@
           "id": 372,
           "type": "a",
           "count": 6
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
         }
       ],
       "outputs": [
@@ -18785,10 +17788,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-wand-6",
+      "key": "w-rod-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18822,10 +17826,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-wand-7",
+      "key": "w-rod-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18843,14 +17848,14 @@
       ],
       "ingredients": [
         {
-          "id": 132,
+          "id": 134,
           "type": "w",
           "count": 1
         },
         {
           "id": 372,
           "type": "a",
-          "count": 6
+          "count": 9
         }
       ],
       "outputs": [
@@ -18859,10 +17864,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-wand-9",
+      "key": "w-rod-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18887,7 +17893,7 @@
         {
           "id": 372,
           "type": "a",
-          "count": 6
+          "count": 12
         }
       ],
       "outputs": [
@@ -18896,47 +17902,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-wand-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-wand"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 134,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 372,
-          "type": "a",
-          "count": 6
-        }
-      ],
-      "outputs": [
-        {
-          "id": 137,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-tome-2",
+      "key": "w-tome-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18980,67 +17950,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-tome-3",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-wand"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 114,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 141,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 48,
-          "type": "i",
-          "count": 2
-        },
-        {
-          "id": 396,
-          "type": "a",
-          "count": 4
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 142,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-tome-4",
+      "key": "w-tome-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19080,14 +17994,15 @@
       ],
       "outputs": [
         {
-          "id": 143,
+          "id": 142,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-tome-7",
+      "key": "w-tome-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19111,6 +18026,54 @@
       "ingredients": [
         {
           "id": 142,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 50,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 397,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "outputs": [
+        {
+          "id": 143,
+          "type": "w",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "w-tome-04",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 143,
           "type": "w",
           "count": 1
         },
@@ -19131,10 +18094,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-tome-8",
+      "key": "w-tome-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19157,19 +18121,19 @@
       ],
       "ingredients": [
         {
-          "id": 143,
+          "id": 144,
           "type": "w",
           "count": 1
         },
         {
           "id": 50,
           "type": "i",
-          "count": 6
+          "count": 9
         },
         {
           "id": 397,
           "type": "a",
-          "count": 8
+          "count": 12
         }
       ],
       "outputs": [
@@ -19178,10 +18142,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-tome-9",
+      "key": "w-tome-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19211,12 +18176,12 @@
         {
           "id": 50,
           "type": "i",
-          "count": 6
+          "count": 12
         },
         {
           "id": 397,
           "type": "a",
-          "count": 8
+          "count": 16
         }
       ],
       "outputs": [
@@ -19225,57 +18190,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-tome-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-wand"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 114,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 144,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 50,
-          "type": "i",
-          "count": 6
-        },
-        {
-          "id": 397,
-          "type": "a",
-          "count": 8
-        }
-      ],
-      "outputs": [
-        {
-          "id": 147,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-fist-1",
+      "key": "w-gloves-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19298,10 +18217,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-fist-2",
+      "key": "w-gloves-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19329,56 +18249,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-fist-3",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-fist"
-      ],
-      "tools": [],
-      "ingredients": [
-        {
-          "id": 152,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 387,
-          "type": "a",
-          "count": 10
-        },
-        {
-          "id": 402,
-          "type": "a",
-          "count": 4
-        },
-        {
-          "id": 20,
-          "type": "i",
-          "count": 6
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "outputs": [
-        {
-          "id": 153,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-fist-5",
+      "key": "w-gloves-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19412,14 +18287,15 @@
       ],
       "outputs": [
         {
-          "id": 154,
+          "id": 153,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-fist-6",
+      "key": "w-gloves-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19453,14 +18329,15 @@
       ],
       "outputs": [
         {
-          "id": 155,
+          "id": 154,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-fist-7",
+      "key": "w-gloves-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19494,55 +18371,15 @@
       ],
       "outputs": [
         {
-          "id": 156,
+          "id": 155,
           "type": "w",
           "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-fist-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-fist"
-      ],
-      "tools": [],
-      "ingredients": [
-        {
-          "id": 156,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 387,
-          "type": "a",
-          "count": 10
-        },
-        {
-          "id": 402,
-          "type": "a",
-          "count": 4
-        },
-        {
-          "id": 20,
-          "type": "i",
-          "count": 6
         }
       ],
-      "outputs": [
-        {
-          "id": 157,
-          "type": "w",
-          "count": 1
-        }
-      ]
+      "tier": 5
     },
     {
-      "key": "w-fist-10",
+      "key": "w-gloves-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19561,29 +18398,30 @@
         {
           "id": 387,
           "type": "a",
-          "count": 10
+          "count": 15
         },
         {
           "id": 402,
           "type": "a",
-          "count": 4
+          "count": 6
         },
         {
           "id": 20,
           "type": "i",
-          "count": 6
+          "count": 9
         }
       ],
       "outputs": [
         {
-          "id": 158,
+          "id": 156,
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-claw-2",
+      "key": "w-claws-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19616,10 +18454,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-claw-3",
+      "key": "w-claws-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19644,11 +18483,6 @@
           "id": 362,
           "type": "a",
           "count": 8
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
         }
       ],
       "outputs": [
@@ -19657,10 +18491,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-claw-4",
+      "key": "w-claws-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19672,7 +18507,7 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 161,
+          "id": 162,
           "type": "w",
           "count": 1
         },
@@ -19693,10 +18528,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-claw-7",
+      "key": "w-claws-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19708,7 +18544,7 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 162,
+          "id": 163,
           "type": "w",
           "count": 1
         },
@@ -19729,10 +18565,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-claw-8",
+      "key": "w-claws-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19744,19 +18581,19 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 163,
+          "id": 164,
           "type": "w",
           "count": 1
         },
         {
           "id": 32,
           "type": "i",
-          "count": 6
+          "count": 9
         },
         {
           "id": 362,
           "type": "a",
-          "count": 8
+          "count": 12
         }
       ],
       "outputs": [
@@ -19765,10 +18602,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-claw-9",
+      "key": "w-claws-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19787,12 +18625,12 @@
         {
           "id": 32,
           "type": "i",
-          "count": 6
+          "count": 12
         },
         {
           "id": 362,
           "type": "a",
-          "count": 8
+          "count": 16
         }
       ],
       "outputs": [
@@ -19801,46 +18639,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
-      "key": "w-claw-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-fist"
-      ],
-      "tools": [],
-      "ingredients": [
-        {
-          "id": 164,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 6
-        },
-        {
-          "id": 362,
-          "type": "a",
-          "count": 8
-        }
-      ],
-      "outputs": [
-        {
-          "id": 167,
-          "type": "w",
-          "count": 1
-        }
-      ]
-    },
-    {
-      "key": "w-beat-2",
+      "key": "w-arm-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19874,10 +18677,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
-      "key": "w-beat-3",
+      "key": "w-arm-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19889,11 +18693,6 @@
       "tools": [
         {
           "id": 112,
-          "type": "i",
-          "count": 1
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1
         }
@@ -19908,11 +18707,6 @@
           "id": 422,
           "type": "a",
           "count": 12
-        },
-        {
-          "id": 46,
-          "type": "i",
-          "count": 1
         }
       ],
       "outputs": [
@@ -19921,10 +18715,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
-      "key": "w-beat-4",
+      "key": "w-arm-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19942,7 +18737,7 @@
       ],
       "ingredients": [
         {
-          "id": 171,
+          "id": 172,
           "type": "w",
           "count": 1
         },
@@ -19958,10 +18753,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
-      "key": "w-beat-5",
+      "key": "w-arm-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19995,10 +18791,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
-      "key": "w-beat-7",
+      "key": "w-arm-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -20016,14 +18813,14 @@
       ],
       "ingredients": [
         {
-          "id": 172,
+          "id": 174,
           "type": "w",
           "count": 1
         },
         {
           "id": 422,
           "type": "a",
-          "count": 12
+          "count": 18
         }
       ],
       "outputs": [
@@ -20032,10 +18829,11 @@
           "type": "w",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
-      "key": "w-beat-9",
+      "key": "w-arm-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -20053,14 +18851,14 @@
       ],
       "ingredients": [
         {
-          "id": 174,
+          "id": 175,
           "type": "w",
           "count": 1
         },
         {
           "id": 422,
           "type": "a",
-          "count": 12
+          "count": 24
         }
       ],
       "outputs": [
@@ -20069,44 +18867,8 @@
           "type": "w",
           "count": 1
         }
-      ]
-    },
-    {
-      "key": "w-beat-10",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": true,
-      "categoryKeys": [
-        "smith-fist"
       ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 175,
-          "type": "w",
-          "count": 1
-        },
-        {
-          "id": 422,
-          "type": "a",
-          "count": 12
-        }
-      ],
-      "outputs": [
-        {
-          "id": 177,
-          "type": "w",
-          "count": 1
-        }
-      ]
+      "tier": 6
     },
     {
       "key": "_PATTERNS",
@@ -20155,7 +18917,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "a-off-light-2",
@@ -20192,7 +18955,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "a-off-light-3",
@@ -20234,7 +18998,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "a-off-light-4",
@@ -20281,7 +19046,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "a-off-light-5",
@@ -20328,7 +19094,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "a-off-light-6",
@@ -20375,7 +19142,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "a-off-light-7",
@@ -20422,7 +19190,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 7
     },
     {
       "key": "a-off-light-8",
@@ -20469,7 +19238,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 8
     },
     {
       "key": "a-off-light-9",
@@ -20516,7 +19286,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 9
     },
     {
       "key": "a-off-light-10",
@@ -20563,7 +19334,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 10
     },
     {
       "key": "a-off-medium-1",
@@ -20595,7 +19367,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "a-off-medium-2",
@@ -20642,7 +19415,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "a-off-medium-3",
@@ -20694,7 +19468,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "a-off-medium-4",
@@ -20741,7 +19516,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "a-off-medium-5",
@@ -20788,7 +19564,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "a-off-medium-6",
@@ -20835,7 +19612,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "a-off-medium-7",
@@ -20882,7 +19660,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 7
     },
     {
       "key": "a-off-medium-8",
@@ -20929,7 +19708,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 8
     },
     {
       "key": "a-off-medium-9",
@@ -20976,7 +19756,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 9
     },
     {
       "key": "a-off-medium-10",
@@ -21023,7 +19804,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 10
     },
     {
       "key": "a-off-heavy-1",
@@ -21055,7 +19837,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "a-off-heavy-2",
@@ -21102,7 +19885,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "a-off-heavy-3",
@@ -21164,7 +19948,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "a-off-heavy-4",
@@ -21216,7 +20001,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "a-off-heavy-5",
@@ -21268,7 +20054,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "a-off-heavy-6",
@@ -21320,7 +20107,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "a-off-heavy-7",
@@ -21372,7 +20160,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 7
     },
     {
       "key": "a-off-heavy-8",
@@ -21424,7 +20213,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 8
     },
     {
       "key": "a-off-heavy-9",
@@ -21481,7 +20271,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 9
     },
     {
       "key": "a-off-heavy-10",
@@ -21533,7 +20324,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 10
     },
     {
       "key": "a-body-light-1",
@@ -21565,7 +20357,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "a-body-light-2",
@@ -21602,7 +20395,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "a-body-light-3",
@@ -21654,7 +20448,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "a-body-light-4",
@@ -21691,7 +20486,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "a-body-light-5",
@@ -21728,7 +20524,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "a-body-light-6",
@@ -21765,7 +20562,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "a-body-light-7",
@@ -21802,7 +20600,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 7
     },
     {
       "key": "a-body-light-8",
@@ -21839,7 +20638,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 8
     },
     {
       "key": "a-body-light-9",
@@ -21876,7 +20676,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 9
     },
     {
       "key": "a-body-light-10",
@@ -21913,7 +20714,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 10
     },
     {
       "key": "a-body-medium-1",
@@ -21945,7 +20747,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "a-body-medium-2",
@@ -21987,7 +20790,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "a-body-medium-3",
@@ -22049,7 +20853,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "a-body-medium-4",
@@ -22086,7 +20891,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "a-body-medium-5",
@@ -22133,7 +20939,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "a-body-medium-6",
@@ -22170,7 +20977,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "a-body-medium-7",
@@ -22207,7 +21015,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 7
     },
     {
       "key": "a-body-medium-8",
@@ -22244,7 +21053,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 8
     },
     {
       "key": "a-body-medium-9",
@@ -22281,7 +21091,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 9
     },
     {
       "key": "a-body-medium-10",
@@ -22312,7 +21123,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 10
     },
     {
       "key": "a-body-heavy-1",
@@ -22344,7 +21156,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "a-body-heavy-2",
@@ -22381,7 +21194,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "a-body-heavy-3",
@@ -22433,7 +21247,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "a-body-heavy-4",
@@ -22475,7 +21290,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "a-body-heavy-5",
@@ -22517,7 +21333,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "a-body-heavy-6",
@@ -22559,7 +21376,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "a-body-heavy-7",
@@ -22601,7 +21419,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 7
     },
     {
       "key": "a-body-heavy-8",
@@ -22643,7 +21462,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 8
     },
     {
       "key": "a-body-heavy-9",
@@ -22685,7 +21505,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 9
     },
     {
       "key": "a-body-heavy-10",
@@ -22727,7 +21548,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 10
     },
     {
       "key": "a-feet-light-1",
@@ -22759,7 +21581,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "a-feet-light-2",
@@ -22806,7 +21629,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "a-feet-light-3",
@@ -22853,7 +21677,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "a-feet-light-4",
@@ -22905,7 +21730,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "a-feet-light-5",
@@ -22957,7 +21783,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "a-feet-light-6",
@@ -23009,7 +21836,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "a-feet-light-7",
@@ -23061,7 +21889,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 7
     },
     {
       "key": "a-feet-light-8",
@@ -23113,7 +21942,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 8
     },
     {
       "key": "a-feet-light-9",
@@ -23165,7 +21995,8 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 9
     },
     {
       "key": "a-feet-light-10",
@@ -23217,7 +22048,468 @@
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 10
+    },
+    {
+      "key": "a-feet-medium-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 71,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-feet-medium-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 71,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 72,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-feet-medium-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 72,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 17,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 73,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "a-feet-medium-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 73,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 75,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 74,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 4
+    },
+    {
+      "key": "a-feet-medium-5",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 74,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 76,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 75,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 5
+    },
+    {
+      "key": "a-feet-medium-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 75,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 35,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 76,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 6
+    },
+    {
+      "key": "a-feet-medium-7",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 76,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 37,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 78,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 77,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 7
+    },
+    {
+      "key": "a-feet-medium-8",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 77,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 39,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 79,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 78,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 8
+    },
+    {
+      "key": "a-feet-medium-9",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 78,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 41,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 80,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 79,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 9
+    },
+    {
+      "key": "a-feet-medium-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 79,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 45,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 80,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 80,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 10
     },
     {
       "key": "a-feet-heavy-1",
@@ -23245,11 +22537,12 @@
       ],
       "outputs": [
         {
-          "id": 71,
+          "id": 81,
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 1
     },
     {
       "key": "a-feet-heavy-2",
@@ -23270,7 +22563,7 @@
       ],
       "ingredients": [
         {
-          "id": 71,
+          "id": 81,
           "type": "a",
           "count": 1
         },
@@ -23282,11 +22575,12 @@
       ],
       "outputs": [
         {
-          "id": 72,
+          "id": 82,
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 2
     },
     {
       "key": "a-feet-heavy-3",
@@ -23319,11 +22613,12 @@
       ],
       "outputs": [
         {
-          "id": 73,
+          "id": 83,
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 3
     },
     {
       "key": "a-feet-heavy-4",
@@ -23344,7 +22639,7 @@
       ],
       "ingredients": [
         {
-          "id": 72,
+          "id": 82,
           "type": "a",
           "count": 1
         },
@@ -23371,11 +22666,12 @@
       ],
       "outputs": [
         {
-          "id": 74,
+          "id": 84,
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 4
     },
     {
       "key": "a-feet-heavy-5",
@@ -23396,7 +22692,7 @@
       ],
       "ingredients": [
         {
-          "id": 74,
+          "id": 84,
           "type": "a",
           "count": 1
         },
@@ -23423,11 +22719,12 @@
       ],
       "outputs": [
         {
-          "id": 75,
+          "id": 85,
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 5
     },
     {
       "key": "a-feet-heavy-6",
@@ -23448,7 +22745,7 @@
       ],
       "ingredients": [
         {
-          "id": 73,
+          "id": 83,
           "type": "a",
           "count": 1
         },
@@ -23475,11 +22772,12 @@
       ],
       "outputs": [
         {
-          "id": 76,
+          "id": 86,
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 6
     },
     {
       "key": "a-feet-heavy-7",
@@ -23500,7 +22798,7 @@
       ],
       "ingredients": [
         {
-          "id": 75,
+          "id": 85,
           "type": "a",
           "count": 1
         },
@@ -23527,11 +22825,12 @@
       ],
       "outputs": [
         {
-          "id": 77,
+          "id": 87,
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 7
     },
     {
       "key": "a-feet-heavy-8",
@@ -23552,7 +22851,7 @@
       ],
       "ingredients": [
         {
-          "id": 76,
+          "id": 86,
           "type": "a",
           "count": 1
         },
@@ -23579,11 +22878,12 @@
       ],
       "outputs": [
         {
-          "id": 78,
+          "id": 88,
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 8
     },
     {
       "key": "a-feet-heavy-9",
@@ -23604,7 +22904,7 @@
       ],
       "ingredients": [
         {
-          "id": 78,
+          "id": 88,
           "type": "a",
           "count": 1
         },
@@ -23631,11 +22931,12 @@
       ],
       "outputs": [
         {
-          "id": 79,
+          "id": 89,
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 9
     },
     {
       "key": "a-feet-heavy-10",
@@ -23656,12 +22957,12 @@
       ],
       "ingredients": [
         {
-          "id": 78,
+          "id": 88,
           "type": "a",
           "count": 1
         },
         {
-          "id": 77,
+          "id": 87,
           "type": "a",
           "count": 1
         },
@@ -23683,11 +22984,12 @@
       ],
       "outputs": [
         {
-          "id": 80,
+          "id": 90,
           "type": "a",
           "count": 1
         }
-      ]
+      ],
+      "tier": 10
     },
     {
       "key": "_ALCHEMY",
@@ -26500,6 +25802,1539 @@
           "count": 1
         }
       ]
+    },
+    {
+      "key": "a-extra-skill-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 33,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 226,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 91,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-extra-skill-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 91,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 234,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 92,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-extra-skill-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 92,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 242,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 93,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "a-extra-skill-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 93,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 12
+        },
+        {
+          "id": 250,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 94,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 4
+    },
+    {
+      "key": "a-extra-skill-5",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 94,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 14
+        },
+        {
+          "id": 258,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 95,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 5
+    },
+    {
+      "key": "a-extra-battle-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 31,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 228,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 96,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-extra-battle-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 96,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 236,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 97,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-extra-battle-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 97,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 12
+        },
+        {
+          "id": 244,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 98,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "a-extra-junction-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 161,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 29,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 99,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-extra-junction-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 99,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 162,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 29,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 100,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-extra-junction-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 100,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 163,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 29,
+          "type": "i",
+          "count": 3
+        }
+      ],
+      "outputs": [
+        {
+          "id": 101,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "a-extra-junction-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 101,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 164,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 29,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "outputs": [
+        {
+          "id": 102,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 4
+    },
+    {
+      "key": "a-extra-healing-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 24,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 224,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 103,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-extra-healing-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 103,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 24,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 232,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 104,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-extra-healing-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 104,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 24,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 240,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 105,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "a-extra-healing-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 105,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 24,
+          "type": "i",
+          "count": 12
+        },
+        {
+          "id": 248,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 106,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 4
+    },
+    {
+      "key": "a-extra-mind-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 15,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 225,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 107,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-extra-mind-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 107,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 15,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 233,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 108,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-extra-mind-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 108,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 15,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 241,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 109,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "a-extra-mind-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 109,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 15,
+          "type": "i",
+          "count": 12
+        },
+        {
+          "id": 249,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 110,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 4
+    },
+    {
+      "key": "a-extra-battery-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 75,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 35,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "outputs": [
+        {
+          "id": 111,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-extra-battery-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 111,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 76,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 35,
+          "type": "i",
+          "count": 8
+        }
+      ],
+      "outputs": [
+        {
+          "id": 112,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-extra-battery-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 112,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 35,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 113,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "a-extra-battery-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 113,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 78,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 35,
+          "type": "i",
+          "count": 12
+        }
+      ],
+      "outputs": [
+        {
+          "id": 114,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 4
+    },
+    {
+      "key": "a-extra-poets-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 27,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 233,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 115,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-extra-poets-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 115,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 27,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 241,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 116,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-extra-poets-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 116,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 27,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 249,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 117,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "a-extra-poets-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 117,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 27,
+          "type": "i",
+          "count": 12
+        },
+        {
+          "id": 257,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 118,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 4
+    },
+    {
+      "key": "a-extra-helm-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 12,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 37,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "outputs": [
+        {
+          "id": 119,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-extra-helm-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 119,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 12,
+          "type": "i",
+          "count": 14
+        },
+        {
+          "id": 37,
+          "type": "i",
+          "count": 8
+        }
+      ],
+      "outputs": [
+        {
+          "id": 120,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-extra-hat-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 24,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 387,
+          "type": "a",
+          "count": 6
+        }
+      ],
+      "outputs": [
+        {
+          "id": 121,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-extra-hat-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 121,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 24,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 387,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "outputs": [
+        {
+          "id": 122,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-extra-hat-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 122,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 24,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 387,
+          "type": "a",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 123,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 3
+    },
+    {
+      "key": "a-extra-weights-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 41,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 19,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "outputs": [
+        {
+          "id": 124,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 1
+    },
+    {
+      "key": "a-extra-weights-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 124,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 41,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 19,
+          "type": "i",
+          "count": 8
+        }
+      ],
+      "outputs": [
+        {
+          "id": 125,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 2
+    },
+    {
+      "key": "a-extra-weights-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "survive-extra"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 125,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 41,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 19,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 126,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tier": 3
     }
   ],
   "categories": [
@@ -26508,147 +27343,168 @@
       "name": "Meaty Members",
       "iconIndex": 244,
       "description": "Everything built on flesh, egg, offal and gel.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "cooking"
     },
     {
       "key": "cook-vegetable",
       "name": "Produce Power",
       "iconIndex": 1177,
       "description": "Roots, leaves, pods and everything else pulled from the ground.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "cooking"
     },
     {
       "key": "cook-carb",
       "name": "Densecraft",
       "iconIndex": 246,
       "description": "Grain, tuber, noodle and bread — the things that fill a plate.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "cooking"
     },
     {
       "key": "cook-fruit",
       "name": "Fruition",
       "iconIndex": 270,
       "description": "Sweet, sour and ripe, from the orchard and the vine.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "cooking"
     },
     {
       "key": "cook-dairy",
       "name": "Dairy Air",
       "iconIndex": 1953,
       "description": "Milk taken as far as it will go: cream, butter, culture and cheese.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "cooking"
     },
     {
       "key": "cook-sweet",
       "name": "Confection Convection",
       "iconIndex": 1952,
       "description": "Sugar, chocolate, jelly and everything that answers to them.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "cooking"
     },
     {
       "key": "cook-pantry",
       "name": "Pantry Paradise",
       "iconIndex": 252,
       "description": "The laneless staples — pressed oils and clean water.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "cooking"
     },
     {
       "key": "smith-blade",
       "name": "Bladesmithing",
       "iconIndex": 402,
       "description": "\\C[1]Bladesmithing\\C[0] is an ancient and very hot trade.\r\nLiterally, because anvils and hammers and shit are required to make your one and two handers, and dual-wielders.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "weaponcraft"
     },
     {
       "key": "smith-spear",
       "name": "Spearcrafting",
       "iconIndex": 409,
       "description": "Ye olde \\C[1]Spearcrafting\\C[0] is a means to bond nature's long with sharp.\r\nCrafting clubs, spears, and javelins will enable you to hunt at any distance.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "weaponcraft"
     },
     {
       "key": "smith-gun",
       "name": "Gungineering",
       "iconIndex": 436,
       "description": "The amazing \\C[1]Gungineering\\C[0] is a stupendous means of making machines for war.\r\nNot just any machines, in fact only pistols, shotguns, and tasers.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "weaponcraft"
     },
     {
       "key": "smith-axe",
       "name": "Axeworkery",
       "iconIndex": 434,
       "description": "\\C[1]Axeworkery\\C[0] is the slapdash method of creating axes.\r\nWith practice, anyone can put out some impressive one or two handers, and eventually even a twin axe.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "weaponcraft"
     },
     {
       "key": "smith-wand",
       "name": "Wandfusion",
       "iconIndex": 389,
       "description": "Legendary \\C[1]Wandfusion\\C[0] is the technomancy behind the creation of wands and the like.\r\nThe wizards and wizardesses of yore used to empower staves and wands, and even books nowadays to do the deeds.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "weaponcraft"
     },
     {
       "key": "smith-fist",
       "name": "Fistmanship",
       "iconIndex": 461,
       "description": "The art of \\C[1]Fistmanship\\C[0] goes back as far as 178k years ago.\r\nTo master fistmanship is to master not just the fists, but the claws and the arms.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "weaponcraft"
     },
     {
       "key": "material-mastery",
       "name": "Material Mastery",
       "iconIndex": 73,
       "description": "Mastery over materials is paramount in this land.\nThis will cover all your crafty needs regarding material refinement and processing.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "manufacturing"
     },
     {
       "key": "material-manufacturing",
       "name": "Material Manufacturing",
       "iconIndex": 73,
       "description": "Mastery over materials is paramount in this land.\nBeing able to refine ore into ingots and slice paper from lumber is crucial.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "manufacturing"
     },
     {
       "key": "survive-off",
       "name": "Sole Defender",
       "iconIndex": 462,
       "description": "The craft of the \\C[1]Sole Defender\\C[0] creates unparalleled defensive armaments.\r\nOutputs ranging from magical support relics to beefy kite shields, your defenses can be saved here.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "armorcraft"
     },
     {
       "key": "survive-body",
       "name": "The Weaver",
       "iconIndex": 483,
       "description": "The deliberate hand of \\C[1]The Weaver\\C[0] is unmatched.\r\nProducing both delicate mystical robes and enduring steel plate mail, your defenses shall be saved here.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "armorcraft"
     },
     {
       "key": "survive-feet",
       "name": "Fabulous Footwork",
       "iconIndex": 472,
       "description": "A light-hearted adventurer is he who started the \\C[1]Fabulous Footwork\\C[0] club.\r\nOnly those most dedicated to comfort and protection of the feet dare apply here.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "armorcraft"
     },
     {
       "key": "survive-extra",
       "name": "Accessorizing",
       "iconIndex": 145,
       "description": "The act of \\C[1]Accessorizing\\C[0] is known to few, and mastered by fewer.\nThe depths of which one can dive into this is varied, and magical, and also highly encouraged.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "armorcraft"
     },
     {
       "key": "alchemy-runes",
       "name": "Runic Creations",
       "iconIndex": 177,
       "description": "One who can create the runes can control the world- or so they say.\r\n\"Runes\" are typically just enhancements for equips relating to optimizing combat potential.",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "alchemy"
     },
     {
       "key": "alchemy-gems",
       "name": "Gemology",
       "iconIndex": 0,
       "description": "The alchemy of gems is a wild science that many correlate with the Philosopher's Stone or\r\nwith turning shit into gold. How about turning shit into gems that give your stats a boost?",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "professionKey": "alchemy"
     }
   ],
   "ingredientTypes": [
@@ -27005,6 +27861,80 @@
       "name": "Sponge",
       "iconIndex": 0,
       "description": "Things whose job is to absorb whatever they are cooked in."
+    }
+  ],
+  "professions": [
+    {
+      "key": "cooking",
+      "name": "Cooking",
+      "iconIndex": 1664,
+      "description": "Food and drink. Taught with Recipe Scraps, which anything at all may drop.",
+      "scrapItemId": 151,
+      "tierPrices": [
+        10,
+        25,
+        50,
+        100
+      ]
+    },
+    {
+      "key": "weaponcraft",
+      "name": "Weaponcraft",
+      "iconIndex": 1665,
+      "description": "Everything you fight with, from blades to tomes to mecha arms. Taught with Blueprint Scraps, earned through offensive proficiency.",
+      "scrapItemId": 152,
+      "tierPrices": [
+        4,
+        8,
+        12,
+        16,
+        20,
+        24
+      ]
+    },
+    {
+      "key": "armorcraft",
+      "name": "Armorcraft",
+      "iconIndex": 1666,
+      "description": "Everything you wear. Taught with Pattern Scraps, earned through defensive proficiency.",
+      "scrapItemId": 153,
+      "tierPrices": [
+        2,
+        4,
+        6,
+        8,
+        10,
+        12,
+        14,
+        16,
+        18,
+        20
+      ]
+    },
+    {
+      "key": "alchemy",
+      "name": "Alchemy",
+      "iconIndex": 1667,
+      "description": "Gems and runes. Its formulas are found in the world rather than taught, so it prices no tiers.",
+      "scrapItemId": 154,
+      "tierPrices": []
+    },
+    {
+      "key": "manufacturing",
+      "name": "Manufacturing",
+      "iconIndex": 0,
+      "description": "The materials every other craft draws on. Its currency is undecided, so nothing here is charged yet.",
+      "scrapItemId": 0,
+      "tierPrices": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
     }
   ]
 }
