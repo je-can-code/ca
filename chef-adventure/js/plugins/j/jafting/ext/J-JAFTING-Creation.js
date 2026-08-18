@@ -137,6 +137,21 @@
  * This plugin has no notetags of its own- recipes and categories are
  * entirely defined in the external JSON configuration file (authored via
  * the J-MZ Data Editor app), not tagged on individual database objects.
+ * ----------------------------------------------------------------------------
+ * PROFESSIONS
+ * A profession is a family of categories that share a currency and a price
+ * ladder. Each category names the profession it belongs to, and the profession
+ * says which item is spent to learn its recipes and what each tier costs.
+ *
+ * The price table is indexed by tier with the lowest first, so its length is
+ * how deep that profession goes- one craft can run four tiers while another
+ * runs ten, and neither needs to know about the other. A recipe tiered past
+ * the end of its profession's table has no price, and a profession with no
+ * currency or no prices at all is simply not for sale, which is correct for a
+ * craft whose recipes are found in the world rather than taught by a shop.
+ *
+ * Professions live in the same configuration file as recipes and categories,
+ * so retuning an economy is done in the data editor rather than here.
  * ============================================================================
  * CHANGELOG:
  * - 1.2.2
@@ -195,45 +210,6 @@
  * @text Menu Icon
  * @desc The icon of the command used for JAFTING's Creation.
  * @default 2565
- *
- * @param tuitionConfig
- * @text TUITION
- *
- * @param tier-prices
- * @parent tuitionConfig
- * @type number[]
- * @text Tier Prices
- * @desc How much scrap a recipe costs to learn, by tier. The first entry is tier 1, and so on.
- * @default ["10","25","50","100"]
- *
- * @param scrap-cook
- * @parent tuitionConfig
- * @type item
- * @text Cooking Scrap
- * @desc The item spent to learn a cooking recipe.
- * @default 151
- *
- * @param scrap-smith
- * @parent tuitionConfig
- * @type item
- * @text Smithing Scrap
- * @desc The item spent to learn a smithing or manufacturing recipe.
- * @default 152
- *
- * @param scrap-survive
- * @parent tuitionConfig
- * @type item
- * @text Survival Scrap
- * @desc The item spent to learn a survival recipe.
- * @default 153
- *
- * @param scrap-alchemy
- * @parent tuitionConfig
- * @type item
- * @text Alchemy Scrap
- * @desc The item spent to learn an alchemy recipe.
- * @default 154
- *
  *
  * @command call-menu
  * @text Call the Creation Menu
@@ -742,14 +718,21 @@ var CraftingCategory = class {
 	*/
 	unlockedByDefault = false;
 	/**
+	* The key of the {@link CraftingProfession} this category belongs to.<br/>
+	* An empty key means this category joins no profession, so nothing in it is for sale.
+	* @type {string}
+	*/
+	professionKey = String.empty;
+	/**
 	* Constructor.
 	*/
-	constructor(name, key, iconIndex, description, unlockedByDefault) {
+	constructor(name, key, iconIndex, description, unlockedByDefault, professionKey) {
 		this.name = name;
 		this.key = key;
 		this.iconIndex = iconIndex;
 		this.description = description;
 		this.unlockedByDefault = unlockedByDefault;
+		this.professionKey = professionKey;
 	}
 	/**
 	* Locks this crafting category.
@@ -769,6 +752,94 @@ var CraftingCategory = class {
 	*/
 	hasAnyRecipes() {
 		return $gameParty.getUnlockedRecipes().some((unlockedRecipe) => unlockedRecipe.categoryKeys.includes(this.key), this);
+	}
+};
+
+//#endregion
+//#region src/plugins/jafting/ext/create/__models/CraftingProfession.js
+/**
+* A family of crafting categories that share a currency and a price ladder.
+*
+* A profession answers the two questions a category cannot: which scrap buys its recipes, and what a
+* tier costs. Both used to be decided by matching category keys against hardcoded prefixes, which put
+* the answer in code, keyed it off a string that could be renamed at any time, and could not express a
+* line whose materials belong to a different craft than its prefix suggests.
+*/
+var CraftingProfession = class {
+	/**
+	* The unique key of this profession, which categories name to join it.
+	* @type {string}
+	*/
+	key = String.empty;
+	/**
+	* The name of this profession as presented to the player.
+	* @type {string}
+	*/
+	name = String.empty;
+	/**
+	* The icon index of this profession.
+	* @type {number}
+	*/
+	iconIndex = -1;
+	/**
+	* The description of this profession.
+	* @type {string}
+	*/
+	description = String.empty;
+	/**
+	* The id of the item spent to learn any recipe belonging to this profession.<br/>
+	* A zero means nothing in this profession is bought at all.
+	* @type {number}
+	*/
+	scrapItemId = 0;
+	/**
+	* The scrap each tier costs to learn, the first entry being tier 1.<br/>
+	* The length of this table is how deep the profession goes.
+	* @type {number[]}
+	*/
+	tierPrices = [];
+	/**
+	* Constructor.
+	* @param {string} key The unique key categories name to join this profession.
+	* @param {string} name The name presented to the player.
+	* @param {number} iconIndex The icon shown alongside the name.
+	* @param {string} description The authoring note describing what this profession makes.
+	* @param {number} scrapItemId The item spent to learn these recipes, or 0 when none are for sale.
+	* @param {number[]} tierPrices What each tier costs, lowest first.
+	*/
+	constructor(key, name, iconIndex, description, scrapItemId, tierPrices) {
+		this.key = key;
+		this.name = name;
+		this.iconIndex = iconIndex;
+		this.description = description;
+		this.scrapItemId = scrapItemId;
+		this.tierPrices = tierPrices;
+	}
+	/**
+	* Gets the scrap a recipe of the given tier costs to learn.
+	*
+	* A tier past the end of the price table answers zero rather than the deepest price, which is what
+	* lets a roster grow past its economy without quietly pricing the new rungs at the old maximum. An
+	* untiered recipe answers zero for the same reason: it named no rung, so there is no rung to charge.
+	* @param {number} tier The rung the recipe sits on, the first being 1.
+	* @returns {number} The price, or 0 when this tier carries none.
+	*/
+	priceForTier(tier) {
+		if (tier <= 0) return 0;
+		const price = this.tierPrices.at(tier - 1) ?? 0;
+		return price;
+	}
+	/**
+	* Determines whether anything in this profession can be bought at all.
+	*
+	* A profession with no currency or no prices is not broken - it is one whose recipes are placed by
+	* hand in the world rather than taught by a shop, which is exactly how alchemy is meant to work.
+	* @returns {boolean} True if this profession sells anything, false otherwise.
+	*/
+	isForSale() {
+		if (this.scrapItemId <= 0) return false;
+		if (this.tierPrices.length === 0) return false;
+		return true;
 	}
 };
 
@@ -1109,11 +1180,17 @@ var CraftingConfiguration = class CraftingConfiguration {
 	*/
 	#categories = [];
 	/**
+	* All professions defined in configuration.
+	* @type {CraftingProfession[]}
+	*/
+	#professions = [];
+	/**
 	* Constructor.
 	*/
-	constructor(recipes, categories) {
+	constructor(recipes, categories, professions) {
 		this.#recipes = recipes;
 		this.#categories = categories;
+		this.#professions = professions;
 	}
 	/**
 	* Gets the crafting recipes that are currently defined in configuration.
@@ -1128,6 +1205,13 @@ var CraftingConfiguration = class CraftingConfiguration {
 	*/
 	categories() {
 		return this.#categories;
+	}
+	/**
+	* Gets the crafting professions that are currently defined in configuration.
+	* @return {CraftingProfession[]}
+	*/
+	professions() {
+		return this.#professions;
 	}
 	/**
 	* A builder class for fluently constructing new {@link CraftingConfiguration}s.
@@ -1145,11 +1229,16 @@ var CraftingConfiguration = class CraftingConfiguration {
 		*/
 		#categories = [];
 		/**
+		* The crafting profession state for this builder.
+		* @type {CraftingProfession[]}
+		*/
+		#professions = [];
+		/**
 		* Build the instance with the provided fluent parameters.
 		* @return {CraftingConfiguration}
 		*/
 		build() {
-			const newConfig = new CraftingConfiguration(this.#recipes, this.#categories);
+			const newConfig = new CraftingConfiguration(this.#recipes, this.#categories, this.#professions);
 			this.#clear();
 			return newConfig;
 		}
@@ -1159,6 +1248,7 @@ var CraftingConfiguration = class CraftingConfiguration {
 		#clear() {
 			this.#recipes = [];
 			this.#categories = [];
+			this.#professions = [];
 		}
 		/**
 		* Sets the recipes for the builder.
@@ -1176,6 +1266,15 @@ var CraftingConfiguration = class CraftingConfiguration {
 		*/
 		categories(categories) {
 			this.#categories = categories;
+			return this;
+		}
+		/**
+		* Sets the professions for the builder.
+		* @param {CraftingProfession[]} professions The professions from configuration.
+		* @return {CraftingConfigurationBuilder} This builder for fluent-chaining.
+		*/
+		professions(professions) {
+			this.#professions = professions;
 			return this;
 		}
 	}();
@@ -1464,8 +1563,27 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 	static classify(parsedJson) {
 		const recipes = this.parseRecipes(parsedJson.recipes);
 		const categories = this.parseCategories(parsedJson.categories);
-		const config = CraftingConfiguration.builder.recipes(recipes).categories(categories).build();
+		const professions = this.parseProfessions(parsedJson.professions ?? []);
+		const config = CraftingConfiguration.builder.recipes(recipes).categories(categories).professions(professions).build();
 		return config;
+	}
+	/**
+	* Converts the JSON-parsed blob into classified {@link CraftingProfession}s.
+	*
+	* An absent block is the common case for a configuration authored before professions existed, and it
+	* yields no professions at all rather than a failure - which reads downstream as nothing being for
+	* sale, exactly as a roster with no economy should.
+	* @param {any} parsedProfessionsBlob The already-parsed JSON blob.
+	* @returns {CraftingProfession[]}
+	*/
+	static parseProfessions(parsedProfessionsBlob) {
+		const professionMapper = (mappableProfession) => {
+			const { key, name, iconIndex, description, scrapItemId, tierPrices } = mappableProfession;
+			const newProfession = new CraftingProfession(key, name, iconIndex, description, scrapItemId, tierPrices ?? []);
+			return newProfession;
+		};
+		const jaftingProfessions = parsedProfessionsBlob.map(professionMapper, this);
+		return jaftingProfessions;
 	}
 	/**
 	* Converts the JSON-parsed blob into classified {@link CraftingRecipe}s.
@@ -1500,8 +1618,8 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 	*/
 	static parseCategories(parsedCategoriesBlob) {
 		const categoryMapper = (mappableCategory) => {
-			const { name, key, iconIndex, description, unlockedByDefault } = mappableCategory;
-			const newCategory = new CraftingCategory(name, key, iconIndex, description, unlockedByDefault);
+			const { name, key, iconIndex, description, unlockedByDefault, professionKey } = mappableCategory;
+			const newCategory = new CraftingCategory(name, key, iconIndex, description, unlockedByDefault, professionKey ?? String.empty);
 			return newCategory;
 		};
 		const jaftingCategories = parsedCategoriesBlob.map(categoryMapper, this);
@@ -1527,7 +1645,11 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 	* Loads and classifies crafting recipes and categories from {@link J_CraftingCreatePluginMetadata.CONFIG_PATH}.
 	*/
 	initializeConfiguration() {
-		const summarize = (result) => [`- ${result.recipes().length} recipes`, `- ${result.categories().length} categories`];
+		const summarize = (result) => [
+			`- ${result.recipes().length} recipes`,
+			`- ${result.categories().length} categories`,
+			`- ${result.professions().length} professions`
+		];
 		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-JAFTING-Creation").configName("crafting configuration").mapper(J_CraftingCreatePluginMetadata.classify.bind(J_CraftingCreatePluginMetadata)).logSummary(summarize).build();
 		const classifiedCraftingConfig = ExternalJsonConfigLoader.load(J_CraftingCreatePluginMetadata.CONFIG_PATH, options);
 		/**
@@ -1554,6 +1676,18 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 		* @type {Map<string, CraftingCategory>}
 		*/
 		this.categoriesMap = categoriesMap;
+		/**
+		* The collection of all defined crafting professions.
+		* @type {CraftingProfession[]}
+		*/
+		this.professions = classifiedCraftingConfig.professions();
+		const professionsMap = new Map();
+		this.professions.forEach((profession) => professionsMap.set(profession.key, profession));
+		/**
+		* A key:profession map of all defined professions.
+		* @type {Map<string, CraftingProfession>}
+		*/
+		this.professionsMap = professionsMap;
 	}
 	/**
 	* Initializes the metadata associated with this plugin.
@@ -1577,35 +1711,23 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 		this.commandIconIndex = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-icon"], 0);
 	}
 	/**
-	* The scrap price for each tier, lowest first.
-	*
-	* Read from parameters rather than from the crafting config, because the config is rewritten wholesale
-	* by the editor and because retuning an economy should never be a data edit. A tier with no entry here
-	* simply has no price, which is how a roster can grow past the table without pricing itself by accident.
-	* @returns {number[]}
-	*/
-	tierPrices() {
-		const configured = this.parsedPluginParameters["tier-prices"];
-		if (Array.isArray(configured) === false) return [];
-		return configured.map((price) => J.BASE.Helpers.parsePluginInt(price, 0));
-	}
-	/**
-	* The scrap a recipe is bought with, decided by the profession it belongs to.
+	* The profession a recipe belongs to, found through the first category it is filed under.
 	*
 	* The first category wins, matching the authoring rule that a recipe lives in the lane of its first
-	* output. Material recipes go to smithing, since that is the station that teaches them.
+	* output. A recipe filed under nothing, a category naming no profession, and a category naming one
+	* that does not exist all answer null - each meaning the same thing, that there is nobody to sell it.
 	* @param {string[]} categoryKeys The categories the recipe is filed under.
-	* @returns {number} The item id, or 0 when the profession has no scrap of its own.
+	* @returns {CraftingProfession|null} The owning profession, or null when the recipe joins none.
 	*/
-	scrapIdForCategories(categoryKeys) {
+	professionForCategories(categoryKeys) {
 		const [primaryCategory] = categoryKeys;
-		const parameters = this.parsedPluginParameters;
-		if (primaryCategory.startsWith("cook-")) return J.BASE.Helpers.parsePluginInt(parameters["scrap-cook"], 0);
-		if (primaryCategory.startsWith("survive-")) return J.BASE.Helpers.parsePluginInt(parameters["scrap-survive"], 0);
-		if (primaryCategory.startsWith("alchemy-")) return J.BASE.Helpers.parsePluginInt(parameters["scrap-alchemy"], 0);
-		if (primaryCategory.startsWith("smith-")) return J.BASE.Helpers.parsePluginInt(parameters["scrap-smith"], 0);
-		if (primaryCategory.startsWith("material-")) return J.BASE.Helpers.parsePluginInt(parameters["scrap-smith"], 0);
-		return 0;
+		if (primaryCategory === undefined) return null;
+		const category = this.categoriesMap.get(primaryCategory);
+		if (category === undefined) return null;
+		if (category.professionKey === String.empty) return null;
+		const profession = this.professionsMap.get(category.professionKey);
+		if (profession === undefined) return null;
+		return profession;
 	}
 	/**
 	* Prices every tiered recipe that named no cost of its own.
@@ -1620,19 +1742,19 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 	/**
 	* Builds the tuition a tiered recipe charges, for a recipe that named no cost of its own.
 	*
-	* An untiered recipe, a tier past the end of the price table, and a profession with no scrap all
-	* answer the same way: an empty cost, which reads downstream as simply not being for sale.
+	* A recipe belonging to no profession, an untiered recipe, a tier past the end of its profession's
+	* price table, and a profession that sells nothing all answer the same way: an empty cost, which
+	* reads downstream as simply not being for sale.
 	* @param {CraftingRecipe} recipe The recipe being priced.
 	* @returns {CraftingComponent[]}
 	*/
 	tuitionForTier(recipe) {
-		const { tier } = recipe;
-		if (tier <= 0) return [];
-		const price = this.tierPrices().at(tier - 1) ?? 0;
+		const profession = this.professionForCategories(recipe.categoryKeys);
+		if (profession === null) return [];
+		if (profession.isForSale() === false) return [];
+		const price = profession.priceForTier(recipe.tier);
 		if (price <= 0) return [];
-		const scrapId = this.scrapIdForCategories(recipe.categoryKeys);
-		if (scrapId <= 0) return [];
-		const tuition = new CraftingComponent(price, scrapId, CraftingComponent.Types.Item);
+		const tuition = new CraftingComponent(price, profession.scrapItemId, CraftingComponent.Types.Item);
 		return [tuition];
 	}
 	/**
