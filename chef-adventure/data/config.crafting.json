@@ -17589,6 +17589,43 @@
       "cost": []
     },
     {
+      "key": "w-handgun-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "tools": [
+        {
+          "id": 69,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 66,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 70,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
+      "cost": []
+    },
+    {
       "key": "w-taser-01",
       "name": "",
       "iconIndex": -1,
