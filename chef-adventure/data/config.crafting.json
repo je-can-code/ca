@@ -17883,6 +17883,43 @@
       "cost": []
     },
     {
+      "key": "w-taser-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "tools": [
+        {
+          "id": 79,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 76,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 80,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
+      "cost": []
+    },
+    {
       "key": "w-boomstick-01",
       "name": "",
       "iconIndex": -1,
@@ -18174,6 +18211,43 @@
         }
       ],
       "tier": 6,
+      "cost": []
+    },
+    {
+      "key": "w-boomstick-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "tools": [
+        {
+          "id": 89,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 86,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 90,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
       "cost": []
     },
     {
