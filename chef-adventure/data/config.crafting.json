@@ -19260,7 +19260,7 @@
         {
           "id": 47,
           "type": "i",
-          "count": 1,
+          "count": 2,
           "categories": []
         }
       ],
@@ -19297,7 +19297,13 @@
         {
           "id": 47,
           "type": "i",
-          "count": 3,
+          "count": 5,
+          "categories": []
+        },
+        {
+          "id": 321,
+          "type": "a",
+          "count": 2,
           "categories": []
         }
       ],
@@ -19334,13 +19340,13 @@
         {
           "id": 49,
           "type": "i",
-          "count": 10,
+          "count": 6,
           "categories": []
         },
         {
           "id": 322,
           "type": "a",
-          "count": 7,
+          "count": 3,
           "categories": []
         }
       ],
@@ -19375,15 +19381,15 @@
       ],
       "ingredients": [
         {
-          "id": 49,
+          "id": 51,
           "type": "i",
-          "count": 10,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 322,
+          "id": 323,
           "type": "a",
-          "count": 7,
+          "count": 4,
           "categories": []
         }
       ],
@@ -19418,15 +19424,15 @@
       ],
       "ingredients": [
         {
-          "id": 49,
+          "id": 53,
           "type": "i",
-          "count": 10,
+          "count": 11,
           "categories": []
         },
         {
-          "id": 322,
+          "id": 324,
           "type": "a",
-          "count": 7,
+          "count": 5,
           "categories": []
         }
       ],
@@ -19461,15 +19467,15 @@
       ],
       "ingredients": [
         {
-          "id": 49,
+          "id": 55,
           "type": "i",
-          "count": 15,
+          "count": 14,
           "categories": []
         },
         {
-          "id": 322,
+          "id": 325,
           "type": "a",
-          "count": 11,
+          "count": 6,
           "categories": []
         }
       ],
@@ -19482,6 +19488,55 @@
         }
       ],
       "tier": 6,
+      "cost": []
+    },
+    {
+      "key": "w-cane-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [
+        {
+          "id": 129,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 126,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 57,
+          "type": "i",
+          "count": 20,
+          "categories": []
+        },
+        {
+          "id": 59,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 130,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
       "cost": []
     },
     {
@@ -19704,6 +19759,43 @@
         }
       ],
       "tier": 6,
+      "cost": []
+    },
+    {
+      "key": "w-rod-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [
+        {
+          "id": 139,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 136,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 140,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
       "cost": []
     },
     {
@@ -19998,6 +20090,43 @@
         }
       ],
       "tier": 6,
+      "cost": []
+    },
+    {
+      "key": "w-tome-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "tools": [
+        {
+          "id": 149,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 146,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 150,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
       "cost": []
     },
     {
