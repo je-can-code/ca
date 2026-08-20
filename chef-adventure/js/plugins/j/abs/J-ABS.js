@@ -4831,6 +4831,7 @@ J.ABS.RegExp = {
 	KnockbackAmp: /<knockbackAmp:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
 	ThisKnockbackAmp: /<thisKnockbackAmp:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
 	IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
+	ThisIgnoreParry: /<thisIgnoreParry:[ ]?(\d+)>/gi,
 	UseOnPickup: /<useOnPickup>/gi,
 	Expires: /<expires:[ ]?(\d+)>/gi,
 	JabsTool: /<jabsTool>/i,
@@ -20155,6 +20156,40 @@ var JABS_Engine = class JABS_Engine {
 		return true;
 	}
 	/**
+	* Computes how much of the defender's guard pressure does not apply, summing the caster's
+	* unconditional `<ignoreParry:PCT>` tags with this specific skill's `<thisIgnoreParry:PCT>`.
+	*
+	* The total is capped at 100 because the pressure formula scales guard by `(100 - pct) / 100`-
+	* past 100 that factor inverts and hands the defender negative pressure, making the attacker
+	* easier to parry the more parry-ignore they stacked.
+	* @param {JABS_Battler} caster The battler performing the action.
+	* @param {JABS_Action} action The action being executed.
+	* @returns {number} The percent of guard pressure ignored, 0 through 100.
+	*/
+	getIgnoreParryPct(caster, action) {
+		const total = this.getFlatIgnoreParryPct(caster) + this.getThisIgnoreParryPct(action);
+		return Math.min(100, total);
+	}
+	/**
+	* Sums every `<ignoreParry:PCT>` tag across the caster's own note sources- a weapon or accessory
+	* that always cuts through some of the defender's guard, no matter which skill is swinging.
+	* @param {JABS_Battler} caster The battler performing the action.
+	* @returns {number} The total percent of guard pressure ignored; 0 if untagged.
+	*/
+	getFlatIgnoreParryPct(caster) {
+		const casterNotes = caster.getBattler().getAllNotes();
+		return RPGManager.getSumFromAllNotesByRegex(casterNotes, J.ABS.RegExp.IgnoreParry) ?? 0;
+	}
+	/**
+	* Reads the `<thisIgnoreParry:PCT>` tag from the executing skill's own note only, so it applies
+	* while this skill is swinging and at no other time.
+	* @param {JABS_Action} action The action being executed.
+	* @returns {number} The percent of guard pressure ignored; 0 if untagged.
+	*/
+	getThisIgnoreParryPct(action) {
+		return action.getBaseSkill().jabsIgnoreParry ?? 0;
+	}
+	/**
 	* Calculates whether or not the attack was parried by implicit (passive) parry.
 	* Calculates whether the implicit parry roll succeeds as a full negate.
 	* Uses the standard A/D pressure formula scaled down by {@link J.ABS.Metadata.ImplicitParryScaleFactor},
@@ -20170,7 +20205,7 @@ var JABS_Engine = class JABS_Engine {
 		if (this.isParryPossible(caster, target) === false) {
 			return false;
 		}
-		const ignoreParryPercent = action.getBaseSkill().jabsIgnoreParry ?? 0;
+		const ignoreParryPercent = this.getIgnoreParryPct(caster, action);
 		const rawChance = JABS_Engine.implicitParryChancePercent(caster, target, ignoreParryPercent);
 		const scaleFactor = J.ABS.Metadata.ImplicitParryScaleFactor;
 		const parryChancePercent = Math.round(rawChance * scaleFactor);
@@ -20192,7 +20227,7 @@ var JABS_Engine = class JABS_Engine {
 		if (this.isParryPossible(caster, target) === false) {
 			return false;
 		}
-		const ignoreParryPercent = action.getBaseSkill().jabsIgnoreParry ?? 0;
+		const ignoreParryPercent = this.getIgnoreParryPct(caster, action);
 		const glancingChancePercent = JABS_Engine.glancingBlowChancePercent(caster, target, ignoreParryPercent);
 		const defenderBattler = target.getBattler();
 		const defenderPositiveRolls = defenderBattler.getPositiveRolls();
@@ -24894,11 +24929,13 @@ Object.defineProperty(RPG_Skill.prototype, "jabsBonusHitsFromSkillNote", { get: 
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsSkillNote);
 } });
 /**
-* The percent of parry rating ignored by this skill.
+* The percent of parry rating ignored by this skill alone.<br/>
+* The caster's equips and states contribute separately, summed against this by
+* {@link JABS_Engine.getIgnoreParryPct}.
 * @type {number}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsIgnoreParry", { get: function() {
-	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.IgnoreParry, true);
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.ThisIgnoreParry, true);
 } });
 /**
 * Whether or not this skill is completely unparryable by the target.
