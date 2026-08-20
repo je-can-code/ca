@@ -18311,6 +18311,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 2,
+          "categories": []
         }
       ],
       "outputs": [
@@ -18346,7 +18352,13 @@
         {
           "id": 30,
           "type": "i",
-          "count": 1,
+          "count": 2,
+          "categories": []
+        },
+        {
+          "id": 371,
+          "type": "a",
+          "count": 2,
           "categories": []
         }
       ],
@@ -18383,7 +18395,13 @@
         {
           "id": 32,
           "type": "i",
-          "count": 5,
+          "count": 3,
+          "categories": []
+        },
+        {
+          "id": 372,
+          "type": "a",
+          "count": 3,
           "categories": []
         }
       ],
@@ -18422,6 +18440,12 @@
           "type": "i",
           "count": 5,
           "categories": []
+        },
+        {
+          "id": 373,
+          "type": "a",
+          "count": 4,
+          "categories": []
         }
       ],
       "outputs": [
@@ -18457,6 +18481,12 @@
         {
           "id": 32,
           "type": "i",
+          "count": 7,
+          "categories": []
+        },
+        {
+          "id": 374,
+          "type": "a",
           "count": 5,
           "categories": []
         }
@@ -18494,7 +18524,13 @@
         {
           "id": 32,
           "type": "i",
-          "count": 8,
+          "count": 9,
+          "categories": []
+        },
+        {
+          "id": 375,
+          "type": "a",
+          "count": 6,
           "categories": []
         }
       ],
@@ -18507,6 +18543,43 @@
         }
       ],
       "tier": 6,
+      "cost": []
+    },
+    {
+      "key": "w-hatchet-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 99,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 96,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 100,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
       "cost": []
     },
     {
@@ -18532,6 +18605,12 @@
           "id": 30,
           "type": "i",
           "count": 4,
+          "categories": []
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 2,
           "categories": []
         }
       ],
@@ -18568,7 +18647,13 @@
         {
           "id": 32,
           "type": "i",
-          "count": 8,
+          "count": 6,
+          "categories": []
+        },
+        {
+          "id": 421,
+          "type": "a",
+          "count": 2,
           "categories": []
         }
       ],
@@ -18607,6 +18692,12 @@
           "type": "i",
           "count": 8,
           "categories": []
+        },
+        {
+          "id": 422,
+          "type": "a",
+          "count": 3,
+          "categories": []
         }
       ],
       "outputs": [
@@ -18642,7 +18733,13 @@
         {
           "id": 32,
           "type": "i",
-          "count": 8,
+          "count": 10,
+          "categories": []
+        },
+        {
+          "id": 423,
+          "type": "a",
+          "count": 4,
           "categories": []
         }
       ],
@@ -18679,7 +18776,13 @@
         {
           "id": 32,
           "type": "i",
-          "count": 12,
+          "count": 13,
+          "categories": []
+        },
+        {
+          "id": 424,
+          "type": "a",
+          "count": 5,
           "categories": []
         }
       ],
@@ -18718,6 +18821,12 @@
           "type": "i",
           "count": 16,
           "categories": []
+        },
+        {
+          "id": 425,
+          "type": "a",
+          "count": 6,
+          "categories": []
         }
       ],
       "outputs": [
@@ -18729,6 +18838,43 @@
         }
       ],
       "tier": 6,
+      "cost": []
+    },
+    {
+      "key": "w-glaive-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 106,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 110,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
       "cost": []
     },
     {
@@ -18808,19 +18954,19 @@
         {
           "id": 32,
           "type": "i",
-          "count": 6,
+          "count": 4,
           "categories": []
         },
         {
           "id": 49,
           "type": "i",
-          "count": 6,
+          "count": 3,
           "categories": []
         },
         {
-          "id": 358,
+          "id": 356,
           "type": "a",
-          "count": 4,
+          "count": 2,
           "categories": []
         }
       ],
@@ -18869,13 +19015,13 @@
         {
           "id": 49,
           "type": "i",
-          "count": 6,
+          "count": 5,
           "categories": []
         },
         {
-          "id": 358,
+          "id": 357,
           "type": "a",
-          "count": 4,
+          "count": 3,
           "categories": []
         }
       ],
@@ -18918,13 +19064,13 @@
         {
           "id": 32,
           "type": "i",
-          "count": 6,
+          "count": 8,
           "categories": []
         },
         {
           "id": 49,
           "type": "i",
-          "count": 6,
+          "count": 7,
           "categories": []
         },
         {
@@ -18973,7 +19119,7 @@
         {
           "id": 32,
           "type": "i",
-          "count": 9,
+          "count": 11,
           "categories": []
         },
         {
@@ -18983,9 +19129,9 @@
           "categories": []
         },
         {
-          "id": 358,
+          "id": 359,
           "type": "a",
-          "count": 6,
+          "count": 5,
           "categories": []
         }
       ],
@@ -19028,7 +19174,7 @@
         {
           "id": 32,
           "type": "i",
-          "count": 12,
+          "count": 14,
           "categories": []
         },
         {
@@ -19038,9 +19184,9 @@
           "categories": []
         },
         {
-          "id": 358,
+          "id": 360,
           "type": "a",
-          "count": 8,
+          "count": 6,
           "categories": []
         }
       ],
@@ -19053,6 +19199,43 @@
         }
       ],
       "tier": 6,
+      "cost": []
+    },
+    {
+      "key": "w-breaker-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "tools": [
+        {
+          "id": 119,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 116,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 120,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
       "cost": []
     },
     {
