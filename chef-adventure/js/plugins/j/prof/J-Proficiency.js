@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.3.0 PROF] Enables skill proficiency tracking.
+ * @plugindesc [v2.4.0 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -151,6 +151,10 @@
  * - Decreasing the proficiency will NOT undo rewards gained.
  * ============================================================================
  * CHANGELOG:
+ * - 2.4.0
+ *    Defense earns proficiency the way offense does - guarding and parrying a
+ *    skill now advances proficiency in it, so a defensive player is not frozen
+ *    out of the system.
  * - 2.3.0
  *    Routed the _proficiency namespace into its own save section, so earned
  *    proficiency lands in systems/proficiency.json rather than in the system
@@ -449,7 +453,7 @@ J.PROF.Helpers.loadExternalConfig = (configPath = J_ProficiencyPluginMetadata.CO
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.3.0");
+J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.4.0");
 J.PROF.Helpers.loadExternalConfig();
 /**
 * The various aliases associated with this plugin.

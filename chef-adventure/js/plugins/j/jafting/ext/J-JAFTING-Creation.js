@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.2 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
+ * [v1.3.0 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -154,6 +154,13 @@
  * so retuning an economy is done in the data editor rather than here.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Added the study shop - Scene_JaftingStudy, its two windows, and
+ *    StudyPurchaseService - so recipes can be bought rather than only found.
+ *    Recipes now carry a tier and a profession; CraftingProfession describes
+ *    the price ladder a profession charges. The crafting bench gained an
+ *    everything tab and stopped offering the whole menu, and the category
+ *    badge and list windows it replaced are gone.
  * - 1.2.2
  *    The recipe detail window reads a crafted weapon or armor's base parameters
  *    through thisBParam rather than off the params array. An equip's worth for a
@@ -1824,7 +1831,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.2.2");
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

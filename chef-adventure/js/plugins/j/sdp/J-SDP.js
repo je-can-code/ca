@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v3.2.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v3.3.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -364,6 +364,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.3.0
+ *    Scene_SDP now uses the shared filterable list from J-Base rather than its
+ *    own family strip window, which is deleted. SdpFamilyFilter carries the
+ *    family predicate.
  * - 3.2.0
  *    Unspent points now appear on each party member's cell in the main menu,
  *    beside their level and the distance to the next one. A currency nobody is
@@ -2571,7 +2575,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.2.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

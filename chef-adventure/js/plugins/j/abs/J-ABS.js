@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.14.0 ABS] Enables combat to be carried out on the map.
+ * [v4.15.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,12 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.15.0
+ *    Added <thisIgnoreParry:N> so a skill can carry its own parry-ignore, and
+ *    made <ignoreParry:N> readable from every note source on the attacker rather
+ *    than the skill alone - equipment, states and the actor all contribute now.
+ *    The two sum and clamp at 100, which keeps defensive pressure from inverting
+ *    past the ceiling.
  * - 4.14.0
  *    Declared what JABS state on the party and the system is worth writing to
  *    a savefile, and routed the _abs namespace into its own save section.
@@ -4343,7 +4349,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.14.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.15.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -23840,7 +23846,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.14.0";
+var PLUGIN_VERSION = "4.15.0";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion

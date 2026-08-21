@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 CMS] A redesign of the main menu.
+ * [v1.2.0 CMS] A redesign of the main menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -29,6 +29,11 @@
  * redesign of the native main menu.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    The menu gold strip is now a currency strip: CurrencyDefinition describes
+ *    a currency, registerCoreCurrencies declares gold, and Window_Currencies
+ *    renders however many are registered. Extensions add their own without
+ *    touching the scene.
  * - 1.1.0
  *    Each party member's cell is now a character card rather than a data row.
  *    It is headed by their name with their class beneath it, carries their map
@@ -191,7 +196,7 @@ J.CMS = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS.Metadata = new J_CmsMain_PluginMetadata("J-CMS", "1.1.0");
+J.CMS.Metadata = new J_CmsMain_PluginMetadata("J-CMS", "1.2.0");
 /**
 * The plugin umbrella that governs all extensions of this plugin.
 */

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.4.0 BASE] The base class for all J plugins.
+ * [v3.5.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.5.0
+ *    Added Window_FilterableList and Window_FilterStrip, backed by the new
+ *    FilterCycle model, so any ship needing a filtered list with a cycling
+ *    category strip can inherit one instead of rebuilding it.
  * - 3.4.0
  *    Parameter percentages carried by equipment now scale that equipment's own
  *    contribution rather than the wearer's total. A weapon granting +25% attack
@@ -1762,7 +1766,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.4.0";
+J.BASE.Metadata.Version = "3.5.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */

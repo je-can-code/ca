@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.4.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
+ * [v1.5.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -148,6 +148,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Note effects now count against the refinement ceiling alongside traits.
+ *    An equip could previously accumulate transferable note lines without
+ *    limit while reporting itself full.
  * - 1.4.0
  *    A refinement now costs the base exactly one count, whatever the donor had
  *    accumulated. Previously a donor's own history was added to the output and
@@ -1144,7 +1148,7 @@ J.JAFTING.EXT.REFINE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.4.0");
+J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.5.0");
 /**
 * A helpful mapping of the various messages that we use in JAFTING.
 */
