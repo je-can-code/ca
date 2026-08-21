@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
+ * [v1.3.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -311,6 +311,12 @@
  *    Taking even a single step immediately strips it and resets the stand timer.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Passive states no longer appear in the JABS affliction strip. A passive is
+ *    permanent and neither waits out nor cures, so listing it beside poison and
+ *    paralysis filled the strip with rows the player could do nothing about.
+ *    This exclusion previously lived in J-ABS, which had to reach across for it;
+ *    it belongs here, where passives and JABS already meet.
  * - 1.2.0
  *    Conditional passive tracking state is no longer written to savefiles
  *    where it can be recomputed from the battler's current situation on load.
@@ -444,7 +450,7 @@ J.PASSIVE.EXT.CONDITIONAL = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.2.0");
+J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -456,6 +462,7 @@ J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Action = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_CharacterBase = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Window_PassiveDetail = new Map();
+J.PASSIVE.EXT.CONDITIONAL.Aliased.StateAfflictionProvider = new Map();
 /**
 * All regular expressions used by this plugin.
 */
@@ -3050,6 +3057,25 @@ JABS_Action.prototype.preCleanupHook = function() {
 	J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Action.get("preCleanupHook").call(this);
 	const casterBattler = this.getCaster().getBattler();
 	SkillResolutionStateRemovalManager.process(casterBattler, this.getBaseSkill().id);
+};
+
+//#endregion
+//#region src/plugins/passive/ext/conditional/models/StateAfflictionProvider.js
+/**
+* Extends {@link StateAfflictionProvider.qualifies}.<br/>
+* Also excludes passive states from the affliction strip.
+*
+* A passive is a permanent trait wearing a state's clothing - granted by equipment or a skill and
+* never expiring - so listing one beside poison and paralysis would fill the strip with rows the
+* player can neither wait out nor cure. J-ABS has no notion of a passive state, and the knowledge
+* belongs on this side of the seam: this extension is where passives and JABS already meet.
+*/
+J.PASSIVE.EXT.CONDITIONAL.Aliased.StateAfflictionProvider.set("qualifies", StateAfflictionProvider.qualifies);
+StateAfflictionProvider.qualifies = function(trackedState, battler) {
+	const qualifiesNormally = J.PASSIVE.EXT.CONDITIONAL.Aliased.StateAfflictionProvider.get("qualifies").call(this, trackedState, battler);
+	if (qualifiesNormally === false) return false;
+	if (battler.isPassiveState(trackedState.stateId) === true) return false;
+	return true;
 };
 
 //#endregion
