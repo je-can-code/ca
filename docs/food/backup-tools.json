@@ -1,0 +1,3350 @@
+{
+  "_backup": "Crafting tool item rows and every reference to them, captured before the tool ids were reorganised.",
+  "_captured": "2026-08-10",
+  "_source": "chef-adventure/data/Items.json, config.crafting.json, Map*.json",
+  "_scope": "All crafting tools, across every profession - not cooking only. A tool is any item a recipe requires without consuming.",
+  "_howToRemap": "Run `bun tools/tool-ids.js plan` after moving the ids. It resolves each recorded name to its new id and lists every reference still pointing at the old one.",
+  "_counts": {
+    "tools": 12,
+    "recipeReferences": 384,
+    "mapReferences": 39
+  },
+  "tools": [
+    {
+      "id": 101,
+      "name": "Soup Pot",
+      "iconIndex": 2376,
+      "price": 250,
+      "description": "An old hand-me-down utensil. Can be used to boil and stew a variety\nof different soup-like dishes!",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 102,
+      "name": "Spoon",
+      "iconIndex": 2109,
+      "price": 150,
+      "description": "A fine cooking utensil. Some dishes require the ability to\nstir the contents without your bare hands to produce sanitary results.",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 103,
+      "name": "Frying Pan",
+      "iconIndex": 2107,
+      "price": 400,
+      "description": "An old hand-me-down utensil. Can be used to saute, fry, or sear\na variety of different ingredients!",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 104,
+      "name": "Spatula",
+      "iconIndex": 2108,
+      "price": 150,
+      "description": "A fine cooking utensil. Some dishes require the finesse of\na turner like this to safely flip to the other side for even cooking.",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 105,
+      "name": "Hammer",
+      "iconIndex": 223,
+      "price": 300,
+      "description": "A fine smithing tool. Some blueprints require a hammer\nto do blacksmith things.",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 106,
+      "name": "Mitts",
+      "iconIndex": 2581,
+      "price": 800,
+      "description": "A fine smithing tool. Some blueprints call for steps that include\nsticking your hands in the flames. These protect you from that.",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 107,
+      "name": "Gripper",
+      "iconIndex": 227,
+      "price": 3000,
+      "description": "A multi-purpose tool. It can be used to grab things from a safe distance,\nor just lock things in place while you operate on them- food or weapons or whatever.",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 108,
+      "name": "Scissors",
+      "iconIndex": 2493,
+      "price": 150,
+      "description": "A common survival tool. You can't use this for fighting with, but\nit would do well for precision-cutting fabric and the like while JAFTING.",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 109,
+      "name": "Eyeglass",
+      "iconIndex": 2480,
+      "price": 200,
+      "description": "A common survival tool. When things are tiny and/or hard to see,\nuse this and... well, you'll be able to see the tiny/hard-to-see things.",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 110,
+      "name": "Fountain Pen",
+      "iconIndex": 233,
+      "price": 150,
+      "description": "A rare survival tool. Some say the pen is mightier than the sword,\nbut have you ever tried to literally combat a swordsman with a pen? At least it writes.",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 111,
+      "name": "Razor Sickle",
+      "iconIndex": 1906,
+      "price": 2000,
+      "description": "A wickedly sharp scythe that will expertly cut lumber like nobodies business.\nDon't bother trying to hack up enemies with it, you can't even equip it.",
+      "note": "<hideFromJabsMenu>"
+    },
+    {
+      "id": 112,
+      "name": "Obliterator",
+      "iconIndex": 1758,
+      "price": 10000,
+      "description": "Similar to what most know as a \"blender\" in function, except used for other products.\nThrow anything into it, and it'll spit out a hyper-fine blended variant of the inputs- enemies not included.",
+      "note": "<hideFromJabsMenu>"
+    }
+  ],
+  "references": {
+    "recipes": [
+      {
+        "site": "recipe",
+        "recipeKey": "food_erocian-pudding",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_yellow-soup",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_yellow-soup",
+        "toolIndex": 1,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_grilled-bearcat",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_panseared-cod",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_panseared-cod",
+        "toolIndex": 1,
+        "id": 104,
+        "name": "Spatula"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_fried-cheesy-eggs",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_fried-cheesy-eggs",
+        "toolIndex": 1,
+        "id": 104,
+        "name": "Spatula"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_potato-beef-cake",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_charred-beef-ribs",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_jelli-pilaf",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_lemonroasted-carrots",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_mushroom-bisque",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_mushroom-bisque",
+        "toolIndex": 1,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_tasty-stew",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_tasty-stew",
+        "toolIndex": 1,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_steamed-imp-tongue",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_wilted-wolftrap-salad",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_wilted-wolftrap-salad",
+        "toolIndex": 1,
+        "id": 104,
+        "name": "Spatula"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_tender-coral-and-trout",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_bloody-trap-soup",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_vanilla-bleu-cone",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_molten-fried-rice",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_flame-kissed-rack",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_mahogany-melody",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_erociberry-toast",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_erociberry-toast",
+        "toolIndex": 1,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_beef-shakshuka",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_beef-shakshuka",
+        "toolIndex": 1,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_seeing-jambalaya",
+        "toolIndex": 0,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_seeing-jambalaya",
+        "toolIndex": 1,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_herbal-tea",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_herbal-tea",
+        "toolIndex": 1,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_gel-o",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_ghastly-goulash",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_river-smoothie",
+        "toolIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_slime-puree",
+        "toolIndex": 0,
+        "id": 112,
+        "name": "Obliterator"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_jelli-hors-doeuvres",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_jelli-hors-doeuvres",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_blood-seared-asp",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_grim-flankebobs",
+        "toolIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "food_grim-flankebobs",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "ingot-iron",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "ingot-silver",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "ingot-bleu",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "ingot-sandwraith",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "ingot-engle",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "ingot-deep",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "ingot-might",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "ingot-ultanium",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "paper-basic",
+        "toolIndex": 0,
+        "id": 111,
+        "name": "Razor Sickle"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "paper-lofty",
+        "toolIndex": 0,
+        "id": 111,
+        "name": "Razor Sickle"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "paper-dense",
+        "toolIndex": 0,
+        "id": 111,
+        "name": "Razor Sickle"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "paper-grim",
+        "toolIndex": 0,
+        "id": 111,
+        "name": "Razor Sickle"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "paper-sheer",
+        "toolIndex": 0,
+        "id": 111,
+        "name": "Razor Sickle"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "paper-decadent",
+        "toolIndex": 0,
+        "id": 111,
+        "name": "Razor Sickle"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-sword-1",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-sword-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-sword-3",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-sword-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-sword-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-sword-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-sword-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-sword-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-2",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-4",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-5",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-5",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-6",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-8",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-8",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-9",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-greatsword-10",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-dualsword-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-dualsword-3a",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-dualsword-3b",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-dualsword-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-dualsword-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-dualsword-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-dualsword-8",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-dualsword-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-dualsword-10a",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-dualsword-10b",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-1",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-2",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-3",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-3",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-5",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-5",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-6",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-7",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-9",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-spear-10",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-basher-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-basher-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-basher-5",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-basher-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-basher-8",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-basher-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-basher-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-javelin-2",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-javelin-3",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-javelin-5",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-javelin-6",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-javelin-7",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-javelin-9",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-javelin-10",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-pistol-1",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-pistol-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-pistol-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-pistol-5",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-pistol-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-pistol-8",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-pistol-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-pistol-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-2",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-3",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-3",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-4",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-6",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-7",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-9",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-taser-10",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-shotgun-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-shotgun-3",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-shotgun-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-shotgun-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-shotgun-8",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-shotgun-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-shotgun-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-hatchet-1",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-hatchet-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-hatchet-3",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-hatchet-5",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-hatchet-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-hatchet-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-hatchet-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-hatchet-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-2",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-4",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-5",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-5",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-7",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-8",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-8",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-9",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-battleaxe-10",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-2",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-3",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-3",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-4",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-6",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-7",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-9",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-twinaxe-10",
+        "toolIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-staff-2",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-staff-3",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-staff-5",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-staff-6",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-staff-7",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-staff-9",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-staff-10",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-wand-2",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-wand-3",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-wand-4",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-wand-6",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-wand-7",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-wand-9",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-wand-10",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-tome-2",
+        "toolIndex": 0,
+        "id": 110,
+        "name": "Fountain Pen"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-tome-3",
+        "toolIndex": 0,
+        "id": 110,
+        "name": "Fountain Pen"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-tome-4",
+        "toolIndex": 0,
+        "id": 110,
+        "name": "Fountain Pen"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-tome-7",
+        "toolIndex": 0,
+        "id": 110,
+        "name": "Fountain Pen"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-tome-8",
+        "toolIndex": 0,
+        "id": 110,
+        "name": "Fountain Pen"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-tome-9",
+        "toolIndex": 0,
+        "id": 110,
+        "name": "Fountain Pen"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-tome-10",
+        "toolIndex": 0,
+        "id": 110,
+        "name": "Fountain Pen"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-beat-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-beat-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-beat-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-beat-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-beat-7",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-beat-9",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "w-beat-10",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-light-1",
+        "toolIndex": 0,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-light-2",
+        "toolIndex": 0,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-light-3",
+        "toolIndex": 0,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-light-4",
+        "toolIndex": 0,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-light-5",
+        "toolIndex": 0,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-light-6",
+        "toolIndex": 0,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-light-7",
+        "toolIndex": 0,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-light-8",
+        "toolIndex": 0,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-light-9",
+        "toolIndex": 0,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-light-10",
+        "toolIndex": 0,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-medium-1",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-medium-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-medium-3",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-medium-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-medium-5",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-medium-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-medium-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-medium-8",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-medium-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-medium-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-1",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-4",
+        "toolIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-5",
+        "toolIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-6",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-6",
+        "toolIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-7",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-7",
+        "toolIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-8",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-8",
+        "toolIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-9",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-9",
+        "toolIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-10",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-off-heavy-10",
+        "toolIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-light-1",
+        "toolIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-light-2",
+        "toolIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-light-3",
+        "toolIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-light-4",
+        "toolIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-light-5",
+        "toolIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-light-6",
+        "toolIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-light-7",
+        "toolIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-light-8",
+        "toolIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-light-9",
+        "toolIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-light-10",
+        "toolIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-medium-1",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-medium-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-medium-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-medium-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-medium-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-medium-6",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-medium-7",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-medium-8",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-medium-9",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-medium-10",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-heavy-1",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-heavy-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-heavy-3",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-heavy-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-heavy-5",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-heavy-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-heavy-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-heavy-8",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-heavy-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-body-heavy-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-light-4",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-light-5",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-light-6",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-light-7",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-light-8",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-light-9",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-light-10",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-1",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-1",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-2",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-2",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-3",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-3",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-4",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-4",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-5",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-5",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-6",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-6",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-7",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-7",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-8",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-8",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-9",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-9",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-10",
+        "toolIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-feet-heavy-10",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-life-1",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-life-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-life-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-life-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-life-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-magi-1",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-magi-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-magi-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-magi-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-magi-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-power-1",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-power-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-power-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-power-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-power-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-endurance-1",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-endurance-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-endurance-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-endurance-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-endurance-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-force-1",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-force-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-force-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-force-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-force-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-resist-1",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-resist-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-resist-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-resist-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-resist-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-speed-1",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-speed-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-speed-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-speed-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-speed-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-luck-1",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-luck-2",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-luck-3",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-luck-4",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-gems-luck-5",
+        "toolIndex": 0,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-heat-glyph",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-heat-glyph",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-liquid-glyph",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-liquid-glyph",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-air-glyph",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-air-glyph",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-ground-glyph",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-ground-glyph",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-energy-glyph",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-energy-glyph",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-void-glyph",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-void-glyph",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-undead-seal",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-undead-seal",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-reptile-seal",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-reptile-seal",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-aquatic-seal",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-aquatic-seal",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-slime-seal",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-slime-seal",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-plant-seal",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-plant-seal",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-beast-seal",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-beast-seal",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-insect-seal",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-insect-seal",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-humanoid-seal",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-humanoid-seal",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-construct-seal",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-construct-seal",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-deity-seal",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-deity-seal",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-anti-weapon",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-anti-weapon",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-anti-flying",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-anti-flying",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-anti-shield",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-anti-shield",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-anti-aura",
+        "toolIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "recipe",
+        "recipeKey": "a-runes-anti-aura",
+        "toolIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      }
+    ],
+    "maps": [
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 0,
+        "commandIndex": 23,
+        "code": 302,
+        "parameterIndex": 1,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 0,
+        "commandIndex": 24,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 0,
+        "commandIndex": 25,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 0,
+        "commandIndex": 26,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 104,
+        "name": "Spatula"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 0,
+        "commandIndex": 27,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 0,
+        "commandIndex": 28,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 1,
+        "commandIndex": 32,
+        "code": 302,
+        "parameterIndex": 1,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 1,
+        "commandIndex": 33,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 1,
+        "commandIndex": 34,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 1,
+        "commandIndex": 35,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 104,
+        "name": "Spatula"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 1,
+        "commandIndex": 36,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 1,
+        "commandIndex": 37,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 1,
+        "commandIndex": 38,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 1,
+        "commandIndex": 39,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 1,
+        "commandIndex": 40,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 1,
+        "commandIndex": 41,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 110,
+        "name": "Fountain Pen"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 34,
+        "code": 302,
+        "parameterIndex": 1,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 35,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 36,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 37,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 104,
+        "name": "Spatula"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 38,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 39,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 40,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 107,
+        "name": "Gripper"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 41,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 108,
+        "name": "Scissors"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 42,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 109,
+        "name": "Eyeglass"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 43,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 110,
+        "name": "Fountain Pen"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 44,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 111,
+        "name": "Razor Sickle"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map020.json",
+        "mapId": 20,
+        "eventId": 31,
+        "eventName": "Temporal Merchant",
+        "pageIndex": 2,
+        "commandIndex": 45,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 112,
+        "name": "Obliterator"
+      },
+      {
+        "site": "map",
+        "kind": "changeItems",
+        "filename": "Map028.json",
+        "mapId": 28,
+        "eventId": 10,
+        "eventName": "learn: quest to jaft",
+        "pageIndex": 2,
+        "commandIndex": 61,
+        "code": 126,
+        "parameterIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "map",
+        "kind": "changeItems",
+        "filename": "Map028.json",
+        "mapId": 28,
+        "eventId": 10,
+        "eventName": "learn: quest to jaft",
+        "pageIndex": 2,
+        "commandIndex": 62,
+        "code": 126,
+        "parameterIndex": 0,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "map",
+        "kind": "changeItems",
+        "filename": "Map032.json",
+        "mapId": 32,
+        "eventId": 1,
+        "eventName": "viskra the apprentice",
+        "pageIndex": 2,
+        "commandIndex": 55,
+        "code": 126,
+        "parameterIndex": 0,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "map",
+        "kind": "changeItems",
+        "filename": "Map032.json",
+        "mapId": 32,
+        "eventId": 1,
+        "eventName": "viskra the apprentice",
+        "pageIndex": 2,
+        "commandIndex": 56,
+        "code": 126,
+        "parameterIndex": 0,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map032.json",
+        "mapId": 32,
+        "eventId": 1,
+        "eventName": "viskra the apprentice",
+        "pageIndex": 4,
+        "commandIndex": 10,
+        "code": 302,
+        "parameterIndex": 1,
+        "id": 105,
+        "name": "Hammer"
+      },
+      {
+        "site": "map",
+        "kind": "shopGoods",
+        "filename": "Map032.json",
+        "mapId": 32,
+        "eventId": 1,
+        "eventName": "viskra the apprentice",
+        "pageIndex": 4,
+        "commandIndex": 11,
+        "code": 605,
+        "parameterIndex": 1,
+        "id": 106,
+        "name": "Mitts"
+      },
+      {
+        "site": "map",
+        "kind": "changeItems",
+        "filename": "Map043.json",
+        "mapId": 43,
+        "eventId": 26,
+        "eventName": "about the kitchen shelf",
+        "pageIndex": 0,
+        "commandIndex": 3,
+        "code": 126,
+        "parameterIndex": 0,
+        "id": 101,
+        "name": "Soup Pot"
+      },
+      {
+        "site": "map",
+        "kind": "changeItems",
+        "filename": "Map043.json",
+        "mapId": 43,
+        "eventId": 26,
+        "eventName": "about the kitchen shelf",
+        "pageIndex": 0,
+        "commandIndex": 4,
+        "code": 126,
+        "parameterIndex": 0,
+        "id": 102,
+        "name": "Spoon"
+      },
+      {
+        "site": "map",
+        "kind": "changeItems",
+        "filename": "Map043.json",
+        "mapId": 43,
+        "eventId": 26,
+        "eventName": "about the kitchen shelf",
+        "pageIndex": 0,
+        "commandIndex": 5,
+        "code": 126,
+        "parameterIndex": 0,
+        "id": 103,
+        "name": "Frying Pan"
+      },
+      {
+        "site": "map",
+        "kind": "changeItems",
+        "filename": "Map043.json",
+        "mapId": 43,
+        "eventId": 26,
+        "eventName": "about the kitchen shelf",
+        "pageIndex": 0,
+        "commandIndex": 6,
+        "code": 126,
+        "parameterIndex": 0,
+        "id": 104,
+        "name": "Spatula"
+      },
+      {
+        "site": "map",
+        "kind": "changeItems",
+        "filename": "Map076.json",
+        "mapId": 76,
+        "eventId": 5,
+        "eventName": "Millie",
+        "pageIndex": 1,
+        "commandIndex": 229,
+        "code": 126,
+        "parameterIndex": 0,
+        "id": 108,
+        "name": "Scissors"
+      }
+    ]
+  }
+}

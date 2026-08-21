@@ -2491,5 +2491,58 @@
       ],
       "jsRewards": ""
     }
+  ],
+  "knowledgeTags": [
+    {
+      "key": "offensive",
+      "name": "Offensive Knowledge",
+      "iconIndex": 1665,
+      "description": "What swinging something at a problem teaches you about making a better one."
+    },
+    {
+      "key": "defensive",
+      "name": "Defensive Knowledge",
+      "iconIndex": 1666,
+      "description": "What surviving something teaches you about not having to, next time."
+    }
+  ],
+  "skillTypeMapping": {
+    "1": [
+      "defensive"
+    ],
+    "2": [
+      "defensive"
+    ],
+    "3": [
+      "offensive"
+    ],
+    "4": [
+      "offensive"
+    ],
+    "7": [
+      "offensive"
+    ]
+  },
+  "knowledgeExchanges": [
+    {
+      "key": "blueprints",
+      "tagKey": "offensive",
+      "cost": 100,
+      "output": {
+        "id": 152,
+        "type": "i",
+        "count": 1
+      }
+    },
+    {
+      "key": "patterns",
+      "tagKey": "defensive",
+      "cost": 100,
+      "output": {
+        "id": 153,
+        "type": "i",
+        "count": 1
+      }
+    }
   ]
 }

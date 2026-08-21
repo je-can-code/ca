@@ -1,0 +1,7323 @@
+{
+  "_backup": "Material armors a301-a535 and every reference to them, before the block was reordered.",
+  "_captured": "2026-08-13",
+  "_source": "chef-adventure/data/Armors.json, config.crafting.json, Enemies.json",
+  "_howToRemap": "Run `bun tools/armor-ids.js plan` after reordering, then `apply`.",
+  "_counts": {
+    "materials": 80,
+    "recipeReferences": 158,
+    "dropReferences": 953
+  },
+  "materials": [
+    {
+      "id": 306,
+      "name": "Odorless Powder",
+      "atypeId": 8,
+      "payload": "21/1=1.05"
+    },
+    {
+      "id": 307,
+      "name": "Odorful Powder",
+      "atypeId": 8,
+      "payload": "21/1=1.1"
+    },
+    {
+      "id": 308,
+      "name": "Ghastly Powder",
+      "atypeId": 8,
+      "payload": "21/1=1.15"
+    },
+    {
+      "id": 309,
+      "name": "Spectral Powder",
+      "atypeId": 8,
+      "payload": "21/1=1.2"
+    },
+    {
+      "id": 310,
+      "name": "Transparent Powder",
+      "atypeId": 8,
+      "payload": "21/1=1.25"
+    },
+    {
+      "id": 316,
+      "name": "Broken Horn",
+      "atypeId": 8,
+      "payload": "21/2=1.02"
+    },
+    {
+      "id": 317,
+      "name": "Cracked Horn",
+      "atypeId": 8,
+      "payload": "21/2=1.04"
+    },
+    {
+      "id": 318,
+      "name": "Long Horn",
+      "atypeId": 8,
+      "payload": "21/2=1.06"
+    },
+    {
+      "id": 319,
+      "name": "Demon Horn",
+      "atypeId": 8,
+      "payload": "21/2=1.08"
+    },
+    {
+      "id": 320,
+      "name": "Regal Horn",
+      "atypeId": 8,
+      "payload": "21/2=1.1"
+    },
+    {
+      "id": 321,
+      "name": "Tough Root",
+      "atypeId": 8,
+      "payload": "21/3=1.02"
+    },
+    {
+      "id": 322,
+      "name": "Sprouting Root",
+      "atypeId": 8,
+      "payload": "21/3=1.04"
+    },
+    {
+      "id": 323,
+      "name": "Petrified Root",
+      "atypeId": 8,
+      "payload": "21/3=1.06"
+    },
+    {
+      "id": 324,
+      "name": "Deep Root",
+      "atypeId": 8,
+      "payload": "21/3=1.08"
+    },
+    {
+      "id": 325,
+      "name": "Infinity Root",
+      "atypeId": 8,
+      "payload": "21/3=1.1"
+    },
+    {
+      "id": 326,
+      "name": "Imp Tongue",
+      "atypeId": 8,
+      "payload": "21/4=1.02"
+    },
+    {
+      "id": 327,
+      "name": "Goblin Tongue",
+      "atypeId": 8,
+      "payload": "21/4=1.04"
+    },
+    {
+      "id": 328,
+      "name": "Froggo Tongue",
+      "atypeId": 8,
+      "payload": "21/4=1.06"
+    },
+    {
+      "id": 329,
+      "name": "Dying Tongue",
+      "atypeId": 8,
+      "payload": "21/4=1.08"
+    },
+    {
+      "id": 330,
+      "name": "Sinister Tongue",
+      "atypeId": 8,
+      "payload": "21/4=1.1"
+    },
+    {
+      "id": 331,
+      "name": "Loose Scales",
+      "atypeId": 8,
+      "payload": "21/5=1.05"
+    },
+    {
+      "id": 332,
+      "name": "Lizard Scales",
+      "atypeId": 8,
+      "payload": "21/5=1.1"
+    },
+    {
+      "id": 333,
+      "name": "Enduring Scales",
+      "atypeId": 8,
+      "payload": "21/5=1.15"
+    },
+    {
+      "id": 334,
+      "name": "Wurm Scales",
+      "atypeId": 8,
+      "payload": "21/5=1.2"
+    },
+    {
+      "id": 335,
+      "name": "Dargin Scales",
+      "atypeId": 8,
+      "payload": "21/5=1.25"
+    },
+    {
+      "id": 346,
+      "name": "Cracked Stinger",
+      "atypeId": 8,
+      "payload": "22/0=0.02"
+    },
+    {
+      "id": 347,
+      "name": "Intact Stinger",
+      "atypeId": 8,
+      "payload": "22/0=0.04"
+    },
+    {
+      "id": 348,
+      "name": "Sharp Stinger",
+      "atypeId": 8,
+      "payload": "22/0=0.06"
+    },
+    {
+      "id": 349,
+      "name": "Offensive Stinger",
+      "atypeId": 8,
+      "payload": "22/0=0.08"
+    },
+    {
+      "id": 350,
+      "name": "Live Stinger",
+      "atypeId": 8,
+      "payload": "22/0=0.1"
+    },
+    {
+      "id": 356,
+      "name": "Flimsy Fangs",
+      "atypeId": 8,
+      "payload": "22/2=0.03"
+    },
+    {
+      "id": 357,
+      "name": "Bone Fangs",
+      "atypeId": 8,
+      "payload": "22/2=0.06"
+    },
+    {
+      "id": 358,
+      "name": "Double Fangs",
+      "atypeId": 8,
+      "payload": "22/2=0.09"
+    },
+    {
+      "id": 359,
+      "name": "Powerful Fangs",
+      "atypeId": 8,
+      "payload": "22/2=0.12"
+    },
+    {
+      "id": 360,
+      "name": "Razor Fangs",
+      "atypeId": 8,
+      "payload": "22/2=0.15"
+    },
+    {
+      "id": 361,
+      "name": "Busted Talon",
+      "atypeId": 8,
+      "payload": "22/3=0.03"
+    },
+    {
+      "id": 362,
+      "name": "Dull Talon",
+      "atypeId": 8,
+      "payload": "22/3=0.06"
+    },
+    {
+      "id": 363,
+      "name": "Hooked Talon",
+      "atypeId": 8,
+      "payload": "22/3=0.09"
+    },
+    {
+      "id": 364,
+      "name": "Serrated Talon",
+      "atypeId": 8,
+      "payload": "22/3=0.12"
+    },
+    {
+      "id": 365,
+      "name": "Lethal Talon",
+      "atypeId": 8,
+      "payload": "22/3=0.15"
+    },
+    {
+      "id": 366,
+      "name": "Faded Core",
+      "atypeId": 8,
+      "payload": "22/4=0.03"
+    },
+    {
+      "id": 367,
+      "name": "Dimmed Core",
+      "atypeId": 8,
+      "payload": "22/4=0.06"
+    },
+    {
+      "id": 368,
+      "name": "Magic Core",
+      "atypeId": 8,
+      "payload": "22/4=0.09"
+    },
+    {
+      "id": 369,
+      "name": "Pulsating Core",
+      "atypeId": 8,
+      "payload": "22/4=0.12"
+    },
+    {
+      "id": 370,
+      "name": "Radiant Core",
+      "atypeId": 8,
+      "payload": "22/4=0.15"
+    },
+    {
+      "id": 371,
+      "name": "Dead Branch",
+      "atypeId": 8,
+      "payload": "22/5=0.01"
+    },
+    {
+      "id": 372,
+      "name": "Dry Branch",
+      "atypeId": 8,
+      "payload": "22/5=0.02"
+    },
+    {
+      "id": 373,
+      "name": "Preserved Branch",
+      "atypeId": 8,
+      "payload": "22/5=0.03"
+    },
+    {
+      "id": 374,
+      "name": "Hard Branch",
+      "atypeId": 8,
+      "payload": "22/5=0.04"
+    },
+    {
+      "id": 375,
+      "name": "Lark Branch",
+      "atypeId": 8,
+      "payload": "22/5=0.05"
+    },
+    {
+      "id": 376,
+      "name": "Loose Spines",
+      "atypeId": 8,
+      "payload": "22/6=0.01"
+    },
+    {
+      "id": 377,
+      "name": "Red Spines",
+      "atypeId": 8,
+      "payload": "22/6=0.02"
+    },
+    {
+      "id": 378,
+      "name": "Sharp Spines",
+      "atypeId": 8,
+      "payload": "22/6=0.03"
+    },
+    {
+      "id": 379,
+      "name": "Crimson Spines",
+      "atypeId": 8,
+      "payload": "22/6=0.04"
+    },
+    {
+      "id": 380,
+      "name": "Quantum Spines",
+      "atypeId": 8,
+      "payload": "22/6=0.05"
+    },
+    {
+      "id": 386,
+      "name": "Dense Pelt",
+      "atypeId": 8,
+      "payload": "22/8=0.05"
+    },
+    {
+      "id": 387,
+      "name": "Wisp Pelt",
+      "atypeId": 8,
+      "payload": "22/8=0.1"
+    },
+    {
+      "id": 388,
+      "name": "Bright Pelt",
+      "atypeId": 8,
+      "payload": "22/8=0.15"
+    },
+    {
+      "id": 389,
+      "name": "Radiant Pelt",
+      "atypeId": 8,
+      "payload": "22/8=0.2"
+    },
+    {
+      "id": 390,
+      "name": "Flowing Pelt",
+      "atypeId": 8,
+      "payload": "22/8=0.25"
+    },
+    {
+      "id": 391,
+      "name": "Waxxy Ear",
+      "atypeId": 8,
+      "payload": "22/9=0.03"
+    },
+    {
+      "id": 392,
+      "name": "Pierced Ear",
+      "atypeId": 8,
+      "payload": "22/9=0.06"
+    },
+    {
+      "id": 393,
+      "name": "Complete Ear",
+      "atypeId": 8,
+      "payload": "22/9=0.09"
+    },
+    {
+      "id": 394,
+      "name": "Bandit's Ear",
+      "atypeId": 8,
+      "payload": "22/9=0.12"
+    },
+    {
+      "id": 395,
+      "name": "Lord's Ear",
+      "atypeId": 8,
+      "payload": "22/9=0.15"
+    },
+    {
+      "id": 396,
+      "name": "Inert Veil",
+      "atypeId": 8,
+      "payload": "23/0=0.98"
+    },
+    {
+      "id": 397,
+      "name": "Dead Veil",
+      "atypeId": 8,
+      "payload": "23/0=0.96"
+    },
+    {
+      "id": 398,
+      "name": "Expired Veil",
+      "atypeId": 8,
+      "payload": "23/0=0.94"
+    },
+    {
+      "id": 399,
+      "name": "Perished Veil",
+      "atypeId": 8,
+      "payload": "23/0=0.92"
+    },
+    {
+      "id": 400,
+      "name": "Wasted Veil",
+      "atypeId": 8,
+      "payload": "23/0=0.9"
+    },
+    {
+      "id": 401,
+      "name": "Worn Stone",
+      "atypeId": 8,
+      "payload": "23/1=1.03"
+    },
+    {
+      "id": 402,
+      "name": "Round Stone",
+      "atypeId": 8,
+      "payload": "23/1=1.06"
+    },
+    {
+      "id": 403,
+      "name": "Circular Stone",
+      "atypeId": 8,
+      "payload": "23/1=1.09"
+    },
+    {
+      "id": 404,
+      "name": "Trapezoidal Stone",
+      "atypeId": 8,
+      "payload": "23/1=1.12"
+    },
+    {
+      "id": 405,
+      "name": "Spherical Stone",
+      "atypeId": 8,
+      "payload": "23/1=1.15"
+    },
+    {
+      "id": 421,
+      "name": "Old Bone",
+      "atypeId": 8,
+      "payload": "23/5=0.99"
+    },
+    {
+      "id": 422,
+      "name": "Mossy Bone",
+      "atypeId": 8,
+      "payload": "23/5=0.98"
+    },
+    {
+      "id": 423,
+      "name": "Earthen Bone",
+      "atypeId": 8,
+      "payload": "23/5=0.97"
+    },
+    {
+      "id": 424,
+      "name": "Petrified Bone",
+      "atypeId": 8,
+      "payload": "23/5=0.96"
+    },
+    {
+      "id": 425,
+      "name": "Spiral Bone",
+      "atypeId": 8,
+      "payload": "23/5=0.95"
+    }
+  ],
+  "references": {
+    "recipes": [
+      {
+        "recipeKey": "food_steamed-imp-tongue",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 326,
+        "name": "Imp Tongue"
+      },
+      {
+        "recipeKey": "food_gel-o",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "recipeKey": "food_ghastly-goulash",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 308,
+        "name": "Ghastly Powder"
+      },
+      {
+        "recipeKey": "food_slime-puree",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 423,
+        "name": "Earthen Bone"
+      },
+      {
+        "recipeKey": "w-spear-1",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "recipeKey": "w-spear-2",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "recipeKey": "w-spear-3",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "w-spear-5",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "w-spear-6",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 373,
+        "name": "Preserved Branch"
+      },
+      {
+        "recipeKey": "w-spear-7",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 373,
+        "name": "Preserved Branch"
+      },
+      {
+        "recipeKey": "w-spear-9",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 373,
+        "name": "Preserved Branch"
+      },
+      {
+        "recipeKey": "w-spear-10",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 373,
+        "name": "Preserved Branch"
+      },
+      {
+        "recipeKey": "w-javelin-2",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "recipeKey": "w-javelin-3",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "recipeKey": "w-javelin-5",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 348,
+        "name": "Sharp Stinger"
+      },
+      {
+        "recipeKey": "w-javelin-6",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 348,
+        "name": "Sharp Stinger"
+      },
+      {
+        "recipeKey": "w-javelin-7",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 348,
+        "name": "Sharp Stinger"
+      },
+      {
+        "recipeKey": "w-javelin-9",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 348,
+        "name": "Sharp Stinger"
+      },
+      {
+        "recipeKey": "w-javelin-10",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 348,
+        "name": "Sharp Stinger"
+      },
+      {
+        "recipeKey": "w-pistol-1",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "recipeKey": "w-pistol-2",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "recipeKey": "w-pistol-4",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "recipeKey": "w-pistol-5",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "recipeKey": "w-pistol-7",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "recipeKey": "w-pistol-8",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "recipeKey": "w-pistol-9",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "recipeKey": "w-pistol-10",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "recipeKey": "w-taser-2",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "recipeKey": "w-taser-3",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "recipeKey": "w-taser-4",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "recipeKey": "w-taser-6",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "recipeKey": "w-taser-7",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "recipeKey": "w-taser-9",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "recipeKey": "w-taser-10",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "recipeKey": "w-twinaxe-3",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "recipeKey": "w-twinaxe-4",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "recipeKey": "w-twinaxe-6",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "recipeKey": "w-twinaxe-7",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "recipeKey": "w-twinaxe-9",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "recipeKey": "w-twinaxe-10",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "recipeKey": "w-staff-3",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 322,
+        "name": "Sprouting Root"
+      },
+      {
+        "recipeKey": "w-staff-5",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 322,
+        "name": "Sprouting Root"
+      },
+      {
+        "recipeKey": "w-staff-6",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 322,
+        "name": "Sprouting Root"
+      },
+      {
+        "recipeKey": "w-staff-7",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 322,
+        "name": "Sprouting Root"
+      },
+      {
+        "recipeKey": "w-staff-9",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 322,
+        "name": "Sprouting Root"
+      },
+      {
+        "recipeKey": "w-staff-10",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 322,
+        "name": "Sprouting Root"
+      },
+      {
+        "recipeKey": "w-wand-2",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "recipeKey": "w-wand-3",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "w-wand-4",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "w-wand-6",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "w-wand-7",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "w-wand-9",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "w-wand-10",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "w-tome-2",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "recipeKey": "w-tome-3",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "recipeKey": "w-tome-4",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "recipeKey": "w-tome-7",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "recipeKey": "w-tome-8",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "recipeKey": "w-tome-9",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "recipeKey": "w-tome-10",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "recipeKey": "w-fist-1",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "recipeKey": "w-fist-2",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "recipeKey": "w-fist-3",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "w-fist-3",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "recipeKey": "w-fist-5",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "w-fist-5",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "recipeKey": "w-fist-6",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "w-fist-6",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "recipeKey": "w-fist-7",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "w-fist-7",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "recipeKey": "w-fist-9",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "w-fist-9",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "recipeKey": "w-fist-10",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "w-fist-10",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "recipeKey": "w-claw-2",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "recipeKey": "w-claw-3",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 362,
+        "name": "Dull Talon"
+      },
+      {
+        "recipeKey": "w-claw-4",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 362,
+        "name": "Dull Talon"
+      },
+      {
+        "recipeKey": "w-claw-7",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 362,
+        "name": "Dull Talon"
+      },
+      {
+        "recipeKey": "w-claw-8",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 362,
+        "name": "Dull Talon"
+      },
+      {
+        "recipeKey": "w-claw-9",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 362,
+        "name": "Dull Talon"
+      },
+      {
+        "recipeKey": "w-claw-10",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 362,
+        "name": "Dull Talon"
+      },
+      {
+        "recipeKey": "w-beat-2",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "recipeKey": "w-beat-3",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 422,
+        "name": "Mossy Bone"
+      },
+      {
+        "recipeKey": "w-beat-4",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 422,
+        "name": "Mossy Bone"
+      },
+      {
+        "recipeKey": "w-beat-5",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 422,
+        "name": "Mossy Bone"
+      },
+      {
+        "recipeKey": "w-beat-7",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 422,
+        "name": "Mossy Bone"
+      },
+      {
+        "recipeKey": "w-beat-9",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 422,
+        "name": "Mossy Bone"
+      },
+      {
+        "recipeKey": "w-beat-10",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 422,
+        "name": "Mossy Bone"
+      },
+      {
+        "recipeKey": "a-off-light-1",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "recipeKey": "a-off-light-2",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "recipeKey": "a-off-light-3",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "recipeKey": "a-off-light-4",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "recipeKey": "a-off-light-5",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "recipeKey": "a-off-light-6",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "recipeKey": "a-off-light-7",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "recipeKey": "a-off-light-8",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "recipeKey": "a-off-light-9",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "recipeKey": "a-off-light-10",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "recipeKey": "a-off-medium-4",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "a-off-medium-5",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "a-off-medium-6",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "a-off-medium-7",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "a-off-medium-8",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "a-off-medium-9",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "a-off-medium-10",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "recipeKey": "a-body-light-1",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "recipeKey": "a-body-light-2",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "recipeKey": "a-body-light-3",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "recipeKey": "a-body-light-3",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "a-body-light-4",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "recipeKey": "a-body-light-5",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "recipeKey": "a-body-light-6",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "recipeKey": "a-body-light-7",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "recipeKey": "a-body-light-8",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "recipeKey": "a-body-light-9",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "recipeKey": "a-body-light-10",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "recipeKey": "a-body-medium-1",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "recipeKey": "a-body-medium-2",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "recipeKey": "a-body-medium-3",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "recipeKey": "a-body-medium-3",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "recipeKey": "a-feet-light-1",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "recipeKey": "a-feet-light-2",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "recipeKey": "a-feet-light-3",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "a-feet-light-3",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "recipeKey": "a-feet-light-4",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "a-feet-light-4",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "recipeKey": "a-feet-light-4",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 347,
+        "name": "Intact Stinger"
+      },
+      {
+        "recipeKey": "a-feet-light-5",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "a-feet-light-5",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "recipeKey": "a-feet-light-5",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 347,
+        "name": "Intact Stinger"
+      },
+      {
+        "recipeKey": "a-feet-light-6",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "a-feet-light-6",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "recipeKey": "a-feet-light-6",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 347,
+        "name": "Intact Stinger"
+      },
+      {
+        "recipeKey": "a-feet-light-7",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "a-feet-light-7",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "recipeKey": "a-feet-light-7",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 347,
+        "name": "Intact Stinger"
+      },
+      {
+        "recipeKey": "a-feet-light-8",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "a-feet-light-8",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "recipeKey": "a-feet-light-8",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 347,
+        "name": "Intact Stinger"
+      },
+      {
+        "recipeKey": "a-feet-light-9",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "a-feet-light-9",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "recipeKey": "a-feet-light-9",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 347,
+        "name": "Intact Stinger"
+      },
+      {
+        "recipeKey": "a-feet-light-10",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "recipeKey": "a-feet-light-10",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "recipeKey": "a-feet-light-10",
+        "slot": "ingredients",
+        "index": 3,
+        "id": 347,
+        "name": "Intact Stinger"
+      },
+      {
+        "recipeKey": "a-gems-magi-1",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 326,
+        "name": "Imp Tongue"
+      },
+      {
+        "recipeKey": "a-gems-magi-2",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 327,
+        "name": "Goblin Tongue"
+      },
+      {
+        "recipeKey": "a-gems-magi-3",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 328,
+        "name": "Froggo Tongue"
+      },
+      {
+        "recipeKey": "a-gems-magi-4",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 329,
+        "name": "Dying Tongue"
+      },
+      {
+        "recipeKey": "a-gems-magi-5",
+        "slot": "ingredients",
+        "index": 0,
+        "id": 330,
+        "name": "Sinister Tongue"
+      },
+      {
+        "recipeKey": "a-runes-undead-seal",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "recipeKey": "a-runes-reptile-seal",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "recipeKey": "a-runes-insect-seal",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 348,
+        "name": "Sharp Stinger"
+      },
+      {
+        "recipeKey": "a-runes-humanoid-seal",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 393,
+        "name": "Complete Ear"
+      },
+      {
+        "recipeKey": "a-runes-construct-seal",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 368,
+        "name": "Magic Core"
+      },
+      {
+        "recipeKey": "a-runes-deity-seal",
+        "slot": "ingredients",
+        "index": 1,
+        "id": 368,
+        "name": "Magic Core"
+      },
+      {
+        "recipeKey": "a-runes-anti-weapon",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 364,
+        "name": "Serrated Talon"
+      },
+      {
+        "recipeKey": "a-runes-anti-aura",
+        "slot": "ingredients",
+        "index": 2,
+        "id": 309,
+        "name": "Spectral Powder"
+      }
+    ],
+    "drops": [
+      {
+        "enemyId": 21,
+        "enemyName": "*Deposit (Iron)",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 21,
+        "enemyName": "*Deposit (Iron)",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 21,
+        "enemyName": "*Deposit (Iron)",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 22,
+        "enemyName": "*Deposit (Silver)",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 22,
+        "enemyName": "*Deposit (Silver)",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 22,
+        "enemyName": "*Deposit (Silver)",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 22,
+        "enemyName": "*Deposit (Silver)",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 23,
+        "enemyName": "*Deposit (Bleu)",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 23,
+        "enemyName": "*Deposit (Bleu)",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 23,
+        "enemyName": "*Deposit (Bleu)",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 23,
+        "enemyName": "*Deposit (Bleu)",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 24,
+        "enemyName": "*Deposit (Sandwraith)",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 24,
+        "enemyName": "*Deposit (Sandwraith)",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 24,
+        "enemyName": "*Deposit (Sandwraith)",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 24,
+        "enemyName": "*Deposit (Sandwraith)",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 24,
+        "enemyName": "*Deposit (Sandwraith)",
+        "id": 404,
+        "name": "Trapezoidal Stone"
+      },
+      {
+        "enemyId": 25,
+        "enemyName": "*Deposit (Bluesilver)",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 25,
+        "enemyName": "*Deposit (Bluesilver)",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 25,
+        "enemyName": "*Deposit (Bluesilver)",
+        "id": 404,
+        "name": "Trapezoidal Stone"
+      },
+      {
+        "enemyId": 25,
+        "enemyName": "*Deposit (Bluesilver)",
+        "id": 404,
+        "name": "Trapezoidal Stone"
+      },
+      {
+        "enemyId": 26,
+        "enemyName": "=== TBD Ore",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 26,
+        "enemyName": "=== TBD Ore",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 26,
+        "enemyName": "=== TBD Ore",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 27,
+        "enemyName": "=== TBD Ore",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 27,
+        "enemyName": "=== TBD Ore",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 27,
+        "enemyName": "=== TBD Ore",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 28,
+        "enemyName": "=== TBD Ore",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 28,
+        "enemyName": "=== TBD Ore",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 28,
+        "enemyName": "=== TBD Ore",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 29,
+        "enemyName": "=== TBD Ore",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 29,
+        "enemyName": "=== TBD Ore",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 29,
+        "enemyName": "=== TBD Ore",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 30,
+        "enemyName": "=== TBD Ore",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 30,
+        "enemyName": "=== TBD Ore",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 30,
+        "enemyName": "=== TBD Ore",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 31,
+        "enemyName": "@Spire",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 31,
+        "enemyName": "@Spire",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 31,
+        "enemyName": "@Spire",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 35,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 35,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 35,
+        "enemyName": "=== TBD Tool Target",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 36,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 36,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 36,
+        "enemyName": "=== TBD Tool Target",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 37,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 37,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 37,
+        "enemyName": "=== TBD Tool Target",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 38,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 38,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 38,
+        "enemyName": "=== TBD Tool Target",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 39,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 39,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 39,
+        "enemyName": "=== TBD Tool Target",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 40,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 40,
+        "enemyName": "=== TBD Tool Target",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 40,
+        "enemyName": "=== TBD Tool Target",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 42,
+        "enemyName": "*Crate (Mines)",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 42,
+        "enemyName": "*Crate (Mines)",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 42,
+        "enemyName": "*Crate (Mines)",
+        "id": 401,
+        "name": "Worn Stone"
+      },
+      {
+        "enemyId": 101,
+        "enemyName": "Ghosty",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 101,
+        "enemyName": "Ghosty",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 102,
+        "enemyName": "Creepy",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 102,
+        "enemyName": "Creepy",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 102,
+        "enemyName": "Creepy",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 103,
+        "enemyName": "!Ghastly Ghosty",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 103,
+        "enemyName": "!Ghastly Ghosty",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 104,
+        "enemyName": "Spooky",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 104,
+        "enemyName": "Spooky",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 104,
+        "enemyName": "Spooky",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 104,
+        "enemyName": "Spooky",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 105,
+        "enemyName": "=== TBD Ghost",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 105,
+        "enemyName": "=== TBD Ghost",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 105,
+        "enemyName": "=== TBD Ghost",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 105,
+        "enemyName": "=== TBD Ghost",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 106,
+        "enemyName": "=== TBD Ghost",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 106,
+        "enemyName": "=== TBD Ghost",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 106,
+        "enemyName": "=== TBD Ghost",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 106,
+        "enemyName": "=== TBD Ghost",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 107,
+        "enemyName": "=== TBD Ghost",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 107,
+        "enemyName": "=== TBD Ghost",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 107,
+        "enemyName": "=== TBD Ghost",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 107,
+        "enemyName": "=== TBD Ghost",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 108,
+        "enemyName": "=== TBD Ghost",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 108,
+        "enemyName": "=== TBD Ghost",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 108,
+        "enemyName": "=== TBD Ghost",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 108,
+        "enemyName": "=== TBD Ghost",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 109,
+        "enemyName": "=== TBD Ghost",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 109,
+        "enemyName": "=== TBD Ghost",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 109,
+        "enemyName": "=== TBD Ghost",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 109,
+        "enemyName": "=== TBD Ghost",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 110,
+        "enemyName": "=== TBD Ghost",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 110,
+        "enemyName": "=== TBD Ghost",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 110,
+        "enemyName": "=== TBD Ghost",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 110,
+        "enemyName": "=== TBD Ghost",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 111,
+        "enemyName": "Wraith",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 111,
+        "enemyName": "Wraith",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 112,
+        "enemyName": "!Spoop Maestro",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 112,
+        "enemyName": "!Spoop Maestro",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 113,
+        "enemyName": "Felmist",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 113,
+        "enemyName": "Felmist",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 114,
+        "enemyName": "=== TBD Reborn",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 114,
+        "enemyName": "=== TBD Reborn",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 115,
+        "enemyName": "=== TBD Reborn",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 115,
+        "enemyName": "=== TBD Reborn",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 116,
+        "enemyName": "=== TBD Reborn",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 116,
+        "enemyName": "=== TBD Reborn",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 117,
+        "enemyName": "=== TBD Reborn",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 117,
+        "enemyName": "=== TBD Reborn",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 118,
+        "enemyName": "=== TBD Reborn",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 118,
+        "enemyName": "=== TBD Reborn",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 119,
+        "enemyName": "=== TBD Reborn",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 119,
+        "enemyName": "=== TBD Reborn",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 120,
+        "enemyName": "=== TBD Reborn",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 120,
+        "enemyName": "=== TBD Reborn",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 121,
+        "enemyName": "Will 'o' Wisp",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 121,
+        "enemyName": "Will 'o' Wisp",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 122,
+        "enemyName": "!Blistering Blaze",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 122,
+        "enemyName": "!Blistering Blaze",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 122,
+        "enemyName": "!Blistering Blaze",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 122,
+        "enemyName": "!Blistering Blaze",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 122,
+        "enemyName": "!Blistering Blaze",
+        "id": 367,
+        "name": "Dimmed Core"
+      },
+      {
+        "enemyId": 123,
+        "enemyName": "Onryo",
+        "id": 367,
+        "name": "Dimmed Core"
+      },
+      {
+        "enemyId": 123,
+        "enemyName": "Onryo",
+        "id": 367,
+        "name": "Dimmed Core"
+      },
+      {
+        "enemyId": 123,
+        "enemyName": "Onryo",
+        "id": 368,
+        "name": "Magic Core"
+      },
+      {
+        "enemyId": 123,
+        "enemyName": "Onryo",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 123,
+        "enemyName": "Onryo",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 124,
+        "enemyName": "=== TBD Wisp",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 124,
+        "enemyName": "=== TBD Wisp",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 125,
+        "enemyName": "=== TBD Wisp",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 125,
+        "enemyName": "=== TBD Wisp",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 126,
+        "enemyName": "=== TBD Wisp",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 126,
+        "enemyName": "=== TBD Wisp",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 127,
+        "enemyName": "=== TBD Wisp",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 127,
+        "enemyName": "=== TBD Wisp",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 128,
+        "enemyName": "=== TBD Wisp",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 128,
+        "enemyName": "=== TBD Wisp",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 129,
+        "enemyName": "=== TBD Wisp",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 129,
+        "enemyName": "=== TBD Wisp",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 130,
+        "enemyName": "=== TBD Wisp",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 130,
+        "enemyName": "=== TBD Wisp",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 131,
+        "enemyName": "Skeletor",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 131,
+        "enemyName": "Skeletor",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 131,
+        "enemyName": "Skeletor",
+        "id": 422,
+        "name": "Mossy Bone"
+      },
+      {
+        "enemyId": 132,
+        "enemyName": "Skeledoggo",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 132,
+        "enemyName": "Skeledoggo",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 133,
+        "enemyName": "=== TBD Skelly",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 134,
+        "enemyName": "=== TBD Skelly",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 135,
+        "enemyName": "=== TBD Skelly",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 136,
+        "enemyName": "=== TBD Skelly",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 137,
+        "enemyName": "=== TBD Skelly",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 138,
+        "enemyName": "=== TBD Skelly",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 139,
+        "enemyName": "=== TBD Skelly",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 140,
+        "enemyName": "=== TBD Skelly",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 141,
+        "enemyName": "Rust Bucket",
+        "id": 306,
+        "name": "Odorless Powder"
+      },
+      {
+        "enemyId": 141,
+        "enemyName": "Rust Bucket",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 141,
+        "enemyName": "Rust Bucket",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 142,
+        "enemyName": "Tsukumogami",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 142,
+        "enemyName": "Tsukumogami",
+        "id": 308,
+        "name": "Ghastly Powder"
+      },
+      {
+        "enemyId": 142,
+        "enemyName": "Tsukumogami",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 142,
+        "enemyName": "Tsukumogami",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 143,
+        "enemyName": "=== TBD Hollow",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 143,
+        "enemyName": "=== TBD Hollow",
+        "id": 308,
+        "name": "Ghastly Powder"
+      },
+      {
+        "enemyId": 143,
+        "enemyName": "=== TBD Hollow",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 143,
+        "enemyName": "=== TBD Hollow",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 144,
+        "enemyName": "=== TBD Hollow",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 144,
+        "enemyName": "=== TBD Hollow",
+        "id": 308,
+        "name": "Ghastly Powder"
+      },
+      {
+        "enemyId": 144,
+        "enemyName": "=== TBD Hollow",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 144,
+        "enemyName": "=== TBD Hollow",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 145,
+        "enemyName": "=== TBD Hollow",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 145,
+        "enemyName": "=== TBD Hollow",
+        "id": 308,
+        "name": "Ghastly Powder"
+      },
+      {
+        "enemyId": 145,
+        "enemyName": "=== TBD Hollow",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 145,
+        "enemyName": "=== TBD Hollow",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 146,
+        "enemyName": "=== TBD Hollow",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 146,
+        "enemyName": "=== TBD Hollow",
+        "id": 308,
+        "name": "Ghastly Powder"
+      },
+      {
+        "enemyId": 146,
+        "enemyName": "=== TBD Hollow",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 146,
+        "enemyName": "=== TBD Hollow",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 147,
+        "enemyName": "=== TBD Hollow",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 147,
+        "enemyName": "=== TBD Hollow",
+        "id": 308,
+        "name": "Ghastly Powder"
+      },
+      {
+        "enemyId": 147,
+        "enemyName": "=== TBD Hollow",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 147,
+        "enemyName": "=== TBD Hollow",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 148,
+        "enemyName": "=== TBD Hollow",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 148,
+        "enemyName": "=== TBD Hollow",
+        "id": 308,
+        "name": "Ghastly Powder"
+      },
+      {
+        "enemyId": 148,
+        "enemyName": "=== TBD Hollow",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 148,
+        "enemyName": "=== TBD Hollow",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 149,
+        "enemyName": "=== TBD Hollow",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 149,
+        "enemyName": "=== TBD Hollow",
+        "id": 308,
+        "name": "Ghastly Powder"
+      },
+      {
+        "enemyId": 149,
+        "enemyName": "=== TBD Hollow",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 149,
+        "enemyName": "=== TBD Hollow",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 150,
+        "enemyName": "=== TBD Hollow",
+        "id": 307,
+        "name": "Odorful Powder"
+      },
+      {
+        "enemyId": 150,
+        "enemyName": "=== TBD Hollow",
+        "id": 308,
+        "name": "Ghastly Powder"
+      },
+      {
+        "enemyId": 150,
+        "enemyName": "=== TBD Hollow",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 150,
+        "enemyName": "=== TBD Hollow",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 151,
+        "enemyName": "Prince Cobra",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 151,
+        "enemyName": "Prince Cobra",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 151,
+        "enemyName": "Prince Cobra",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 151,
+        "enemyName": "Prince Cobra",
+        "id": 326,
+        "name": "Imp Tongue"
+      },
+      {
+        "enemyId": 152,
+        "enemyName": "!Vice Cobra",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 152,
+        "enemyName": "!Vice Cobra",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 152,
+        "enemyName": "!Vice Cobra",
+        "id": 359,
+        "name": "Powerful Fangs"
+      },
+      {
+        "enemyId": 152,
+        "enemyName": "!Vice Cobra",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 152,
+        "enemyName": "!Vice Cobra",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 152,
+        "enemyName": "!Vice Cobra",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 152,
+        "enemyName": "!Vice Cobra",
+        "id": 327,
+        "name": "Goblin Tongue"
+      },
+      {
+        "enemyId": 152,
+        "enemyName": "!Vice Cobra",
+        "id": 328,
+        "name": "Froggo Tongue"
+      },
+      {
+        "enemyId": 153,
+        "enemyName": "Asp",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 153,
+        "enemyName": "Asp",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 153,
+        "enemyName": "Asp",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 153,
+        "enemyName": "Asp",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 153,
+        "enemyName": "Asp",
+        "id": 359,
+        "name": "Powerful Fangs"
+      },
+      {
+        "enemyId": 154,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 154,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 154,
+        "enemyName": "=== TBD Snake",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 154,
+        "enemyName": "=== TBD Snake",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 154,
+        "enemyName": "=== TBD Snake",
+        "id": 359,
+        "name": "Powerful Fangs"
+      },
+      {
+        "enemyId": 155,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 155,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 155,
+        "enemyName": "=== TBD Snake",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 155,
+        "enemyName": "=== TBD Snake",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 155,
+        "enemyName": "=== TBD Snake",
+        "id": 359,
+        "name": "Powerful Fangs"
+      },
+      {
+        "enemyId": 156,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 156,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 156,
+        "enemyName": "=== TBD Snake",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 156,
+        "enemyName": "=== TBD Snake",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 156,
+        "enemyName": "=== TBD Snake",
+        "id": 359,
+        "name": "Powerful Fangs"
+      },
+      {
+        "enemyId": 157,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 157,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 157,
+        "enemyName": "=== TBD Snake",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 157,
+        "enemyName": "=== TBD Snake",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 157,
+        "enemyName": "=== TBD Snake",
+        "id": 359,
+        "name": "Powerful Fangs"
+      },
+      {
+        "enemyId": 158,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 158,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 158,
+        "enemyName": "=== TBD Snake",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 158,
+        "enemyName": "=== TBD Snake",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 158,
+        "enemyName": "=== TBD Snake",
+        "id": 359,
+        "name": "Powerful Fangs"
+      },
+      {
+        "enemyId": 159,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 159,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 159,
+        "enemyName": "=== TBD Snake",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 159,
+        "enemyName": "=== TBD Snake",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 159,
+        "enemyName": "=== TBD Snake",
+        "id": 359,
+        "name": "Powerful Fangs"
+      },
+      {
+        "enemyId": 160,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 160,
+        "enemyName": "=== TBD Snake",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 160,
+        "enemyName": "=== TBD Snake",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 160,
+        "enemyName": "=== TBD Snake",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 160,
+        "enemyName": "=== TBD Snake",
+        "id": 359,
+        "name": "Powerful Fangs"
+      },
+      {
+        "enemyId": 161,
+        "enemyName": "Lesser Dargin",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 161,
+        "enemyName": "Lesser Dargin",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 161,
+        "enemyName": "Lesser Dargin",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 161,
+        "enemyName": "Lesser Dargin",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 162,
+        "enemyName": "Chill Wyvern",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 162,
+        "enemyName": "Chill Wyvern",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 162,
+        "enemyName": "Chill Wyvern",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 162,
+        "enemyName": "Chill Wyvern",
+        "id": 334,
+        "name": "Wurm Scales"
+      },
+      {
+        "enemyId": 163,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 163,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 163,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 163,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 163,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 163,
+        "enemyName": "=== TBD Dragon",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 164,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 164,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 164,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 164,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 164,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 164,
+        "enemyName": "=== TBD Dragon",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 165,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 165,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 165,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 165,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 165,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 165,
+        "enemyName": "=== TBD Dragon",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 166,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 166,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 166,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 166,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 166,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 166,
+        "enemyName": "=== TBD Dragon",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 167,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 167,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 167,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 167,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 167,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 167,
+        "enemyName": "=== TBD Dragon",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 168,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 168,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 168,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 168,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 168,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 168,
+        "enemyName": "=== TBD Dragon",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 169,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 169,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 169,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 169,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 169,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 169,
+        "enemyName": "=== TBD Dragon",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 170,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 170,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 170,
+        "enemyName": "=== TBD Dragon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 170,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 170,
+        "enemyName": "=== TBD Dragon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 170,
+        "enemyName": "=== TBD Dragon",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 171,
+        "enemyName": "Draconite",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 171,
+        "enemyName": "Draconite",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 171,
+        "enemyName": "Draconite",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 171,
+        "enemyName": "Draconite",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 172,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 172,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 172,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 172,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 173,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 173,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 173,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 173,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 174,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 174,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 174,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 174,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 175,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 175,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 175,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 175,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 176,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 176,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 176,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 176,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 177,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 177,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 177,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 177,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 178,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 178,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 178,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 178,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 179,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 179,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 179,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 179,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 180,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 180,
+        "enemyName": "=== TBD Draconian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 180,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 180,
+        "enemyName": "=== TBD Draconian",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 181,
+        "enemyName": "Lamia",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 181,
+        "enemyName": "Lamia",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 182,
+        "enemyName": "=== TBD Lamia",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 182,
+        "enemyName": "=== TBD Lamia",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 183,
+        "enemyName": "=== TBD Lamia",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 183,
+        "enemyName": "=== TBD Lamia",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 184,
+        "enemyName": "=== TBD Lamia",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 184,
+        "enemyName": "=== TBD Lamia",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 185,
+        "enemyName": "=== TBD Lamia",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 185,
+        "enemyName": "=== TBD Lamia",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 186,
+        "enemyName": "=== TBD Lamia",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 186,
+        "enemyName": "=== TBD Lamia",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 187,
+        "enemyName": "=== TBD Lamia",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 187,
+        "enemyName": "=== TBD Lamia",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 188,
+        "enemyName": "=== TBD Lamia",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 188,
+        "enemyName": "=== TBD Lamia",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 189,
+        "enemyName": "=== TBD Lamia",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 189,
+        "enemyName": "=== TBD Lamia",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 190,
+        "enemyName": "=== TBD Lamia",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 190,
+        "enemyName": "=== TBD Lamia",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 191,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 191,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 191,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 191,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 191,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 191,
+        "enemyName": "=== TBD Salamander",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 192,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 192,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 192,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 192,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 192,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 192,
+        "enemyName": "=== TBD Salamander",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 193,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 193,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 193,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 193,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 193,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 193,
+        "enemyName": "=== TBD Salamander",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 194,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 194,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 194,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 194,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 194,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 194,
+        "enemyName": "=== TBD Salamander",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 195,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 195,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 195,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 195,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 195,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 195,
+        "enemyName": "=== TBD Salamander",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 196,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 196,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 196,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 196,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 196,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 196,
+        "enemyName": "=== TBD Salamander",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 197,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 197,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 197,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 197,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 197,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 197,
+        "enemyName": "=== TBD Salamander",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 198,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 198,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 198,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 198,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 198,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 198,
+        "enemyName": "=== TBD Salamander",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 199,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 199,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 199,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 199,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 199,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 199,
+        "enemyName": "=== TBD Salamander",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 200,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 200,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 200,
+        "enemyName": "=== TBD Salamander",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 200,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 200,
+        "enemyName": "=== TBD Salamander",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 200,
+        "enemyName": "=== TBD Salamander",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 201,
+        "enemyName": "Kappa",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 202,
+        "enemyName": "!Kapn' Kappa",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 203,
+        "enemyName": "Kappa Shaman",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 203,
+        "enemyName": "Kappa Shaman",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 204,
+        "enemyName": "Kappa Myrmidon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 204,
+        "enemyName": "Kappa Myrmidon",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 204,
+        "enemyName": "Kappa Myrmidon",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 205,
+        "enemyName": "=== TBD Kappa",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 206,
+        "enemyName": "=== TBD Kappa",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 207,
+        "enemyName": "=== TBD Kappa",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 208,
+        "enemyName": "=== TBD Kappa",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 209,
+        "enemyName": "=== TBD Kappa",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 210,
+        "enemyName": "=== TBD Kappa",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 211,
+        "enemyName": "Polliwog",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 212,
+        "enemyName": "Spitting Frog",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 212,
+        "enemyName": "Spitting Frog",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 212,
+        "enemyName": "Spitting Frog",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 213,
+        "enemyName": "=== TBD Amphibian",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 213,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 213,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 214,
+        "enemyName": "=== TBD Amphibian",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 214,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 214,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 215,
+        "enemyName": "=== TBD Amphibian",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 215,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 215,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 216,
+        "enemyName": "=== TBD Amphibian",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 216,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 216,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 217,
+        "enemyName": "=== TBD Amphibian",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 217,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 217,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 218,
+        "enemyName": "=== TBD Amphibian",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 218,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 218,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 219,
+        "enemyName": "=== TBD Amphibian",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 219,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 219,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 220,
+        "enemyName": "=== TBD Amphibian",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 220,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 220,
+        "enemyName": "=== TBD Amphibian",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 221,
+        "enemyName": "Crimson Vice",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 221,
+        "enemyName": "Crimson Vice",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 222,
+        "enemyName": "!Distorting Melter",
+        "id": 380,
+        "name": "Quantum Spines"
+      },
+      {
+        "enemyId": 223,
+        "enemyName": "=== TBD Crustacean",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 223,
+        "enemyName": "=== TBD Crustacean",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 224,
+        "enemyName": "=== TBD Crustacean",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 224,
+        "enemyName": "=== TBD Crustacean",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 225,
+        "enemyName": "=== TBD Crustacean",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 225,
+        "enemyName": "=== TBD Crustacean",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 226,
+        "enemyName": "=== TBD Crustacean",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 226,
+        "enemyName": "=== TBD Crustacean",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 227,
+        "enemyName": "=== TBD Crustacean",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 227,
+        "enemyName": "=== TBD Crustacean",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 228,
+        "enemyName": "=== TBD Crustacean",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 228,
+        "enemyName": "=== TBD Crustacean",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 229,
+        "enemyName": "=== TBD Crustacean",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 229,
+        "enemyName": "=== TBD Crustacean",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 230,
+        "enemyName": "=== TBD Crustacean",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 230,
+        "enemyName": "=== TBD Crustacean",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 231,
+        "enemyName": "=== TBD Fish",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 231,
+        "enemyName": "=== TBD Fish",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 232,
+        "enemyName": "=== TBD Fish",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 232,
+        "enemyName": "=== TBD Fish",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 233,
+        "enemyName": "=== TBD Fish",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 233,
+        "enemyName": "=== TBD Fish",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 234,
+        "enemyName": "=== TBD Fish",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 234,
+        "enemyName": "=== TBD Fish",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 235,
+        "enemyName": "=== TBD Fish",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 235,
+        "enemyName": "=== TBD Fish",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 236,
+        "enemyName": "=== TBD Fish",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 236,
+        "enemyName": "=== TBD Fish",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 237,
+        "enemyName": "=== TBD Fish",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 237,
+        "enemyName": "=== TBD Fish",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 238,
+        "enemyName": "=== TBD Fish",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 238,
+        "enemyName": "=== TBD Fish",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 239,
+        "enemyName": "=== TBD Fish",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 239,
+        "enemyName": "=== TBD Fish",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 240,
+        "enemyName": "=== TBD Fish",
+        "id": 402,
+        "name": "Round Stone"
+      },
+      {
+        "enemyId": 240,
+        "enemyName": "=== TBD Fish",
+        "id": 403,
+        "name": "Circular Stone"
+      },
+      {
+        "enemyId": 271,
+        "enemyName": "Jelly",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 272,
+        "enemyName": "Jelliton",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 272,
+        "enemyName": "Jelliton",
+        "id": 397,
+        "name": "Dead Veil"
+      },
+      {
+        "enemyId": 273,
+        "enemyName": "=== TBD Jel",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 274,
+        "enemyName": "=== TBD Jel",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 275,
+        "enemyName": "=== TBD Jel",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 276,
+        "enemyName": "=== TBD Jel",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 277,
+        "enemyName": "=== TBD Jel",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 278,
+        "enemyName": "=== TBD Jel",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 279,
+        "enemyName": "=== TBD Jel",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 280,
+        "enemyName": "=== TBD Jel",
+        "id": 396,
+        "name": "Inert Veil"
+      },
+      {
+        "enemyId": 281,
+        "enemyName": "Goo Bat",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 282,
+        "enemyName": "!Magi Goo Bat",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 283,
+        "enemyName": "=== TBD Aerial",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 284,
+        "enemyName": "=== TBD Aerial",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 285,
+        "enemyName": "=== TBD Aerial",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 286,
+        "enemyName": "=== TBD Aerial",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 287,
+        "enemyName": "=== TBD Aerial",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 288,
+        "enemyName": "=== TBD Aerial",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 289,
+        "enemyName": "=== TBD Aerial",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 290,
+        "enemyName": "=== TBD Aerial",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 291,
+        "enemyName": "=== TBD Cube",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 292,
+        "enemyName": "=== TBD Cube",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 293,
+        "enemyName": "=== TBD Cube",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 294,
+        "enemyName": "=== TBD Cube",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 295,
+        "enemyName": "=== TBD Cube",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 296,
+        "enemyName": "=== TBD Cube",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 297,
+        "enemyName": "=== TBD Cube",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 298,
+        "enemyName": "=== TBD Cube",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 299,
+        "enemyName": "=== TBD Cube",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 300,
+        "enemyName": "=== TBD Cube",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 301,
+        "enemyName": "Wolftrap",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 302,
+        "enemyName": "Bloodtrap",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 302,
+        "enemyName": "Bloodtrap",
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "enemyId": 303,
+        "enemyName": "=== TBD Trap",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 304,
+        "enemyName": "=== TBD Trap",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 305,
+        "enemyName": "=== TBD Trap",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 306,
+        "enemyName": "=== TBD Trap",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 307,
+        "enemyName": "=== TBD Trap",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 308,
+        "enemyName": "=== TBD Trap",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 309,
+        "enemyName": "=== TBD Trap",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 310,
+        "enemyName": "=== TBD Trap",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 311,
+        "enemyName": "Fungrowth",
+        "id": 321,
+        "name": "Tough Root"
+      },
+      {
+        "enemyId": 311,
+        "enemyName": "Fungrowth",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 312,
+        "enemyName": "Ghastroom",
+        "id": 321,
+        "name": "Tough Root"
+      },
+      {
+        "enemyId": 312,
+        "enemyName": "Ghastroom",
+        "id": 322,
+        "name": "Sprouting Root"
+      },
+      {
+        "enemyId": 312,
+        "enemyName": "Ghastroom",
+        "id": 323,
+        "name": "Petrified Root"
+      },
+      {
+        "enemyId": 312,
+        "enemyName": "Ghastroom",
+        "id": 372,
+        "name": "Dry Branch"
+      },
+      {
+        "enemyId": 312,
+        "enemyName": "Ghastroom",
+        "id": 373,
+        "name": "Preserved Branch"
+      },
+      {
+        "enemyId": 313,
+        "enemyName": "=== TBD Fungus",
+        "id": 321,
+        "name": "Tough Root"
+      },
+      {
+        "enemyId": 313,
+        "enemyName": "=== TBD Fungus",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 314,
+        "enemyName": "=== TBD Fungus",
+        "id": 321,
+        "name": "Tough Root"
+      },
+      {
+        "enemyId": 314,
+        "enemyName": "=== TBD Fungus",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 315,
+        "enemyName": "=== TBD Fungus",
+        "id": 321,
+        "name": "Tough Root"
+      },
+      {
+        "enemyId": 315,
+        "enemyName": "=== TBD Fungus",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 316,
+        "enemyName": "=== TBD Fungus",
+        "id": 321,
+        "name": "Tough Root"
+      },
+      {
+        "enemyId": 316,
+        "enemyName": "=== TBD Fungus",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 317,
+        "enemyName": "=== TBD Fungus",
+        "id": 321,
+        "name": "Tough Root"
+      },
+      {
+        "enemyId": 317,
+        "enemyName": "=== TBD Fungus",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 318,
+        "enemyName": "=== TBD Fungus",
+        "id": 321,
+        "name": "Tough Root"
+      },
+      {
+        "enemyId": 318,
+        "enemyName": "=== TBD Fungus",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 319,
+        "enemyName": "=== TBD Fungus",
+        "id": 321,
+        "name": "Tough Root"
+      },
+      {
+        "enemyId": 319,
+        "enemyName": "=== TBD Fungus",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 320,
+        "enemyName": "=== TBD Fungus",
+        "id": 321,
+        "name": "Tough Root"
+      },
+      {
+        "enemyId": 320,
+        "enemyName": "=== TBD Fungus",
+        "id": 371,
+        "name": "Dead Branch"
+      },
+      {
+        "enemyId": 351,
+        "enemyName": "Bearcat",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 351,
+        "enemyName": "Bearcat",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 352,
+        "enemyName": "Stonefur",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 352,
+        "enemyName": "Stonefur",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 352,
+        "enemyName": "Stonefur",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 352,
+        "enemyName": "Stonefur",
+        "id": 362,
+        "name": "Dull Talon"
+      },
+      {
+        "enemyId": 353,
+        "enemyName": "Grimfang",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 353,
+        "enemyName": "Grimfang",
+        "id": 388,
+        "name": "Bright Pelt"
+      },
+      {
+        "enemyId": 353,
+        "enemyName": "Grimfang",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 353,
+        "enemyName": "Grimfang",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 353,
+        "enemyName": "Grimfang",
+        "id": 362,
+        "name": "Dull Talon"
+      },
+      {
+        "enemyId": 353,
+        "enemyName": "Grimfang",
+        "id": 363,
+        "name": "Hooked Talon"
+      },
+      {
+        "enemyId": 354,
+        "enemyName": "!Ghostfang",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 354,
+        "enemyName": "!Ghostfang",
+        "id": 388,
+        "name": "Bright Pelt"
+      },
+      {
+        "enemyId": 354,
+        "enemyName": "!Ghostfang",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 354,
+        "enemyName": "!Ghostfang",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 354,
+        "enemyName": "!Ghostfang",
+        "id": 362,
+        "name": "Dull Talon"
+      },
+      {
+        "enemyId": 354,
+        "enemyName": "!Ghostfang",
+        "id": 363,
+        "name": "Hooked Talon"
+      },
+      {
+        "enemyId": 355,
+        "enemyName": "=== TBD Hybrid",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 355,
+        "enemyName": "=== TBD Hybrid",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 356,
+        "enemyName": "=== TBD Hybrid",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 356,
+        "enemyName": "=== TBD Hybrid",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 357,
+        "enemyName": "=== TBD Hybrid",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 357,
+        "enemyName": "=== TBD Hybrid",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 358,
+        "enemyName": "=== TBD Hybrid",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 358,
+        "enemyName": "=== TBD Hybrid",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 359,
+        "enemyName": "=== TBD Hybrid",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 359,
+        "enemyName": "=== TBD Hybrid",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 360,
+        "enemyName": "=== TBD Hybrid",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 360,
+        "enemyName": "=== TBD Hybrid",
+        "id": 361,
+        "name": "Busted Talon"
+      },
+      {
+        "enemyId": 361,
+        "enemyName": "Cave Bat",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 361,
+        "enemyName": "Cave Bat",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 365,
+        "enemyName": "=== TBD Winger",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 365,
+        "enemyName": "=== TBD Winger",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 366,
+        "enemyName": "=== TBD Winger",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 366,
+        "enemyName": "=== TBD Winger",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 367,
+        "enemyName": "=== TBD Winger",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 367,
+        "enemyName": "=== TBD Winger",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 368,
+        "enemyName": "=== TBD Winger",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 368,
+        "enemyName": "=== TBD Winger",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 369,
+        "enemyName": "=== TBD Winger",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 369,
+        "enemyName": "=== TBD Winger",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 370,
+        "enemyName": "=== TBD Winger",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 370,
+        "enemyName": "=== TBD Winger",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 381,
+        "enemyName": "Rot Rat",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 381,
+        "enemyName": "Rot Rat",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 381,
+        "enemyName": "Rot Rat",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 381,
+        "enemyName": "Rot Rat",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 381,
+        "enemyName": "Rot Rat",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 381,
+        "enemyName": "Rot Rat",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 382,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 382,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 382,
+        "enemyName": "=== TBD Rodent",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 382,
+        "enemyName": "=== TBD Rodent",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 382,
+        "enemyName": "=== TBD Rodent",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 382,
+        "enemyName": "=== TBD Rodent",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 383,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 383,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 383,
+        "enemyName": "=== TBD Rodent",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 383,
+        "enemyName": "=== TBD Rodent",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 383,
+        "enemyName": "=== TBD Rodent",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 383,
+        "enemyName": "=== TBD Rodent",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 384,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 384,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 384,
+        "enemyName": "=== TBD Rodent",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 384,
+        "enemyName": "=== TBD Rodent",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 384,
+        "enemyName": "=== TBD Rodent",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 384,
+        "enemyName": "=== TBD Rodent",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 385,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 385,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 385,
+        "enemyName": "=== TBD Rodent",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 385,
+        "enemyName": "=== TBD Rodent",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 385,
+        "enemyName": "=== TBD Rodent",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 385,
+        "enemyName": "=== TBD Rodent",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 386,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 386,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 386,
+        "enemyName": "=== TBD Rodent",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 386,
+        "enemyName": "=== TBD Rodent",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 386,
+        "enemyName": "=== TBD Rodent",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 386,
+        "enemyName": "=== TBD Rodent",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 387,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 387,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 387,
+        "enemyName": "=== TBD Rodent",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 387,
+        "enemyName": "=== TBD Rodent",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 387,
+        "enemyName": "=== TBD Rodent",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 387,
+        "enemyName": "=== TBD Rodent",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 388,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 388,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 388,
+        "enemyName": "=== TBD Rodent",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 388,
+        "enemyName": "=== TBD Rodent",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 388,
+        "enemyName": "=== TBD Rodent",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 388,
+        "enemyName": "=== TBD Rodent",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 389,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 389,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 389,
+        "enemyName": "=== TBD Rodent",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 389,
+        "enemyName": "=== TBD Rodent",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 389,
+        "enemyName": "=== TBD Rodent",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 389,
+        "enemyName": "=== TBD Rodent",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 390,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 390,
+        "enemyName": "=== TBD Rodent",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 390,
+        "enemyName": "=== TBD Rodent",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 390,
+        "enemyName": "=== TBD Rodent",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 390,
+        "enemyName": "=== TBD Rodent",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 390,
+        "enemyName": "=== TBD Rodent",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 391,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 391,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 391,
+        "enemyName": "=== TBD Quadraped",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 391,
+        "enemyName": "=== TBD Quadraped",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 391,
+        "enemyName": "=== TBD Quadraped",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 391,
+        "enemyName": "=== TBD Quadraped",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 392,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 392,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 392,
+        "enemyName": "=== TBD Quadraped",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 392,
+        "enemyName": "=== TBD Quadraped",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 392,
+        "enemyName": "=== TBD Quadraped",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 392,
+        "enemyName": "=== TBD Quadraped",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 393,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 393,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 393,
+        "enemyName": "=== TBD Quadraped",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 393,
+        "enemyName": "=== TBD Quadraped",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 393,
+        "enemyName": "=== TBD Quadraped",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 393,
+        "enemyName": "=== TBD Quadraped",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 394,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 394,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 394,
+        "enemyName": "=== TBD Quadraped",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 394,
+        "enemyName": "=== TBD Quadraped",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 394,
+        "enemyName": "=== TBD Quadraped",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 394,
+        "enemyName": "=== TBD Quadraped",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 395,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 395,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 395,
+        "enemyName": "=== TBD Quadraped",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 395,
+        "enemyName": "=== TBD Quadraped",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 395,
+        "enemyName": "=== TBD Quadraped",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 395,
+        "enemyName": "=== TBD Quadraped",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 396,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 396,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 396,
+        "enemyName": "=== TBD Quadraped",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 396,
+        "enemyName": "=== TBD Quadraped",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 396,
+        "enemyName": "=== TBD Quadraped",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 396,
+        "enemyName": "=== TBD Quadraped",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 397,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 397,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 397,
+        "enemyName": "=== TBD Quadraped",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 397,
+        "enemyName": "=== TBD Quadraped",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 397,
+        "enemyName": "=== TBD Quadraped",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 397,
+        "enemyName": "=== TBD Quadraped",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 398,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 398,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 398,
+        "enemyName": "=== TBD Quadraped",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 398,
+        "enemyName": "=== TBD Quadraped",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 398,
+        "enemyName": "=== TBD Quadraped",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 398,
+        "enemyName": "=== TBD Quadraped",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 399,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 399,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 399,
+        "enemyName": "=== TBD Quadraped",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 399,
+        "enemyName": "=== TBD Quadraped",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 399,
+        "enemyName": "=== TBD Quadraped",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 399,
+        "enemyName": "=== TBD Quadraped",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 400,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 400,
+        "enemyName": "=== TBD Quadraped",
+        "id": 356,
+        "name": "Flimsy Fangs"
+      },
+      {
+        "enemyId": 400,
+        "enemyName": "=== TBD Quadraped",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 400,
+        "enemyName": "=== TBD Quadraped",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 400,
+        "enemyName": "=== TBD Quadraped",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 400,
+        "enemyName": "=== TBD Quadraped",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 401,
+        "enemyName": "Needler",
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "enemyId": 402,
+        "enemyName": "Penetrator",
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "enemyId": 402,
+        "enemyName": "Penetrator",
+        "id": 347,
+        "name": "Intact Stinger"
+      },
+      {
+        "enemyId": 403,
+        "enemyName": "Driller",
+        "id": 347,
+        "name": "Intact Stinger"
+      },
+      {
+        "enemyId": 403,
+        "enemyName": "Driller",
+        "id": 348,
+        "name": "Sharp Stinger"
+      },
+      {
+        "enemyId": 403,
+        "enemyName": "Driller",
+        "id": 349,
+        "name": "Offensive Stinger"
+      },
+      {
+        "enemyId": 404,
+        "enemyName": "=== TBD Hivemind",
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "enemyId": 405,
+        "enemyName": "=== TBD Hivemind",
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "enemyId": 406,
+        "enemyName": "=== TBD Hivemind",
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "enemyId": 407,
+        "enemyName": "=== TBD Hivemind",
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "enemyId": 408,
+        "enemyName": "=== TBD Hivemind",
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "enemyId": 409,
+        "enemyName": "=== TBD Hivemind",
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "enemyId": 410,
+        "enemyName": "=== TBD Hivemind",
+        "id": 346,
+        "name": "Cracked Stinger"
+      },
+      {
+        "enemyId": 411,
+        "enemyName": "Crawler",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 411,
+        "enemyName": "Crawler",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 411,
+        "enemyName": "Crawler",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 412,
+        "enemyName": "Magma Worm",
+        "id": 332,
+        "name": "Lizard Scales"
+      },
+      {
+        "enemyId": 412,
+        "enemyName": "Magma Worm",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 412,
+        "enemyName": "Magma Worm",
+        "id": 357,
+        "name": "Bone Fangs"
+      },
+      {
+        "enemyId": 412,
+        "enemyName": "Magma Worm",
+        "id": 358,
+        "name": "Double Fangs"
+      },
+      {
+        "enemyId": 413,
+        "enemyName": "Wriggle Worm",
+        "id": 333,
+        "name": "Enduring Scales"
+      },
+      {
+        "enemyId": 414,
+        "enemyName": "=== TBD Worm",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 414,
+        "enemyName": "=== TBD Worm",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 414,
+        "enemyName": "=== TBD Worm",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 415,
+        "enemyName": "=== TBD Worm",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 415,
+        "enemyName": "=== TBD Worm",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 415,
+        "enemyName": "=== TBD Worm",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 416,
+        "enemyName": "=== TBD Worm",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 416,
+        "enemyName": "=== TBD Worm",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 416,
+        "enemyName": "=== TBD Worm",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 417,
+        "enemyName": "=== TBD Worm",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 417,
+        "enemyName": "=== TBD Worm",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 417,
+        "enemyName": "=== TBD Worm",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 418,
+        "enemyName": "=== TBD Worm",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 418,
+        "enemyName": "=== TBD Worm",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 418,
+        "enemyName": "=== TBD Worm",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 419,
+        "enemyName": "=== TBD Worm",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 419,
+        "enemyName": "=== TBD Worm",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 419,
+        "enemyName": "=== TBD Worm",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 420,
+        "enemyName": "=== TBD Worm",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 420,
+        "enemyName": "=== TBD Worm",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 420,
+        "enemyName": "=== TBD Worm",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 421,
+        "enemyName": "Brood",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 421,
+        "enemyName": "Brood",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 421,
+        "enemyName": "Brood",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 422,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 422,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 422,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 423,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 423,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 423,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 424,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 424,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 424,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 425,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 425,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 425,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 426,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 426,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 426,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 427,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 427,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 427,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 428,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 428,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 428,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 429,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 429,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 429,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 430,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 430,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 430,
+        "enemyName": "=== TBD Lonewolf",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 431,
+        "enemyName": "Scorplite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 431,
+        "enemyName": "Scorplite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 431,
+        "enemyName": "Scorplite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 432,
+        "enemyName": "=== TBD Jumper",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 432,
+        "enemyName": "=== TBD Jumper",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 432,
+        "enemyName": "=== TBD Jumper",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 433,
+        "enemyName": "=== TBD Jumper",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 433,
+        "enemyName": "=== TBD Jumper",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 433,
+        "enemyName": "=== TBD Jumper",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 434,
+        "enemyName": "=== TBD Jumper",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 434,
+        "enemyName": "=== TBD Jumper",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 434,
+        "enemyName": "=== TBD Jumper",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 435,
+        "enemyName": "=== TBD Jumper",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 435,
+        "enemyName": "=== TBD Jumper",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 435,
+        "enemyName": "=== TBD Jumper",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 436,
+        "enemyName": "=== TBD Jumper",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 436,
+        "enemyName": "=== TBD Jumper",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 436,
+        "enemyName": "=== TBD Jumper",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 437,
+        "enemyName": "=== TBD Jumper",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 437,
+        "enemyName": "=== TBD Jumper",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 437,
+        "enemyName": "=== TBD Jumper",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 438,
+        "enemyName": "=== TBD Jumper",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 438,
+        "enemyName": "=== TBD Jumper",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 438,
+        "enemyName": "=== TBD Jumper",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 439,
+        "enemyName": "=== TBD Jumper",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 439,
+        "enemyName": "=== TBD Jumper",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 439,
+        "enemyName": "=== TBD Jumper",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 440,
+        "enemyName": "=== TBD Jumper",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 440,
+        "enemyName": "=== TBD Jumper",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 440,
+        "enemyName": "=== TBD Jumper",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 441,
+        "enemyName": "Parasite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 441,
+        "enemyName": "Parasite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 441,
+        "enemyName": "Parasite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 442,
+        "enemyName": "=== TBD Parasite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 442,
+        "enemyName": "=== TBD Parasite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 442,
+        "enemyName": "=== TBD Parasite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 443,
+        "enemyName": "=== TBD Parasite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 443,
+        "enemyName": "=== TBD Parasite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 443,
+        "enemyName": "=== TBD Parasite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 444,
+        "enemyName": "=== TBD Parasite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 444,
+        "enemyName": "=== TBD Parasite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 444,
+        "enemyName": "=== TBD Parasite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 445,
+        "enemyName": "=== TBD Parasite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 445,
+        "enemyName": "=== TBD Parasite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 445,
+        "enemyName": "=== TBD Parasite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 446,
+        "enemyName": "=== TBD Parasite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 446,
+        "enemyName": "=== TBD Parasite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 446,
+        "enemyName": "=== TBD Parasite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 447,
+        "enemyName": "=== TBD Parasite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 447,
+        "enemyName": "=== TBD Parasite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 447,
+        "enemyName": "=== TBD Parasite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 448,
+        "enemyName": "=== TBD Parasite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 448,
+        "enemyName": "=== TBD Parasite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 448,
+        "enemyName": "=== TBD Parasite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 449,
+        "enemyName": "=== TBD Parasite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 449,
+        "enemyName": "=== TBD Parasite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 449,
+        "enemyName": "=== TBD Parasite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 450,
+        "enemyName": "=== TBD Parasite",
+        "id": 376,
+        "name": "Loose Spines"
+      },
+      {
+        "enemyId": 450,
+        "enemyName": "=== TBD Parasite",
+        "id": 331,
+        "name": "Loose Scales"
+      },
+      {
+        "enemyId": 450,
+        "enemyName": "=== TBD Parasite",
+        "id": 377,
+        "name": "Red Spines"
+      },
+      {
+        "enemyId": 451,
+        "enemyName": "Minitaur",
+        "id": 316,
+        "name": "Broken Horn"
+      },
+      {
+        "enemyId": 453,
+        "enemyName": "=== TBD Bull",
+        "id": 316,
+        "name": "Broken Horn"
+      },
+      {
+        "enemyId": 454,
+        "enemyName": "=== TBD Bull",
+        "id": 316,
+        "name": "Broken Horn"
+      },
+      {
+        "enemyId": 455,
+        "enemyName": "=== TBD Bull",
+        "id": 316,
+        "name": "Broken Horn"
+      },
+      {
+        "enemyId": 456,
+        "enemyName": "=== TBD Bull",
+        "id": 316,
+        "name": "Broken Horn"
+      },
+      {
+        "enemyId": 457,
+        "enemyName": "=== TBD Bull",
+        "id": 316,
+        "name": "Broken Horn"
+      },
+      {
+        "enemyId": 458,
+        "enemyName": "=== TBD Bull",
+        "id": 316,
+        "name": "Broken Horn"
+      },
+      {
+        "enemyId": 459,
+        "enemyName": "=== TBD Bull",
+        "id": 316,
+        "name": "Broken Horn"
+      },
+      {
+        "enemyId": 460,
+        "enemyName": "=== TBD Bull",
+        "id": 316,
+        "name": "Broken Horn"
+      },
+      {
+        "enemyId": 461,
+        "enemyName": "Orcling",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 461,
+        "enemyName": "Orcling",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 461,
+        "enemyName": "Orcling",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 471,
+        "enemyName": "Bandit",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 471,
+        "enemyName": "Bandit",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 472,
+        "enemyName": "Outlaw",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 472,
+        "enemyName": "Outlaw",
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "enemyId": 472,
+        "enemyName": "Outlaw",
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "enemyId": 472,
+        "enemyName": "Outlaw",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 472,
+        "enemyName": "Outlaw",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 472,
+        "enemyName": "Outlaw",
+        "id": 422,
+        "name": "Mossy Bone"
+      },
+      {
+        "enemyId": 472,
+        "enemyName": "Outlaw",
+        "id": 422,
+        "name": "Mossy Bone"
+      },
+      {
+        "enemyId": 473,
+        "enemyName": "!Wanted Criminal",
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "enemyId": 473,
+        "enemyName": "!Wanted Criminal",
+        "id": 392,
+        "name": "Pierced Ear"
+      },
+      {
+        "enemyId": 473,
+        "enemyName": "!Wanted Criminal",
+        "id": 393,
+        "name": "Complete Ear"
+      },
+      {
+        "enemyId": 473,
+        "enemyName": "!Wanted Criminal",
+        "id": 422,
+        "name": "Mossy Bone"
+      },
+      {
+        "enemyId": 473,
+        "enemyName": "!Wanted Criminal",
+        "id": 423,
+        "name": "Earthen Bone"
+      },
+      {
+        "enemyId": 474,
+        "enemyName": "=== TBD Thief",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 474,
+        "enemyName": "=== TBD Thief",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 475,
+        "enemyName": "=== TBD Thief",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 475,
+        "enemyName": "=== TBD Thief",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 477,
+        "enemyName": "=== TBD Thief",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 477,
+        "enemyName": "=== TBD Thief",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 478,
+        "enemyName": "=== TBD Thief",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 478,
+        "enemyName": "=== TBD Thief",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 479,
+        "enemyName": "=== TBD Thief",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 479,
+        "enemyName": "=== TBD Thief",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 480,
+        "enemyName": "=== TBD Thief",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 480,
+        "enemyName": "=== TBD Thief",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 481,
+        "enemyName": "Cyclops",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 481,
+        "enemyName": "Cyclops",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 482,
+        "enemyName": "=== TBD Walker",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 482,
+        "enemyName": "=== TBD Walker",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 483,
+        "enemyName": "=== TBD Walker",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 483,
+        "enemyName": "=== TBD Walker",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 484,
+        "enemyName": "=== TBD Walker",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 484,
+        "enemyName": "=== TBD Walker",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 485,
+        "enemyName": "=== TBD Walker",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 485,
+        "enemyName": "=== TBD Walker",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 486,
+        "enemyName": "=== TBD Walker",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 486,
+        "enemyName": "=== TBD Walker",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 487,
+        "enemyName": "=== TBD Walker",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 487,
+        "enemyName": "=== TBD Walker",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 488,
+        "enemyName": "=== TBD Walker",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 488,
+        "enemyName": "=== TBD Walker",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 489,
+        "enemyName": "=== TBD Walker",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 489,
+        "enemyName": "=== TBD Walker",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 490,
+        "enemyName": "=== TBD Walker",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 490,
+        "enemyName": "=== TBD Walker",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 491,
+        "enemyName": "Kobold",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 491,
+        "enemyName": "Kobold",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 492,
+        "enemyName": "=== TBD Clan",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 492,
+        "enemyName": "=== TBD Clan",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 493,
+        "enemyName": "=== TBD Clan",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 493,
+        "enemyName": "=== TBD Clan",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 494,
+        "enemyName": "=== TBD Clan",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 494,
+        "enemyName": "=== TBD Clan",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 495,
+        "enemyName": "=== TBD Clan",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 495,
+        "enemyName": "=== TBD Clan",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 496,
+        "enemyName": "=== TBD Clan",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 496,
+        "enemyName": "=== TBD Clan",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 497,
+        "enemyName": "=== TBD Clan",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 497,
+        "enemyName": "=== TBD Clan",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 498,
+        "enemyName": "=== TBD Clan",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 498,
+        "enemyName": "=== TBD Clan",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 499,
+        "enemyName": "=== TBD Clan",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 499,
+        "enemyName": "=== TBD Clan",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 500,
+        "enemyName": "=== TBD Clan",
+        "id": 421,
+        "name": "Old Bone"
+      },
+      {
+        "enemyId": 500,
+        "enemyName": "=== TBD Clan",
+        "id": 391,
+        "name": "Waxxy Ear"
+      },
+      {
+        "enemyId": 511,
+        "enemyName": "Ignihazard",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 511,
+        "enemyName": "Ignihazard",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 512,
+        "enemyName": "Liquihazard",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 512,
+        "enemyName": "Liquihazard",
+        "id": 366,
+        "name": "Faded Core"
+      },
+      {
+        "enemyId": 512,
+        "enemyName": "Liquihazard",
+        "id": 367,
+        "name": "Dimmed Core"
+      },
+      {
+        "enemyId": 513,
+        "enemyName": "Zaphazard",
+        "id": 367,
+        "name": "Dimmed Core"
+      },
+      {
+        "enemyId": 513,
+        "enemyName": "Zaphazard",
+        "id": 367,
+        "name": "Dimmed Core"
+      },
+      {
+        "enemyId": 513,
+        "enemyName": "Zaphazard",
+        "id": 368,
+        "name": "Magic Core"
+      },
+      {
+        "enemyId": 591,
+        "enemyName": "Gluttonwolf",
+        "id": 386,
+        "name": "Dense Pelt"
+      },
+      {
+        "enemyId": 591,
+        "enemyName": "Gluttonwolf",
+        "id": 387,
+        "name": "Wisp Pelt"
+      },
+      {
+        "enemyId": 591,
+        "enemyName": "Gluttonwolf",
+        "id": 362,
+        "name": "Dull Talon"
+      },
+      {
+        "enemyId": 592,
+        "enemyName": "Vampire Shade",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 592,
+        "enemyName": "Vampire Shade",
+        "id": 398,
+        "name": "Expired Veil"
+      },
+      {
+        "enemyId": 592,
+        "enemyName": "Vampire Shade",
+        "id": 397,
+        "name": "Dead Veil"
+      }
+    ]
+  }
+}

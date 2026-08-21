@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 CMS] A redesign of the main menu.
+ * [v1.2.0 CMS] A redesign of the main menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -29,6 +29,11 @@
  * redesign of the native main menu.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    The menu gold strip is now a currency strip: CurrencyDefinition describes
+ *    a currency, registerCoreCurrencies declares gold, and Window_Currencies
+ *    renders however many are registered. Extensions add their own without
+ *    touching the scene.
  * - 1.1.0
  *    Each party member's cell is now a character card rather than a data row.
  *    It is headed by their name with their class beneath it, carries their map
@@ -191,7 +196,7 @@ J.CMS = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS.Metadata = new J_CmsMain_PluginMetadata("J-CMS", "1.1.0");
+J.CMS.Metadata = new J_CmsMain_PluginMetadata("J-CMS", "1.2.0");
 /**
 * The plugin umbrella that governs all extensions of this plugin.
 */
@@ -292,6 +297,82 @@ var CmsParameter = class {
 			return this.value.toString();
 		}
 		return definition.prettyValue(this.value, withPadding, this.actor);
+	}
+};
+
+//#endregion
+//#region src/plugins/cms/core/_models/CurrencyDefinition.js
+/**
+* One kind of spendable thing the currency strip is willing to display.
+*
+* A definition is a description rather than a value: it knows what to call itself, what to draw beside
+* itself, and how to go and ask for the current amount. That last part is a function on purpose- a
+* balance changes constantly, and a strip caching numbers would be a strip showing yesterday's.
+*
+* The menu owns the strip but not what goes in it. Anything with a currency describes it this way and
+* hands it over, which is what lets the menu display a thing it has never heard of.
+*/
+var CurrencyDefinition = class {
+	/**
+	* The unique identifier for this currency, used to keep the same one from being added twice.
+	* @type {string}
+	*/
+	key = String.empty;
+	/**
+	* The icon drawn beside the amount, or -1 to draw none.
+	* @type {number}
+	*/
+	iconIndex = -1;
+	/**
+	* Answers with the short label drawn beside the amount.<br/>
+	* Declared without a default, because the constructor requires one and a stand-in nobody can ever
+	* observe is just a lie about what happens when it is missing.
+	* @type {function(): string}
+	*/
+	unitProvider;
+	/**
+	* Answers with the amount currently held.<br/>
+	* Declared without a default, for the same reason as the label above it.
+	* @type {function(): number}
+	*/
+	amountProvider;
+	/**
+	* Constructor.
+	*
+	* Both halves are functions rather than values, and for the same reason. An amount changes constantly.
+	* A label can come from the database- gold's does- and the database does not exist at the moment a
+	* plugin registers itself, so reading one eagerly would throw before the title screen.
+	* @param {string} key The unique identifier for this currency.
+	* @param {number} iconIndex The icon drawn beside the amount, or -1 for none.
+	* @param {function(): string} unitProvider Answers with the short label drawn beside the amount.
+	* @param {function(): number} amountProvider Answers with the amount currently held.
+	*/
+	constructor(key, iconIndex, unitProvider, amountProvider) {
+		this.key = key;
+		this.iconIndex = iconIndex;
+		this.unitProvider = unitProvider;
+		this.amountProvider = amountProvider;
+	}
+	/**
+	* The short label drawn beside the amount.
+	* @returns {string}
+	*/
+	unit() {
+		return this.unitProvider();
+	}
+	/**
+	* The amount currently held of this currency.
+	* @returns {number}
+	*/
+	amount() {
+		return this.amountProvider();
+	}
+	/**
+	* Whether this currency draws an icon beside its amount.
+	* @returns {boolean}
+	*/
+	hasIcon() {
+		return this.iconIndex > -1;
 	}
 };
 
@@ -1804,6 +1885,105 @@ Window_MenuStatus.prototype.drawExtensionData = function(_actor, _x, y, _width) 
 };
 
 //#endregion
+//#region src/plugins/cms/core/windows/Window_Currencies.js
+/**
+* The strip along the floor of the menu's centre stack, showing everything the party can spend.
+*
+* This exists instead of vanilla's `Window_Gold` because that window draws gold and nothing else, with
+* the single draw call written directly into its refresh. There is no seam in it to add a second value
+* to, and it is small enough that inheriting from it would buy nothing but its shape.
+*
+* The menu does not know what currencies a game has. Anything that owns one registers a
+* {@link CurrencyDefinition} and is drawn alongside the rest, which is why gold is registered the same
+* way everything else is rather than being special-cased here.
+*/
+var Window_Currencies = class Window_Currencies extends Window_Selectable {
+	/**
+	* Every currency willing to be displayed, in the order they were registered.
+	*
+	* Static, because the registrations happen at boot- long before a menu is opened, and once for the
+	* lifetime of the session rather than once per window.
+	* @type {CurrencyDefinition[]}
+	*/
+	static #definitions = [];
+	/**
+	* Adds a currency to the strip.
+	*
+	* Registering the same key twice is ignored rather than duplicated, so a plugin that registers during
+	* a hook that can run more than once does not slowly fill the strip with copies of itself.
+	* @param {CurrencyDefinition} definition The currency to display.
+	*/
+	static register(definition) {
+		const alreadyRegistered = Window_Currencies.#definitions.some((existing) => existing.key === definition.key);
+		if (alreadyRegistered) return;
+		Window_Currencies.#definitions.push(definition);
+	}
+	/**
+	* Every currency currently registered for display.
+	* @returns {CurrencyDefinition[]}
+	*/
+	static definitions() {
+		return Window_Currencies.#definitions;
+	}
+	/**
+	* Constructor.
+	* @param {Rectangle} rect The rectangle that represents this window.
+	*/
+	constructor(rect) {
+		super(rect);
+	}
+	/**
+	* Implements {@link Window_Selectable.initialize}.
+	* @param {Rectangle} rect The rectangle that represents this window.
+	*/
+	initialize(rect) {
+		super.initialize(rect);
+		this.refresh();
+	}
+	/**
+	* Overwrites {@link #colSpacing}.<br/>
+	* The strip is a single row of text rather than a grid, so it wants no gutter of its own.
+	* @returns {number}
+	*/
+	colSpacing() {
+		return 0;
+	}
+	/**
+	* Overwrites {@link #refresh}.<br/>
+	* Redraws every registered currency across the width of the strip.
+	*/
+	refresh() {
+		this.contents.clear();
+		const definitions = Window_Currencies.definitions();
+		if (definitions.length === 0) return;
+		const rect = this.itemLineRect(0);
+		const slotWidth = Math.floor(rect.width / definitions.length);
+		definitions.forEach((definition, index) => this.drawCurrency(definition, index, rect, slotWidth));
+	}
+	/**
+	* Draws a single currency into its own slot along the strip.
+	*
+	* The icon eats into the left of the slot rather than being drawn over the amount, because the amount
+	* is right-aligned and a wide number would otherwise run underneath it.
+	* @param {CurrencyDefinition} definition The currency being drawn.
+	* @param {number} index Which slot along the strip it occupies.
+	* @param {Rectangle} rect The line the strip draws along.
+	* @param {number} slotWidth How wide a single currency's slot is.
+	*/
+	drawCurrency(definition, index, rect, slotWidth) {
+		const slotX = rect.x + index * slotWidth;
+		if (definition.hasIcon()) {
+			this.drawIcon(definition.iconIndex, slotX, rect.y);
+		}
+		const textX = definition.hasIcon() ? slotX + ImageManager.iconWidth + 4 : slotX;
+		const textWidth = slotX + slotWidth - textX;
+		const amount = definition.amount();
+		const unit = definition.unit();
+		this.drawCurrencyValue(amount, unit, textX, rect.y, textWidth);
+	}
+};
+
+//#endregion
 //#region src/plugins/cms/core/scenes/Scene_Menu.js
 /**
 * Overwrites {@link #create}.<br/>
@@ -1909,6 +2089,36 @@ Scene_Menu.prototype.statusWindowRect = function() {
 	const wy = this.helpWindowRect().height;
 	const wh = this.goldWindowRect().y - wy;
 	return new Rectangle(this.centerStackX(), wy, this.centerStackWidth(), wh);
+};
+/**
+* Overwrites {@link #createGoldWindow}.<br/>
+* Builds the currency strip rather than vanilla's gold-only window.
+*
+* The slot keeps vanilla's name because vanilla's `Scene_Menu.create` is what calls it, and because
+* everything measuring against `_goldWindow` should go on finding it there.
+*/
+Scene_Menu.prototype.createGoldWindow = function() {
+	const rectangle = this.goldWindowRect();
+	const window = new Window_Currencies(rectangle);
+	this.setGoldWindow(window);
+	this.addWindow(window);
+};
+/**
+* Gets the currency strip.
+* @returns {Window_Currencies}
+*/
+Scene_Menu.prototype.goldWindow = function() {
+	return this._goldWindow;
+};
+/**
+* Sets the currency strip to the given window.
+*
+* Written into vanilla's own slot rather than into this plugin's namespace, because vanilla's
+* `Scene_Menu` reads `_goldWindow` itself and anything else measuring against it should keep working.
+* @param {Window_Currencies} window The window to track.
+*/
+Scene_Menu.prototype.setGoldWindow = function(window) {
+	this._goldWindow = window;
 };
 /**
 * Overwrites {@link #goldWindowRect}.<br/>
@@ -2124,6 +2334,20 @@ Scene_Menu.prototype.bindMenuCommandHandlers = function(window) {
 Scene_Menu.prototype.commandActorScene = function(sceneClass) {
 	SceneManager.push(sceneClass);
 };
+
+//#endregion
+//#region src/plugins/cms/core/registerCoreCurrencies.js
+/**
+* Registers gold with the currency strip.
+*
+* Gold goes through the same door everything else does. It could have been drawn directly by the strip
+* and saved a few lines, but then gold would be the one currency the strip knew about by name- and the
+* next thing added would have had to argue for a seam that ought to have existed already.
+*
+* It registers first, and therefore draws leftmost, because it is the currency every game has.
+*/
+var goldDefinition = new CurrencyDefinition("gold", -1, () => TextManager.currencyUnit, () => $gameParty.gold());
+Window_Currencies.register(goldDefinition);
 
 //#endregion
 //# sourceMappingURL=J-CMS.js.map

@@ -4,6 +4,11 @@
 >   This will likely be enhanced as a full guide as time goes on. If you found this without me personally directing
 >   you to it, read at your own discretion!
 
+> ALL 62 townsfolk quests below are authored into `config.quest.json` (2026-08-14) as category `folk`
+> with per-NPC keys. Before building any chain's EVENTS, check [the TBD ledger](./tbd-ledger.md) —
+> it lists every undefined detail per chain (missing DB rows, Maker's calls, invented numbers) so
+> nothing surprises you mid-eventing.
+
 
 
 ## NE Raevula

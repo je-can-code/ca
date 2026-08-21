@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.4.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
+ * [v1.5.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -148,6 +148,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Note effects now count against the refinement ceiling alongside traits.
+ *    An equip could previously accumulate transferable note lines without
+ *    limit while reporting itself full.
  * - 1.4.0
  *    A refinement now costs the base exactly one count, whatever the donor had
  *    accumulated. Previously a donor's own history was added to the output and
@@ -562,6 +566,21 @@ var JaftingManager = class JaftingManager {
 		return consolidated.map((t) => new JAFTING_Trait(t.code, t.dataId, t.value));
 	}
 	/**
+	* How many refined effects an equip is carrying, counting both channels a refinement can add to.
+	*
+	* Refinement hands over two things: the traits below the trait divider, and the note lines below the
+	* transferable divider. Both are effects the player chose and paid for, so a ceiling that counted only
+	* the trait array would let an equip accumulate note effects without limit while claiming to be full.
+	* @param {RPG_EquipItem} equip An equip to count refined effects on.
+	* @returns {number}
+	*/
+	static countRefinedEffects(equip) {
+		const traits = JaftingManager.parseTraits(equip).length;
+		const noteEffects = JaftingManager.parseNoteEffects(equip);
+		if (noteEffects === String.empty) return traits;
+		return traits + noteEffects.split("\n").length;
+	}
+	/**
 	* The note text below the transferable divider - what this equip hands over when consumed.
 	*
 	* No divider means no note effects transfer at all. That is the deliberate default and the mirror of
@@ -945,7 +964,7 @@ var JaftingManager = class JaftingManager {
 			if (equipIsMaxRefined) {
 				continue;
 			}
-			const equipHasMaxTraits = equip.jaftingMaxTraitCount === 0 ? false : equip.jaftingMaxTraitCount <= JaftingManager.parseTraits(equip).length;
+			const equipHasMaxTraits = equip.jaftingMaxTraitCount === 0 ? false : equip.jaftingMaxTraitCount <= JaftingManager.countRefinedEffects(equip);
 			if (equipHasMaxTraits) {
 				continue;
 			}
@@ -1129,7 +1148,7 @@ J.JAFTING.EXT.REFINE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.4.0");
+J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.5.0");
 /**
 * A helpful mapping of the various messages that we use in JAFTING.
 */
@@ -1604,7 +1623,7 @@ var RefinementEligibility = class RefinementEligibility {
 			verdict.errorText += `${J.JAFTING.EXT.REFINE.Messages.AlreadyMaxRefineCount}\n`;
 		}
 		const traitCap = equip.jaftingMaxTraitCount;
-		const currentTraits = JaftingManager.parseTraits(equip).length;
+		const currentTraits = JaftingManager.countRefinedEffects(equip);
 		const hasMaxTraits = traitCap === 0 ? false : traitCap <= currentTraits;
 		if (hasMaxTraits) {
 			verdict.enabled = false;
@@ -1719,7 +1738,7 @@ var RefinementEligibility = class RefinementEligibility {
 			return;
 		}
 		const projectedOutput = JaftingManager.determineRefinementOutput(baseSelection, equip);
-		const projectedTraits = JaftingManager.parseTraits(projectedOutput).length;
+		const projectedTraits = JaftingManager.countRefinedEffects(projectedOutput);
 		if (cap >= projectedTraits) {
 			return;
 		}

@@ -426,7 +426,7 @@ mounts when ready — not corridor stops.**
 ### The fusion — RGB Technohypercube `LOCKED (mechanism) / OPEN (location)`
 
 The **Rouge** (ch3, Fallen Kingdom) + **Bleu** + **Verte** (ch4) technodisks fuse at a pedestal into the
-**RGB Technohypercube** (`Items.json [410]`) — the key to the Frozen Fortress. The pedestal location has
+**RGB Technohypercube** (`Items.json [94]` — relocated 2026-08-11 in the same item-table effort that retired the Recipe Journals) — the key to the Frozen Fortress. The pedestal location has
 **no guardian** `LOCKED` — it is just the fusion site. *Where*: **the Spacial Flux Engine facility in
 Raevula** `LOCKED (2026-07-24)` — dual-purpose room: the difficulty-layer modification station AND the
 technodisk fusion pedestal. One high-tech room, two jobs, zero new maps. **The L/R fragments are nixed** `LOCKED (lean)`: the six

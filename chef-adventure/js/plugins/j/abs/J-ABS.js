@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.14.0 ABS] Enables combat to be carried out on the map.
+ * [v4.15.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,12 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.15.0
+ *    Added <thisIgnoreParry:N> so a skill can carry its own parry-ignore, and
+ *    made <ignoreParry:N> readable from every note source on the attacker rather
+ *    than the skill alone - equipment, states and the actor all contribute now.
+ *    The two sum and clamp at 100, which keeps defensive pressure from inverting
+ *    past the ceiling.
  * - 4.14.0
  *    Declared what JABS state on the party and the system is worth writing to
  *    a savefile, and routed the _abs namespace into its own save section.
@@ -4343,7 +4349,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.14.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.15.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -4831,6 +4837,7 @@ J.ABS.RegExp = {
 	KnockbackAmp: /<knockbackAmp:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
 	ThisKnockbackAmp: /<thisKnockbackAmp:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
 	IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
+	ThisIgnoreParry: /<thisIgnoreParry:[ ]?(\d+)>/gi,
 	UseOnPickup: /<useOnPickup>/gi,
 	Expires: /<expires:[ ]?(\d+)>/gi,
 	JabsTool: /<jabsTool>/i,
@@ -14903,7 +14910,18 @@ var JABS_Battler = class JABS_Battler {
 		actions.forEach((a) => a.setCooldownType(JABS_Button.Dodge));
 		$jabsEngine.executeMapActions(this, actions);
 		this.setDodging(true);
+		this.onDodge(skill);
 	}
+	/**
+	* A hook to perform all side effects of executing a dodge skill.
+	*
+	* Dodging needs a hook of its own because it is initiated rather than reacted to- parry and guard
+	* both happen inside an incoming action, which is why their hooks hang off {@link Game_Action}, and
+	* a dodge has no such action to hang from. Extensions alias this to add telemetry, resource gain,
+	* or other behavior.
+	* @param {RPG_Skill} _skill The dodge skill that was executed.
+	*/
+	onDodge(_skill) {}
 	/**
 	* AI-only: spends dodge toward open tile away from an opposing battler when interrupt logic demands it.
 	* @param {JABS_Battler} threatBattler The hostile pressure source.
@@ -20144,6 +20162,40 @@ var JABS_Engine = class JABS_Engine {
 		return true;
 	}
 	/**
+	* Computes how much of the defender's guard pressure does not apply, summing the caster's
+	* unconditional `<ignoreParry:PCT>` tags with this specific skill's `<thisIgnoreParry:PCT>`.
+	*
+	* The total is capped at 100 because the pressure formula scales guard by `(100 - pct) / 100`-
+	* past 100 that factor inverts and hands the defender negative pressure, making the attacker
+	* easier to parry the more parry-ignore they stacked.
+	* @param {JABS_Battler} caster The battler performing the action.
+	* @param {JABS_Action} action The action being executed.
+	* @returns {number} The percent of guard pressure ignored, 0 through 100.
+	*/
+	getIgnoreParryPct(caster, action) {
+		const total = this.getFlatIgnoreParryPct(caster) + this.getThisIgnoreParryPct(action);
+		return Math.min(100, total);
+	}
+	/**
+	* Sums every `<ignoreParry:PCT>` tag across the caster's own note sources- a weapon or accessory
+	* that always cuts through some of the defender's guard, no matter which skill is swinging.
+	* @param {JABS_Battler} caster The battler performing the action.
+	* @returns {number} The total percent of guard pressure ignored; 0 if untagged.
+	*/
+	getFlatIgnoreParryPct(caster) {
+		const casterNotes = caster.getBattler().getAllNotes();
+		return RPGManager.getSumFromAllNotesByRegex(casterNotes, J.ABS.RegExp.IgnoreParry) ?? 0;
+	}
+	/**
+	* Reads the `<thisIgnoreParry:PCT>` tag from the executing skill's own note only, so it applies
+	* while this skill is swinging and at no other time.
+	* @param {JABS_Action} action The action being executed.
+	* @returns {number} The percent of guard pressure ignored; 0 if untagged.
+	*/
+	getThisIgnoreParryPct(action) {
+		return action.getBaseSkill().jabsIgnoreParry ?? 0;
+	}
+	/**
 	* Calculates whether or not the attack was parried by implicit (passive) parry.
 	* Calculates whether the implicit parry roll succeeds as a full negate.
 	* Uses the standard A/D pressure formula scaled down by {@link J.ABS.Metadata.ImplicitParryScaleFactor},
@@ -20159,7 +20211,7 @@ var JABS_Engine = class JABS_Engine {
 		if (this.isParryPossible(caster, target) === false) {
 			return false;
 		}
-		const ignoreParryPercent = action.getBaseSkill().jabsIgnoreParry ?? 0;
+		const ignoreParryPercent = this.getIgnoreParryPct(caster, action);
 		const rawChance = JABS_Engine.implicitParryChancePercent(caster, target, ignoreParryPercent);
 		const scaleFactor = J.ABS.Metadata.ImplicitParryScaleFactor;
 		const parryChancePercent = Math.round(rawChance * scaleFactor);
@@ -20181,7 +20233,7 @@ var JABS_Engine = class JABS_Engine {
 		if (this.isParryPossible(caster, target) === false) {
 			return false;
 		}
-		const ignoreParryPercent = action.getBaseSkill().jabsIgnoreParry ?? 0;
+		const ignoreParryPercent = this.getIgnoreParryPct(caster, action);
 		const glancingChancePercent = JABS_Engine.glancingBlowChancePercent(caster, target, ignoreParryPercent);
 		const defenderBattler = target.getBattler();
 		const defenderPositiveRolls = defenderBattler.getPositiveRolls();
@@ -23794,7 +23846,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.14.0";
+var PLUGIN_VERSION = "4.15.0";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
@@ -24883,11 +24935,13 @@ Object.defineProperty(RPG_Skill.prototype, "jabsBonusHitsFromSkillNote", { get: 
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsSkillNote);
 } });
 /**
-* The percent of parry rating ignored by this skill.
+* The percent of parry rating ignored by this skill alone.<br/>
+* The caster's equips and states contribute separately, summed against this by
+* {@link JABS_Engine.getIgnoreParryPct}.
 * @type {number}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsIgnoreParry", { get: function() {
-	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.IgnoreParry, true);
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.ThisIgnoreParry, true);
 } });
 /**
 * Whether or not this skill is completely unparryable by the target.

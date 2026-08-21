@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.3.0 PROF] Enables skill proficiency tracking.
+ * @plugindesc [v2.4.0 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -151,6 +151,10 @@
  * - Decreasing the proficiency will NOT undo rewards gained.
  * ============================================================================
  * CHANGELOG:
+ * - 2.4.0
+ *    Defense earns proficiency the way offense does - guarding and parrying a
+ *    skill now advances proficiency in it, so a defensive player is not frozen
+ *    out of the system.
  * - 2.3.0
  *    Routed the _proficiency namespace into its own save section, so earned
  *    proficiency lands in systems/proficiency.json rather than in the system
@@ -379,10 +383,13 @@ var J_ProficiencyPluginMetadata = class J_ProficiencyPluginMetadata extends Plug
 	}
 	/**
 	* Initializes the proficiencies from database and external data.
+	*
+	* The file itself was already read when the namespace was set up; only the classification and the
+	* per-actor mapping happen here. Both need `$dataActors`, which is why this waits for the boot scene
+	* rather than running alongside the read.
 	*/
 	initializeProficiencies() {
-		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Proficiency").configName("proficiency configuration").mapper(J_ProficiencyPluginMetadata.classifyConditionals.bind(J_ProficiencyPluginMetadata)).logSummary((result) => [`- ${result.length} proficiency conditionals`]).build();
-		const classifiedConditionalData = ExternalJsonConfigLoader.load(J_ProficiencyPluginMetadata.CONFIG_PATH, options);
+		const classifiedConditionalData = J_ProficiencyPluginMetadata.classifyConditionals(this.ExternalConfig);
 		/**
 		* The collection of all defined skill proficiencies.
 		* @type {ProficiencyConditional[]}
@@ -414,10 +421,40 @@ globalThis.J ||= {};
 */
 J.PROF = {};
 /**
+* The umbrella for all extensions of this plugin.<br/>
+* Extensions live in `prof/ext/*` and hang their own namespace beneath this one.
+*/
+J.PROF.EXT = {};
+/**
+* A collection of helpers used across this ship at runtime.
+*/
+J.PROF.Helpers = {};
+/**
+* Loads the external proficiency configuration off the project filesystem.
+*
+* The whole parsed root is kept rather than only the slice this plugin uses, because extensions read
+* their own blocks off it. Doing the read here instead of during classification means an extension can
+* see its configuration in its own `postInitialize`, which is the only moment it has before the game
+* boots. This is the same arrangement J-ABS uses for the extensions that read `config.jabs.json`.
+* @param {string=} configPath The project-relative path to the external config.
+* @returns {object} The parsed root blob.
+*/
+J.PROF.Helpers.loadExternalConfig = (configPath = J_ProficiencyPluginMetadata.CONFIG_PATH) => {
+	const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Proficiency").configName("proficiency configuration").logSummary((result) => [`- ${result.conditionals.length} proficiency conditionals`]).build();
+	const parsedConfig = ExternalJsonConfigLoader.load(configPath, options);
+	const metadata = J.PROF.Metadata;
+	if (metadata === undefined) {
+		throw new Error("J.PROF.Metadata must be assigned before J.PROF.Helpers.loadExternalConfig().");
+	}
+	metadata.ExternalConfig = parsedConfig;
+	return parsedConfig;
+};
+/**
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.3.0");
+J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.4.0");
+J.PROF.Helpers.loadExternalConfig();
 /**
 * The various aliases associated with this plugin.
 */
@@ -427,6 +464,7 @@ J.PROF.Aliased = {
 	Game_Battler: new Map(),
 	Game_Enemy: new Map(),
 	Game_System: new Map(),
+	JABS_Battler: new Map(),
 	IconManager: new Map(),
 	Scene_Boot: new Map(),
 	TextManager: new Map()
@@ -953,7 +991,9 @@ if (J.ABS) {
 	Game_Action.prototype.gainProficiencyFromGuarding = function(jabsBattler) {
 		if (!this.canGainProficiencyFromGuarding(jabsBattler)) return;
 		const skillId = jabsBattler.getGuardSkillId();
-		jabsBattler.getBattler().increaseSkillProficiency(skillId, 1);
+		const battler = jabsBattler.getBattler();
+		const amount = battler.skillProficiencyAmount();
+		battler.increaseSkillProficiency(skillId, amount);
 	};
 	/**
 	* Determines whether or not this battle can gain proficiency for the guard skill.
@@ -988,6 +1028,47 @@ Game_System.prototype.updateProficienciesFromPluginMetadata = function() {
 		J.PROF.Metadata.actorConditionalsMap.set(actorId, actorConditionals);
 	});
 };
+
+//#endregion
+//#region src/plugins/prof/core/objects/JABS_Battler.js
+/**
+* Extends {@link JABS_Battler.onDodge}.<br/>
+* Also gains proficiency for the dodge skill that was executed.
+*
+* Dodging cannot earn proficiency through the ordinary path the way an attack does. That path hangs off
+* {@link Game_Action.apply} and requires the target to have been hit, but a dodge skill targets the user
+* with no damage and no effects- so RMMZ's own `testApply` answers false, the result is never marked
+* used, and there is nothing for the proficiency check to see. Crediting it here is the only way a
+* dodge counts for anything.
+*/
+if (J.ABS) {
+	J.PROF.Aliased.JABS_Battler.set("onDodge", JABS_Battler.prototype.onDodge);
+	JABS_Battler.prototype.onDodge = function(skill) {
+		J.PROF.Aliased.JABS_Battler.get("onDodge").call(this, skill);
+		this.gainProficiencyFromDodging(skill);
+	};
+	/**
+	* Gains proficiency when dodging.
+	* @param {RPG_Skill} skill The dodge skill that was executed.
+	*/
+	JABS_Battler.prototype.gainProficiencyFromDodging = function(skill) {
+		if (!this.canGainProficiencyFromDodging(skill)) return;
+		const battler = this.getBattler();
+		const amount = battler.skillProficiencyAmount();
+		battler.increaseSkillProficiency(skill.id, amount);
+	};
+	/**
+	* Determines whether this battler can gain proficiency for the dodge skill.
+	* @param {RPG_Skill} skill The dodge skill that was executed.
+	* @returns {boolean} True if we can gain proficiency, false otherwise.
+	*/
+	JABS_Battler.prototype.canGainProficiencyFromDodging = function(skill) {
+		if (!skill) return false;
+		const canGainProficiency = this.getBattler().canGainProficiency();
+		if (!canGainProficiency) return false;
+		return true;
+	};
+}
 
 //#endregion
 //#region src/plugins/prof/core/managers/TextManager.js

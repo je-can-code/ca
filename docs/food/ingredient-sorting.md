@@ -130,10 +130,10 @@
 
 ## root - onion
 
-- white onion (shop/farm)
-- yellow onion (farm)
-- savory onion (farm)
-- luxurious onion (farm)
+- yellow onion (shop/farm)
+- ao negi (farm) (is greens too, not a root)
+- shallot (farm)
+- tropea onion (farm)
 
 ## fungus
 
@@ -148,6 +148,29 @@
 - river coral (drop)
 - layered coral (drop)
 - ancient coral (drop)
+
+## crunch — a cross-cutting tag, not a family
+
+Anything whose job is to be scattered over something soft. It sits *alongside* an item's real family
+rather than replacing it, so a hazelnut is `seed` and `crunch` both, and it exists so that a recipe can
+ask for "something crisp on top" and let the player choose which.
+
+Raw members carry it in the database today: **stale nuts, peanuts, walnuts, hazelnuts.** The rest are
+cooked outputs and get it when they become items — Potato Crisps, Kale Crisps, Parmesan Crisps,
+Crisped Flank, Breadcrumbs, Toasted Nuts, Candied Nuts, Candied Petals, Brittle, Sugar Glass,
+Noodle Nest.
+
+**Do not call this `texture`.** Everything has texture; silk is a texture and so is custard. Named
+loosely it would collect whipped cream inside a year and stop meaning anything.
+
+## sponge
+
+Things whose job is to absorb whatever they are cooked in.
+
+- eggplant (shop/farm) (is fruit too - botanically a berry, same as tomato)
+- zucchini (farm)
+- pumpkin (farm)
+- tofu (cook) (is protein too - set from round beans with mineral water)
 
 # CARB
 

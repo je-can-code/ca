@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v3.2.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v3.3.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -364,6 +364,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.3.0
+ *    Scene_SDP now uses the shared filterable list from J-Base rather than its
+ *    own family strip window, which is deleted. SdpFamilyFilter carries the
+ *    family predicate.
  * - 3.2.0
  *    Unspent points now appear on each party member's cell in the main menu,
  *    beside their level and the distance to the next one. A currency nobody is
@@ -2571,7 +2575,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.2.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3776,6 +3780,23 @@ var SdpFamilyFilter = class SdpFamilyFilter {
 		return cycle;
 	}
 	/**
+	* Builds the L2/R2 ring positions for the current actor.
+	*
+	* The keys come from {@link SdpFamilyFilter.buildCycleForActor}, which omits families this actor has no
+	* unlocked panels in — a filter over your own panels should never present a tab with nothing behind it.
+	* The label and icon are resolved once here rather than on every draw, which is why a position carries
+	* both and the strip that renders it needs to know nothing about families.
+	* @param {Game_Actor} actor The actor driving this step.
+	* @returns {Array<{key: string, name: string, iconIndex: number}>}
+	*/
+	static buildPositionsForActor(actor) {
+		return SdpFamilyFilter.buildCycleForActor(actor).map((filterKey) => ({
+			key: filterKey,
+			name: SdpFamilyFilter.displayNameForFilterKey(filterKey),
+			iconIndex: SdpFamilyFilter.iconIndexForFilterKey(filterKey)
+		}));
+	}
+	/**
 	* Ordinal position of a family within the authored family list.
 	* Unresolved/unknown families sort after every known family.
 	* @param {string} familyKey The family key driving this step.
@@ -3866,7 +3887,7 @@ var SdpFamilyFilter = class SdpFamilyFilter {
 /**
 * The SDP window containing the list of all unlocked panels.
 */
-var Window_SdpList = class extends Window_Command {
+var Window_SdpList = class extends Window_FilterableList {
 	/**
 	* @constructor
 	* @param {Rectangle} rect The rectangle that represents this window.
@@ -3875,28 +3896,19 @@ var Window_SdpList = class extends Window_Command {
 		super(rect);
 	}
 	/**
-	* Implements {@link Window_Command.initMembers}.<br/>
-	* Initializes the members of this window.
+	* Extends {@link Window_FilterableList.initMembers}.<br/>
+	* Adds the actor and cart this list draws against.
 	*
 	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
 	* by which point the command list has already been built from them and found them undefined.
 	*/
 	initMembers() {
+		super.initMembers();
 		/**
 		* The currently selected actor for listing unlocked panels and drawing ranks/costs.
 		* @type {Game_Actor}
 		*/
 		this.currentActor = null;
-		/**
-		* Whether panels already at max rank are hidden from the list.
-		* @type {boolean}
-		*/
-		this.filterNoMaxedPanels = false;
-		/**
-		* Active family-filter key for the panel list.
-		* @type {string}
-		*/
-		this.familyFilterKey = SdpFamilyFilter.ALL;
 		/**
 		* The queued cart levels by panel key.
 		* @type {Map<string, number>}
@@ -3920,35 +3932,6 @@ var Window_SdpList = class extends Window_Command {
 		this.refresh();
 	}
 	/**
-	* Gets whether or not the no-max-panels filter is enabled.
-	* @returns {boolean}
-	*/
-	usingNoMaxPanelsFilter() {
-		return this.filterNoMaxedPanels;
-	}
-	/**
-	* Toggles the "hide max panels" filter for this window.
-	*/
-	toggleNoMaxPanelsFilter() {
-		this.filterNoMaxedPanels = !this.filterNoMaxedPanels;
-	}
-	/**
-	* Sets the active family filter and refreshes the list.
-	* @param {string} familyFilterKey The family filter key driving this step.
-	*/
-	setFamilyFilterKey(familyFilterKey) {
-		if (this.familyFilterKey === familyFilterKey) return;
-		this.familyFilterKey = familyFilterKey;
-		this.refresh();
-	}
-	/**
-	* Gets the active family filter key.
-	* @returns {string}
-	*/
-	getFamilyFilterKey() {
-		return this.familyFilterKey;
-	}
-	/**
 	* Overwrites {@link #itemTextAlign}.<br/>
 	* Sets the alignment for this command window to be left-aligned.
 	*/
@@ -3956,42 +3939,68 @@ var Window_SdpList = class extends Window_Command {
 		return "left";
 	}
 	/**
-	* Overwrites {@link #makeCommandList}.<br/>
-	* Creates the command list for this window.
+	* Implements {@link Window_FilterableList.sourceItems}.<br/>
+	* The panels this actor has unlocked.
+	*
+	* The rankings-to-panels resolution happens here so the rest of the pipeline only ever sees real panels.
+	* A ranking whose panel is missing from the metadata map is dropped at this one point; every step
+	* downstream may then assume a panel exists. The actor itself is legitimately absent until the scene
+	* calls {@link #setActor}, because `initialize` refreshes before the scene gets a chance.
+	* @returns {StatDistributionPanel[]}
 	*/
-	makeCommandList() {
+	sourceItems() {
 		const actor = this.currentActor;
-		if (!actor) return;
-		const panelRankings = actor.getAllUnlockedSdps();
-		if (panelRankings.length === 0) return;
-		const commands = panelRankings.map((panelRanking) => {
-			const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
-			const command = this.makeCommand(panel);
-			if (!command) return null;
-			return command;
-		}, this).filter((command) => command !== null);
-		commands.sort((left, right) => SdpFamilyFilter.comparePanels(left.ext, right.ext));
-		commands.forEach(this.addBuiltCommand, this);
+		if (actor === null) return [];
+		return actor.getAllUnlockedSdps().map((panelRanking) => J.SDP.Metadata.panelsMap.get(panelRanking.key)).filter((panel) => panel !== undefined);
 	}
 	/**
-	* Builds a single command for the SDP list based on a given panel.
+	* Implements {@link Window_FilterableList.matchesFilter}.<br/>
+	* Whether a panel belongs under the active family tab.
+	* @param {StatDistributionPanel} panel The panel driving this step.
+	* @param {string} filterKey The active family filter key.
+	* @returns {boolean}
+	*/
+	matchesFilter(panel, filterKey) {
+		return SdpFamilyFilter.panelMatchesFilter(panel, filterKey);
+	}
+	/**
+	* Implements {@link Window_FilterableList.isActionable}.<br/>
+	* A panel is actionable while there are ranks left to buy in it.
+	* @param {StatDistributionPanel} panel The panel driving this step.
+	* @returns {boolean}
+	*/
+	isActionable(panel) {
+		return this.isMaxRank(panel) === false;
+	}
+	/**
+	* Implements {@link Window_FilterableList.compareItems}.<br/>
+	* Orders rows by family, then subgroup, then subgroup tier (alphabetical-by-key fallback).
+	* @param {StatDistributionPanel} left The first panel driving this step.
+	* @param {StatDistributionPanel} right The second panel driving this step.
+	* @returns {number}
+	*/
+	compareItems(left, right) {
+		return SdpFamilyFilter.comparePanels(left, right);
+	}
+	/**
+	* Whether this actor has already taken a panel as far as it goes.
+	* @param {StatDistributionPanel} panel The panel driving this step.
+	* @returns {boolean}
+	*/
+	isMaxRank(panel) {
+		const { currentRank } = this.currentActor.getSdpByKey(panel.key);
+		return panel.maxRank <= currentRank;
+	}
+	/**
+	* Implements {@link Window_FilterableList.buildCommand}.<br/>
+	* Builds a single row for the SDP list based on a given panel.
 	* @param {StatDistributionPanel} panel The panel to build a command for.
 	* @returns {BuiltWindowCommand}
 	*/
-	makeCommand(panel) {
-		const actor = this.currentActor;
-		const { name, key, iconIndex, maxRank } = panel;
+	buildCommand(panel) {
+		const { name, key, iconIndex } = panel;
 		const colorIndex = panel.getPanelRarityColorIndex();
-		const panelRanking = actor.getSdpByKey(key);
-		const { currentRank } = panelRanking;
-		const isMaxRank = maxRank <= currentRank;
-		if (isMaxRank && this.usingNoMaxPanelsFilter()) {
-			return null;
-		}
-		if (SdpFamilyFilter.panelMatchesFilter(panel, this.familyFilterKey) === false) {
-			return null;
-		}
-		const enabled = !isMaxRank;
+		const enabled = this.isMaxRank(panel) === false;
 		const command = new WindowCommandBuilder(name).setSymbol(key).setEnabled(enabled).setExtensionData(panel).setIconIndex(iconIndex).setColorIndex(colorIndex).build();
 		return command;
 	}
@@ -4969,59 +4978,6 @@ var Window_SdpHelp = class extends Window_Help {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/windows/Window_SdpFamilyStrip.js
-/**
-* Thin strip above the SDP panel list showing the active family filter.
-* Updated by {@link Scene_SDP} when the player cycles with L2/R2.
-*/
-var Window_SdpFamilyStrip = class extends Window_Base {
-	/**
-	* Active family-filter key ({@link SdpFamilyFilter.ALL}, {@link SdpFamilyFilter.UNKNOWN}, or a family key).
-	* @type {string}
-	*/
-	_filterKey = SdpFamilyFilter.ALL;
-	/**
-	* @param {Rectangle} rect The dimensions of the window.
-	*/
-	constructor(rect) {
-		super(rect);
-		this.initialize(rect);
-	}
-	/**
-	* Sets the active family filter and redraws.
-	* @param {string} filterKey The filter key driving this step.
-	*/
-	setFilterKey(filterKey) {
-		this._filterKey = filterKey;
-		this.refresh();
-	}
-	/**
-	* The family filter currently driving this strip.
-	* @returns {string}
-	*/
-	filterKey() {
-		return this._filterKey;
-	}
-	/**
-	* Implements {@link Window_Base.drawContent}.<br/>
-	* Renders the current family filter label and icon.
-	*/
-	drawContent() {
-		const filterKey = this.filterKey();
-		const label = SdpFamilyFilter.displayNameForFilterKey(filterKey);
-		const iconIndex = SdpFamilyFilter.iconIndexForFilterKey(filterKey);
-		const iconPad = 4;
-		const textX = iconIndex >= 0 ? ImageManager.iconWidth + iconPad : 0;
-		if (iconIndex >= 0) {
-			this.drawIcon(iconIndex, iconPad, 0);
-		}
-		this.resetFontSettings();
-		this.drawText(label, textX, 0, this.innerWidth - textX, Window_Base.TextAlignments.Left);
-		this.resetFontSettings();
-	}
-};
-
-//#endregion
 //#region src/plugins/sdp/core/scenes/Scene_SDP.js
 /**
 * The scene for managing SDPs that the player has acquired.
@@ -5097,7 +5053,7 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		this._j._sdp._windows._sdpHelp = null;
 		/**
 		* Family-filter strip above the panel list.
-		* @type {Window_SdpFamilyStrip}
+		* @type {Window_FilterStrip}
 		*/
 		this._j._sdp._windows._sdpFamilyStrip = null;
 		/**
@@ -5106,15 +5062,10 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		*/
 		this._j._sdp._cart = new Map();
 		/**
-		* L2/R2 family-filter cycle keys for the current menu actor.
-		* @type {string[]}
+		* The L2/R2 family-filter ring for the current menu actor.
+		* @type {FilterCycle}
 		*/
-		this._j._sdp._familyFilterCycle = [];
-		/**
-		* Index into {@link this._j._sdp._familyFilterCycle}.
-		* @type {number}
-		*/
-		this._j._sdp._familyFilterIndex = 0;
+		this._j._sdp._familyFilter = new FilterCycle();
 	}
 	/**
 	* Gets the j.
@@ -5179,11 +5130,11 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	}
 	/**
 	* Builds the family-filter strip window.
-	* @returns {Window_SdpFamilyStrip}
+	* @returns {Window_FilterStrip}
 	*/
 	buildSdpFamilyStripWindow() {
 		const rectangle = this.sdpFamilyStripRectangle();
-		return new Window_SdpFamilyStrip(rectangle);
+		return new Window_FilterStrip(rectangle);
 	}
 	/**
 	* Rectangle for the family strip sitting under the points ribbon.
@@ -5195,14 +5146,14 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	}
 	/**
 	* Gets the tracked family strip window.
-	* @returns {Window_SdpFamilyStrip}
+	* @returns {Window_FilterStrip}
 	*/
 	getSdpFamilyStripWindow() {
 		return this.j()._sdp._windows._sdpFamilyStrip;
 	}
 	/**
 	* Sets the tracked family strip window.
-	* @param {Window_SdpFamilyStrip} familyStripWindow The family strip window driving this step.
+	* @param {Window_FilterStrip} familyStripWindow The family strip window driving this step.
 	*/
 	setSdpFamilyStripWindow(familyStripWindow) {
 		this.j()._sdp._windows._sdpFamilyStrip = familyStripWindow;
@@ -5212,35 +5163,31 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	*/
 	rebuildFamilyFilterCycle() {
 		const actor = $gameParty.menuActor();
-		const cycle = SdpFamilyFilter.buildCycleForActor(actor);
-		const previousKey = this.getActiveFamilyFilterKey();
-		let nextIndex = cycle.indexOf(previousKey);
-		if (nextIndex < 0) {
-			nextIndex = 0;
-		}
-		this.j()._sdp._familyFilterCycle = cycle;
-		this.j()._sdp._familyFilterIndex = nextIndex;
+		this.getFamilyFilter().setPositions(SdpFamilyFilter.buildPositionsForActor(actor));
+	}
+	/**
+	* The L2/R2 family-filter ring for the current menu actor.
+	* @returns {FilterCycle}
+	*/
+	getFamilyFilter() {
+		return this.j()._sdp._familyFilter;
 	}
 	/**
 	* Gets the active family-filter key from scene state.
 	* @returns {string}
 	*/
 	getActiveFamilyFilterKey() {
-		const cycle = this.j()._sdp._familyFilterCycle;
-		if (cycle.length === 0) {
-			return SdpFamilyFilter.ALL;
-		}
-		return cycle[this.j()._sdp._familyFilterIndex | 0] ?? SdpFamilyFilter.ALL;
+		return this.getFamilyFilter().activeKey();
 	}
 	/**
 	* Applies the active family filter to the strip and panel list.
 	* @param {boolean} clampSelection When true, clamp list selection after refresh.
 	*/
 	applyActiveFamilyFilter(clampSelection = true) {
-		const filterKey = this.getActiveFamilyFilterKey();
+		const familyFilter = this.getFamilyFilter();
 		const listWindow = this.getSdpListWindow();
-		this.getSdpFamilyStripWindow().setFilterKey(filterKey);
-		listWindow.setFamilyFilterKey(filterKey);
+		this.getSdpFamilyStripWindow().setPosition(familyFilter.activePosition());
+		listWindow.setFilterKey(familyFilter.activeKey());
 		if (clampSelection === false) {
 			return;
 		}
@@ -5266,16 +5213,18 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	* @param {boolean} isForward The is forward driving this step.
 	*/
 	cycleFamilyFilters(isForward = true) {
-		const cycle = this.j()._sdp._familyFilterCycle;
-		if (cycle.length <= 1) {
+		const familyFilter = this.getFamilyFilter();
+		if (familyFilter.canCycle() === false) {
 			SoundManager.playBuzzer();
 			this.getSdpListWindow().activate();
 			return;
 		}
-		const currentIndex = this.j()._sdp._familyFilterIndex | 0;
-		const delta = isForward ? 1 : -1;
-		const nextIndex = (currentIndex + delta + cycle.length) % cycle.length;
-		this.j()._sdp._familyFilterIndex = nextIndex;
+		if (isForward) {
+			familyFilter.next();
+		} else {
+			familyFilter.previous();
+		}
+		SoundManager.playCursor();
 		this.applyActiveFamilyFilter();
 		this.onPanelHoveredChange();
 		this.getSdpListWindow().activate();
@@ -5836,7 +5785,7 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	*/
 	onFilterPanels() {
 		const sdpListWindow = this.getSdpListWindow();
-		sdpListWindow.toggleNoMaxPanelsFilter();
+		sdpListWindow.toggleActionableOnly();
 		this.onPanelHoveredChange();
 		this.clampSdpListSelection();
 	}
