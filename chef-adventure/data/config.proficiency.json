@@ -2166,27 +2166,6 @@
       "jsRewards": ""
     },
     {
-      "key": "=",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 46,
-          "proficiency": 500,
-          "secondarySkillIds": [
-            47,
-            48
-          ]
-        }
-      ],
-      "skillRewards": [
-        49
-      ],
-      "jsRewards": ""
-    },
-    {
       "key": "DEFLECT_PARRY_1",
       "actorIds": [
         1,
