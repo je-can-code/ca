@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.0 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
+ * [v1.3.1 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -154,6 +154,11 @@
  * so retuning an economy is done in the data editor rather than here.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.1
+ *    Fixed a recipe carrying an SDP cost throwing when J-SDP is not installed.
+ *    The affordability check read the leader's panel points directly, while the
+ *    held-quantity method it duplicates guards that read and answers zero
+ *    without the plugin; it now defers to that method for every component type.
  * - 1.3.0
  *    Added the study shop - Scene_JaftingStudy, its two windows, and
  *    StudyPurchaseService - so recipes can be bought rather than only found.
@@ -577,18 +582,17 @@ var CraftingComponent = class CraftingComponent {
 	}
 	/**
 	* Checks if the party has as many of this component as are required.
+	*
+	* Every kind of component answers this the same way - compare the requirement against what the
+	* party holds - and {@link #getHandledQuantity} is already the one place that knows how to read
+	* "what the party holds" for each kind. Asking it rather than re-deriving the figure per type is
+	* what keeps the two from drifting apart, which they had: the categorical rule that a slot is
+	* filled by exactly one stack lives there, and so does the answer for an SDP cost in a game with
+	* no SDP installed.
 	* @return {boolean}
 	*/
 	hasEnough() {
-		if (this.isCategorical()) return this.#count <= this.getHandledQuantity();
-		if (this.isDatabaseEntry()) {
-			const count = $gameParty.numItems(this.getItem());
-			return this.#count <= count;
-		}
-		if (this.isGold()) {
-			return this.#count <= $gameParty.gold();
-		}
-		return this.#count <= $gameParty.leader().getSdpPoints();
+		return this.#count <= this.getHandledQuantity();
 	}
 	/**
 	* The display label for a categorical slot, such as `Any Meat`.
@@ -1831,7 +1835,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.3.0");
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.3.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
