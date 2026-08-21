@@ -20358,6 +20358,43 @@
       "cost": []
     },
     {
+      "key": "w-gloves-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "tools": [
+        {
+          "id": 159,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 156,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 160,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
+      "cost": []
+    },
+    {
       "key": "w-claws-01",
       "name": "",
       "iconIndex": -1,
@@ -20571,6 +20608,43 @@
         }
       ],
       "tier": 6,
+      "cost": []
+    },
+    {
+      "key": "w-claws-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "tools": [
+        {
+          "id": 169,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 166,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 170,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
       "cost": []
     },
     {
@@ -20793,6 +20867,43 @@
         }
       ],
       "tier": 6,
+      "cost": []
+    },
+    {
+      "key": "w-arm-10",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "tools": [
+        {
+          "id": 179,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 176,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 180,
+          "type": "w",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 7,
       "cost": []
     },
     {
