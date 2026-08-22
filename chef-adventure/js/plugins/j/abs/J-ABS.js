@@ -4811,6 +4811,25 @@ J.ABS.RegExp = {
 	Accumulate: /<accumulate>/i,
 	PiercingData: /<pierce:[ ]?(\[\d+,[ ]?\d+])>/gi,
 	Guard: /<guard:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+	/**
+	* The number of frames between each re-execution of a guard skill while the guard button is
+	* held down. A guard skill declaring this fires itself on that cadence for as long as the
+	* stance is maintained, which is how a guard can do something other than reduce damage -
+	* applying a state, paying an upkeep cost, accumulating a shield.
+	*
+	* <pre>
+	* Structure:
+	*  <guardInterval:FRAMES>
+	*
+	* Example:
+	*  <guardInterval:60>
+	*
+	* Translation:
+	*  While guarding, re-execute this skill once every 60 frames.
+	* </pre>
+	* @type {RegExp}
+	*/
+	GuardInterval: /<guardInterval:[ ]?(\d+)>/gi,
 	Parry: /<parry:[ ]?(\d+)>/gi,
 	CounterParry: /<counterParry:[ ]?(\[\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*])>/gi,
 	CounterGuard: /<counterGuard:[ ]?(\[\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*])>/gi,
@@ -11027,8 +11046,9 @@ var JABS_GuardData = class {
 	* @param {number[]} counterGuardIds The skill id to counter with when guarding, if any.
 	* @param {number[]} counterParryIds The skill ids to counter with when precise-parrying, if any.
 	* @param {number} parryDuration The duration of which a precise-parry is available, if any.
+	* @param {number} guardInterval The frames between self-re-executions while guarding, if any.
 	*/
-	constructor(skillId, flatGuardReduction, percGuardReduction, counterGuardIds, counterParryIds, parryDuration) {
+	constructor(skillId, flatGuardReduction, percGuardReduction, counterGuardIds, counterParryIds, parryDuration, guardInterval) {
 		/**
 		* The skill this guard data is associated with.
 		* @type {number}
@@ -11059,13 +11079,31 @@ var JABS_GuardData = class {
 		* @type {number}
 		*/
 		this.parryDuration = parryDuration;
+		/**
+		* The number of frames between each self-re-execution while guarding, if any.
+		* @type {number}
+		*/
+		this.guardInterval = guardInterval;
 	}
 	/**
 	* Gets whether or not this guard data includes the ability to guard at all.
+	*
+	* Damage reduction is the usual reason to hold a stance, but it is not the only one: a guard
+	* that reduces nothing and instead re-executes itself on an interval is still doing work for
+	* as long as it is held. Requiring a reduction here would let such a skill be equipped, pass
+	* every type check, and then silently refuse to start - so anything that does something while
+	* held qualifies.
 	* @returns {boolean}
 	*/
 	canGuard() {
-		return !!(this.flatGuardReduction || this.percGuardReduction);
+		return !!(this.flatGuardReduction || this.percGuardReduction || this.guardInterval);
+	}
+	/**
+	* Gets whether or not this guard data re-executes its skill while the stance is held.
+	* @returns {boolean}
+	*/
+	canRefire() {
+		return this.guardInterval > 0;
 	}
 	/**
 	* Gets whether or not this guard data includes the ability to precise-parry.
@@ -12479,6 +12517,13 @@ var JABS_Battler = class JABS_Battler {
 		* @type {number}
 		*/
 		this._guardSkillId = 0;
+		/**
+		* The cadence on which a held guard skill re-executes itself, if it does at all.
+		*
+		* A max time of zero is how a guard says it does not refire.
+		* @type {JABS_Timer}
+		*/
+		this._guardIntervalTimer = new JABS_Timer(0);
 		/**
 		* Whether or not this battler is in a state of dying.
 		* @type {boolean}
@@ -14209,6 +14254,7 @@ var JABS_Battler = class JABS_Battler {
 		this.processWaitTimer();
 		this.processAlertTimer();
 		this.processParryTimer();
+		this.processGuardIntervalTimer();
 		this.processLastHitTimer();
 		this.processCombatTimer();
 		this.processCastingTimer();
@@ -14237,6 +14283,22 @@ var JABS_Battler = class JABS_Battler {
 			this.getCharacter().requestAnimation(131);
 			this.countdownParryWindow();
 		}
+	}
+	/**
+	* Updates the re-execution cadence of a guard skill that refires while it is held.
+	*
+	* Unlike the parry window, which is a one-shot grace period at the start of a stance, this
+	* runs for as long as the stance does - so a guard can keep paying a cost and keep renewing
+	* whatever it applies, and letting go is what stops it.
+	*/
+	processGuardIntervalTimer() {
+		if (!this.guarding()) return;
+		const intervalTimer = this.guardIntervalTimer();
+		if (intervalTimer.getMaxTime() <= 0) return;
+		intervalTimer.update();
+		if (!intervalTimer.isTimerComplete()) return;
+		intervalTimer.reset();
+		$jabsEngine.forceMapAction(this, this.getGuardSkillId(), false);
 	}
 	/**
 	* Updates the timer for "last hit".
@@ -15225,6 +15287,13 @@ var JABS_Battler = class JABS_Battler {
 		this._guardSkillId = guardSkillId;
 	}
 	/**
+	* Gets the timer governing how often a held guard skill re-executes itself.
+	* @returns {JABS_Timer} The guardIntervalTimer.
+	*/
+	guardIntervalTimer() {
+		return this._guardIntervalTimer;
+	}
+	/**
 	* Gets all data associated with guarding for this battler.
 	*
 	* Guard is resolved from whatever the battler's equipped offhand item (or, for enemies,
@@ -15275,6 +15344,8 @@ var JABS_Battler = class JABS_Battler {
 		this.setCounterGuard(guardData.counterGuardIds);
 		this.setCounterParry(guardData.counterParryIds);
 		this.setGuardSkillId(guardData.skillId);
+		this.guardIntervalTimer().setMaxTime(guardData.guardInterval);
+		this.guardIntervalTimer().forceComplete();
 		const totalParryFrames = this.getBonusParryFrames(guardData) + guardData.parryDuration;
 		if (guardData.canParry()) this.setParryWindow(totalParryFrames);
 	}
@@ -15285,6 +15356,8 @@ var JABS_Battler = class JABS_Battler {
 		this.setGuarding(false);
 		this.setAiAllyGuardRaiseFrame(0);
 		this.setParryWindow(0);
+		this.guardIntervalTimer().setMaxTime(0);
+		this.guardIntervalTimer().reset();
 		this.endAnimation();
 	}
 	/**
@@ -24720,7 +24793,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsNotMyAggroPercent", { get: funct
 * @type {JABS_GuardData}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsGuardData", { get: function() {
-	return new JABS_GuardData(this.id, this.jabsGuard[0], this.jabsGuard[1], this.jabsCounterGuard, this.jabsCounterParry, this.jabsParry);
+	return new JABS_GuardData(this.id, this.jabsGuard[0], this.jabsGuard[1], this.jabsCounterGuard, this.jabsCounterParry, this.jabsParry, this.jabsGuardInterval);
 } });
 /**
 * A new property for retrieving the JABS guard from this skill.
@@ -24736,6 +24809,16 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGuard", { get: function() {
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsParry", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.Parry, true);
+} });
+/**
+* The number of frames between each self-re-execution of this skill while guarding with it.
+*
+* Zero means the skill fires once when the stance begins and never again, which is how every
+* guard skill behaved before this existed.
+* @type {number}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsGuardInterval", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.GuardInterval, true);
 } });
 /**
 * While guarding, this skill id will be automatically executed in retaliation.
