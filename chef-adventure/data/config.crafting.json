@@ -15369,7 +15369,7 @@
       "tier": 0
     },
     {
-      "key": "w-blade-01",
+      "key": "w-sword-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15406,7 +15406,7 @@
       "cost": []
     },
     {
-      "key": "w-blade-02",
+      "key": "w-sword-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15443,7 +15443,7 @@
       "cost": []
     },
     {
-      "key": "w-blade-03",
+      "key": "w-sword-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15492,7 +15492,7 @@
       "cost": []
     },
     {
-      "key": "w-blade-04",
+      "key": "w-sword-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15553,7 +15553,7 @@
       "cost": []
     },
     {
-      "key": "w-blade-05",
+      "key": "w-sword-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15602,7 +15602,7 @@
       "cost": []
     },
     {
-      "key": "w-blade-06",
+      "key": "w-sword-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -15651,7 +15651,7 @@
       "cost": []
     },
     {
-      "key": "w-blade-10",
+      "key": "w-sword-10",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16326,7 +16326,7 @@
       "cost": []
     },
     {
-      "key": "w-spear-01",
+      "key": "w-pike-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16363,7 +16363,7 @@
       "cost": []
     },
     {
-      "key": "w-spear-02",
+      "key": "w-pike-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16412,7 +16412,7 @@
       "cost": []
     },
     {
-      "key": "w-spear-03",
+      "key": "w-pike-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16461,7 +16461,7 @@
       "cost": []
     },
     {
-      "key": "w-spear-04",
+      "key": "w-pike-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16510,7 +16510,7 @@
       "cost": []
     },
     {
-      "key": "w-spear-05",
+      "key": "w-pike-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16559,7 +16559,7 @@
       "cost": []
     },
     {
-      "key": "w-spear-06",
+      "key": "w-pike-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -16608,7 +16608,7 @@
       "cost": []
     },
     {
-      "key": "w-spear-10",
+      "key": "w-pike-10",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18878,7 +18878,7 @@
       "cost": []
     },
     {
-      "key": "w-breaker-01",
+      "key": "w-mace-01",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18927,7 +18927,7 @@
       "cost": []
     },
     {
-      "key": "w-breaker-02",
+      "key": "w-mace-02",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -18982,7 +18982,7 @@
       "cost": []
     },
     {
-      "key": "w-breaker-03",
+      "key": "w-mace-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19037,7 +19037,7 @@
       "cost": []
     },
     {
-      "key": "w-breaker-04",
+      "key": "w-mace-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19092,7 +19092,7 @@
       "cost": []
     },
     {
-      "key": "w-breaker-05",
+      "key": "w-mace-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19147,7 +19147,7 @@
       "cost": []
     },
     {
-      "key": "w-breaker-06",
+      "key": "w-mace-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -19202,7 +19202,7 @@
       "cost": []
     },
     {
-      "key": "w-breaker-10",
+      "key": "w-mace-10",
       "name": "",
       "iconIndex": -1,
       "description": "",

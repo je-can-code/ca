@@ -22,8 +22,8 @@ Last updated: **2026-06-03**
 
 | Subgroup | Doc | IDs | Lot | Status |
 |---|---|---|---|---|
-| **Stab** (conventional) | [`spear/stab.md`](./spear/stab.md) | **31–40** | **pierce** | **Locked** |
-| **Basher** (war staff) | [`spear/basher.md`](./spear/basher.md) | **41–50** | **mortar** | **Locked** |
+| **Pike** (conventional) | [`spear/stab.md`](./spear/stab.md) | **31–40** | **pierce** | **Locked** |
+| **Warstaff** (war staff) | [`spear/basher.md`](./spear/basher.md) | **41–50** | **mortar** | **Locked** |
 | **Javelin** (throw) | [`spear/javelin.md`](./spear/javelin.md) | **51–60** | **rend** | **Locked** |
 
 ## Revision log

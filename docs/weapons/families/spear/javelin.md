@@ -79,7 +79,7 @@ Throw loop on **`freeCombo`** to build/refresh stacks → step into **~4** tile 
 ## Open (migration)
 
 - [ ] Custom stack state + HUD (per-target count)
-- [ ] RIP **cooldown** (high — tune in playtest)
+- [ ] RIP **cooldown** (high)
 - [ ] Chain RIP: max hops / one detonation per target per cast
 - [ ] Damage formula base (AGI/ATK coefficients)
 - [ ] Limitless: global decay duration vs per-stack Endurance interaction

@@ -59,13 +59,9 @@ after:  ((a.atk*2 + b.mhp*0.01) - b.def*1)
 
 `b.mhp` = **target** max HP. DEF still matters on the ATK portion; the **0.01×mhp** slice keeps dual **relevant** on chonky targets.
 
-**Balance watch:** full connect with Trine (3 hits/swing) × 4 chain × two overlapping tracks → **~20–25% max HP** on one target in a burst window — playtest tuning TBD.
+**Balance watch:** full connect with Trine (3 hits/swing) × 4 chain × two overlapping tracks → **~20–25% max HP** on one target in a burst window.
 
 **Gemini → Trine:** author so row 10 reaches **3× total**, not accidental 4× stack.
-
-## Playtest (legacy)
-
-Two CD tracks felt strong; mine **heat/liquid** counters pushed players to 1H — content/timing, not blender failure.
 
 ## Design questions (content)
 

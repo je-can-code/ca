@@ -4102,20 +4102,25 @@
   },
   {
     "id": 111,
-    "name": "Khopesh",
+    "name": "Boardbreaker Cudgel",
     "note": "\u003cskillId:111\u003e\n\u003coffhandSkillId:115\u003e\n\u003cspeedBoost:-5\u003e\n\u003cignoreParry:10\u003e\n\u003cmaxRefineCount:4\u003e\n\u003cmaxRefinedTraits:4\u003e\n\u003cthisHit:30\u003e\n\u003cthisCri:15\u003e",
-    "description": "A bronze sickle-sword whose hook exists to drag a shield out of the way.\nWielded in both hands.",
+    "description": "A knot of oak with the bark still on it.\nIt has no edge to dull, and no interest in how well your shield was built.\nWielded in both hands.",
     "iconIndex": 518,
     "traits": [
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
         "code": 54,
         "dataId": 2,
         "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 23,
+        "value": 0
       }
     ],
     "etypeId": 1,
@@ -4135,20 +4140,25 @@
   },
   {
     "id": 112,
-    "name": "Shotel",
+    "name": "Ribcracker Flanged Mace",
     "note": "\u003cskillId:111\u003e\n\u003coffhandSkillId:115\u003e\n\u003cspeedBoost:-5\u003e\n\u003cignoreParry:20\u003e\n\u003cmaxRefineCount:10\u003e\n\u003cmaxRefinedTraits:6\u003e\n\u003cthisHit:80\u003e\n\u003cthisCri:25\u003e",
-    "description": "Curved so far past sense that it reaches around a shield to the man behind it.\nWielded in both hands.",
+    "description": "The flanges gather an honest swing down into four narrow lines.\nMail spreads a blow out; this gives it nowhere to spread.\nWielded in both hands.",
     "iconIndex": 518,
     "traits": [
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
         "code": 54,
         "dataId": 2,
         "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 23,
+        "value": 0
       }
     ],
     "etypeId": 1,
@@ -4168,20 +4178,25 @@
   },
   {
     "id": 113,
-    "name": "Falx",
+    "name": "Helmsplitter Morning Star",
     "note": "\u003cskillId:111\u003e\n\u003coffhandSkillId:115\u003e\n\u003cspeedBoost:-10\u003e\n\u003cignoreParry:30\u003e\n\u003cmaxRefineCount:16\u003e\n\u003cmaxRefinedTraits:8\u003e\n\u003cthisHit:110\u003e\n\u003cthisCri:35\u003e",
-    "description": "It came over the shield rim so hard that an empire redesigned its helmets.\nWielded in both hands.",
+    "description": "Spikes long enough to reach the thing that the helmet was purchased to protect.\nWielded in both hands.",
     "iconIndex": 518,
     "traits": [
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
         "code": 54,
         "dataId": 2,
         "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 23,
+        "value": 0
       }
     ],
     "etypeId": 1,
@@ -4201,20 +4216,25 @@
   },
   {
     "id": 114,
-    "name": "Rhomphaia",
+    "name": "Mailpiercer Horseman's Pick",
     "note": "\u003cskillId:111\u003e\n\u003coffhandSkillId:115\u003e\n\u003cspeedBoost:-10\u003e\n\u003cignoreParry:40\u003e\n\u003cmaxRefineCount:24\u003e\n\u003cmaxRefinedTraits:10\u003e\n\u003cthisHit:190\u003e\n\u003cthisCri:50\u003e",
-    "description": "The falx given a longer shaft, so the reach arrives well before the answer does.\nWielded in both hands.",
+    "description": "One beak, and one point of contact.\nEvery ring it meets is invited to become two rings instead.\nWielded in both hands.",
     "iconIndex": 518,
     "traits": [
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
         "code": 54,
         "dataId": 2,
         "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 23,
+        "value": 0
       }
     ],
     "etypeId": 1,
@@ -4234,20 +4254,25 @@
   },
   {
     "id": 115,
-    "name": "Tepoztopilli",
+    "name": "Harnesscracker Bec de Corbin",
     "note": "\u003cskillId:111\u003e\n\u003coffhandSkillId:115\u003e\n\u003cspeedBoost:-10\u003e\n\u003cignoreParry:50\u003e\n\u003cmaxRefineCount:36\u003e\n\u003cmaxRefinedTraits:14\u003e\n\u003cthisHit:250\u003e\n\u003cthisCri:65\u003e",
-    "description": "Rows of volcanic glass set along a shaft, every edge only a few atoms wide.\nWielded in both hands.",
+    "description": "The crow's beak.\nPlate turns a blade and shrugs off a club, and then this arrives.\nWielded in both hands.",
     "iconIndex": 518,
     "traits": [
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
         "code": 54,
         "dataId": 2,
         "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 23,
+        "value": 0
       }
     ],
     "etypeId": 1,
@@ -4267,20 +4292,25 @@
   },
   {
     "id": 116,
-    "name": "Urumi",
+    "name": "Wardbreaker Godendag",
     "note": "\u003cskillId:111\u003e\n\u003coffhandSkillId:115\u003e\n\u003cspeedBoost:-15\u003e\n\u003cignoreParry:60\u003e\n\u003cmaxRefineCount:50\u003e\n\u003cmaxRefinedTraits:20\u003e\n\u003cthisHit:320\u003e\n\u003cthisCri:80\u003e",
-    "description": "Several flexible razors that do not go through a guard so much as around it.\nWielded in both hands.",
+    "description": "Flemish for \"good day\".\nFarmers used it to take knights off their horses, and to them the name was never a joke.\nWielded in both hands.",
     "iconIndex": 518,
     "traits": [
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
         "code": 54,
         "dataId": 2,
         "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 23,
+        "value": 0
       }
     ],
     "etypeId": 1,
@@ -4307,13 +4337,18 @@
     "traits": [
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
         "code": 54,
         "dataId": 2,
         "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 23,
+        "value": 0
       }
     ],
     "etypeId": 1,
@@ -4340,13 +4375,18 @@
     "traits": [
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
         "code": 54,
         "dataId": 2,
         "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 23,
+        "value": 0
       }
     ],
     "etypeId": 1,
@@ -4373,13 +4413,18 @@
     "traits": [
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
         "code": 54,
         "dataId": 2,
         "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 23,
+        "value": 0
       }
     ],
     "etypeId": 1,
@@ -4406,7 +4451,7 @@
     "traits": [
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
@@ -4418,6 +4463,11 @@
         "code": 54,
         "dataId": 2,
         "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 23,
+        "value": 0
       }
     ],
     "etypeId": 1,

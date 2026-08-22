@@ -49,10 +49,6 @@ Pin whiff = no dive; main loop still runs.
 | 9 | Speed-demon | Offchain1 **−33% CD** (~8s) |
 | 10 | Wall-breaker | Offchain2 + mainchain3: **slow**, **defense down** |
 
-## Legacy playtest notes
-
-Old kit: high crit chance on chain, charge felt unused; CDM scaling reduced skill expression. Target lot replaces with cycle + earned dive AOE.
-
 ## Open (migration)
 
 - [ ] Pin mark state + jump targeting rules

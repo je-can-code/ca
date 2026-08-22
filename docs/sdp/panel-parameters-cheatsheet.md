@@ -18,7 +18,7 @@
 |---|---|
 | Subgroup → **archetype** | Exact **`perRank`** per panel tier (magnitude tune) |
 | Archetype **UP / DOWN** stat pools | Which **subset** of pool rows on a given tier (within recipe) |
-| Subgroup **flavor twist** (weighting) | Playtest retune after first family strip |
+| Subgroup **flavor twist** (weighting) | Retune after first family strip |
 | **`isFlat: false`** for base params; **`isFlat: true`** for rate/fixed-scale params | — |
 | **Base stat identity** from class / gear / level — not panels | Class/job tree (**required** — see [§11](#11--only-panels-base-growth-elsewhere)) |
 
@@ -194,7 +194,7 @@ All rows are **`isFlat: false`** (percent growth):
 
 ## Draft magnitude anchors (% per rank, `isFlat: false`)
 
-> **Draft only** — tune on first family strip (Ghosty). Scale linearly within act unless playtest says otherwise.
+> **Draft only** — tune on first family strip (Ghosty). Scale linearly within act unless testing says otherwise.
 
 ### Primary flavor UP (heavy line)
 

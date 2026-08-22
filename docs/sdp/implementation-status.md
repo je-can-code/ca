@@ -28,7 +28,7 @@ Last updated: **2026-06-06** — P4 content **active**. Food chain states 251–
 | **Food chain HUD** | ✅ | **`J-HUD-FOOD`** (`J.HUD.EXT.FOOD` 1.0.0): vertical strip — equipped food icon, phase labels, segmented duration bar (`<foodGroupColor:HEX>` per state). |
 | **Field Medic mastery hook** | ✅ | `<overstuffedImpervious>` on leader `getAllNotes()` — mid-arc re-feed snaps to new Well Fed instead of Overstuffed; tail-phase rescue unchanged. |
 | **Cast-time damage bonus** | ✅ | **`J-ABS` 4.12.3** — `castTimeDamageBonus`, `thisCastTimeDamageBonus`; direct HP/MP damage only |
-| **State spread** | ✅ verified | **`J-ABS` 4.12.4** — spread tags incl. `<spreadSkipAfflicted>`; param `defaultStateSpreadTickInterval` (30f). Brood viral recipe playtested in CA. |
+| **State spread** | ✅ verified | **`J-ABS` 4.12.4** — spread tags incl. `<spreadSkipAfflicted>`; param `defaultStateSpreadTickInterval` (30f). Brood viral recipe verified in CA. |
 | **Family boot policy** | ⏳ | Unassigned subgroup → **Unknown** at runtime. **TODO:** throw at boot when CA hits **1.0.0** if any registered subgroup lacks a family. |
 
 **PR (2026-05):** `feature/sdp-families-parameter-registry` — rmmz-plugins #65, ca #55, jmz-data-editor #11.
@@ -50,7 +50,7 @@ Last updated: **2026-06-06** — P4 content **active**. Food chain states 251–
 
 Registry keys live in `ParameterKeys.LEGACY_LONG_PARAM_TO_KEY` (`rmmz-plugins`). Design doc names **SHA/SHE** map to runtime **`sar` / `ser`**.
 
-| Key | Id | Combat / runtime | SDP panels | Playtest |
+| Key | Id | Combat / runtime | SDP panels | Verified |
 |---|---|---|---|---|
 | **lst** | 35 | ✅ `ResourceHitManager` — `floor(hpDamage × lst)` HP to **attacker** on hit w/ `hpDamage > 0` | ✅ picker | ✅ **2026-05-29** |
 | **mst** | 36 | ✅ same hook → MP | ✅ picker | ✅ (same path as LST) |
@@ -121,7 +121,7 @@ Requires **`isHit()`** and **`hpDamage > 0`**. Steal applies to the **attacker**
 
 ### Tier B — P3 archetype hooks (build before content; order by mastery dependency)
 
-**Progress:** **12/12 shipped.** **P3-3** state spread (`J-ABS` 4.12.4) — **playtest verified** (Brood Plague Swarm). **P3-6** superseded by Conditional 1.0.0 momentum toolkit; **P3-8** MP barrier shipped.
+**Progress:** **12/12 shipped.** **P3-3** state spread (`J-ABS` 4.12.4) — **verified** (Brood Plague Swarm). **P3-6** superseded by Conditional 1.0.0 momentum toolkit; **P3-8** MP barrier shipped.
 
 Survey [`work-items.md`](./work-items.md) P3-1…P3-12. Build when a planned mastery passive needs it; suggested batch:
 
@@ -161,7 +161,7 @@ Survey [`work-items.md`](./work-items.md) P3-1…P3-12. Build when a planned mas
 
 ## Next engineering (suggested order)
 
-1. **P4-0 finish** — food items 151–182: `<food:TYPE>`, drop 7-dice RNG, per-group item heals; recipe audit; scarcity; in-map playtest (one arc per group).
+1. **P4-0 finish** — food items 151–182: `<food:TYPE>`, drop 7-dice RNG, per-group item heals; recipe audit; scarcity; in-map verification (one arc per group).
 2. **P4-0 decision** — food item scope: keep party-wide heals vs user-only + future buffet accessory.
 3. **P4-1** (or one archetype vertical slice) — panel tradeoff magnitudes before bulk rework; litmus test: no “all offense + HRG on six chars” wins everything.
 4. **Parallel (non-blocking):** P1-2 respec (after cost model), CMS registry breakdowns, P2 gaps only when P4-2 hits Dryad / Puddle / Frog / Roper-Needler.
@@ -717,7 +717,7 @@ battlers can still receive spread (refreshing duration). skip removes afflicted 
 <spreadSkipAfflicted>
 ```
 
-**Playtest (2026-06-01):** verified in Chef Adventure — viral spread to nearby enemies, per-tick cap,
+**Verified (2026-06-01):** in Chef Adventure — viral spread to nearby enemies, per-tick cap,
 and skip-afflicted behavior match design. Automated coverage:
 `rmmz-plugins/test/plugins/abs/core/jabs-state-spread.test.js`.
 
@@ -775,7 +775,7 @@ TYPE throw at boot.
 
 **CA content status (P4-0):** ✅ Chain **states** 251–278, 281–282 (traits, colors, durations). ⏳ Food
    **items** 151–182 (legacy 7-dice RNG except Erocian Pudding `<food:protein>`). ⏳ Recipe audit, scarcity,
-   playtest. Open: party vs user item scope — [`work-items.md`](./work-items.md) P4-0.
+   verification. Open: party vs user item scope — [`work-items.md`](./work-items.md) P4-0.
 
 ---
 

@@ -107,9 +107,9 @@ Replace `PREV` with the previous subgroup's prefix and `KEY` with the current on
 
 ---
 
-## Step 5 — Playtest
+## Step 5 — Test
 
-JE playtests. Debug and fix anything that surfaces. Repeat until LGTM.
+JE plays it. Debug and fix anything that surfaces. Repeat until LGTM.
 
 ---
 

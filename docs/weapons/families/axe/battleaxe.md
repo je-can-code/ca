@@ -36,7 +36,7 @@ Last updated: **2026-06-03**
 | 4 | Arc **120°** (reverse from spin), **1.5** | Wave — keep string moving |
 | 5 | Arc **200°**, **1.5** | **Finisher** — string **ends** (terminal) |
 
-**Connect:** `1→2→3→4→5` on hit. Tuning: combo window, per-step CD curve — **playtest**.
+**Connect:** `1→2→3→4→5` on hit. Tuning: combo window, per-step CD curve.
 
 ## Prof rows (6–10)
 

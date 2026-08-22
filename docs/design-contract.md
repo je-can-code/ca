@@ -73,7 +73,7 @@ Intro loop complete through **`main-008`** (fourth elemental recruited). Chapter
 - **Grinders** will exceed targets; design for **floor (story) + ceiling (optional farms)** rather than one number.
 - **+10 level rule:** content more than ~10 levels above party should feel **punishing** (0.1× dealt / 2× taken style), not merely “slow TTK.”
 
-### Playtest probes (when tuning)
+### Tuning probes
 
 1. **Story floor:** fixed level, minimal nodes, one weapon family—TTT readable?
 2. **Grinder ceiling:** same encounter after optional farm—still interesting or only faster?
@@ -145,4 +145,4 @@ Before shipping a system or plugin to CA:
 
 | Date | Note |
 |------|------|
-| 2026-05-24 | Initial contract from design/balance discussion; onboarding tiers after playtester skipped smith/armor JAFTING. |
+| 2026-05-24 | Initial contract from design/balance discussion; onboarding tiers after a player skipped smith/armor JAFTING. |

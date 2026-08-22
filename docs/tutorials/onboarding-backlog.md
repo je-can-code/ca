@@ -51,7 +51,7 @@
 
 ## Done when
 
-- [ ] New playtester (story-only) has crafted **food, weapon, armor** by end of Ch1–2 without wiki.
+- [ ] A new player (story-only) has crafted **food, weapon, armor** by end of Ch1–2 without wiki.
 - [ ] Quest log shows **why** each craft mattered (one joke line each).
 - [ ] Grinder can skip repeat prompts via switch (e.g. “tutorial complete”).
 

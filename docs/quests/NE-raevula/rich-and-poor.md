@@ -145,7 +145,7 @@ The vanity farm survives its owner's bankruptcy — and goes on the market (prob
 if the succession interlock holds). And who on this continent is drowning in gold, given that every enemy drops
 it and almost nothing costs it? **The duo. The player buys the farm.**
 
-- Price: **~1,000,000G** (ballpark; tune in playtest) — the game's first true GOLD SINK. Twenty hours of
+- Price: **~1,000,000G** (ballpark) — the game's first true GOLD SINK. Twenty hours of
   monster wallets finally have somewhere to go; Gilbert's buyback economy retroactively becomes farm savings.
 - **Hire your farmer** for a paltry sum: **Peter** (available always), and/or **Vanderslop** (redemption path
   only — the heir, working YOUR farm, for pocket change; on the ruin path he's too bitter to ask). If both are

@@ -155,7 +155,7 @@ The shared base is an **extraction of what SDP already proved**, retrofitted ont
   another menu is a keypress charged for nothing. The map keeps no menu of its own; the menu button
   opens the hub. See section 4.
 - **Button glyphs auto-detect the device; there is no "button style" setting** *(2026-07-29)*. The whole
-  reason this work exists is a playtester who never found a feature — and that player does not open an
+  reason this work exists is a player who never found a feature — and that player does not open an
   options menu to tell the game what is in their hands. Auto-detect is right by default for everyone; a
   setting is right only for those who configure it. The glyph sheet is PlayStation + keyboard only, so
   the options would have read "PlayStation / Keyboard" — a fact about the player's desk, not a taste.
@@ -576,7 +576,7 @@ As of **2026-07-29**, phases 1–4 are done, committed, and pushed to
 | 4 — retire the quick menu | ✅ done. Deleted outright rather than pared; ally AI promoted to `Scene_JabsAllyAi` |
 | 5 — retrofit the seven | ⬜ not started. Now split into Group A / Group B |
 
-**Phase 3 was redesigned after playtesting.** `Window_LoadoutBoard` is deleted. The scene is now **two
+`Window_LoadoutBoard` is deleted. The scene is **two
 synced slot columns** sharing a `Window_LoadoutSpine` of labels down the middle, with a candidate picker
 under each column filling the space the board left empty. The inactive column stays *selected but
 deactivated*, so it keeps showing which slot it points at while the other holds the cursor — no modal,

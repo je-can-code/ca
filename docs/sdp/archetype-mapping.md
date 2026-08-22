@@ -4,7 +4,7 @@
 > Archetypes mirror the ally AI presets from `JABS_AllyAI`.
 > See [`design-contract.md`](../design-contract.md) for pillar context.
 >
-> **Runtime status:** [`implementation-status.md`](./implementation-status.md) — registry keys, combat hooks, playtest notes.
+> **Runtime status:** [`implementation-status.md`](./implementation-status.md) — registry keys, combat hooks, runtime notes.
 
 Last updated: **2026-06-02** — Food chain states authored (251–278, 281–282); `<stateDuration>` in J-ABS core.
 
@@ -301,7 +301,7 @@ MDF, REC, PHA, and LST all affect survival. Each support/sustain archetype claim
 **LST (Lifesteal)** — registry key **`lst`** (id 35). After a hit with HP damage, the attacker
 recovers `floor(damage × lst)` as HP (`mst` / `tst` mirror for MP/TP). War Priest is the primary
 owner; Berserker and Treant get moderate amounts as cross-archetype bleed. All other archetypes
-get zero. **Playtest validated 2026-05-29.** See [`implementation-status.md`](./implementation-status.md).
+get zero. **Validated 2026-05-29.** See [`implementation-status.md`](./implementation-status.md).
 
 ### Shield system (two knobs — mirrors CDM/CDR pattern)
 
@@ -626,7 +626,7 @@ Critical for encouraging experimentation — if respec is too punishing, players
 
 | Design name | Registry key / plugin | Status |
 |---|---|---|
-| LST / MST / TST | `lst`, `mst`, `tst` | ✅ Combat hook + SDP panels; LST/TST playtested |
+| LST / MST / TST | `lst`, `mst`, `tst` | ✅ Combat hook + SDP panels; LST/TST verified |
 | SHA / SHE | `sar`, `ser` | ✅ `JABS_Shield` multipliers |
 | AP Mult | `apr` | ✅ `ApManager.gainAp()` |
 | Gold / drop rate | `gdr`, `dor` | ✅ Notetags + SDP panels |
