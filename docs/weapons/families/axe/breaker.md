@@ -1,8 +1,12 @@
-# Axe — Breaker (2H deconstruction axe)
+# Axe — Mace (2H deconstruction mace)
 
-> Parent: [`../axe.md`](../axe.md) · Doc index: **breaker** (IDs **111–120** when migrated)
+> Parent: [`../axe.md`](../axe.md) · Subgroup noun: **Mace** (`wtypeId` 12) · Lot codename: **breaker**
+> (IDs **111–120** when migrated)
 >
 > Full row table: [`../../skill-lots.md`](../../skill-lots.md#axe-breaker--ids-111120-when-migrated)
+>
+> **The filename is the lot codename, not the subgroup.** This doc stays `breaker.md` so existing links
+> keep working; the weapon type the player equips is **Mace**.
 
 Last updated: **2026-06-03**
 
@@ -13,6 +17,7 @@ Last updated: **2026-06-03**
 | | |
 |---|---|
 | **Fantasy** | **Deconstruct** — peel plates, hack wiring, **SHATTER** what’s left |
+| **Element** | **Blunt**, plus **`x Shields`** on every rung — it opens armour rather than cutting it |
 | **Verb** | **LLRL** connect main → offhand **SHATTER**; one **Tenderizing** currency |
 | **Tempo** | **Deliberate** string — not 1H slow, not 2H blender; setup → snap |
 | **Stat** | **ATK** |

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 APT-TYPED] Adds typed (element/weapon type/skill type) AP gains and teachables.
+ * [v1.1.1 APT-TYPED] Adds typed (element/weapon type/skill type) AP gains and teachables.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -171,6 +171,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Adapted to the RPGManager array read signature.
  * - 1.1.0
  *    Fixed <apTyped:[AMOUNT, DOMAIN, ID_OR_NAME]> never matching — the
  *    regex required a 4th leading numeric field that the documented
@@ -479,7 +481,7 @@ J.APT.EXT.TYPED = J.APT.EXT.TYPED || {};
 * The plugin umbrella that governs all things related to this extension plugin.
 * Name and Version are owned by the metadata instance.
 */
-J.APT.EXT.TYPED.Metadata = new JAptitudeTyped_PluginMetadata("J-Aptitude-Typed", "1.1.0");
+J.APT.EXT.TYPED.Metadata = new JAptitudeTyped_PluginMetadata("J-Aptitude-Typed", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -538,7 +540,7 @@ RPG_Base.prototype.buildAptitudeTeachings = function() {
 	/** @type {AptitudeTeachable[]} */
 	const base = J.APT.EXT.TYPED.Aliased.RPG_Base.get("buildAptitudeTeachings").call(this);
 	/** @type {Array<[number, number, string, string|number]>} */
-	const raw = RPGManager.getArraysFromNotesByRegex(this, J.APT.EXT.TYPED.RegExp.AptitudeTeachableTyped, true);
+	const raw = RPGManager.getArraysFromNotesByRegex(this, J.APT.EXT.TYPED.RegExp.AptitudeTeachableTyped);
 	const typed = raw.map(([skillId, requiredAp, domain, idOrName]) => {
 		const dom = String(domain).trim().toLowerCase();
 		const id = ApManager.resolveDomainId(dom, idOrName);
@@ -558,7 +560,7 @@ RPG_Base.prototype.buildAptitudeTeachings = function() {
 * @returns {ApTypeGrant[]}
 */
 RPG_Enemy.prototype.typedApRewards = function() {
-	const raw = RPGManager.getArraysFromNotesByRegex(this, J.APT.EXT.TYPED.RegExp.ApTypedReward, true);
+	const raw = RPGManager.getArraysFromNotesByRegex(this, J.APT.EXT.TYPED.RegExp.ApTypedReward);
 	return raw.map(([amount, domain, idOrName]) => {
 		const dom = String(domain).trim().toLowerCase();
 		const id = ApManager.resolveDomainId(dom, idOrName);

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 ABS-CHARGE] Enable skills to be charged to perform other skills.
+ * [v1.1.1 ABS-CHARGE] Enable skills to be charged to perform other skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -163,6 +163,8 @@
  * 1st tier charge skill as a result.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Adapted to the RPGManager array read signature.
  * - 1.1.0
  *    Added a segmented map charge gauge shown above charging battlers.
  *    Registered <chargeTier> as a J-Extend non-combining key.
@@ -361,7 +363,7 @@ J.ABS.EXT.CHARGE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.CHARGE.Metadata = new J_ChargePluginMetadata("J-ABS-Charge", "1.1.0");
+J.ABS.EXT.CHARGE.Metadata = new J_ChargePluginMetadata("J-ABS-Charge", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1319,7 +1321,7 @@ JABS_StandardController.prototype.chargeInputDelay = function() {
 * @type {[number, number, number, number][]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsChargeData", { get: function() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.ABS.EXT.CHARGE.RegExp.ChargeData, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.ABS.EXT.CHARGE.RegExp.ChargeData);
 } });
 
 //#endregion

@@ -140,26 +140,29 @@ Exact `JR-*` keys and thresholds: per subgroup at migration time.
 
 **18 subgroups × 10 rows = 180 skills** in one weapon band.
 
+Subgroup nouns below are the `weaponTypes` entries — the canonical vocabulary lives in
+[`families.md`](./families.md). Themes are the lot codenames and are for naming skills, not keys.
+
 | IDs | Subgroup | Theme (draft) |
 |---|---|---|
-| 1–10 | Blade 1H | **sharp** |
-| 11–20 | Blade 2H | **beast** (mouse → lotus prof names) |
-| 21–30 | Blade dual | **twist** |
-| 31–40 | Spear stab | **pierce** |
-| 41–50 | Spear basher | **mortar** |
-| 51–60 | Spear javelin | **rend** |
-| 61–70 | Gun pistol | **gunfu** |
-| 71–80 | Gun taser | **conduit** |
-| 81–90 | Gun shotgun | **boomstick** |
-| 91–100 | Axe 1H hatchet | **buffer** |
-| 101–110 | Axe 2H battleaxe | **cleave** |
-| 111–120 | Axe breaker | **breaker** |
-| 121–130 | Wand 2H staff | **aura** |
-| 131–140 | Wand 1H | **saturation** |
-| 141–150 | Wand tome | **lexicon** |
-| 151–160 | Fist glove | **flow** |
-| 161–170 | Fist claw | **gore** |
-| 171–180 | Fist arm | **dirty** |
+| 1–10 | Blade Sword | **sharp** |
+| 11–20 | Blade Claymore | **beast** (mouse → lotus prof names) |
+| 21–30 | Blade Edge | **twist** |
+| 31–40 | Spear Pike | **pierce** |
+| 41–50 | Spear Warstaff | **mortar** |
+| 51–60 | Spear Javelin | **rend** |
+| 61–70 | Gun Handgun | **gunfu** |
+| 71–80 | Gun Taser | **conduit** |
+| 81–90 | Gun Boomstick | **boomstick** |
+| 91–100 | Axe Hatchet | **buffer** |
+| 101–110 | Axe Glaive | **cleave** |
+| 111–120 | Axe Mace | **breaker** |
+| 121–130 | Wand Cane | **aura** |
+| 131–140 | Wand Rod | **saturation** |
+| 141–150 | Wand Tome | **lexicon** |
+| 151–160 | Fist Gloves | **flow** |
+| 161–170 | Fist Claws | **gore** |
+| 171–180 | Fist Arm | **dirty** |
 
 **Collision note:** today's Jerald kit (**101–144**), guard, mobility, etc. **overlap** this plan. Migration must **relocate non-weapon bands** (e.g. character kit → **201+** or **401+**) in the **same** pass — do not carve 1–180 until the full map is agreed.
 
@@ -287,7 +290,7 @@ after:  ((a.atk*2 + b.mhp*0.01) - b.def*1)
 
 **Range:** base proximity ~**0.9** tiles; Spatia (+50% radius) ≈ **1.45** tiles — still shorter than 1H / 2H.
 
-**Balance watch:** Trine + full chain + two button overlap → **~20–25% max HP** on one target in a burst — tune in playtest.
+**Balance watch:** Trine + full chain + two button overlap → **~20–25% max HP** on one target in a burst.
 
 **Prof focus:** almost entirely **whole-kit** (rows 5–10). Fantasy escalates via **hit count**, **coverage**, **speed**, then **formula chip** — not a second button verb.
 
@@ -583,7 +586,7 @@ after:  ((a.atk*2 + b.mhp*0.01) - b.def*1)
 | 4 | mainchain4 | Arc **120°**, **1.5** | Reverse wave |
 | 5 | mainchain5 | Arc **200°**, **1.5** | Finisher — terminal |
 
-**Main:** **connect** only. String **ends** at row **5**. Tuning at playtest (combo window, CD curve).
+**Main:** **connect** only. String **ends** at row **5**. Tuning: combo window, CD curve.
 
 ### Prof rows (extends)
 

@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.3.0 DROPS] Enables greater control over loot drops.
+ * @plugindesc [v2.4.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -209,6 +209,8 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.4.0
+ *    Declared the J.DROPS.EXT namespace so this plugin can carry extensions.
  * - 2.3.0
  *    Loot drops now resolve through the shared proc-count path, so a killer in
  *    Accumulate Mode earns a copy per successful roll rather than spending the
@@ -268,9 +270,13 @@ globalThis.J ||= {};
 */
 J.DROPS = {};
 /**
+* The plugin umbrella that governs all extensions related to this plugin.
+*/
+J.DROPS.EXT = {};
+/**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.3.0");
+J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.4.0");
 /**
 * All regular expressions used by this plugin.
 */
@@ -442,7 +448,7 @@ RPG_Enemy.prototype.initMembers = function(enemy) {
 * Parses the extra drops on the enemy and adds them into the collection.
 */
 RPG_Enemy.prototype.initExtraDrops = function() {
-	const moreDrops = RPGManager.getArraysFromNotesByRegex(this, J.DROPS.RegExp.ExtraDrop, true);
+	const moreDrops = RPGManager.getArraysFromNotesByRegex(this, J.DROPS.RegExp.ExtraDrop);
 	if (moreDrops.length === 0) return;
 	const mapper = (drop) => {
 		const [dropType, dropId, chance] = drop;
@@ -824,7 +830,7 @@ Game_Enemy.prototype.dropSources = function() {
 * @returns {RPG_DropItem[]}
 */
 Game_Enemy.prototype.extractExtraDrops = function(referenceData) {
-	const moreDrops = RPGManager.getArraysFromNotesByRegex(referenceData, J.DROPS.RegExp.ExtraDrop, true);
+	const moreDrops = RPGManager.getArraysFromNotesByRegex(referenceData, J.DROPS.RegExp.ExtraDrop);
 	const mapper = (drop) => {
 		const [dropType, dropId, chance] = drop;
 		return new RPG_DropItemBuilder().setType(RPG_DropItem.TypeFromLetter(dropType)).setId(dropId).setChance(chance).build();

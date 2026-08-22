@@ -3,11 +3,11 @@
 > **Purpose:** Step-1 reference for the family → subgroup pass (masteries before panel rewrite).
 > Sources: [`archetype-mapping.md`](./archetype-mapping.md), [`implementation-status.md`](./implementation-status.md) tag cookbook.
 >
-> Last updated: **2026-06-22** — `deity-devil` (Devil) authored ✅. Mastery: `<sdpMultiplier:X>` on states 1571–1580; Beginning +3/7/10% SDR, Middle +15/17/20/22/25/27% SDR, End +33% SDR + `<sdpBonusFormula:[a.getMasteryCount() * 0.01]>`. New hooks: `sdpBonusFormula` tag + `Game_Actor#getMasteryCount()` (maxed panel count). Popup fixed to show true post-formula amount. **Playtest pending (weapons redesign first). Last verified prefix: `ASP`**
+> Last updated: **2026-06-22** — `deity-devil` (Devil) authored ✅. Mastery: `<sdpMultiplier:X>` on states 1571–1580; Beginning +3/7/10% SDR, Middle +15/17/20/22/25/27% SDR, End +33% SDR + `<sdpBonusFormula:[a.getMasteryCount() * 0.01]>`. New hooks: `sdpBonusFormula` tag + `Game_Actor#getMasteryCount()` (maxed panel count). Popup fixed to show true post-formula amount. **Verification pending (weapons redesign first). Last verified prefix: `ASP`**
 >
 > **Progress:** [Authoring progress](#authoring-progress-one-subgroup-at-a-time) — assistant updates when a subgroup pass is done.
 >
-> **Test SDP map:** Map ID **357** — flip subgroup here to playtest the current strip.
+> **Test SDP map:** Map ID **357** — flip subgroup here to test the current strip.
 
 ---
 
@@ -15,7 +15,7 @@
 
 > **Workflow:** author mastery rows (+ panels when ready) → tell the assistant the subgroup is done → table advances here.
 
-**Redesign complete** · Devil playtest pending · Sin authored per-boss (no sequential mastery pass) · All other families verified · Future work: tweaks, playtest retunes, Sin boss authoring
+**Redesign complete** · Devil verification pending · Sin authored per-boss (no sequential mastery pass) · All other families verified · Future work: tweaks, retunes, Sin boss authoring
 
 > **Payload bands are per-database — Skills.json and States.json IDs are independent.**
 > **Skills.json bands:** 1001–1010 Reborn ward pulse · 1011–1020 Crab thorns · 1021–1030 Aerial aura pulse · 1031–1040 Quadruped pack aura · 1041–1050 Scorpion retaliation · 1051–1060 Bot self-repair · 1061–1070 Orb shield-break explosion. Next free: **1071+**.
@@ -70,16 +70,16 @@
 | 45 | Construct | Orb | `construct-orb` | `RUN_*` | 1541–1550 | ✅ Verified — `<shieldBreak:[SKILL_ID]>` tiers 1–3 radius 2 (`s*0.10–0.20`), tiers 4–9 radius 3 (`s*0.30–0.80`), tier 10 radius 4 (`(s*a.sar)*1.50`); payload skills 1061–1070 |
 | 46 | Deity | Elemental | `deity-elemental` | `ELE_*` | 1551–1560 | ✅ Verified — `<pierceElement:[ID, PCT]>` T1–3: 4 elements (4–7) 5/10/15%; T4–9: 6 elements (4–9) 25–50%; T10: 9 elements (1–9) 75% |
 | 47 | Deity | Emotion | `deity-emotion` | `ASP_*` | 1561–1570 | ✅ Verified — `<onAllyHpHealHp/Mp/Tp>` tiers 1–3 HP only radius 2 (5–15%), tiers 4–9 HP+MP radius 3 (25–50%), tier 10 HP+MP+TP radius 4 (50%) |
-| 48 | Deity | Devil | `deity-devil` | `SOV_*` | 1571–1580 | 🟠 Authored — playtest pending |
+| 48 | Deity | Devil | `deity-devil` | `SOV_*` | 1571–1580 | 🟠 Authored — verification pending |
 | 49 | Deity | Sin | `deity-sin` | `SIN_*` | 1581–1590 | 🔲 Todo |
 | 50 | Deity | Sin Votary | `deity-sin-votary` | — | 1591–1600 | — (enemy decade only; no mastery pass) |
 
 | Status | Meaning |
 |---|---|
-| ✅ **Verified** | Authored + in-map playtest pass. |
-| 🔄 **Current** | Active strip — author and playtest this one next. |
+| ✅ **Verified** | Authored + in-map pass. |
+| 🔄 **Current** | Active strip — author and test this one next. |
 | 🟡 **Panels done** | Panel parameters authored; masteries still needed. |
-| 🟠 **Authored — playtest pending** | Tags/traits written; not yet tested in-map. |
+| 🟠 **Authored — verification pending** | Tags/traits written; not yet tested in-map. |
 | 🔲 **Todo** | Not verified yet (may still be scaffold shells in DB). |
 
 One Cursor thread per subgroup works well — open with the row above (subgroup key + mastery ID band).
@@ -178,7 +178,7 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 
 ## Status legend
 
-**Authoring pass** (subgroup done / left): [progress table](#authoring-progress-one-subgroup-at-a-time) — ✅ Verified = playtest-passed.
+**Authoring pass** (subgroup done / left): [progress table](#authoring-progress-one-subgroup-at-a-time) — ✅ Verified = in-map passed.
 
 **Tag recipe column** (plugin readiness only — not “mastery done”):
 
@@ -506,7 +506,7 @@ Tag shape for authoring: `<autoApplyState:[WARD_ID, time, FRAMES]>`.
 
 **Infrastructure (done):** align panels · sort config · scaffold **1101–1600** shells · panel `masterySkillId` wiring.
 
-**Content pass (sequential):** one subgroup → author tags/traits → in-map playtest → mark ✅ in [progress table](#authoring-progress-one-subgroup-at-a-time). Do not rely on the Tag recipe ✅ column for “done.”
+**Content pass (sequential):** one subgroup → author tags/traits → in-map verification → mark ✅ in [progress table](#authoring-progress-one-subgroup-at-a-time). Do not rely on the Tag recipe ✅ column for “done.”
 
 **Current strip:** see progress table (`reptile-draconite` / Draconite **1171–1180**).
 

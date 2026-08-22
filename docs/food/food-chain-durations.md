@@ -129,7 +129,7 @@ Tail states have no `applyStateOnExpire`. Overstuffed entry links to Bloated via
 
 ---
 
-## Playtest tuning
+## Tuning
 
 - **~10 min** normal meals: one eat per large dungeon loop; re-feed timing matters (Field Medic).
 - **~4 min** sweet: burst option, not a replacement for protein/veg/carb/dairy.

@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.2.0 REGIONS] A plugin that controls passage by region ids.
+ * @plugindesc [v1.3.0 REGIONS] A plugin that controls passage by region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -53,6 +53,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Added globalDenyTerrainTags, a plugin-level list of terrain tags that block
+ *    passage outright. It joins the region allow and deny lists already here.
  * - 1.2.0
  *    Routed the _regions namespace into its own save section, so region
  *    effect state lands in systems/regions.json rather than in the system blob.
@@ -75,6 +78,12 @@
  * @type number[]
  * @text Global Denied Regions
  * @desc The region ids that are always denied on every map.
+ * @default []
+ *
+ * @param globalDenyTerrainTags
+ * @type number[]
+ * @text Global Denied Terrain Tags
+ * @desc The terrain tags that are always impassable on every map. Terrain tags live on the tileset, not the map.
  * @default []
  *
  */
@@ -110,6 +119,16 @@ var J_RegionEffectsPluginMetadata = class extends PluginMetadata {
 		* @type {number[]}
 		*/
 		this.globalDenyRegions = J.REGIONS.Helpers.translateRegionIds(this.parsedPluginParameters["globalDenyRegions"]);
+		/**
+		* The terrain tags that deny passage on all maps.
+		*
+		* Terrain tags are authored on the tileset rather than the map, which makes them the cheaper
+		* way to mark a whole family of tiles unwalkable- ceilings, cliff faces, anything that reads as
+		* scenery but happens to sit on a passable tile. Marking those by region would mean painting
+		* every map that uses the tileset.
+		* @type {number[]}
+		*/
+		this.globalDenyTerrainTags = J.REGIONS.Helpers.translateRegionIds(this.parsedPluginParameters["globalDenyTerrainTags"]);
 	}
 };
 
@@ -143,7 +162,7 @@ J.REGIONS.Helpers.translateRegionIds = (regionsBlob) => {
 /**
 * The `metadata` associated with this plugin; such as version.
 */
-J.REGIONS.Metadata = new J_RegionEffectsPluginMetadata("J-RegionEffects", "1.2.0");
+J.REGIONS.Metadata = new J_RegionEffectsPluginMetadata("J-RegionEffects", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -305,6 +324,41 @@ Game_Map.prototype.isPassable = function(x, y, d) {
 		return true;
 	}
 	return J.REGIONS.Aliased.Game_Map.get("isPassable").call(this, x, y, d);
+};
+/**
+* Overwrites {@link #checkPassage}.<br/>
+* Also refuses passage over any tile carrying a globally-denied terrain tag.
+*
+* Vanilla decides passability from the tileset's direction bits alone, which leaves no way to say
+* "this tile is scenery" for something drawn on an otherwise walkable layer- ceilings and cliff
+* faces being the usual offenders. Terrain tags already mark those on the tileset, so honoring them
+* here blocks the whole family across every map at once, and it stops forced displacement such as
+* knockback from parking a battler somewhere unreachable.
+* @param {number} x The `x` coordinate.
+* @param {number} y The `y` coordinate.
+* @param {number} bit The bitwise operator being checked.
+* @returns {boolean} True if the tile can be walked on, false otherwise.
+*/
+Game_Map.prototype.checkPassage = function(x, y, bit) {
+	const flags = this.tilesetFlags();
+	const tiles = this.allTiles(x, y);
+	const deniedTerrainTags = J.REGIONS.Metadata.globalDenyTerrainTags;
+	for (const tile of tiles) {
+		const flag = flags[tile];
+		if ((flag & 16) !== 0) {
+			continue;
+		}
+		if (deniedTerrainTags.includes(flag >> 12)) {
+			return false;
+		}
+		if ((flag & bit) === 0) {
+			return true;
+		}
+		if ((flag & bit) === bit) {
+			return false;
+		}
+	}
+	return false;
 };
 /**
 * Determines whether or not the given region id is a deny region id.

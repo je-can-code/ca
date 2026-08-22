@@ -670,7 +670,7 @@ Game_Actor.prototype.handleProficiencySkillLearnedLog = function(conditional, sk
 * Proficiency is tracked per-skill rather than per-weapon-family- a conditional is satisfied by using
 * one specific skill enough times- so the practiced skill itself is what the player actually did, and
 * naming anything broader would misdescribe the accomplishment. The conditional's own key is an
-* authoring slug such as "blade-1h-01", so it is never shown.
+* authoring slug such as "blade-sword-01", so it is never shown.
 * @param {ProficiencyConditional} conditional The conditional to describe.
 * @returns {string}
 */

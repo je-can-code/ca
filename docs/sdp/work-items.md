@@ -14,7 +14,7 @@ Last updated: **2026-06-06** — P4-1 Ghosty reference strip; **%-only policy** 
 
 | Track | Now | Next |
 |---|---|---|
-| **P4-0 food** | Chain states + `<stateDuration>` done | Items 151–182, recipe audit, scarcity, in-map playtest |
+| **P4-0 food** | Chain states + `<stateDuration>` done | Items 151–182, recipe audit, scarcity, in-map verification |
 | **P4-1 panels** | Ghosty (`GHO_1`–`10`) reference strip ✅ | Remaining ~100+ panels; **%-only** policy locked ([`panel-parameters-cheatsheet.md`](./panel-parameters-cheatsheet.md)) |
 | **P4-2 masteries** | **In progress** (7/48 verified) | One subgroup at a time — [`mastery-cheatsheet.md` § Authoring progress](./mastery-cheatsheet.md#authoring-progress-one-subgroup-at-a-time) |
 | **Tier A polish** | Non-blocking | Respec cost model, CMS breakdowns, P2 gaps on demand |
@@ -266,7 +266,7 @@ Design source: `rmmz-plugins/.backlog/unstarted/ca-food-group-chain-system.md`.
 - **Shipped:** `<spread:[CHANCE, RANGE]>`, `<viral>`, `<spreadTick:N>`, `<spreadPerTick:N>`,
   `<spreadPreferUnafflicted>`, `<spreadSkipAfflicted>`; plugin param `defaultStateSpreadTickInterval`
   (default 30 frames). See [`implementation-status.md`](./implementation-status.md) cookbook.
-- **Verified (2026-06-01):** Chef Adventure map playtest — Brood viral recipe (`spread` + `viral` +
+- **Verified (2026-06-01):** Chef Adventure map — Brood viral recipe (`spread` + `viral` +
   `spreadPerTick:1` + `spreadSkipAfflicted`). Vitest: `rmmz-plugins/test/plugins/abs/core/jabs-state-spread.test.js`.
 - **P4-2 (content):** author plague debuff states for Brood enemies at scale; runtime hook is done.
 
@@ -279,7 +279,7 @@ Design source: `rmmz-plugins/.backlog/unstarted/ca-food-group-chain-system.md`.
 - **What:** migrate items 151–182 from legacy 7-dice RNG to `<food:TYPE>` + deterministic chain entry;
   chain **states** fully authored in `States.json`.
 - **Done:** states 251–278, 281–282 — traits, `<stateDuration>`, colors, expire links ([`../food/food-chain-durations.md`](../food/food-chain-durations.md)).
-- **Remaining:** items 151–182 `<food:TYPE>` + item effect retune; recipe→group audit; scarcity; playtest one full arc per group in-map.
+- **Remaining:** items 151–182 `<food:TYPE>` + item effect retune; recipe→group audit; scarcity; verify one full arc per group in-map.
 - **Depends on:** P3-11 plugins (shipped).
 - **Open design:** food item scope (party vs user) + optional buffet accessory — see archetype-mapping food section.
 

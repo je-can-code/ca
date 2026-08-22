@@ -32,7 +32,7 @@
 |---|---|--------------------------------------------------------------------------------------------------------------------------------------|
 | P1 | PDR −5 | −5 PDR. He barely notices.                                                                                                           |
 | P2 | Equip Boomstick | Unlock. Grants access to the Boomstick weapon subgroup.                                                                              |
-| P3 | Overloaded | Self stack maximum +3. Tune at playtesting — the number may become outrageous.                                                       |
+| P3 | Overloaded | Self stack maximum +3. Tune later — the number may become outrageous.                                                            |
 | P4 | MDR −5 | −5 PDR. Still barely notices.                                                                                                        |
 | P5 | I Prefer Violence | +50% damage vs bleeding targets. He has a preference.                                                                                |
 | P6 | Max Life +80% | +80% max HP. More of him to not care.                                                                                                |

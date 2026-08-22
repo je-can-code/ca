@@ -67,7 +67,7 @@
 - **008:** Vanderslop's rock-bottom venue (doc suggests the Red Baron's darkest corner).
 - **009:** the redemption/ruin fork's outcome storage — it feeds Frederick's succession AND the coda
   hire list.
-- **010 The Deed:** 1,000,000G price is a playtest ballpark; the daily TIME-driven produce crate
+- **010 The Deed:** 1,000,000G price is a ballpark; the daily TIME-driven produce crate
   loop; hire availability (Peter always, Vanderslop redemption-path only).
 
 ## Cerak (`cerak-001`–`003`)
