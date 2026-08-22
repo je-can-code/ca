@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.5.0 BASE] The base class for all J plugins.
+ * [v3.6.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,13 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.6.0
+ *    RPGManager array reads no longer take a tryParse argument. Every caller
+ *    passed true, the false path was dead, and the singular form parsed twice -
+ *    the second pass being what crashed on a tag written without parameters.
+ *    Fixed a formula evaluating to zero reading back as no tag at all, which
+ *    callers then coalesced into their plugin default.
+ *    Scenes no longer create touch ui buttons or reserve the strip for them.
  * - 3.5.0
  *    Added Window_FilterableList and Window_FilterStrip, backed by the new
  *    FilterCycle model, so any ship needing a filtered list with a cycling
@@ -1126,7 +1133,7 @@ var RPGManager = class RPGManager {
 	*/
 	static #getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
 		let vals = [];
-		const found = this.getArrayFromNotesByRegex(databaseData, structure, true, true);
+		const found = this.getArrayFromNotesByRegex(databaseData, structure, true);
 		if (found !== null) {
 			vals = found;
 		}
@@ -1186,6 +1193,7 @@ var RPGManager = class RPGManager {
 	static #getResultFromNoteByRegex(databaseData, structure, baseParam, context = null, nullIfEmpty = false) {
 		const lines = databaseData.note.split(/[\r\n]+/);
 		let val = 0;
+		let hasMatch = false;
 		const a = context;
 		const b = baseParam;
 		const v = $gameVariables._data;
@@ -1194,6 +1202,7 @@ var RPGManager = class RPGManager {
 		lines.forEach((line) => {
 			const result = scan.exec(line);
 			if (result === null) return;
+			hasMatch = true;
 			const [, formula] = result;
 			try {
 				const evalResult = new Function("a", "b", "v", `return (${formula})`)(a, b, v).toFixed(3);
@@ -1203,7 +1212,7 @@ var RPGManager = class RPGManager {
 				console.error(error);
 			}
 		});
-		if (!val && nullIfEmpty) {
+		if (hasMatch === false && nullIfEmpty) {
 			return null;
 		}
 		return val;
@@ -1223,10 +1232,14 @@ var RPGManager = class RPGManager {
 			return nullIfEmpty ? null : 0;
 		}
 		let val = 0;
+		let hasMatch = false;
 		databaseDatas.forEach((databaseData) => {
-			val += this.getResultFromNoteByRegex(databaseData, structure, baseParam, context);
+			const result = this.getResultFromNoteByRegex(databaseData, structure, baseParam, context, true);
+			if (result === null) return;
+			hasMatch = true;
+			val += result;
 		});
-		if (!val && nullIfEmpty) {
+		if (hasMatch === false && nullIfEmpty) {
 			return null;
 		}
 		return val;
@@ -1319,34 +1332,32 @@ var RPGManager = class RPGManager {
 	* This accepts a regex structure, assuming the capture group is an array of values
 	* all wrapped in hard brackets [].
 	*
-	* If the optional flag `tryParse` is true, then it will attempt to parse out
-	* the array of values as well, including translating strings to numbers/booleans
-	* and keeping array structures all intact.
+	* Each captured array is parsed on the way out, translating strings to numbers and booleans and
+	* keeping nested array structures intact- there is no raw-capture mode, because no consumer of a
+	* notetag has ever wanted the unparsed text.
 	* @param {RPG_Base} databaseData The database object to parse notes from.
 	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
 	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
 	* @returns {any[][]|null} The array of arrays from the notes, or null.
 	*/
-	static getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+	static getArraysFromNotesByRegex(databaseData, structure, nullIfEmpty = false) {
 		if (this.#canParsedatabaseData(databaseData) === false) {
 			return nullIfEmpty ? null : [];
 		}
-		const key = `any[][]:${structure.source}::${structure.flags}::tryParse=${tryParse}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getArraysFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
+		const key = `any[][]:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getArraysFromNotesByRegex(databaseData, structure, nullIfEmpty));
 	}
 	/**
 	* Gets an array of arrays matching the regex across every database object provided.
 	* @param {RPG_Base[]} databaseDatas The collection of database objects to parse notes from.
 	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found arrays.
 	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
 	* @returns {any[][]|null} The array of arrays from the notes across all sources, or empty, or null.
 	*/
-	static getArraysFromAllNotesByRegex(databaseDatas, structure, tryParse = true, nullIfEmpty = false) {
+	static getArraysFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
 		const arrays = [];
 		databaseDatas.forEach((databaseData) => {
-			const found = this.getArraysFromNotesByRegex(databaseData, structure, tryParse);
+			const found = this.getArraysFromNotesByRegex(databaseData, structure);
 			if (found.length) {
 				arrays.push(...found);
 			}
@@ -1360,11 +1371,10 @@ var RPGManager = class RPGManager {
 	* Gets an array of arrays based on the provided regex structure.
 	* @param {RPG_Base} databaseData The database object to parse notes from.
 	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
 	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
 	* @returns {any[][]|null} The array of arrays from the notes, or null.
 	*/
-	static #getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+	static #getArraysFromNotesByRegex(databaseData, structure, nullIfEmpty = false) {
 		const safeFlags = structure.flags.replace("g", "").replace("y", "");
 		const scan = new RegExp(structure.source, safeFlags);
 		const lines = databaseData.note.split(/[\r\n]+/);
@@ -1380,9 +1390,7 @@ var RPGManager = class RPGManager {
 		if (!hasMatch) {
 			return nullIfEmpty ? null : [];
 		}
-		if (tryParse) {
-			val = val.map(JsonMapper.parseObject, JsonMapper);
-		}
+		val = val.map(JsonMapper.parseObject, JsonMapper);
 		return val;
 	}
 	/**
@@ -1391,21 +1399,21 @@ var RPGManager = class RPGManager {
 	* This accepts a regex structure, assuming the capture group is an array of values
 	* all wrapped in hard brackets [].
 	*
-	* If the optional flag `tryParse` is true, then it will attempt to parse out
-	* the array of values as well, including translating strings to numbers/booleans
-	* and keeping array structures all intact.
+	* The captured group is parsed as it is read, so the values arrive already translated to
+	* numbers and booleans with any nested array structure intact. The plural sibling
+	* {@link #getArraysFromNotesByRegex} collects raw captures across several lines first and parses
+	* them in one pass at the end, but the values a caller receives are equally parsed either way.
 	* @param {RPG_Base} databaseData The contents of the note of a given object.
 	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
 	* @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
 	* @returns {any[]|null} The array from the notes, or null.
 	*/
-	static getArrayFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+	static getArrayFromNotesByRegex(databaseData, structure, nullIfEmpty = false) {
 		if (this.#canParsedatabaseData(databaseData) === false) {
 			return nullIfEmpty ? null : [];
 		}
-		const key = `any[]:${structure.source}::${structure.flags}::tryParse=${tryParse}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getArrayFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
+		const key = `any[]:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getArrayFromNotesByRegex(databaseData, structure, nullIfEmpty));
 	}
 	/**
 	* Gets a single array based on the provided regex structure.
@@ -1413,16 +1421,15 @@ var RPGManager = class RPGManager {
 	* This accepts a regex structure, assuming the capture group is an array of values
 	* all wrapped in hard brackets [].
 	*
-	* If the optional flag `tryParse` is true, then it will attempt to parse out
-	* the array of values as well, including translating strings to numbers/booleans
-	* and keeping array structures all intact.
+	* The capture is parsed where it is read, so the value is already fully translated by the time
+	* the loop ends. A tag whose capture group is optional and did not participate parses to null,
+	* which is reported as-is rather than treated as a collection.
 	* @param {RPG_Base} databaseData The contents of the note of a given object.
 	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
 	* @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
 	* @returns {any[]|null} The array from the notes, or null.
 	*/
-	static #getArrayFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+	static #getArrayFromNotesByRegex(databaseData, structure, nullIfEmpty = false) {
 		const safeFlags = structure.flags.replace("g", "").replace("y", "");
 		const scan = new RegExp(structure.source, safeFlags);
 		const lines = databaseData.note.split(/[\r\n]+/);
@@ -1438,9 +1445,6 @@ var RPGManager = class RPGManager {
 		if (!hasMatch) {
 			return nullIfEmpty ? null : [];
 		}
-		if (tryParse) {
-			val = val.map(JsonMapper.parseObject, JsonMapper);
-		}
 		return val;
 	}
 	/**
@@ -1450,7 +1454,7 @@ var RPGManager = class RPGManager {
 	* @returns {JABS_OnChanceEffect[]} All found on-chance effects on this database object.
 	*/
 	static getOnChanceEffectsFromDatabaseObject(databaseData, structure) {
-		const foundDatas = this.getArraysFromNotesByRegex(databaseData, structure, true);
+		const foundDatas = this.getArraysFromNotesByRegex(databaseData, structure);
 		const key = J.BASE.Helpers.getKeyFromRegexp(structure);
 		const mapper = (data) => {
 			const [skillId, chance, hitTypeString] = data;
@@ -1766,7 +1770,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.5.0";
+J.BASE.Metadata.Version = "3.6.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -5677,7 +5681,7 @@ ColorManager.sdp = function(rarity) {
 * @returns {boolean}
 */
 ColorManager.isValidHexColor = function(colorHex) {
-	if (!colorHex || colorHex === String.empty) {
+	if (!colorHex) {
 		return false;
 	}
 	const structure = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
@@ -5689,7 +5693,7 @@ ColorManager.isValidHexColor = function(colorHex) {
 * @returns {{r:number,g:number,b:number}|null}
 */
 ColorManager.parseHexStringToRgb = function(hexString) {
-	if (!hexString || hexString === String.empty) {
+	if (!hexString) {
 		return null;
 	}
 	let h = hexString.trim();
@@ -12286,6 +12290,26 @@ Scene_Map.prototype.isMapScene = function() {
 Scene_Base.prototype.windowLayer = function() {
 	return this._windowLayer;
 };
+/**
+* Overwrites {@link #buttonAreaHeight}.<br/>
+* Reserves no vertical space for the touch ui button row.
+*
+* Vanilla reserves this strip on every scene whether or not any buttons are drawn into it, so a
+* project that does not use them pays for the gap on every window layout it ever writes.
+* @returns {number}
+*/
+Scene_Base.prototype.buttonAreaHeight = function() {
+	return 0;
+};
+/**
+* Overwrites {@link #createButtons}.<br/>
+* Skips creation of the touch ui buttons entirely.
+*
+* The cancel and page buttons are an accessibility affordance for touch devices, and this suite
+* targets keyboard and gamepad instead- every scene here binds its own controls and draws its own
+* legend, so the vanilla buttons would be a second, inconsistent way to do the same thing.
+*/
+Scene_Base.prototype.createButtons = function() {};
 
 //#endregion
 //#region src/plugins/_base/core/scenes/Scene_Equip.js
@@ -12349,6 +12373,14 @@ Scene_Map.prototype.start = function() {
 	J.BASE.Aliased.Scene_Map.get("start").call(this);
 	$gameParty.pruneMissingInventoryEntries();
 };
+/**
+* Overwrites {@link #createButtons}.<br/>
+* Skips creation of the touch ui menu button on the map.
+*
+* The map's button opens the menu, which is already reachable by the bound cancel input, and the
+* sprite would otherwise sit over the hud in the same corner.
+*/
+Scene_Map.prototype.createButtons = function() {};
 
 //#endregion
 //#region src/plugins/_base/core/scenes/Scene_Menu.js
@@ -12421,6 +12453,14 @@ Scene_MenuBase.prototype.setBackgroundFilter = function(newBackgroundFilter) {
 Scene_MenuBase.prototype.helpWindow = function() {
 	return this._helpWindow;
 };
+/**
+* Overwrites {@link #createButtons}.<br/>
+* Skips creation of the touch ui buttons on menu scenes.
+*
+* Vanilla adds its own cancel and page buttons here on top of whatever the scene already built,
+* which is a second way to do what every menu in this suite already binds and documents itself.
+*/
+Scene_MenuBase.prototype.createButtons = function() {};
 
 //#endregion
 //#region src/plugins/_base/core/scenes/Scene_Skill.js

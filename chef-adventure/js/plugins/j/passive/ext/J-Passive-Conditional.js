@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
+ * [v1.3.1 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -311,6 +311,8 @@
  *    Taking even a single step immediately strips it and resets the stand timer.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.1
+ *    Adapted to the RPGManager array read signature.
  * - 1.3.0
  *    Passive states no longer appear in the JABS affliction strip. A passive is
  *    permanent and neither waits out nor cures, so listing it beside poison and
@@ -450,7 +452,7 @@ J.PASSIVE.EXT.CONDITIONAL = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.3.0");
+J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.3.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -679,7 +681,7 @@ J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove = /<removeStateOnMove:[ ]?(\[
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "passiveSourceRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveSourceRule, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveSourceRule);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateRule} tuples from this row.<br/>
@@ -687,7 +689,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "passiveSourceRules", { get() {
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "passiveStateRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateRule, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateRule);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateCount} tuples from this row.<br/>
@@ -695,7 +697,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "passiveStateRules", { get() {
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "passiveStateCounts", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateCount, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateCount);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState} tuples from this row.<br/>
@@ -703,7 +705,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "passiveStateCounts", { get() {
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "autoApplyStateRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby} tuples from this row.<br/>
@@ -713,7 +715,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "autoApplyStateRules", { get() 
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "autoApplyStateOnNearbyRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill} tuples from this row.<br/>
@@ -721,7 +723,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "autoApplyStateOnNearbyRules", 
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "autoExecuteSkillRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns} tuples from this row.<br/>
@@ -730,7 +732,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "autoExecuteSkillRules", { get(
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "autoModifyCooldownRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState} tuples from this row.<br/>
@@ -739,7 +741,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "autoModifyCooldownRules", { ge
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "autoInflictStateRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState);
 } });
 
 //#endregion
@@ -750,7 +752,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "autoInflictStateRules", { get(
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseItem.prototype, "passiveSourceRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveSourceRule, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveSourceRule);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateRule} tuples from this row.<br/>
@@ -758,7 +760,7 @@ Object.defineProperty(RPG_BaseItem.prototype, "passiveSourceRules", { get() {
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseItem.prototype, "passiveStateRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateRule, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateRule);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateCount} tuples from this row.<br/>
@@ -766,7 +768,7 @@ Object.defineProperty(RPG_BaseItem.prototype, "passiveStateRules", { get() {
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseItem.prototype, "passiveStateCounts", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateCount, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateCount);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState} tuples from this row.<br/>
@@ -774,7 +776,7 @@ Object.defineProperty(RPG_BaseItem.prototype, "passiveStateCounts", { get() {
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseItem.prototype, "autoApplyStateRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby} tuples from this row.<br/>
@@ -784,7 +786,7 @@ Object.defineProperty(RPG_BaseItem.prototype, "autoApplyStateRules", { get() {
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseItem.prototype, "autoApplyStateOnNearbyRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill} tuples from this row.<br/>
@@ -792,7 +794,7 @@ Object.defineProperty(RPG_BaseItem.prototype, "autoApplyStateOnNearbyRules", { g
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseItem.prototype, "autoExecuteSkillRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns} tuples from this row.<br/>
@@ -801,7 +803,7 @@ Object.defineProperty(RPG_BaseItem.prototype, "autoExecuteSkillRules", { get() {
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseItem.prototype, "autoModifyCooldownRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState} tuples from this row.<br/>
@@ -810,7 +812,7 @@ Object.defineProperty(RPG_BaseItem.prototype, "autoModifyCooldownRules", { get()
 * @type {any[][]}
 */
 Object.defineProperty(RPG_BaseItem.prototype, "autoInflictStateRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState);
 } });
 
 //#endregion
@@ -821,7 +823,7 @@ Object.defineProperty(RPG_BaseItem.prototype, "autoInflictStateRules", { get() {
 * @type {any[][]}
 */
 Object.defineProperty(RPG_State.prototype, "removeOnSkillExecutionRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillExecution, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillExecution);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillResolution} tuples from this state row.<br/>
@@ -830,7 +832,7 @@ Object.defineProperty(RPG_State.prototype, "removeOnSkillExecutionRules", { get(
 * @type {any[][]}
 */
 Object.defineProperty(RPG_State.prototype, "removeOnSkillResolutionRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillResolution, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillResolution);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove} tuples from this state row.<br/>
@@ -838,7 +840,7 @@ Object.defineProperty(RPG_State.prototype, "removeOnSkillResolutionRules", { get
 * @type {any[][]}
 */
 Object.defineProperty(RPG_State.prototype, "removeStateOnMoveRules", { get() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove);
 } });
 
 //#endregion
@@ -3160,7 +3162,7 @@ var AutoApplyStateDisplay = class AutoApplyStateDisplay {
 	* @returns {string[]}
 	*/
 	static #collectProseLinesByCondition(dataRow, window, conditionKind, formatter) {
-		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState, true);
+		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState);
 		const lines = [];
 		for (const tuple of tuples) {
 			const stateId = Number(tuple[0]);
@@ -3246,7 +3248,7 @@ var AutoInflictStateDisplay = class AutoInflictStateDisplay {
 	* @returns {string[]}
 	*/
 	static collectProseLines(dataRow, window) {
-		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState, true);
+		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState);
 		const lines = [];
 		for (const tuple of tuples) {
 			const stateId = Number(tuple[0]);
@@ -3290,7 +3292,7 @@ var RemoveStateOnMoveDisplay = class RemoveStateOnMoveDisplay {
 	*/
 	static collectProseLines(dataRow, window) {
 		if (!J.PASSIVE || !J.PASSIVE.EXT || !J.PASSIVE.EXT.CONDITIONAL) return [];
-		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove, true);
+		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove);
 		const lines = [];
 		for (const tuple of tuples) {
 			const stateId = Number(tuple[0]);

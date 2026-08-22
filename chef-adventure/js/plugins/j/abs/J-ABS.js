@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.16.0 ABS] Enables combat to be carried out on the map.
+ * [v4.17.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,13 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.17.0
+ *    Added <guardInterval:N> so a held guard can refire its own skill on an
+ *    interval rather than only on the frame it went up.
+ *    Fixed party cycling stepping over the member standing immediately behind
+ *    the leader, who is the one the player expects to get next.
+ *    Fixed removeAggro dereferencing a battler that had already been cleaned up.
+ *    Fixed <shieldBypass> crashing when written without parameters.
  * - 4.16.0
  *    Fixed turnEndOnMap running the engine's own turn-end effects while JABS was
  *    active and skipping them while it was disabled - the guard was negated, so
@@ -4358,7 +4365,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.16.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.17.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -14798,7 +14805,8 @@ var JABS_Battler = class JABS_Battler {
 	removeAggro(uuid) {
 		const indexToRemove = this.aggros().findIndex((aggro) => aggro.uuid() === uuid);
 		if (indexToRemove > -1) {
-			if (this.getTarget().getUuid() === uuid) {
+			const currentTarget = this.getTarget();
+			if (currentTarget !== null && currentTarget.getUuid() === uuid) {
 				this.disengageTarget();
 			}
 			this.aggros().splice(indexToRemove, 1);
@@ -19006,7 +19014,6 @@ var JABS_Engine = class JABS_Engine {
 	handlePartyCycleMemberChanges() {
 		for (let partyIndex = 0; partyIndex < $gameParty._actors.length; partyIndex++) {
 			$gameParty._actors.push($gameParty._actors.shift());
-			if (partyIndex === 0) continue;
 			const [currentActorId] = $gameParty._actors;
 			const actor = $gameActors.actor(currentActorId);
 			if (actor.isDead()) continue;
@@ -23925,7 +23932,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.16.0";
+var PLUGIN_VERSION = "4.17.0";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
@@ -24112,7 +24119,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsBonusHitsScopeSkill", { ge
 * @type {number[][]}
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsSkillTransforms", { get: function() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform);
 } });
 
 //#endregion
@@ -24150,7 +24157,7 @@ Object.defineProperty(RPG_Class.prototype, "jabsBonusHitsScopeSkill", { get: fun
 * @type {number[][]}
 */
 Object.defineProperty(RPG_Class.prototype, "jabsSkillTransforms", { get: function() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform);
 } });
 
 //#endregion
@@ -24546,7 +24553,7 @@ Object.defineProperty(RPG_EquipItem.prototype, "jabsExpiration", { get: function
 * @type {number[][]}
 */
 Object.defineProperty(RPG_EquipItem.prototype, "jabsSkillTransforms", { get: function() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform);
 } });
 
 //#endregion
@@ -24681,7 +24688,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsCastTime", { get: function() {
 * @type {[number, number]}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsChannel", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.Channel, true, true) ?? [];
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.Channel, true) ?? [];
 } });
 /**
 * The number of frames between each repeated execution of a channel's child skill.
@@ -24800,7 +24807,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGuardData", { get: function() {
 * @type {[number, number]}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsGuard", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.Guard, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.Guard, true);
 } });
 /**
 * The number of frames that the precise-parry window is available
@@ -24868,7 +24875,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsDodgeSpeed", { get: function() {
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsIFrames", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.IFrames, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.IFrames, true);
 } });
 /**
 * The direction that this dodge skill will move.
@@ -24904,7 +24911,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsFreeCombo", { get: function() {
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsComboAction", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.ComboAction, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.ComboAction, true);
 } });
 /**
 * Whether or not this skill can be used to engage in a combo.
@@ -24996,7 +25003,7 @@ RPG_Skill.prototype.shouldRecurseForComboSkills = function(skill, lastSkillId) {
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsPiercingData", { get: function() {
-	const piercingData = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.PiercingData, true, true);
+	const piercingData = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.PiercingData, true);
 	if (!piercingData) return [1, 0];
 	return piercingData;
 } });
@@ -25075,7 +25082,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsOnCastAnimationId", { get: funct
 * @type {[number, boolean, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsDelayData", { get: function() {
-	const delayData = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.DelayData, true, true);
+	const delayData = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.DelayData, true);
 	if (delayData === null) {
 		return [0, false];
 	}
@@ -25114,7 +25121,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsDelayTriggerRadius", { get: func
 * @type {[number, number]}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisOffset", { get: function() {
-	const data = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffset, true, true);
+	const data = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffset, true);
 	if (data !== null) {
 		return data;
 	}
@@ -25126,7 +25133,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffset", { get: function() {
 * @type {[number, number]}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisAnchor", { get: function() {
-	const data = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisAnchor, true, true);
+	const data = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisAnchor, true);
 	if (data !== null) {
 		const ax = Math.max(0, Math.min(1, data[0]));
 		const ay = Math.max(0, Math.min(1, data[1]));
@@ -25156,11 +25163,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisRotate", { get: function() {
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisScale", { get: function() {
-	const data = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisScale, true, true);
-	if (data !== null) {
-		return data;
-	}
-	return null;
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisScale, true);
 } });
 /**
 * Optional: show a tiny debug cross at the visual origin.
@@ -25176,7 +25179,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisDebug", { get: function() {
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetU", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetU, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetU, true);
 } });
 /**
 * Optional DOWN-facing visual offset.
@@ -25184,7 +25187,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetU", { get: function() {
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetD", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetD, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetD, true);
 } });
 /**
 * Optional LEFT-facing visual offset.
@@ -25192,7 +25195,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetD", { get: function() {
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetL", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetL, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetL, true);
 } });
 /**
 * Optional RIGHT-facing visual offset.
@@ -25200,7 +25203,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetL", { get: function() {
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetR", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetR, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetR, true);
 } });
 /**
 * Optional diagonal visual offset for UP-RIGHT.
@@ -25208,7 +25211,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetR", { get: function() {
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetUR", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetUR, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetUR, true);
 } });
 /**
 * Optional diagonal visual offset for UP-LEFT.
@@ -25216,7 +25219,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetUR", { get: function() 
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetUL", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetUL, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetUL, true);
 } });
 /**
 * Optional diagonal visual offset for DOWN-RIGHT.
@@ -25224,7 +25227,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetUL", { get: function() 
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetDR", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetDR, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetDR, true);
 } });
 /**
 * Optional diagonal visual offset for DOWN-LEFT.
@@ -25232,7 +25235,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetDR", { get: function() 
 * @type {[number, number]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetDL", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetDL, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffsetDL, true);
 } });
 /**
 * Resolves the best visual offset for a given numeric direction.
@@ -25262,15 +25265,12 @@ RPG_Skill.prototype.getJabsVisOffsetFor = function(direction) {
 * @returns {number[]|null}
 */
 RPG_Skill.mergeJabsVisPairFromNotes = function(skill, holder, regExp) {
-	const sk = RPGManager.getArrayFromNotesByRegex(skill, regExp, true, true);
-	const ev = holder ? RPGManager.getArrayFromNotesByRegex(holder, regExp, true, true) : null;
+	const sk = RPGManager.getArrayFromNotesByRegex(skill, regExp, true);
+	const ev = holder ? RPGManager.getArrayFromNotesByRegex(holder, regExp, true) : null;
 	if (sk !== null) {
 		return sk;
 	}
-	if (ev !== null) {
-		return ev;
-	}
-	return null;
+	return ev;
 };
 /**
 * Prefers skill over action-map synthetic note for one numeric tag.
@@ -25369,8 +25369,8 @@ RPG_Skill.prototype.getJabsVisOffsetForMergedActionMap = function(jabsAction, di
 		return this.getJabsVisOffsetFor(direction);
 	}
 	const pick = RPG_Skill.mergeJabsVisPairFromNotes;
-	const defSkill = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffset, true, true);
-	const defEv = RPGManager.getArrayFromNotesByRegex(holder, J.ABS.RegExp.VisOffset, true, true);
+	const defSkill = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffset, true);
+	const defEv = RPGManager.getArrayFromNotesByRegex(holder, J.ABS.RegExp.VisOffset, true);
 	const defRaw = defSkill !== null ? defSkill : defEv;
 	const def = defRaw !== null ? defRaw : [0, 0];
 	const mergedU = pick(this, holder, J.ABS.RegExp.VisOffsetU);
@@ -25410,7 +25410,7 @@ RPG_Skill.prototype.getJabsVisOffsetForMergedActionMap = function(jabsAction, di
 * @type {any[]|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsPurgeStatesParams", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.PurgeStates, true, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.PurgeStates, true);
 } });
 
 //#endregion
@@ -25489,7 +25489,7 @@ Object.defineProperty(RPG_State.prototype, "jabsAggroLock", { get: function() {
 * @type {number[][]}
 */
 Object.defineProperty(RPG_State.prototype, "jabsSkillTransforms", { get: function() {
-	return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform, true);
+	return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform);
 } });
 /**
 * The state reapplication strategy for this state in the context of JABS.<br/>
@@ -25590,7 +25590,7 @@ Object.defineProperty(RPG_State.prototype, "jabsStackOnExpire", { get: function(
 * @type {{ stateId: number, stacksRequired: number }|null}
 */
 Object.defineProperty(RPG_State.prototype, "jabsStacksConvertToState", { get: function() {
-	const arrays = RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.StacksConvertToState, true);
+	const arrays = RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.StacksConvertToState);
 	if (!arrays || arrays.length === 0) return null;
 	const [stateId, stacksRequired] = arrays.at(0);
 	return {
@@ -25623,7 +25623,7 @@ Object.defineProperty(RPG_State.prototype, "jabsConvertUsesCaster", { get: funct
 * @type {JABS_StateExpireData|null}
 */
 Object.defineProperty(RPG_State.prototype, "jabsApplyStateOnExpire", { get: function() {
-	const arrays = RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.ApplyStateOnExpire, true);
+	const arrays = RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.ApplyStateOnExpire);
 	if (!arrays || arrays.length === 0) return null;
 	const [stateId, chance] = arrays.at(0);
 	return new JABS_StateExpireData(stateId, chance);
@@ -25634,7 +25634,7 @@ Object.defineProperty(RPG_State.prototype, "jabsApplyStateOnExpire", { get: func
 * @type {{ chance: number, range: number }|null}
 */
 Object.defineProperty(RPG_State.prototype, "jabsSpreadRule", { get: function() {
-	const arrays = RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.Spread, true);
+	const arrays = RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.Spread);
 	if (!arrays || arrays.length === 0) return null;
 	const tuple = arrays.at(0);
 	const chance = Number(tuple[0]);
@@ -28357,7 +28357,7 @@ Game_Battler.prototype.tickSpeedFlatModifier = function() {
 Game_Battler.prototype.tickSpeedPercentModifier = function(types = []) {
 	let total = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.TickSpeedPercent);
 	this.getAllNotes().forEach((note) => {
-		const tuples = RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.TickSpeedTypePercent, true);
+		const tuples = RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.TickSpeedTypePercent);
 		tuples.forEach(([classifier, percent]) => {
 			if (types.includes(classifier)) {
 				total += Number(percent);

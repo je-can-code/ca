@@ -59,6 +59,34 @@
       }
     }
   },
+  "metrics": {
+    "enemiesDefeated": 61,
+    "destructiblesDestroyed": 62,
+    "alliesDowned": 63,
+    "numberOfDeaths": 64,
+    "totalDamageDealt": 65,
+    "highestDamageDealt": 66,
+    "numberOfCritsDealt": 67,
+    "biggestCritDealt": 68,
+    "attacksEvadedByEnemies": 69,
+    "totalDamageTaken": 70,
+    "highestDamageTaken": 71,
+    "numberOfCritsTaken": 72,
+    "biggestCritTaken": 73,
+    "numberOfParries": 74,
+    "numberOfPreciseParries": 75,
+    "numberOfGlancingBlows": 76,
+    "numberOfGuardedHits": 77,
+    "attacksEvadedByParty": 78,
+    "damagePreventedByGuarding": 79,
+    "mainhandSkillUsage": 80,
+    "offhandSkillUsage": 81,
+    "assignedSkillUsage": 82,
+    "dodgeSkillUsage": 83,
+    "guardActivations": 84,
+    "toolUsage": 85,
+    "usableItemUsage": 86
+  },
   "bosses": [
     {
       "key": "gluttonwolf",

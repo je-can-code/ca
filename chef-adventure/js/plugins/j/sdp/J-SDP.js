@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v3.3.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v3.3.1 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -364,6 +364,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.3.1
+ *    Adapted to the RPGManager array read signature.
  * - 3.3.0
  *    Scene_SDP now uses the shared filterable list from J-Base rather than its
  *    own family strip window, which is deleted. SdpFamilyFilter carries the
@@ -2575,7 +2577,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.3.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.3.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2671,7 +2673,7 @@ Object.defineProperty(RPG_Enemy.prototype, "sdpPoints", { get: function() {
 * @type {[string, number, number]|null}
 */
 Object.defineProperty(RPG_Enemy.prototype, "sdpDropData", { get: function() {
-	const sdpData = RPGManager.getArrayFromNotesByRegex(this, J.SDP.RegExp.SdpDropData, true, true);
+	const sdpData = RPGManager.getArrayFromNotesByRegex(this, J.SDP.RegExp.SdpDropData, true);
 	return sdpData ?? [String.empty, 0];
 } });
 /**

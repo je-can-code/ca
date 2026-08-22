@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 ABS-DANGER] Enable danger indicators on foes on the map.
+ * [v1.0.4 ABS-DANGER] Enable danger indicators on foes on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -49,6 +49,9 @@
  * default is enabled.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.4
+ *    Fixed the NaN check on power level running before the line that produces the
+ *    NaN, and answering with a warning rather than a usable sentinel.
  * - 1.0.3
  *    Added <noDangerIndicator>/<showDangerIndicator> per-enemy overrides.
  * - 1.0.2
@@ -180,7 +183,7 @@ J.ABS.EXT.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons = (obj) => 
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.DANGER.Metadata = new J_DangerPluginMetadata("J-ABS-DangerIndicator", "1.0.3");
+J.ABS.EXT.DANGER.Metadata = new J_DangerPluginMetadata("J-ABS-DangerIndicator", "1.0.4");
 /**
 * A collection of icons that represent the danger level of a given enemy relative to the player.
 */
@@ -340,10 +343,8 @@ Game_Battler.prototype.getPowerLevel = function() {
 		const invertedDamageReductionMultiplier = (this.sparam(paramId) * 100 - 100) * -1;
 		powerLevel += invertedDamageReductionMultiplier * 10;
 	});
-	if (Number.isNaN(powerLevel)) {
-		console.warn("what happened to the power level?");
-	}
 	powerLevel += this.level ** 2;
+	if (Number.isNaN(powerLevel)) return 0;
 	return Math.round(powerLevel);
 };
 /**

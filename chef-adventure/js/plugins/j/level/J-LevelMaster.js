@@ -1,7 +1,7 @@
 //region initialization
 /*:
  * @target MZ
- * @plugindesc [v1.6.0 LEVEL] Allows levels to have greater control and purpose.
+ * @plugindesc [v1.6.1 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -372,6 +372,9 @@
  * This same logic is again applied to gold from each defeated enemy.
  * ============================================================================
  * CHANGELOG:
+ * - 1.6.1
+ *    Fixed the level scaling band being read as a single point below parity, so
+ *    battlers at equal levels dealt a bonus instead of no bonus at all.
  * - 1.6.0
  *    Routed the _level namespace into its own save section, so level state
  *    lands in systems/level.json rather than inside the system blob.
@@ -560,7 +563,7 @@ J.LEVEL.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.6.0");
+J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.6.1");
 /**
 * The maximum level definable in the level. Any level below this can be determined without extra calculations.
 * @type {number}
@@ -819,7 +822,7 @@ var LevelScaling = class LevelScaling {
 		const growth = J.LEVEL.Metadata.growthMultiplier;
 		const upper = J.LEVEL.Metadata.invariantUpperRange;
 		const lower = J.LEVEL.Metadata.invariantLowerRange;
-		if (levelDifference <= upper && levelDifference >= lower) return base;
+		if (levelDifference <= upper && levelDifference >= -lower) return base;
 		const invariantDifference = levelDifference > 0 ? levelDifference - upper : levelDifference + lower;
 		const result = base + invariantDifference * growth;
 		const { min, max } = this.#clampsForScope(scope);

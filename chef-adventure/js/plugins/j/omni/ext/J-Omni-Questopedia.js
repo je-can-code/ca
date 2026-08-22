@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.1 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v1.2.2 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -138,6 +138,8 @@
  * This choice is only shown while objective 2 of that quest is completed.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.2
+ *    Removed two console logs left over from testing.
  * - 1.2.1
  *    The questopedia description window no longer declares private members. A
  *    window's constructor reaches initialize, and through it the drawing
@@ -2401,7 +2403,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.2.1");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.2.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3583,7 +3585,6 @@ Game_Enemy.prototype.processSlayQuestsCheck = function() {
 		if (this.enemyId() !== enemyId) return;
 		objective.incrementSlayTargetEnemyAmount();
 		if (!objective.hasSlainEnoughEnemies()) return;
-		console.log(`player has completed the slay objective: ${objective.id} for quest: ${objective.questKey}.`);
 		const questToProgress = QuestManager.quest(objective.questKey);
 		questToProgress.flagObjectiveAsCompleted(objective.id);
 		questToProgress.progressObjectives();
@@ -3795,7 +3796,6 @@ Game_Map.prototype.evaluateDestinationObjectives = function() {
 	activeDestinationObjectives.forEach((objective) => {
 		const [, coordinateRange] = objective.destinationData();
 		if (objective.isPlayerWithinDestinationRange(coordinateRange)) {
-			console.log(`player has achieved the objective! ${objective.questKey}`);
 			const questToProgress = QuestManager.quest(objective.questKey);
 			questToProgress.flagObjectiveAsCompleted(objective.id);
 			questToProgress.progressObjectives();

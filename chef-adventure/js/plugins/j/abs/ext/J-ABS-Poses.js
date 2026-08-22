@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.5 ABS-POSES] Enable action poses for JABS.
+ * [v1.0.6 ABS-POSES] Enable action poses for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -55,6 +55,9 @@
  * This is not a highly tested feature of JABS and may not work as intended.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.6
+ *    Fixed a skill with no pose building a sprite name ending in undefined; the
+ *    absent tag answered an empty array, which is truthy.
  * - 1.0.5
  *    startGuarding no longer takes a skillSlot param, matching J-ABS core;
  *    the guard pose now resolves via getGuardSkillId() instead.
@@ -141,7 +144,7 @@ J.ABS.EXT.POSES.EXT ||= {};
 * The metadata associated with this plugin.
 
 */
-J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.5");
+J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.6");
 /**
 
 * A collection of all aliased methods for this plugin.

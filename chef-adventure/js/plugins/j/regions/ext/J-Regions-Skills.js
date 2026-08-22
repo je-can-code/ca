@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 REGIONS-SKILLS] Enables execution of skills via region ids.
+ * @plugindesc [v1.1.1 REGIONS-SKILLS] Enables execution of skills via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -120,6 +120,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Adapted to the RPGManager array read signature.
  * - 1.1.0
  *    Region skill step tracking is no longer written to savefiles for the
  *    player, followers, or vehicles; it is per-step bookkeeping that means
@@ -188,7 +190,7 @@ J.REGIONS.EXT.SKILLS.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.REGIONS.EXT.SKILLS.Metadata = new J_RegionSkillsPluginMetadata("J-Region-Skills", "1.1.0");
+J.REGIONS.EXT.SKILLS.Metadata = new J_RegionSkillsPluginMetadata("J-Region-Skills", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -337,7 +339,7 @@ Game_Map.prototype.clearRegionSkills = function() {
 */
 Game_Map.prototype.refreshRegionSkills = function() {
 	if (!this.canRefreshRegionEffects()) return;
-	const regionSkillsData = RPGManager.getArraysFromNotesByRegex({ note: this.note() }, J.REGIONS.EXT.SKILLS.RegExp.RegionSkill, true);
+	const regionSkillsData = RPGManager.getArraysFromNotesByRegex({ note: this.note() }, J.REGIONS.EXT.SKILLS.RegExp.RegionSkill);
 	if (!regionSkillsData || !regionSkillsData.length) return;
 	regionSkillsData.forEach((regionSkillData) => {
 		const [regionId, skillId, chanceOfApplication, casterId, isFriendly] = regionSkillData;

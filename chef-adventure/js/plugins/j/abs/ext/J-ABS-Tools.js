@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 ABS-TOOLS] Enable new tool-like tags for use with skills.
+ * [v1.2.1 ABS-TOOLS] Enable new tool-like tags for use with skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -156,6 +156,8 @@
  * always fixed. See the plugin parameters below.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    Adapted to the RPGManager array read signature.
  * - 1.2.0
  *    Routed the _tools namespace into its own save section, so tool state
  *    lands in systems/abs-tools.json rather than inside the system blob.
@@ -261,7 +263,7 @@ J.ABS.EXT.TOOLS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.TOOLS.Metadata = new J_ToolsPluginMetadata("J-ABS-Tools", "1.2.0");
+J.ABS.EXT.TOOLS.Metadata = new J_ToolsPluginMetadata("J-ABS-Tools", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -669,7 +671,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGapClosePosition", { get: functi
 * @type {number[]}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsThisOnGapCloseEnd", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapCloseEndThis, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapCloseEndThis);
 } });
 /**
 * Whether this skill's gap close should respect terrain passability instead of its default
@@ -772,7 +774,7 @@ Game_Battler.prototype.isGapCloseBlocked = function() {
 Game_Battler.prototype.gapCloseEndSkillIds = function() {
 	const ids = [];
 	for (const note of this.getAllNotes()) {
-		const found = RPGManager.getArrayFromNotesByRegex(note, J.ABS.EXT.TOOLS.RegExp.GapCloseEnd, true, true);
+		const found = RPGManager.getArrayFromNotesByRegex(note, J.ABS.EXT.TOOLS.RegExp.GapCloseEnd, true);
 		if (found === null) continue;
 		ids.push(...found);
 	}

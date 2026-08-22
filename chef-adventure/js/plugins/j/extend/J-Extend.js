@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.7.2 EXTEND] Extends the capabilities of skills/actions.
+ * @plugindesc [v1.7.3 EXTEND] Extends the capabilities of skills/actions.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -433,6 +433,8 @@
  * A three-state cycle: 12 -> 13 -> 14 -> 12 -> ..., one step per execution.
  * ============================================================================
  * CHANGELOG:
+ * - 1.7.3
+ *    Adapted to the RPGManager array read signature.
  * - 1.7.2
  *    The plugin metadata class no longer declares private members. Its base
  *    constructor reaches postInitialize before a derived class installs its
@@ -578,7 +580,7 @@ J.EXTEND = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.7.2");
+J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.7.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1421,7 +1423,7 @@ var OverlayManager = class {
 * @type {boolean}
 */
 Object.defineProperty(RPG_Base.prototype, "isExtension", { get: function() {
-	const hasIdExtension = !!RPGManager.getArrayFromNotesByRegex(this, J.EXTEND.RegExp.Extend, true, true);
+	const hasIdExtension = !!RPGManager.getArrayFromNotesByRegex(this, J.EXTEND.RegExp.Extend, true);
 	const hasTypeExtension = !!RPGManager.getStringsFromNoteByRegex(this, J.EXTEND.RegExp.ExtendType, true);
 	return hasIdExtension || hasTypeExtension;
 } });
@@ -1431,7 +1433,7 @@ Object.defineProperty(RPG_Base.prototype, "isExtension", { get: function() {
 * @type {number[]}
 */
 Object.defineProperty(RPG_Base.prototype, "getExtensions", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.EXTEND.RegExp.Extend, true);
+	return RPGManager.getArrayFromNotesByRegex(this, J.EXTEND.RegExp.Extend);
 } });
 /**
 * Gets all type classifiers this database object extends via {@code <extendType:TYPE>}.

@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 REGIONS-STATES] Enables application of states via region ids.
+ * @plugindesc [v1.1.1 REGIONS-STATES] Enables application of states via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -96,6 +96,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Adapted to the RPGManager array read signature.
  * - 1.1.0
  *    Region state step tracking is no longer written to savefiles for the
  *    player, followers, or vehicles; it is per-step bookkeeping that means
@@ -160,7 +162,7 @@ J.REGIONS.EXT.STATES = {};
 /**
 * The metadata associated with this plugin, such as name and version.
 */
-J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Region-States", "1.1.0");
+J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Region-States", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -303,7 +305,7 @@ Game_Map.prototype.clearRegionStates = function() {
 */
 Game_Map.prototype.refreshRegionStates = function() {
 	if (!this.canRefreshRegionEffects()) return;
-	const regionStatesData = RPGManager.getArraysFromNotesByRegex({ note: this.note() }, J.REGIONS.EXT.STATES.RegExp.RegionState, true);
+	const regionStatesData = RPGManager.getArraysFromNotesByRegex({ note: this.note() }, J.REGIONS.EXT.STATES.RegExp.RegionState);
 	if (!regionStatesData || !regionStatesData.length) return;
 	regionStatesData.forEach((regionStateData) => {
 		const [regionId, stateId, chanceOfApplication, animationId] = regionStateData;
