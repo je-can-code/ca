@@ -5,7 +5,9 @@
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
+ * @base J-ABS
  * @orderAfter J-Base
+ * @orderAfter J-ABS
  * @help
  * ============================================================================
  * OVERVIEW
@@ -74,7 +76,7 @@ J.ABS.EXT.STAR = {};
 /**
 * The metadata for this plugin.
 */
-J.ABS.EXT.STAR.Metadata = new J_StarPluginMetadata("J-ABS-STAR", "1.0.0");
+J.ABS.EXT.STAR.Metadata = new J_StarPluginMetadata("J-ABS-Star", "1.0.0");
 /**
 * The default values for this plugin.
 */

@@ -11,6 +11,8 @@
  * @orderAfter J-Omnipedia
  * @orderAfter J-HUD
  * @orderAfter J-MessageTextCodes
+ * @orderAfter J-ABS
+ * @orderAfter J-ABS-InputManager
  * @help
  * ============================================================================
  * OVERVIEW
@@ -2282,7 +2284,7 @@ var J_QUEST_PluginMetadata = class J_QUEST_PluginMetadata extends PluginMetadata
 			`- ${result.categories.length} categories`,
 			`- ${result.tags.length} tags`
 		] : null;
-		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Omni-Questopedia").configName("quest configuration").logSummary(summarize).build();
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-OMNI-Quests").configName("quest configuration").logSummary(summarize).build();
 		const parsedConfiguration = ExternalJsonConfigLoader.load(J_QUEST_PluginMetadata.CONFIG_PATH, options);
 		const classifiedQuests = J_QUEST_PluginMetadata.classifyQuests(parsedConfiguration.quests);
 		/**
@@ -2403,7 +2405,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.2.2");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "1.2.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3992,4 +3994,4 @@ SerializableRegistry.extend(Game_Party, { transients: { "_j._omni._questopediaCa
 } } });
 
 //#endregion
-//# sourceMappingURL=J-Omni-Questopedia.js.map
+//# sourceMappingURL=J-OMNI-Quests.js.map

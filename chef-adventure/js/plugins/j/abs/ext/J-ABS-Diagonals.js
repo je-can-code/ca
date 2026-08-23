@@ -9,7 +9,6 @@
  * @base J-ABS
  * @orderAfter J-Base
  * @orderAfter J-ABS
- * @orderAfter Cyclone-Movement
  * @help
  * ============================================================================
  * OVERVIEW

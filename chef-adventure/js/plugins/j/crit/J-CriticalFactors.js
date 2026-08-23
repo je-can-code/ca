@@ -7,6 +7,7 @@
  * @base J-Base
  * @orderAfter J-Base
  * @orderAfter J-NaturalGrowth
+ * @orderAfter J-Extend
  * @help
  * ============================================================================
  * This plugin enables the ability to control the multiplier of critical damage

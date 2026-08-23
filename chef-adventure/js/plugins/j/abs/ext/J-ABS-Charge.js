@@ -7,6 +7,8 @@
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
  * @orderAfter J-ABS
+ * @orderAfter J-ABS-InputManager
+ * @orderAfter J-Extend
  * @help
  * ============================================================================
  * OVERVIEW

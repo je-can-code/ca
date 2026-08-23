@@ -157,7 +157,7 @@ J.HUD.EXT.FOOD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.HUD.EXT.FOOD.Metadata = new JFoodHud_PluginMetadata("J-HUD-FOOD", "1.0.1");
+J.HUD.EXT.FOOD.Metadata = new JFoodHud_PluginMetadata("J-HUD-Food", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

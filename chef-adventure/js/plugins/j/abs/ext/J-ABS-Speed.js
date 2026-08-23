@@ -116,7 +116,7 @@ J.ABS.EXT.SPEED = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-SpeedBoosts", "1.1.0");
+J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-Speed", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

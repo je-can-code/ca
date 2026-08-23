@@ -296,7 +296,7 @@ J.LEVEL.EXT.FLAT = {};
 /**
 * The metadata associated with this plugin.
 */
-J.LEVEL.EXT.FLAT.Metadata = new JLevelMasterFlat_PluginMetadata("J-LEVEL-Flat", "1.0.1");
+J.LEVEL.EXT.FLAT.Metadata = new JLevelMasterFlat_PluginMetadata("J-Level-Flat", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

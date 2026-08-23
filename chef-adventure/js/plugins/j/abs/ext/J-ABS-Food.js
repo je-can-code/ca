@@ -148,7 +148,7 @@ J.ABS.EXT.FOOD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.FOOD.Metadata = new JFood_PluginMetadata("J-ABS-FOOD", "1.0.0");
+J.ABS.EXT.FOOD.Metadata = new JFood_PluginMetadata("J-ABS-Food", "1.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

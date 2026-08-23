@@ -9,6 +9,7 @@
  * @base J-CMS
  * @orderAfter J-Base
  * @orderAfter J-CMS
+ * @orderAfter J-Resources
  * @help
  * ============================================================================
  * This is a redesign of the skill menu.
