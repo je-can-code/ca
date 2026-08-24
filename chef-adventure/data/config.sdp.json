@@ -651,7 +651,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.15,
           "isFlat": false,
           "isCore": false
@@ -1433,7 +1433,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "she",
+          "parameterKey": "ser",
           "perRank": 0.2,
           "isFlat": false,
           "isCore": false
@@ -1531,7 +1531,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "she",
+          "parameterKey": "ser",
           "perRank": 0.25,
           "isFlat": false,
           "isCore": false
@@ -1635,7 +1635,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "she",
+          "parameterKey": "ser",
           "perRank": 0.3,
           "isFlat": false,
           "isCore": false
@@ -1739,13 +1739,13 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.15,
           "isFlat": false,
           "isCore": false
         },
         {
-          "parameterKey": "she",
+          "parameterKey": "ser",
           "perRank": 0.35,
           "isFlat": false,
           "isCore": false
@@ -1812,7 +1812,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "she",
+          "parameterKey": "ser",
           "perRank": 0.5,
           "isFlat": false,
           "isCore": false
@@ -3028,7 +3028,7 @@
           "isCore": true
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.3,
           "isFlat": false,
           "isCore": true
@@ -3126,7 +3126,7 @@
           "isCore": true
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.35,
           "isFlat": false,
           "isCore": true
@@ -3224,7 +3224,7 @@
           "isCore": true
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.38,
           "isFlat": false,
           "isCore": true
@@ -3322,7 +3322,7 @@
           "isCore": true
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.4,
           "isFlat": false,
           "isCore": true
@@ -3420,7 +3420,7 @@
           "isCore": true
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": false,
           "isCore": true
@@ -4337,7 +4337,7 @@
           "isCore": true
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": 0.4,
           "isFlat": false,
           "isCore": false
@@ -4612,7 +4612,7 @@
           "isCore": true
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.15,
           "isFlat": false,
           "isCore": false
@@ -4710,7 +4710,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.18,
           "isFlat": false,
           "isCore": false
@@ -4808,7 +4808,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.2,
           "isFlat": false,
           "isCore": false
@@ -4906,7 +4906,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.22,
           "isFlat": false,
           "isCore": false
@@ -7225,7 +7225,7 @@
           "isCore": true
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.3,
           "isFlat": false,
           "isCore": false
@@ -7329,7 +7329,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.35,
           "isFlat": false,
           "isCore": false
@@ -7433,7 +7433,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.38,
           "isFlat": false,
           "isCore": false
@@ -7531,7 +7531,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.42,
           "isFlat": false,
           "isCore": false
@@ -7592,7 +7592,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": false,
           "isCore": false
@@ -14067,7 +14067,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.18,
           "isFlat": true,
           "isCore": true
@@ -14110,7 +14110,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.18,
           "isFlat": true,
           "isCore": true
@@ -14159,7 +14159,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.18,
           "isFlat": true,
           "isCore": true
@@ -14202,7 +14202,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.24,
           "isFlat": true,
           "isCore": true
@@ -14257,7 +14257,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.3,
           "isFlat": true,
           "isCore": true
@@ -14312,7 +14312,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.3,
           "isFlat": true,
           "isCore": true
@@ -14361,7 +14361,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.3,
           "isFlat": true,
           "isCore": true
@@ -14422,7 +14422,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.3,
           "isFlat": true,
           "isCore": true
@@ -14477,7 +14477,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.3,
           "isFlat": true,
           "isCore": true
@@ -14538,7 +14538,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.36,
           "isFlat": true,
           "isCore": true
@@ -14960,7 +14960,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": true,
           "isCore": false
@@ -15094,7 +15094,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": true,
           "isCore": false
@@ -16404,7 +16404,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": false,
           "isCore": false
@@ -16508,7 +16508,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": false,
           "isCore": false
@@ -16630,7 +16630,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.6,
           "isFlat": false,
           "isCore": false
@@ -17492,7 +17492,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.4,
           "isFlat": false,
           "isCore": false
@@ -17602,7 +17602,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": false,
           "isCore": false
@@ -17736,7 +17736,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.6,
           "isFlat": false,
           "isCore": false
@@ -19050,7 +19050,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.4,
           "isFlat": false,
           "isCore": false
@@ -19154,7 +19154,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": false,
           "isCore": false
@@ -19258,7 +19258,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": false,
           "isCore": false
@@ -19392,7 +19392,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.6,
           "isFlat": false,
           "isCore": false
@@ -20144,7 +20144,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.4,
           "isFlat": false,
           "isCore": false
@@ -20248,7 +20248,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": false,
           "isCore": false
@@ -20352,7 +20352,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.5,
           "isFlat": false,
           "isCore": false
@@ -20486,7 +20486,7 @@
           "isCore": false
         },
         {
-          "parameterKey": "cdr",
+          "parameterKey": "ctr",
           "perRank": -0.6,
           "isFlat": false,
           "isCore": false

@@ -1,20 +1,6 @@
 {
   "recipes": [
     {
-      "key": "_RECIPES-1",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
-    },
-    {
       "key": "food-protein-t1-01",
       "name": "",
       "iconIndex": -1,
@@ -14383,90 +14369,6 @@
       "cost": []
     },
     {
-      "key": "_RECIPES-2",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
-    },
-    {
-      "key": "_RECIPE-JOURNAL-1",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
-    },
-    {
-      "key": "_RECIPE-JOURNAL-2",
-      "name": "",
-      "iconIndex": 0,
-      "description": "a new recipe, ripe for a plump and savory definition.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
-    },
-    {
-      "key": "_RECIPE-JOURNAL-3",
-      "name": "",
-      "iconIndex": 0,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
-    },
-    {
-      "key": "_BLUEPRINTS",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
-    },
-    {
-      "key": "__INGOTS",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
-    },
-    {
       "key": "ingot-01",
       "name": "",
       "iconIndex": -1,
@@ -14726,57 +14628,6 @@
       "cost": []
     },
     {
-      "key": "ingot-08",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": true,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "material-manufacturing"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 42,
-          "type": "i",
-          "count": 5,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 43,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "tier": 8,
-      "cost": []
-    },
-    {
-      "key": "__PAPER",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
-    },
-    {
       "key": "paper-01",
       "name": "",
       "iconIndex": -1,
@@ -14999,18 +14850,300 @@
       "cost": []
     },
     {
-      "key": "__CIRCUITS",
+      "key": "paper-07",
       "name": "",
       "iconIndex": -1,
       "description": "",
-      "unlockedByDefault": false,
+      "unlockedByDefault": true,
       "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 57,
+          "type": "i",
+          "count": 8,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 58,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "tier": 7,
+      "cost": []
+    },
+    {
+      "key": "fabric-01",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 81,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 82,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "tier": 1,
+      "cost": []
+    },
+    {
+      "key": "fabric-02",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 83,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 84,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "tier": 2,
+      "cost": []
+    },
+    {
+      "key": "fabric-03",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 85,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 86,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "tier": 3,
+      "cost": []
+    },
+    {
+      "key": "fabric-04",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 87,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 88,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "tier": 4,
+      "cost": []
+    },
+    {
+      "key": "fabric-05",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 89,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 90,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "tier": 5,
+      "cost": []
+    },
+    {
+      "key": "fabric-06",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 91,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 92,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "tier": 6,
+      "cost": []
+    },
+    {
+      "key": "fabric-07",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 93,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 94,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "tier": 7,
+      "cost": []
     },
     {
       "key": "circuit-01",
@@ -15353,20 +15486,6 @@
       ],
       "tier": 6,
       "cost": []
-    },
-    {
-      "key": "__WEAPONS",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
     },
     {
       "key": "w-sword-01",
@@ -22823,20 +22942,6 @@
       "cost": []
     },
     {
-      "key": "_PATTERNS",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
-    },
-    {
       "key": "a-off-light-1",
       "name": "",
       "iconIndex": -1,
@@ -26590,20 +26695,6 @@
       ],
       "tier": 7,
       "cost": []
-    },
-    {
-      "key": "_ALCHEMY",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": [],
-      "cost": [],
-      "tier": 0
     },
     {
       "key": "a-gems-life-1",
