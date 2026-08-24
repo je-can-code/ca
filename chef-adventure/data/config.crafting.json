@@ -15316,13 +15316,13 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 115,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -15377,13 +15377,13 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 115,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -15444,13 +15444,13 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 115,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -15503,6 +15503,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -15545,6 +15551,18 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -15604,7 +15622,13 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -15672,7 +15696,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -15754,7 +15778,13 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -15830,7 +15860,13 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -15907,6 +15943,24 @@
         "smith-blade"
       ],
       "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 9,
           "type": "w",
@@ -16012,7 +16066,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -16067,12 +16121,6 @@
       "tools": [
         {
           "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -16146,7 +16194,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -16222,7 +16270,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -16298,7 +16346,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -16376,6 +16424,18 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 19,
           "type": "w",
           "count": 1,
@@ -16437,7 +16497,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -16494,7 +16554,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -16546,6 +16606,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -16605,6 +16671,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -16675,6 +16747,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -16742,6 +16820,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -16805,6 +16889,18 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 29,
           "type": "w",
           "count": 1,
@@ -16859,6 +16955,12 @@
         "smith-spear"
       ],
       "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 112,
           "type": "i",
@@ -17224,6 +17326,18 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 39,
           "type": "w",
           "count": 1,
@@ -17279,13 +17393,13 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -17330,13 +17444,19 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -17390,13 +17510,19 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -17458,13 +17584,19 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -17526,13 +17658,19 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -17594,13 +17732,19 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -17662,6 +17806,24 @@
       ],
       "tools": [
         {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 49,
           "type": "w",
           "count": 1,
@@ -17717,6 +17879,12 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 112,
           "type": "i",
           "count": 1,
@@ -17762,6 +17930,12 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 112,
           "type": "i",
           "count": 1,
@@ -17806,6 +17980,12 @@
         "smith-spear"
       ],
       "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 112,
           "type": "i",
@@ -17859,6 +18039,12 @@
         "smith-spear"
       ],
       "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 112,
           "type": "i",
@@ -17921,6 +18107,12 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 112,
           "type": "i",
           "count": 1,
@@ -17981,6 +18173,12 @@
         "smith-spear"
       ],
       "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 112,
           "type": "i",
@@ -18051,6 +18249,18 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 59,
           "type": "w",
           "count": 1,
@@ -18106,13 +18316,13 @@
       ],
       "tools": [
         {
-          "id": 112,
+          "id": 111,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 116,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18126,12 +18336,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 31,
           "type": "i",
           "count": 2,
-          "categories": [
-            "ingot"
-          ]
+          "categories": []
         }
       ],
       "outputs": [
@@ -18167,12 +18375,6 @@
           "type": "i",
           "count": 1,
           "categories": []
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
         }
       ],
       "ingredients": [
@@ -18183,12 +18385,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 33,
           "type": "i",
           "count": 4,
-          "categories": [
-            "ingot"
-          ]
+          "categories": []
         }
       ],
       "outputs": [
@@ -18220,7 +18420,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18234,12 +18434,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 35,
           "type": "i",
           "count": 6,
-          "categories": [
-            "ingot"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -18279,7 +18477,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18293,12 +18491,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 37,
           "type": "i",
           "count": 8,
-          "categories": [
-            "ingot"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -18346,7 +18542,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18360,12 +18556,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 39,
           "type": "i",
           "count": 10,
-          "categories": [
-            "ingot"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -18413,7 +18607,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18427,12 +18621,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 41,
           "type": "i",
           "count": 12,
-          "categories": [
-            "ingot"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -18481,6 +18673,12 @@
         "smith-gun"
       ],
       "tools": [
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 69,
           "type": "w",
@@ -18537,7 +18735,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18588,7 +18786,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18639,7 +18837,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18698,7 +18896,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18765,7 +18963,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18832,7 +19030,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -18901,6 +19099,18 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 115,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 79,
           "type": "w",
           "count": 1,
@@ -18956,12 +19166,6 @@
       ],
       "tools": [
         {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 112,
           "type": "i",
           "count": 1,
@@ -19006,12 +19210,6 @@
         "smith-gun"
       ],
       "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
         {
           "id": 112,
           "type": "i",
@@ -19058,13 +19256,13 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -19125,13 +19323,13 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -19200,13 +19398,13 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -19275,13 +19473,13 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -19350,6 +19548,12 @@
       ],
       "tools": [
         {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 89,
           "type": "w",
           "count": 1,
@@ -19403,6 +19607,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -19448,6 +19658,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -19490,6 +19706,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -19543,6 +19765,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -19607,6 +19835,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -19665,6 +19899,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -19733,6 +19973,18 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 99,
           "type": "w",
           "count": 1,
@@ -19759,7 +20011,7 @@
           "categories": []
         },
         {
-          "id": 265,
+          "id": 264,
           "type": "i",
           "count": 4,
           "categories": []
@@ -19789,6 +20041,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -19837,6 +20095,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -19879,6 +20143,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -19932,6 +20202,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -19996,6 +20272,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -20054,6 +20336,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
           "type": "i",
           "count": 1,
           "categories": []
@@ -20122,6 +20410,18 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 109,
           "type": "w",
           "count": 1,
@@ -20148,7 +20448,7 @@
           "categories": []
         },
         {
-          "id": 235,
+          "id": 233,
           "type": "i",
           "count": 4,
           "categories": []
@@ -20183,7 +20483,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -20234,7 +20534,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -20285,7 +20585,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -20344,7 +20644,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -20411,7 +20711,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -20478,7 +20778,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -20546,6 +20846,18 @@
         "smith-axe"
       ],
       "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 119,
           "type": "w",
@@ -20616,12 +20928,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 45,
           "type": "i",
           "count": 2,
-          "categories": [
-            "wood"
-          ]
+          "categories": []
         }
       ],
       "outputs": [
@@ -20661,12 +20971,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 47,
           "type": "i",
           "count": 4,
-          "categories": [
-            "wood"
-          ]
+          "categories": []
         }
       ],
       "outputs": [
@@ -20696,6 +21004,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -20706,12 +21020,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 49,
           "type": "i",
           "count": 6,
-          "categories": [
-            "wood"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -20758,6 +21070,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -20768,12 +21086,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 51,
           "type": "i",
           "count": 8,
-          "categories": [
-            "wood"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -20828,6 +21144,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -20838,12 +21160,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 53,
           "type": "i",
           "count": 10,
-          "categories": [
-            "wood"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -20898,6 +21218,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -20908,12 +21234,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 55,
           "type": "i",
           "count": 12,
-          "categories": [
-            "wood"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -20963,6 +21287,12 @@
         "smith-wand"
       ],
       "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 129,
           "type": "w",
@@ -21017,6 +21347,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -21063,6 +21399,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -21106,6 +21448,12 @@
       "tools": [
         {
           "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -21160,6 +21508,12 @@
       "tools": [
         {
           "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -21225,6 +21579,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -21287,6 +21647,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -21344,6 +21710,18 @@
         "smith-wand"
       ],
       "tools": [
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 139,
           "type": "w",
@@ -21406,7 +21784,7 @@
           "categories": []
         },
         {
-          "id": 114,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -21458,7 +21836,7 @@
           "categories": []
         },
         {
-          "id": 114,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -21510,7 +21888,7 @@
           "categories": []
         },
         {
-          "id": 114,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -21570,7 +21948,7 @@
           "categories": []
         },
         {
-          "id": 114,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -21638,7 +22016,7 @@
           "categories": []
         },
         {
-          "id": 114,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -21706,7 +22084,7 @@
           "categories": []
         },
         {
-          "id": 114,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -21768,6 +22146,18 @@
       ],
       "tools": [
         {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 149,
           "type": "w",
           "count": 1,
@@ -21794,7 +22184,7 @@
           "categories": []
         },
         {
-          "id": 235,
+          "id": 233,
           "type": "i",
           "count": 4,
           "categories": []
@@ -21821,7 +22211,14 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 82,
@@ -21830,12 +22227,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 386,
           "type": "a",
           "count": 2,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         }
       ],
       "outputs": [
@@ -21859,7 +22254,20 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 84,
@@ -21868,12 +22276,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 387,
           "type": "a",
           "count": 4,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -21906,7 +22312,20 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 86,
@@ -21915,12 +22334,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 388,
           "type": "a",
           "count": 6,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -21961,7 +22378,20 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 88,
@@ -21970,12 +22400,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 389,
           "type": "a",
           "count": 8,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -22024,7 +22452,20 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 90,
@@ -22033,12 +22474,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 390,
           "type": "a",
           "count": 10,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -22087,7 +22526,20 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 92,
@@ -22096,12 +22548,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 390,
           "type": "a",
           "count": 12,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -22151,6 +22601,18 @@
         "smith-fist"
       ],
       "tools": [
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 159,
           "type": "w",
@@ -22205,7 +22667,14 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 31,
@@ -22214,12 +22683,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 386,
           "type": "a",
           "count": 2,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         }
       ],
       "outputs": [
@@ -22243,7 +22710,14 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 33,
@@ -22252,12 +22726,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 387,
           "type": "a",
           "count": 4,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         }
       ],
       "outputs": [
@@ -22281,7 +22753,14 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 35,
@@ -22290,12 +22769,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 388,
           "type": "a",
           "count": 6,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -22327,7 +22804,14 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 37,
@@ -22336,12 +22820,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 389,
           "type": "a",
           "count": 8,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -22381,7 +22863,14 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 39,
@@ -22390,12 +22879,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 390,
           "type": "a",
           "count": 10,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -22435,7 +22922,14 @@
       "categoryKeys": [
         "smith-fist"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 41,
@@ -22444,12 +22938,10 @@
           "categories": []
         },
         {
-          "id": 0,
+          "id": 390,
           "type": "a",
           "count": 12,
-          "categories": [
-            "pelt"
-          ]
+          "categories": []
         },
         {
           "id": 0,
@@ -22490,6 +22982,12 @@
         "smith-fist"
       ],
       "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 169,
           "type": "w",
@@ -22540,7 +23038,13 @@
       ],
       "tools": [
         {
-          "id": 112,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -22585,7 +23089,13 @@
       ],
       "tools": [
         {
-          "id": 112,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -22630,7 +23140,19 @@
       ],
       "tools": [
         {
-          "id": 112,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -22691,7 +23213,19 @@
       ],
       "tools": [
         {
-          "id": 112,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -22760,7 +23294,19 @@
       ],
       "tools": [
         {
-          "id": 112,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -22829,7 +23375,19 @@
       ],
       "tools": [
         {
-          "id": 112,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -22898,6 +23456,18 @@
       ],
       "tools": [
         {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 115,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 179,
           "type": "w",
           "count": 1,
@@ -22953,7 +23523,7 @@
       ],
       "tools": [
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -22999,7 +23569,7 @@
       ],
       "tools": [
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -23045,7 +23615,7 @@
       ],
       "tools": [
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -23098,12 +23668,6 @@
         "survive-off"
       ],
       "tools": [
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
         {
           "id": 116,
           "type": "i",
@@ -23167,12 +23731,6 @@
       ],
       "tools": [
         {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 116,
           "type": "i",
           "count": 1,
@@ -23234,12 +23792,6 @@
         "survive-off"
       ],
       "tools": [
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
         {
           "id": 116,
           "type": "i",
@@ -23311,14 +23863,14 @@
       ],
       "tools": [
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 116,
-          "type": "i",
+          "id": 9,
+          "type": "a",
           "count": 1,
           "categories": []
         }
@@ -23376,6 +23928,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -23423,7 +23981,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -23474,7 +24032,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -23533,7 +24091,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -23600,7 +24158,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -23667,7 +24225,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -23742,8 +24300,14 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 19,
+          "type": "a",
           "count": 1,
           "categories": []
         }
@@ -23796,6 +24360,12 @@
         "survive-off"
       ],
       "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 112,
           "type": "i",
@@ -23900,12 +24470,6 @@
         },
         {
           "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -24177,6 +24741,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 29,
+          "type": "a",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -24277,6 +24847,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -24327,13 +24903,13 @@
       ],
       "tools": [
         {
-          "id": 113,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 114,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -24395,7 +24971,13 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -24465,7 +25047,13 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -24535,7 +25123,13 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -24613,8 +25207,20 @@
       ],
       "tools": [
         {
-          "id": 111,
+          "id": 114,
           "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 39,
+          "type": "a",
           "count": 1,
           "categories": []
         }
@@ -24673,6 +25279,12 @@
         "survive-body"
       ],
       "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
         {
           "id": 114,
           "type": "i",
@@ -24776,12 +25388,6 @@
           "categories": []
         },
         {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 114,
           "type": "i",
           "count": 1,
@@ -24836,6 +25442,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -24902,7 +25514,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -24964,6 +25576,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -25030,7 +25648,26 @@
       "categoryKeys": [
         "survive-body"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 49,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
       "ingredients": [
         {
           "id": 46,
@@ -25084,6 +25721,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -25126,6 +25769,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -25176,7 +25825,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -25230,6 +25879,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -25294,6 +25949,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -25351,7 +26012,13 @@
       ],
       "tools": [
         {
-          "id": 116,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -25420,8 +26087,20 @@
       ],
       "tools": [
         {
-          "id": 116,
+          "id": 111,
           "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 59,
+          "type": "a",
           "count": 1,
           "categories": []
         }
@@ -25520,12 +26199,6 @@
       ],
       "tools": [
         {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 114,
           "type": "i",
           "count": 1,
@@ -25570,12 +26243,6 @@
         "survive-feet"
       ],
       "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
         {
           "id": 114,
           "type": "i",
@@ -25629,12 +26296,6 @@
         "survive-feet"
       ],
       "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
         {
           "id": 114,
           "type": "i",
@@ -25697,12 +26358,6 @@
       ],
       "tools": [
         {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 114,
           "type": "i",
           "count": 1,
@@ -25763,12 +26418,6 @@
         "survive-feet"
       ],
       "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
         {
           "id": 114,
           "type": "i",
@@ -25839,14 +26488,14 @@
       ],
       "tools": [
         {
-          "id": 112,
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 114,
-          "type": "i",
+          "id": 69,
+          "type": "a",
           "count": 1,
           "categories": []
         }
@@ -25904,6 +26553,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 115,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -25946,6 +26601,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -25996,7 +26657,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -26055,7 +26716,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -26122,7 +26783,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -26189,7 +26850,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -26264,8 +26925,14 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 115,
           "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 79,
+          "type": "a",
           "count": 1,
           "categories": []
         }
@@ -26657,6 +27324,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 89,
+          "type": "a",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -26937,12 +27610,6 @@
           "type": "i",
           "count": 1,
           "categories": []
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
         }
       ],
       "ingredients": [
@@ -26985,12 +27652,6 @@
       "tools": [
         {
           "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27039,12 +27700,6 @@
           "type": "i",
           "count": 1,
           "categories": []
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
         }
       ],
       "ingredients": [
@@ -27090,12 +27745,6 @@
           "type": "i",
           "count": 1,
           "categories": []
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
         }
       ],
       "ingredients": [
@@ -27138,12 +27787,6 @@
       "tools": [
         {
           "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27194,7 +27837,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27252,7 +27895,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27305,12 +27948,6 @@
       "tools": [
         {
           "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27374,12 +28011,6 @@
           "categories": []
         },
         {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 116,
           "type": "i",
           "count": 1,
@@ -27438,7 +28069,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27496,7 +28127,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27554,7 +28185,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27607,12 +28238,6 @@
       "tools": [
         {
           "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27676,12 +28301,6 @@
           "categories": []
         },
         {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 116,
           "type": "i",
           "count": 1,
@@ -27740,7 +28359,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27798,7 +28417,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27856,7 +28475,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27909,12 +28528,6 @@
       "tools": [
         {
           "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27978,12 +28591,6 @@
           "categories": []
         },
         {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 116,
           "type": "i",
           "count": 1,
@@ -28042,7 +28649,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28100,7 +28707,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28158,7 +28765,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28211,12 +28818,6 @@
       "tools": [
         {
           "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28280,12 +28881,6 @@
           "categories": []
         },
         {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 116,
           "type": "i",
           "count": 1,
@@ -28344,7 +28939,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28402,7 +28997,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28460,7 +29055,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28513,12 +29108,6 @@
       "tools": [
         {
           "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28582,12 +29171,6 @@
           "categories": []
         },
         {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 116,
           "type": "i",
           "count": 1,
@@ -28646,7 +29229,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28704,7 +29287,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28762,7 +29345,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28815,12 +29398,6 @@
       "tools": [
         {
           "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28884,12 +29461,6 @@
           "categories": []
         },
         {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 116,
           "type": "i",
           "count": 1,
@@ -28948,7 +29519,7 @@
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -28989,6 +29560,183 @@
       "tier": 0
     },
     {
+      "key": "a-runes-cut-glyph",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 0,
+          "type": "a",
+          "count": 10,
+          "categories": [
+            "fangs"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 4,
+          "categories": [
+            "talon"
+          ]
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 201,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 0,
+      "cost": []
+    },
+    {
+      "key": "a-runes-poke-glyph",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 0,
+          "type": "a",
+          "count": 10,
+          "categories": [
+            "stinger"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 4,
+          "categories": [
+            "spines"
+          ]
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 202,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 0,
+      "cost": []
+    },
+    {
+      "key": "a-runes-blunt-glyph",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 0,
+          "type": "a",
+          "count": 10,
+          "categories": [
+            "stone"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 4,
+          "categories": [
+            "mineral"
+          ]
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 203,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "tier": 0,
+      "cost": []
+    },
+    {
       "key": "a-runes-heat-glyph",
       "name": "",
       "iconIndex": -1,
@@ -29007,6 +29755,12 @@
         },
         {
           "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -29070,6 +29824,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -29127,6 +29887,12 @@
         },
         {
           "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -29190,6 +29956,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -29247,6 +30019,12 @@
         },
         {
           "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -29310,6 +30088,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -29366,7 +30150,7 @@
           "categories": []
         },
         {
-          "id": 114,
+          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -29434,7 +30218,7 @@
           "categories": []
         },
         {
-          "id": 114,
+          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -29502,6 +30286,12 @@
           "categories": []
         },
         {
+          "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 116,
           "type": "i",
           "count": 1,
@@ -29559,6 +30349,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -29626,6 +30422,12 @@
           "categories": []
         },
         {
+          "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 116,
           "type": "i",
           "count": 1,
@@ -29683,6 +30485,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -29750,7 +30558,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -29818,7 +30626,7 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -29886,6 +30694,12 @@
           "categories": []
         },
         {
+          "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
           "id": 116,
           "type": "i",
           "count": 1,
@@ -29943,6 +30757,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -30010,13 +30830,13 @@
           "categories": []
         },
         {
-          "id": 112,
+          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
         },
         {
-          "id": 113,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -30091,6 +30911,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -30159,6 +30985,12 @@
         },
         {
           "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -30300,7 +31132,13 @@
       ],
       "tools": [
         {
-          "id": 113,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -30359,7 +31197,13 @@
       ],
       "tools": [
         {
-          "id": 113,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -30418,7 +31262,13 @@
       ],
       "tools": [
         {
-          "id": 113,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -30477,7 +31327,13 @@
       ],
       "tools": [
         {
-          "id": 113,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -30536,7 +31392,13 @@
       ],
       "tools": [
         {
-          "id": 113,
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 114,
           "type": "i",
           "count": 1,
           "categories": []
@@ -30599,12 +31461,6 @@
           "type": "i",
           "count": 1,
           "categories": []
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
         }
       ],
       "ingredients": [
@@ -30664,12 +31520,6 @@
           "type": "i",
           "count": 1,
           "categories": []
-        },
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
         }
       ],
       "ingredients": [
@@ -30726,12 +31576,6 @@
       "tools": [
         {
           "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 113,
           "type": "i",
           "count": 1,
           "categories": []
@@ -31512,7 +32356,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -31571,7 +32415,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -31638,7 +32482,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -31705,7 +32549,7 @@
           "categories": []
         },
         {
-          "id": 116,
+          "id": 115,
           "type": "i",
           "count": 1,
           "categories": []
@@ -32010,6 +32854,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -32074,6 +32924,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -32134,7 +32990,7 @@
       ],
       "tools": [
         {
-          "id": 114,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -32190,7 +33046,7 @@
       ],
       "tools": [
         {
-          "id": 114,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -32246,7 +33102,7 @@
       ],
       "tools": [
         {
-          "id": 114,
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -32306,6 +33162,12 @@
           "type": "i",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
         }
       ],
       "ingredients": [
@@ -32359,6 +33221,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -32423,6 +33291,12 @@
       "tools": [
         {
           "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
           "type": "i",
           "count": 1,
           "categories": []
@@ -47146,11 +48020,7 @@
         6,
         8,
         10,
-        12,
-        14,
-        16,
-        18,
-        20
+        12
       ]
     },
     {
@@ -47174,8 +48044,7 @@
         4,
         5,
         6,
-        7,
-        8
+        7
       ]
     }
   ]
