@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.2 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v2.0.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -140,6 +140,10 @@
  * This choice is only shown while objective 2 of that quest is completed.
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    Renamed from J-Omni-Questopedia to J-OMNI-Quests. The shipped file is
+ *    renamed with it, so an existing plugins.js entry must be updated or the
+ *    plugin will simply not load.
  * - 1.2.2
  *    Removed two console logs left over from testing.
  * - 1.2.1
@@ -2405,7 +2409,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "1.2.2");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "2.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

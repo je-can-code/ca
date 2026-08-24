@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.7 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
+ * [v1.0.8 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -90,6 +90,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.8
+ *    Corrected PLUGIN_NAME from J-ABS-Pixelistics to J-Pixel-ABS, matching the
+ *    name the ship has always been built and shipped under. The old spelling
+ *    also read as an extension of J-ABS rather than of J-Pixelistics, which is
+ *    the opposite of what this ship is.
  * - 1.0.7
  *    Overrode JABS_Battler#canDirectionalDodgeStepPass to gate directional
  *    dodge steps through PIXEL's own subcell passability
@@ -265,7 +270,7 @@ J.PIXEL.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-Pixel-ABS", "1.0.7");
+J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-Pixel-ABS", "1.0.8");
 /**
 * A collection of regex patterns for this plugin.
 */
