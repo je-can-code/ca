@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v2.1.2 DIFFICULTY] A layered difficulty system.
+ * @plugindesc [v2.2.0 DIFFICULTY] A layered difficulty system.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -24,6 +24,13 @@
  * All difficulties are defined in an external JSON file.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Difficulty layers now retain the raw configuration they were built from.
+ *    The classifier reads a fixed set of fields by name, so anything an
+ *    extension adds to a layer was unrecoverable once parsing finished - and
+ *    parsing happens during this plugin's own construction, too early for any
+ *    extension to intervene. Keeping the source is what lets an extension find
+ *    its own fields without reading the file a second time.
  * - 2.1.2
  *    Difficulty scaling can no longer reduce max hp below one. The engine floors
  *    it at one inside its own param call, and the difficulty multiplier was
@@ -807,13 +814,22 @@ var J_DiffPluginMetadata = class J_DiffPluginMetadata extends PluginMetadata {
 	* Loads difficulty layers from {@link J_DiffPluginMetadata.CONFIG_PATH}.
 	*/
 	initializeDifficulties() {
-		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Difficulty").configName("difficulty configuration").mapper(J_DiffPluginMetadata.classifyDifficulties.bind(J_DiffPluginMetadata)).logSummary((result) => [`- ${result.size} difficulty layers`]).build();
-		const classifiedMetadatas = ExternalJsonConfigLoader.load(J_DiffPluginMetadata.CONFIG_PATH, options);
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Difficulty").configName("difficulty configuration").logSummary((result) => [`- ${result.length} difficulty layers`]).build();
+		const parsedBlob = ExternalJsonConfigLoader.load(J_DiffPluginMetadata.CONFIG_PATH, options);
+		/**
+		* The raw JSON blob for each layer, keyed by that layer's key.
+		* Retained because {@link J_DiffPluginMetadata.classifyDifficulties} reads a fixed set of fields
+		* by name, so anything an extension adds to a layer's configuration is not represented anywhere
+		* in the built metadata and would otherwise be unrecoverable. Keeping the source is what lets an
+		* extension find its own fields without reading the file a second time.
+		* @type {Map<string, object>}
+		*/
+		this.allRawConfigs = new Map(parsedBlob.map((blob) => [blob.key, blob]));
 		/**
 		* A map of difficulty layer metadatas by their key.
 		* @type {Map<string, DifficultyMetadata>}
 		*/
-		this.allMetadatas = classifiedMetadatas;
+		this.allMetadatas = J_DiffPluginMetadata.classifyDifficulties(parsedBlob);
 	}
 	initializeMetadata() {
 		/**
@@ -850,7 +866,7 @@ J.DIFFICULTY = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.1.2");
+J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.2.0");
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.17.0 ABS] Enables combat to be carried out on the map.
+ * [v4.17.1 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,11 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.17.1
+ *    Corrected the guard documentation, which credited EVA with extending the
+ *    parry window. Parry extension became its own parameter and EVA went back
+ *    to meaning physical evasion; only the prose still pointed at the old
+ *    arrangement.
  * - 4.17.0
  *    Added <guardInterval:N> so a held guard can refire its own skill on an
  *    interval rather than only on the frame it went up.
@@ -1341,8 +1346,9 @@
  * player (pivot guard clears dash; pixel movement does not reapply dash while
  * guarding).
  *
- * Explicit parry is the <parry:N> window after raising guard; EVA extends
- * that window. Skills may still use <unparryable> and <ignoreParry:N>.
+ * Explicit parry is the <parry:N> window after raising guard; the parry
+ * extension rate extends that window. Skills may still use <unparryable>
+ * and <ignoreParry:N>.
  *
  * NOTE ABOUT GUARD SKILL TYPES:
  * A skill must have the "Guard Skill Type" id to be recognized as a
@@ -4365,7 +4371,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.17.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.17.1");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -23932,7 +23938,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.17.0";
+var PLUGIN_VERSION = "4.17.1";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
