@@ -5,6 +5,8 @@
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
+ * @orderAfter J-Base
+ * @orderAfter J-Base-Save
  * @help
  * ============================================================================
  * OVERVIEW

@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.1 LEVEL-FLAT] Flat per-level thresholds and map-based kill experience.
+ * @plugindesc [v1.0.2 LEVEL-FLAT] Flat per-level thresholds and map-based kill experience.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -214,6 +214,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Corrected PLUGIN_NAME from J-LEVEL-Flat to J-Level-Flat, matching the name
+ *    the ship has always been built and shipped under.
  * - 1.0.1
  *    Flat experience gain now consults the shared reward-policy gate
  *    (canGainReward), so inanimate enemies grant none.
@@ -296,7 +299,7 @@ J.LEVEL.EXT.FLAT = {};
 /**
 * The metadata associated with this plugin.
 */
-J.LEVEL.EXT.FLAT.Metadata = new JLevelMasterFlat_PluginMetadata("J-LEVEL-Flat", "1.0.1");
+J.LEVEL.EXT.FLAT.Metadata = new JLevelMasterFlat_PluginMetadata("J-Level-Flat", "1.0.2");
 /**
 * A collection of all aliased methods for this plugin.
 */

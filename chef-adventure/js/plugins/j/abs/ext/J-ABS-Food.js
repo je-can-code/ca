@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 ABS-FOOD] A JABS extension enabling food group chain states and a dedicated R2 food slot.
+ * [v1.0.1 ABS-FOOD] A JABS extension enabling food group chain states and a dedicated R2 food slot.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -74,6 +74,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Corrected PLUGIN_NAME from J-ABS-FOOD to J-ABS-Food, matching the name the
+ *    ship has always been built and shipped under.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -148,7 +151,7 @@ J.ABS.EXT.FOOD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.FOOD.Metadata = new JFood_PluginMetadata("J-ABS-FOOD", "1.0.0");
+J.ABS.EXT.FOOD.Metadata = new JFood_PluginMetadata("J-ABS-Food", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

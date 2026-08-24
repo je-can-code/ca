@@ -9,7 +9,11 @@
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @orderAfter J-LevelMaster
- * @orderAfter J-LEVEL-Flat
+ * @orderAfter J-Level-Flat
+ * @orderAfter J-Base-Save
+ * @orderAfter J-HUD
+ * @orderAfter J-HUD-PartyFrame
+ * @orderAfter J-HUD-TargetFrame
  * @help
  * ============================================================================
  * OVERVIEW

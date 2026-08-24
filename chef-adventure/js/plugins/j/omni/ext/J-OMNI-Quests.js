@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.2 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v2.0.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -11,6 +11,8 @@
  * @orderAfter J-Omnipedia
  * @orderAfter J-HUD
  * @orderAfter J-MessageTextCodes
+ * @orderAfter J-ABS
+ * @orderAfter J-ABS-InputManager
  * @help
  * ============================================================================
  * OVERVIEW
@@ -138,6 +140,10 @@
  * This choice is only shown while objective 2 of that quest is completed.
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    Renamed from J-Omni-Questopedia to J-OMNI-Quests. The shipped file is
+ *    renamed with it, so an existing plugins.js entry must be updated or the
+ *    plugin will simply not load.
  * - 1.2.2
  *    Removed two console logs left over from testing.
  * - 1.2.1
@@ -2282,7 +2288,7 @@ var J_QUEST_PluginMetadata = class J_QUEST_PluginMetadata extends PluginMetadata
 			`- ${result.categories.length} categories`,
 			`- ${result.tags.length} tags`
 		] : null;
-		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Omni-Questopedia").configName("quest configuration").logSummary(summarize).build();
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-OMNI-Quests").configName("quest configuration").logSummary(summarize).build();
 		const parsedConfiguration = ExternalJsonConfigLoader.load(J_QUEST_PluginMetadata.CONFIG_PATH, options);
 		const classifiedQuests = J_QUEST_PluginMetadata.classifyQuests(parsedConfiguration.quests);
 		/**
@@ -2403,7 +2409,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.2.2");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "2.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3992,4 +3998,4 @@ SerializableRegistry.extend(Game_Party, { transients: { "_j._omni._questopediaCa
 } } });
 
 //#endregion
-//# sourceMappingURL=J-Omni-Questopedia.js.map
+//# sourceMappingURL=J-OMNI-Quests.js.map

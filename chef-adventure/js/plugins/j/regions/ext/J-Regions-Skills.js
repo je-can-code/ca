@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.1.1 REGIONS-SKILLS] Enables execution of skills via region ids.
+ * @plugindesc [v1.1.2 REGIONS-SKILLS] Enables execution of skills via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -120,6 +120,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    Corrected PLUGIN_NAME from J-Region-Skills to J-Regions-Skills, matching
+ *    the name the ship has always been built and shipped under.
  * - 1.1.1
  *    Adapted to the RPGManager array read signature.
  * - 1.1.0
@@ -190,7 +193,7 @@ J.REGIONS.EXT.SKILLS.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.REGIONS.EXT.SKILLS.Metadata = new J_RegionSkillsPluginMetadata("J-Region-Skills", "1.1.1");
+J.REGIONS.EXT.SKILLS.Metadata = new J_RegionSkillsPluginMetadata("J-Regions-Skills", "1.1.2");
 /**
 * A collection of all aliased methods for this plugin.
 */

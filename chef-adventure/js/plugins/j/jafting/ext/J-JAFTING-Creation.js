@@ -9,6 +9,8 @@
  * @base J-JAFTING
  * @orderAfter J-Base
  * @orderAfter J-JAFTING
+ * @orderAfter J-Base-Save
+ * @orderAfter J-SDP
  * @help
  * ============================================================================
  * OVERVIEW

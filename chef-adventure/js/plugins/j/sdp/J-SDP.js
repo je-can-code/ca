@@ -11,8 +11,10 @@
  * @orderAfter J-ABS
  * @orderAfter J-ABS-Speed
  * @orderAfter J-DropsControl
- * @orderAfter J-Natural
+ * @orderAfter J-NaturalGrowth
  * @orderAfter J-Proficiency
+ * @orderAfter J-Base-Save
+ * @orderAfter J-CMS
  * @orderBefore J-CriticalFactors
  * @help
  * ============================================================================

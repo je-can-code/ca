@@ -1,11 +1,12 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.4.0 DROPS] Enables greater control over loot drops.
+ * @plugindesc [v2.5.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
+ * @orderAfter J-Extend
  * @help
  * ============================================================================
  * This plugin rewrites the way gold and item drops from enemies are handled.
@@ -209,8 +210,20 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
- * - 2.4.0
- *    Declared the J.DROPS.EXT namespace so this plugin can carry extensions.
+ * - 2.5.0
+ *    Added drop upgrade ladders. A ladder names a chain of rows in ascending
+ *    order, and a battler carrying <dropUpgrade:N> promotes each drop N rungs
+ *    along whichever ladder claims it, so a single authored drop can express a
+ *    whole rarity tier without the enemy listing every rung it might yield.
+ *    Added <dropQuantity:N>, granting extra copies of each item that dropped.
+ *    Both are summed from all note sources on both sides of the kill, because
+ *    an affix graded onto the slain enemy and a harvesting tool carried by the
+ *    killer are the same kind of contribution. An enemy's ordinary states are
+ *    already cleared by death; passive states held externally survive.
+ *    Added the postProcessDroppedLoot hook, which runs after loot is rolled and
+ *    before it is awarded. Extensions that observe or modify a haul alias this
+ *    rather than makeDropItems, so they see the list at a defined point rather
+ *    than racing each other through one override.
  * - 2.3.0
  *    Loot drops now resolve through the shared proc-count path, so a killer in
  *    Accumulate Mode earns a copy per successful roll rather than spending the
@@ -250,12 +263,156 @@
  */
 
 //#region src/plugins/drops/core/_metadata/_pluginMetadata.js
-var J_DropsControlPluginMetadata = class extends PluginMetadata {
+var J_DropsControlPluginMetadata = class J_DropsControlPluginMetadata extends PluginMetadata {
+	/**
+	* The upgrade ladders, keyed by {@link RPG_DropItem.Types}. Each inner map points a row id at the
+	* row id directly above it on its ladder.
+	* @type {Map<number, Map<number, number>>}
+	*/
+	upgradeLadders = new Map();
+	/**
+	* The downgrade ladders, keyed by {@link RPG_DropItem.Types}. Derived by inverting
+	* {@link upgradeLadders}, never authored, so the two directions cannot disagree.
+	* @type {Map<number, Map<number, number>>}
+	*/
+	downgradeLadders = new Map();
 	/**
 	* Constructor.
 	*/
 	constructor(name, version) {
 		super(name, version);
+	}
+	/**
+	* The three database tables a drop can point into, paired with the drop kind that identifies each.
+	*
+	* Named here rather than at the boot call site so the ladder builder can be handed a fixture in a
+	* test without a database, and so the drop-kind-to-table mapping lives in exactly one place.
+	* @returns {({kind: number, name: string, rows: RPG_BaseItem[]})[]}
+	*/
+	dropLadderTables() {
+		return [
+			{
+				kind: RPG_DropItem.Types.Item,
+				name: "item",
+				rows: $dataItems
+			},
+			{
+				kind: RPG_DropItem.Types.Weapon,
+				name: "weapon",
+				rows: $dataWeapons
+			},
+			{
+				kind: RPG_DropItem.Types.Armor,
+				name: "armor",
+				rows: $dataArmors
+			}
+		];
+	}
+	/**
+	* Builds and validates every drop upgrade ladder from the database.
+	*
+	* Runs once at boot rather than lazily, because the point of the validation is to fail at launch
+	* where a person is watching. A ladder defect discovered at kill time is a drop that quietly
+	* vanishes; the same defect discovered here names the offending rows.
+	* @param {({kind: number, name: string, rows: RPG_BaseItem[]})[]} tables The database tables to scan.
+	*/
+	buildDropLadders(tables) {
+		tables.forEach((table) => {
+			const { kind, name, rows } = table;
+			const upgrades = J_DropsControlPluginMetadata.readLadderLinks(name, rows);
+			J_DropsControlPluginMetadata.assertNoLadderCycles(name, upgrades);
+			this.upgradeLadders.set(kind, upgrades);
+			this.downgradeLadders.set(kind, J_DropsControlPluginMetadata.invertLadder(upgrades));
+		}, this);
+	}
+	/**
+	* Reads every authored `<dropUpgradeId>` in one table into a map of row to the row above it.
+	*
+	* Two things are fatal here. A link naming a row the table does not contain would resolve to
+	* nothing at kill time and silently delete the drop, so an unknown id fails now. Two rows naming
+	* the same row above them would invert into one row with two rows beneath it, and a downgrade
+	* could not choose between them- a ladder with a fork is not a ladder.
+	* @param {string} name The human-readable table name, used only in error messages.
+	* @param {RPG_BaseItem[]} rows The table to scan.
+	* @returns {Map<number, number>}
+	*/
+	static readLadderLinks(name, rows) {
+		const upgrades = new Map();
+		const claimedBy = new Map();
+		rows.forEach((row, id) => {
+			const upgradeId = RPGManager.getNumberFromNoteByRegex(row, J.DROPS.RegExp.DropUpgradeId);
+			if (upgradeId === 0) return;
+			const target = rows.at(upgradeId);
+			if (!target) {
+				throw new Error(`J-DropsControl: ${name} row [${id}] has <dropUpgradeId:${upgradeId}>, ` + `which is not a row in that table.`);
+			}
+			if (claimedBy.has(upgradeId)) {
+				const otherId = claimedBy.get(upgradeId);
+				throw new Error(`J-DropsControl: ${name} rows [${otherId}] and [${id}] both promote into [${upgradeId}], ` + `which forks the downgrade path.`);
+			}
+			claimedBy.set(upgradeId, id);
+			upgrades.set(id, upgradeId);
+		});
+		return upgrades;
+	}
+	/**
+	* Verifies no ladder in this table loops back on itself.
+	*
+	* Walks from **every** linked row rather than from the roots. A closed loop has no root- every one
+	* of its members has something pointing at it- so a root-first sweep would never enter one and the
+	* defect would survive boot untouched.
+	* @param {string} name The human-readable table name, used only in error messages.
+	* @param {Map<number, number>} upgrades The ladder links for one table.
+	*/
+	static assertNoLadderCycles(name, upgrades) {
+		upgrades.forEach((unusedTarget, startId) => {
+			const visited = new Set();
+			let current = startId;
+			while (upgrades.has(current)) {
+				if (visited.has(current)) {
+					throw new Error(`J-DropsControl: ${name} row [${current}] is part of a circular drop upgrade ladder.`);
+				}
+				visited.add(current);
+				current = upgrades.get(current);
+			}
+		});
+	}
+	/**
+	* Inverts one table's ladder into its downgrade direction.
+	*
+	* Safe to do blindly because {@link readLadderLinks} already rejected the only shape that would
+	* make the inverse ambiguous.
+	* @param {Map<number, number>} upgrades The ladder links for one table.
+	* @returns {Map<number, number>}
+	*/
+	static invertLadder(upgrades) {
+		const downgrades = new Map();
+		upgrades.forEach((upperId, lowerId) => downgrades.set(upperId, lowerId));
+		return downgrades;
+	}
+	/**
+	* Walks a row along its ladder by the given number of rungs.
+	*
+	* Positive counts climb and negative counts descend, both stopping at the end of the chain rather
+	* than reporting a problem- over-promoting is a normal outcome of a generous roll, not a
+	* misconfiguration. A row on no ladder is its own answer.
+	* @param {number} kind The {@link RPG_DropItem.Types} of the row being walked.
+	* @param {number} id The row id to start from.
+	* @param {number} rungs How many rungs to travel; negative descends.
+	* @returns {number} The row id arrived at.
+	*/
+	walkDropLadder(kind, id, rungs) {
+		const climbing = rungs > 0;
+		const ladders = climbing ? this.upgradeLadders : this.downgradeLadders;
+		const ladder = ladders.get(kind);
+		if (!ladder) return id;
+		let current = id;
+		let remaining = Math.abs(rungs);
+		while (remaining > 0 && ladder.has(current)) {
+			current = ladder.get(current);
+			remaining -= 1;
+		}
+		return current;
 	}
 };
 
@@ -276,7 +433,7 @@ J.DROPS.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.4.0");
+J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.5.0");
 /**
 * All regular expressions used by this plugin.
 */
@@ -284,6 +441,68 @@ J.DROPS.RegExp = {};
 J.DROPS.RegExp.ExtraDrop = /<drops:[ ]?(\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)])>/i;
 J.DROPS.RegExp.DropMultiplier = /<dropMultiplier:[ ]?(-?\d+)>/i;
 J.DROPS.RegExp.GoldMultiplier = /<goldMultiplier:[ ]?(-?\d+)>/i;
+/**
+* The rung above this row on its drop upgrade ladder.
+*
+* Authored on the lower row, naming the row it promotes into. Only the upward links are authored; the
+* downgrade direction is derived by inverting them at boot, so the two directions can never disagree.
+* The id is read against whichever table the tagged row lives in, which is what makes an armor
+* incapable of promoting into an item.
+*
+* <pre>
+* Structure:
+*  <dropUpgradeId:ID>
+*
+* Example:
+*  <dropUpgradeId:307>
+*
+* Translation:
+*  Promoting this row once yields row 307 of the same table.
+* </pre>
+* @type {RegExp}
+*/
+J.DROPS.RegExp.DropUpgradeId = /<dropUpgradeId:[ ]?(\d+)>/i;
+/**
+* How many rungs to promote a drop along its ladder.
+*
+* Summed across every note source of the slain enemy and of its killer, so an affix on the target and
+* a harvesting tool on the killer add together rather than competing. Negative values walk the ladder
+* downward. Over-promoting is not an error- the walk simply stops at the end of the chain.
+*
+* <pre>
+* Structure:
+*  <dropUpgrade:AMOUNT>
+*
+* Example:
+*  <dropUpgrade:2>
+*
+* Translation:
+*  Drops from this kill are promoted two rungs up their ladder.
+* </pre>
+* @type {RegExp}
+*/
+J.DROPS.RegExp.DropUpgrade = /<dropUpgrade:[ ]?(-?\d+)>/gi;
+/**
+* How many extra copies of each dropped item to grant.
+*
+* Summed like {@link J.DROPS.RegExp.DropUpgrade}, and applied once per distinct item that dropped
+* rather than once per drop entry- an enemy listing the same item four times has dropped one thing,
+* and the bonus lands on the thing. Negative values remove copies and may remove the last one, which
+* is what gives negative affixes teeth.
+*
+* <pre>
+* Structure:
+*  <dropQuantity:AMOUNT>
+*
+* Example:
+*  <dropQuantity:2>
+*
+* Translation:
+*  Two extra copies of each distinct item dropped by this kill.
+* </pre>
+* @type {RegExp}
+*/
+J.DROPS.RegExp.DropQuantity = /<dropQuantity:[ ]?(-?\d+)>/gi;
 J.DROPS.RegExp.DropRateBuffPlus = /<dorBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
 J.DROPS.RegExp.DropRateBuffRate = /<dorBuffRate:\[([+\-*/ ().\w]+)]>/gi;
 J.DROPS.RegExp.DropRateGrowthPlus = /<dorGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
@@ -602,6 +821,31 @@ Game_Battler.prototype.dorNaturalGrowths = function() {
 	if (!growthPlus && !growthRate) return 0;
 	return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
+/**
+* How many rungs this battler promotes drops by.
+*
+* Lives on the battler rather than the enemy so a slain enemy and the killer answer the same question
+* the same way- an affix graded onto the target and a harvesting tool carried by the killer are the
+* same kind of contribution and get summed rather than ranked.
+*
+* Note that an enemy's ordinary applied states are already gone by the time drops are made, since
+* death clears them. Affixes survive because they are passive states held in an external source.
+* @returns {number}
+*/
+Game_Battler.prototype.dropUpgradeCount = function() {
+	const objectsToCheck = this.getAllNotes();
+	return RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropUpgrade);
+};
+/**
+* How many extra copies of each dropped item this battler grants.
+*
+* Sourced identically to {@link #dropUpgradeCount}; see there for why both sides of a kill contribute.
+* @returns {number}
+*/
+Game_Battler.prototype.dropQuantityBonus = function() {
+	const objectsToCheck = this.getAllNotes();
+	return RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropQuantity);
+};
 
 //#endregion
 //#region src/plugins/drops/core/objects/Game_Actor.js
@@ -733,7 +977,100 @@ Game_Enemy.prototype.makeDropItems = function(killer = null) {
 			this.findLoot(drop, itemsFound);
 		}
 	}, this);
-	return itemsFound;
+	return this.postProcessDroppedLoot(itemsFound, killer);
+};
+/**
+* Applies the quality and quantity modifiers to loot that has already won its roll.
+*
+* Deliberately a pass over the finished list rather than work done inside the drop loop. Quantity has
+* to see the whole list at once, because it grants copies per distinct item rather than per drop
+* entry, and an enemy listing the same item four times has dropped one thing. Quality could have
+* lived in {@link #findLoot}, but that method is aliased elsewhere with a fixed signature and a new
+* argument would be silently swallowed before it ever arrived.
+*
+* Order matters: promotion runs first so the quantity bonus grants more of what you actually
+* received. Two rows that both clamp onto the same top rung are one item by the time quantity counts
+* them, which is the intended reading- you got one kind of thing, so you get more of that kind.
+* @param {RPG_BaseItem[]} itemsFound The loot that successfully dropped.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known.
+* @returns {RPG_BaseItem[]} The loot as the player will actually receive it.
+*/
+Game_Enemy.prototype.postProcessDroppedLoot = function(itemsFound, killer = null) {
+	const promoted = this.promoteDroppedLoot(itemsFound, killer);
+	return this.applyDropQuantityBonus(promoted, killer);
+};
+/**
+* Walks each dropped item along its ladder by the resolved number of rungs.
+* @param {RPG_BaseItem[]} itemsFound The loot that successfully dropped.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known.
+* @returns {RPG_BaseItem[]}
+*/
+Game_Enemy.prototype.promoteDroppedLoot = function(itemsFound, killer = null) {
+	const rungs = this.resolveDropUpgradeCount(killer);
+	if (rungs === 0) return itemsFound;
+	const promoting = (item) => {
+		const promotedId = J.DROPS.Metadata.walkDropLadder(item.kind, item.id, rungs);
+		if (promotedId === item.id) return item;
+		return this.itemObject(item.kind, promotedId);
+	};
+	return itemsFound.map(promoting, this);
+};
+/**
+* Grants or removes copies of each distinct item that dropped.
+*
+* The bonus lands once per distinct row, never once per drop entry- four identical drop entries are
+* one item as far as the player is concerned, and scaling by how the author split their rows would
+* make the same tag mean different things on identically-behaving enemies.
+* @param {RPG_BaseItem[]} itemsFound The loot that successfully dropped.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known.
+* @returns {RPG_BaseItem[]}
+*/
+Game_Enemy.prototype.applyDropQuantityBonus = function(itemsFound, killer = null) {
+	const bonus = this.resolveDropQuantityBonus(killer);
+	if (bonus === 0) return itemsFound;
+	/** @type {Map<string, {item: RPG_BaseItem, count: number}>} */
+	const tallies = new Map();
+	itemsFound.forEach((item, index) => {
+		const key = item.id ? `${item.kind}:${item.id}` : `synthetic:${index}`;
+		const tally = tallies.get(key) ?? {
+			item,
+			count: 0
+		};
+		tally.count += 1;
+		tallies.set(key, tally);
+	});
+	const adjusted = [];
+	tallies.forEach((tally) => {
+		const { item, count } = tally;
+		const total = item.id ? Math.max(count + bonus, 0) : count;
+		for (let index = 0; index < total; index++) {
+			adjusted.push(item);
+		}
+	});
+	return adjusted;
+};
+/**
+* How many rungs this kill promotes its drops by, summing both sides of it.
+*
+* The enemy's own grade applies whether or not the killer is known- an affixed enemy felled by
+* something unidentified still drops what its affix promised.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known.
+* @returns {number}
+*/
+Game_Enemy.prototype.resolveDropUpgradeCount = function(killer = null) {
+	const enemyCount = this.dropUpgradeCount();
+	if (!killer) return enemyCount;
+	return enemyCount + killer.dropUpgradeCount();
+};
+/**
+* How many extra copies this kill grants of each distinct item, summing both sides of it.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known.
+* @returns {number}
+*/
+Game_Enemy.prototype.resolveDropQuantityBonus = function(killer = null) {
+	const enemyBonus = this.dropQuantityBonus();
+	if (!killer) return enemyBonus;
+	return enemyBonus + killer.dropQuantityBonus();
 };
 /**
 * Builds the drop to be found and adds it to the running list.
@@ -993,6 +1330,7 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.DROPS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
 	DropsParameterRegistration.registerAll();
 	J.EXTEND.Metadata.registerNonCombiningKey(J.DROPS.RegExp.ExtraDrop);
+	J.DROPS.Metadata.buildDropLadders(J.DROPS.Metadata.dropLadderTables());
 };
 
 //#endregion

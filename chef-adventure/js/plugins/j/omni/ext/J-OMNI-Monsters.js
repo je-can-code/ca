@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.1 OMNI-MONSTER] Extends the Omnipedia with a Monsterpedia entry.
+ * [v2.0.0 OMNI-MONSTER] Extends the Omnipedia with a Monsterpedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -11,6 +11,8 @@
  * @base J-Elementalistics
  * @base J-SDP
  * @base J-Omnipedia
+ * @orderAfter J-HUD
+ * @orderAfter J-HUD-TargetFrame
  * @help
  * ============================================================================
  * OVERVIEW
@@ -57,6 +59,17 @@
  * one per tag, in the order they appear on the note.
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    Renamed from J-Omni-Monsterpedia to J-OMNI-Monsters. The shipped file is
+ *    renamed with it, so an existing plugins.js entry must be updated or the
+ *    plugin will simply not load.
+ *    Drop observation moved from makeDropItems to J-DropsControl's new
+ *    postProcessDroppedLoot hook, and deliberately reads the incoming list
+ *    rather than the returned one. What arrives is the loot as this enemy's own
+ *    rows describe it; what leaves may have been promoted up a drop upgrade
+ *    ladder into rows the enemy never lists. The pedia unmasks drop entries by
+ *    their base ids, so observing the promoted list would credit an entry the
+ *    enemy does not have and leave the real one masked permanently.
  * - 1.2.1
  *    The monsterpedia detail window no longer declares private members. A
  *    window's constructor reaches initialize, and through it the drawing
@@ -150,7 +163,7 @@ J.OMNI.EXT.MONSTER = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.OMNI.EXT.MONSTER.Metadata = new J_OmniMonster_PluginMetadata("J-Omni-Monsterpedia", "1.2.1");
+J.OMNI.EXT.MONSTER.Metadata = new J_OmniMonster_PluginMetadata("J-OMNI-Monsters", "2.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -373,16 +386,22 @@ Game_Enemy.prototype.learnMonsterpediaParameters = function() {
 	observations.knowsParameters = true;
 };
 /**
-* Extends {@link #makeDropItems}.<br/>
+* Extends {@link #postProcessDroppedLoot}.<br/>
 * Also observes each drop dropped for monsterpedia purposes.
+*
+* Observes the **incoming** list rather than the returned one, deliberately. What arrives here is the
+* loot as this enemy's database rows describe it; what leaves may have been promoted up a drop
+* upgrade ladder into rows the enemy does not list at all. The pedia unmasks an enemy's own drop
+* entries by their base ids, so a promoted row would both credit the wrong entry and leave the real
+* one masked forever. The drop dropped- it merely also got upgraded on the way out.
+* @param {RPG_BaseItem[]} itemsFound The loot that successfully dropped, before modifiers.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known.
+* @returns {RPG_BaseItem[]}
 */
-J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.set("makeDropItems", Game_Enemy.prototype.makeDropItems);
-Game_Enemy.prototype.makeDropItems = function() {
-	const drops = J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.get("makeDropItems").call(this);
-	if (drops.length) {
-		drops.forEach(this.observeDrop, this);
-	}
-	return drops;
+J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.set("postProcessDroppedLoot", Game_Enemy.prototype.postProcessDroppedLoot);
+Game_Enemy.prototype.postProcessDroppedLoot = function(itemsFound, killer = null) {
+	itemsFound.forEach(this.observeDrop, this);
+	return J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.get("postProcessDroppedLoot").call(this, itemsFound, killer);
 };
 /**
 * Observes a given drop, and records it in the monsterpedia if applicable.
@@ -1838,4 +1857,4 @@ SerializableRegistry.extend(Game_Party, { transients: { "_j._omni._monsterpediaO
 } } });
 
 //#endregion
-//# sourceMappingURL=J-Omni-Monsters.js.map
+//# sourceMappingURL=J-OMNI-Monsters.js.map

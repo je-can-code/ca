@@ -19,6 +19,10 @@
  * @orderAfter J-Proficiency
  * @orderAfter J-NaturalGrowth
  * @orderAfter J-Elementalistics
+ * @orderAfter J-ABS
+ * @orderAfter J-Aptitude
+ * @orderAfter J-Base-Save
+ * @orderAfter J-Resources
  *
  * @help
  * ============================================================================

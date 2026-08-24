@@ -9,6 +9,7 @@
  * @base J-Proficiency
  * @orderAfter J-Base
  * @orderAfter J-Proficiency
+ * @orderAfter J-CMS
  * @help
  * ============================================================================
  * OVERVIEW

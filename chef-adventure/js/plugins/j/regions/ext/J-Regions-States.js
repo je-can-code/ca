@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.1.1 REGIONS-STATES] Enables application of states via region ids.
+ * @plugindesc [v1.1.2 REGIONS-STATES] Enables application of states via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -96,6 +96,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    Corrected PLUGIN_NAME from J-Region-States to J-Regions-States, matching
+ *    the name the ship has always been built and shipped under.
  * - 1.1.1
  *    Adapted to the RPGManager array read signature.
  * - 1.1.0
@@ -162,7 +165,7 @@ J.REGIONS.EXT.STATES = {};
 /**
 * The metadata associated with this plugin, such as name and version.
 */
-J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Region-States", "1.1.1");
+J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Regions-States", "1.1.2");
 /**
 * A collection of all aliased methods for this plugin.
 */

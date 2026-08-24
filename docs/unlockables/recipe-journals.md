@@ -1,7 +1,7 @@
 # Recipe Journals → Recipe Pages
 
 > Rewritten 2026-08-14: the Journals are **RETIRED** (ruling 2026-08-11, executed in the same item-table
-> effort that relocated the RGB Technohypercube to `Items[94]`). This doc records what was removed, what
+> effort that relocated the RGB Technohypercube, which now lives at `Items[174]`). This doc records what was removed, what
 > replaced it, and what carried forward. The full replacement design lives in
 > [recipe-system.md](../food/recipe-system.md) ("Recipe pages replace them" / "The study shop").
 

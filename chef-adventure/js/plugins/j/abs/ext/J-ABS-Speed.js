@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 ABS-SPEED] Enable modifying move speeds.
+ * [v1.1.1 ABS-SPEED] Enable modifying move speeds.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -66,6 +66,9 @@
  * This battler's movement speed will be increased by ~40%.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Corrected PLUGIN_NAME from J-ABS-SpeedBoosts to J-ABS-Speed, matching the
+ *    name the ship has always been built and shipped under.
  * - 1.1.0
  *    Move speed boost (msb) registered with the shared parameter catalog
  *    and given an SDP panel binding, so it can now be invested via SDP.
@@ -116,7 +119,7 @@ J.ABS.EXT.SPEED = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-SpeedBoosts", "1.1.0");
+J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-Speed", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

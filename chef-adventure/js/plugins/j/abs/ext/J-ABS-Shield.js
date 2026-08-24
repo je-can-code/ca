@@ -10,7 +10,8 @@
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @orderAfter J-Elementalistics
- * @orderAfter J-HUD-Party
+ * @orderAfter J-HUD
+ * @orderAfter J-HUD-PartyFrame
  * @help
  * ============================================================================
  * OVERVIEW

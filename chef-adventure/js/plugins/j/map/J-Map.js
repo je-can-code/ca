@@ -1,14 +1,18 @@
 //region annoations
 /*:
  * @target MZ
- * @plugindesc [v1.2.0 MAP] Renders a passability-driven minimap on the screen.
+ * @plugindesc [v1.2.1 MAP] Renders a passability-driven minimap on the screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @orderAfter J-HUD
- * @orderafter J-TIME
+ * @orderAfter J-TIME
+ * @orderAfter J-ABS-InputManager
+ * @orderAfter J-Base-Save
+ * @orderAfter J-Omnipedia
+ * @orderAfter J-OMNI-Quests
  * @help
  * ============================================================================
  * OVERVIEW
@@ -147,6 +151,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    Corrected PLUGIN_NAME from J-MAP to J-Map, matching the name the ship has
+ *    always been built and shipped under.
  * - 1.2.0
  *    Routed the _map namespace into its own save section, so minimap state
  *    lands in systems/map.json rather than inside the system blob.
@@ -287,7 +294,7 @@ J.MAP.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.MAP.Metadata = new J_MAP__PluginMetadata("J-MAP", "1.2.0");
+J.MAP.Metadata = new J_MAP__PluginMetadata("J-Map", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
