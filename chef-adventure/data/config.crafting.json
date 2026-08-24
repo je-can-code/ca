@@ -14745,7 +14745,7 @@
       ],
       "ingredients": [
         {
-          "id": 44,
+          "id": 42,
           "type": "i",
           "count": 5,
           "categories": []
@@ -14753,7 +14753,7 @@
       ],
       "outputs": [
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
           "count": 2,
           "categories": []
@@ -14796,6 +14796,43 @@
       ],
       "ingredients": [
         {
+          "id": 45,
+          "type": "i",
+          "count": 8,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 46,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "tier": 1,
+      "cost": []
+    },
+    {
+      "key": "paper-02",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
+      "tools": [
+        {
+          "id": 112,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
           "id": 47,
           "type": "i",
           "count": 8,
@@ -14810,11 +14847,11 @@
           "categories": []
         }
       ],
-      "tier": 1,
+      "tier": 2,
       "cost": []
     },
     {
-      "key": "paper-02",
+      "key": "paper-03",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14847,11 +14884,11 @@
           "categories": []
         }
       ],
-      "tier": 2,
+      "tier": 3,
       "cost": []
     },
     {
-      "key": "paper-03",
+      "key": "paper-04",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14884,11 +14921,11 @@
           "categories": []
         }
       ],
-      "tier": 3,
+      "tier": 4,
       "cost": []
     },
     {
-      "key": "paper-04",
+      "key": "paper-05",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14921,11 +14958,11 @@
           "categories": []
         }
       ],
-      "tier": 4,
+      "tier": 5,
       "cost": []
     },
     {
-      "key": "paper-05",
+      "key": "paper-06",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -14953,43 +14990,6 @@
       "outputs": [
         {
           "id": 56,
-          "type": "i",
-          "count": 5,
-          "categories": []
-        }
-      ],
-      "tier": 5,
-      "cost": []
-    },
-    {
-      "key": "paper-06",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": true,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "material-manufacturing"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 57,
-          "type": "i",
-          "count": 8,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 58,
           "type": "i",
           "count": 5,
           "categories": []
@@ -15331,7 +15331,7 @@
           "categories": []
         },
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
           "count": 1,
           "categories": []
@@ -15388,10 +15388,18 @@
       ],
       "ingredients": [
         {
-          "id": 30,
+          "id": 31,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        },
+        {
+          "id": 0,
           "type": "i",
           "count": 1,
-          "categories": []
+          "categories": [
+            "fabric"
+          ]
         }
       ],
       "outputs": [
@@ -15425,10 +15433,27 @@
       ],
       "ingredients": [
         {
-          "id": 30,
+          "id": 33,
           "type": "i",
-          "count": 3,
+          "count": 4,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
         }
       ],
       "outputs": [
@@ -15468,16 +15493,35 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 35,
           "type": "i",
-          "count": 1,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 26,
+          "id": 0,
           "type": "i",
           "count": 2,
-          "categories": []
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "skull"
+          ]
         }
       ],
       "outputs": [
@@ -15523,22 +15567,43 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 37,
           "type": "i",
-          "count": 5,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 26,
+          "id": 0,
           "type": "i",
-          "count": 10,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
         },
         {
-          "id": 27,
+          "id": 0,
           "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "skull"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
           "count": 3,
-          "categories": []
+          "categories": [
+            "powder"
+          ]
         }
       ],
       "outputs": [
@@ -15578,16 +15643,43 @@
       ],
       "ingredients": [
         {
-          "id": 43,
+          "id": 39,
           "type": "i",
           "count": 10,
           "categories": []
         },
         {
-          "id": 28,
+          "id": 0,
           "type": "i",
-          "count": 10,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "skull"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "powder"
+          ]
         }
       ],
       "outputs": [
@@ -15627,16 +15719,51 @@
       ],
       "ingredients": [
         {
-          "id": 43,
+          "id": 41,
           "type": "i",
-          "count": 15,
+          "count": 12,
           "categories": []
         },
         {
-          "id": 28,
+          "id": 0,
           "type": "i",
-          "count": 15,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "skull"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "powder"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "wings"
+          ]
         }
       ],
       "outputs": [
@@ -15674,6 +15801,30 @@
           "type": "w",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 94,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 28,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        },
+        {
+          "id": 520,
+          "type": "a",
+          "count": 4,
+          "categories": []
         }
       ],
       "outputs": [
@@ -15707,9 +15858,9 @@
       ],
       "ingredients": [
         {
-          "id": 30,
+          "id": 31,
           "type": "i",
-          "count": 4,
+          "count": 2,
           "categories": []
         }
       ],
@@ -15750,16 +15901,27 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 33,
           "type": "i",
           "count": 4,
           "categories": []
         },
         {
-          "id": 17,
+          "id": 0,
           "type": "i",
           "count": 2,
-          "categories": []
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "elemental",
+            "verte"
+          ]
         }
       ],
       "outputs": [
@@ -15805,22 +15967,35 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 35,
           "type": "i",
-          "count": 15,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 17,
+          "id": 0,
           "type": "i",
-          "count": 10,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
         },
         {
-          "id": 18,
+          "id": 0,
           "type": "i",
-          "count": 3,
-          "categories": []
+          "count": 4,
+          "categories": [
+            "elemental",
+            "verte"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "mineral"
+          ]
         }
       ],
       "outputs": [
@@ -15860,16 +16035,43 @@
       ],
       "ingredients": [
         {
-          "id": 43,
+          "id": 37,
           "type": "i",
-          "count": 15,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 19,
+          "id": 0,
           "type": "i",
-          "count": 10,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "verte"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "mineral"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "fossil"
+          ]
         }
       ],
       "outputs": [
@@ -15909,16 +16111,43 @@
       ],
       "ingredients": [
         {
-          "id": 43,
+          "id": 39,
           "type": "i",
-          "count": 23,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 19,
+          "id": 0,
           "type": "i",
-          "count": 15,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "verte"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "mineral"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "fossil"
+          ]
         }
       ],
       "outputs": [
@@ -15958,16 +16187,51 @@
       ],
       "ingredients": [
         {
-          "id": 43,
+          "id": 41,
           "type": "i",
-          "count": 30,
+          "count": 12,
           "categories": []
         },
         {
-          "id": 19,
+          "id": 0,
           "type": "i",
-          "count": 20,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "verte"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "mineral"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "fossil"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "plank"
+          ]
         }
       ],
       "outputs": [
@@ -16004,6 +16268,24 @@
           "id": 16,
           "type": "w",
           "count": 1,
+          "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 19,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        },
+        {
+          "id": 430,
+          "type": "a",
+          "count": 4,
           "categories": []
         }
       ],
@@ -16044,16 +16326,24 @@
       ],
       "ingredients": [
         {
-          "id": 30,
+          "id": 14,
           "type": "i",
           "count": 2,
           "categories": []
         },
         {
-          "id": 14,
+          "id": 11,
           "type": "i",
           "count": 2,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 1,
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -16093,16 +16383,24 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 14,
           "type": "i",
-          "count": 2,
+          "count": 4,
           "categories": []
         },
         {
           "id": 11,
           "type": "i",
-          "count": 2,
+          "count": 4,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -16136,16 +16434,32 @@
       ],
       "ingredients": [
         {
-          "id": 38,
+          "id": 14,
           "type": "i",
-          "count": 20,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 39,
+          "id": 11,
           "type": "i",
-          "count": 5,
+          "count": 6,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "seashell"
+          ]
         }
       ],
       "outputs": [
@@ -16179,16 +16493,40 @@
       ],
       "ingredients": [
         {
-          "id": 38,
+          "id": 15,
           "type": "i",
-          "count": 23,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 39,
+          "id": 12,
           "type": "i",
-          "count": 7,
+          "count": 8,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "seashell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "scales"
+          ]
         }
       ],
       "outputs": [
@@ -16222,16 +16560,40 @@
       ],
       "ingredients": [
         {
-          "id": 38,
+          "id": 15,
           "type": "i",
-          "count": 27,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 39,
+          "id": 12,
           "type": "i",
-          "count": 8,
+          "count": 10,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "seashell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "scales"
+          ]
         }
       ],
       "outputs": [
@@ -16265,16 +16627,40 @@
       ],
       "ingredients": [
         {
-          "id": 38,
+          "id": 16,
           "type": "i",
-          "count": 30,
+          "count": 12,
           "categories": []
         },
         {
-          "id": 39,
+          "id": 13,
           "type": "i",
-          "count": 10,
+          "count": 12,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "seashell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "scales"
+          ]
         }
       ],
       "outputs": [
@@ -16312,6 +16698,24 @@
           "type": "w",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 16,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        },
+        {
+          "id": 455,
+          "type": "a",
+          "count": 4,
+          "categories": []
         }
       ],
       "outputs": [
@@ -16345,10 +16749,18 @@
       ],
       "ingredients": [
         {
-          "id": 371,
-          "type": "a",
-          "count": 1,
+          "id": 45,
+          "type": "i",
+          "count": 2,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 1,
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -16388,16 +16800,18 @@
       ],
       "ingredients": [
         {
-          "id": 30,
+          "id": 47,
           "type": "i",
-          "count": 2,
+          "count": 4,
           "categories": []
         },
         {
-          "id": 371,
-          "type": "a",
+          "id": 0,
+          "type": "i",
           "count": 2,
-          "categories": []
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -16437,16 +16851,26 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 49,
           "type": "i",
-          "count": 2,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 372,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
           "count": 2,
-          "categories": []
+          "categories": [
+            "horn"
+          ]
         }
       ],
       "outputs": [
@@ -16486,16 +16910,34 @@
       ],
       "ingredients": [
         {
-          "id": 33,
+          "id": 51,
           "type": "i",
-          "count": 5,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 373,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 15,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "horn"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "talon"
+          ]
         }
       ],
       "outputs": [
@@ -16535,16 +16977,34 @@
       ],
       "ingredients": [
         {
-          "id": 33,
+          "id": 53,
           "type": "i",
-          "count": 6,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 373,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 19,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "horn"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "talon"
+          ]
         }
       ],
       "outputs": [
@@ -16584,16 +17044,42 @@
       ],
       "ingredients": [
         {
-          "id": 33,
+          "id": 55,
           "type": "i",
-          "count": 8,
+          "count": 12,
           "categories": []
         },
         {
-          "id": 373,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 23,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "horn"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "talon"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "bone"
+          ]
         }
       ],
       "outputs": [
@@ -16630,6 +17116,24 @@
           "id": 36,
           "type": "w",
           "count": 1,
+          "categories": []
+        },
+        {
+          "id": 57,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 320,
+          "type": "a",
+          "count": 4,
           "categories": []
         }
       ],
@@ -16670,16 +17174,18 @@
       ],
       "ingredients": [
         {
-          "id": 30,
+          "id": 45,
           "type": "i",
           "count": 2,
           "categories": []
         },
         {
-          "id": 47,
+          "id": 0,
           "type": "i",
-          "count": 2,
-          "categories": []
+          "count": 1,
+          "categories": [
+            "fabric"
+          ]
         }
       ],
       "outputs": [
@@ -16719,16 +17225,27 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 47,
           "type": "i",
           "count": 4,
           "categories": []
         },
         {
-          "id": 49,
+          "id": 0,
           "type": "i",
-          "count": 4,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "elemental",
+            "jaune"
+          ]
         }
       ],
       "outputs": [
@@ -16768,16 +17285,35 @@
       ],
       "ingredients": [
         {
-          "id": 34,
+          "id": 49,
           "type": "i",
-          "count": 10,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 51,
+          "id": 0,
           "type": "i",
-          "count": 5,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "jaune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "topaz"
+          ]
         }
       ],
       "outputs": [
@@ -16817,16 +17353,35 @@
       ],
       "ingredients": [
         {
-          "id": 34,
+          "id": 51,
           "type": "i",
-          "count": 12,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 51,
+          "id": 0,
           "type": "i",
-          "count": 6,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "jaune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "topaz"
+          ]
         }
       ],
       "outputs": [
@@ -16866,16 +17421,35 @@
       ],
       "ingredients": [
         {
-          "id": 34,
+          "id": 53,
           "type": "i",
-          "count": 15,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 51,
+          "id": 0,
           "type": "i",
-          "count": 8,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "jaune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "topaz"
+          ]
         }
       ],
       "outputs": [
@@ -16915,16 +17489,35 @@
       ],
       "ingredients": [
         {
-          "id": 34,
+          "id": 55,
           "type": "i",
-          "count": 20,
+          "count": 12,
           "categories": []
         },
         {
-          "id": 51,
+          "id": 0,
           "type": "i",
-          "count": 10,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "jaune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "topaz"
+          ]
         }
       ],
       "outputs": [
@@ -16962,6 +17555,24 @@
           "type": "w",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 57,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 94,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 22,
+          "type": "i",
+          "count": 6,
+          "categories": []
         }
       ],
       "outputs": [
@@ -16995,16 +17606,18 @@
       ],
       "ingredients": [
         {
-          "id": 47,
+          "id": 45,
           "type": "i",
           "count": 2,
           "categories": []
         },
         {
-          "id": 346,
-          "type": "a",
+          "id": 0,
+          "type": "i",
           "count": 1,
-          "categories": []
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -17038,16 +17651,18 @@
       ],
       "ingredients": [
         {
-          "id": 49,
+          "id": 47,
           "type": "i",
-          "count": 3,
+          "count": 4,
           "categories": []
         },
         {
-          "id": 347,
-          "type": "a",
-          "count": 4,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -17081,16 +17696,26 @@
       ],
       "ingredients": [
         {
-          "id": 51,
+          "id": 49,
           "type": "i",
-          "count": 4,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 348,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 8,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "stinger"
+          ]
         }
       ],
       "outputs": [
@@ -17124,16 +17749,34 @@
       ],
       "ingredients": [
         {
-          "id": 53,
+          "id": 51,
           "type": "i",
-          "count": 6,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 349,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 12,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "stinger"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "tooth"
+          ]
         }
       ],
       "outputs": [
@@ -17167,22 +17810,34 @@
       ],
       "ingredients": [
         {
-          "id": 55,
+          "id": 53,
           "type": "i",
-          "count": 8,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 350,
-          "type": "a",
-          "count": 15,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
         },
         {
-          "id": 379,
+          "id": 0,
           "type": "a",
-          "count": 5,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "stinger"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "tooth"
+          ]
         }
       ],
       "outputs": [
@@ -17216,22 +17871,42 @@
       ],
       "ingredients": [
         {
-          "id": 57,
+          "id": 55,
           "type": "i",
-          "count": 10,
+          "count": 12,
           "categories": []
         },
         {
-          "id": 350,
-          "type": "a",
-          "count": 20,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
         },
         {
-          "id": 380,
+          "id": 0,
           "type": "a",
-          "count": 10,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "stinger"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "tooth"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "wings"
+          ]
         }
       ],
       "outputs": [
@@ -17268,6 +17943,24 @@
           "id": 56,
           "type": "w",
           "count": 1,
+          "categories": []
+        },
+        {
+          "id": 57,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 350,
+          "type": "a",
+          "count": 4,
           "categories": []
         }
       ],
@@ -17308,16 +18001,18 @@
       ],
       "ingredients": [
         {
-          "id": 47,
+          "id": 45,
           "type": "i",
-          "count": 1,
+          "count": 2,
           "categories": []
         },
         {
-          "id": 306,
-          "type": "a",
-          "count": 1,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -17363,22 +18058,18 @@
       ],
       "ingredients": [
         {
-          "id": 30,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 47,
           "type": "i",
-          "count": 1,
+          "count": 4,
           "categories": []
         },
         {
-          "id": 306,
-          "type": "a",
-          "count": 2,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -17418,16 +18109,26 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 49,
           "type": "i",
-          "count": 3,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 307,
+          "id": 0,
+          "type": "i",
+          "count": 6,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 4,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "powder"
+          ]
         }
       ],
       "outputs": [
@@ -17467,16 +18168,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 51,
           "type": "i",
-          "count": 4,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 307,
+          "id": 0,
+          "type": "i",
+          "count": 8,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 6,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "powder"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "cell"
+          ]
         }
       ],
       "outputs": [
@@ -17516,16 +18235,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 53,
           "type": "i",
-          "count": 5,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 307,
+          "id": 0,
+          "type": "i",
+          "count": 10,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 7,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "powder"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "cell"
+          ]
         }
       ],
       "outputs": [
@@ -17565,16 +18302,42 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 55,
           "type": "i",
-          "count": 6,
+          "count": 12,
           "categories": []
         },
         {
-          "id": 307,
+          "id": 0,
+          "type": "i",
+          "count": 12,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 9,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "powder"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "mineral"
+          ]
         }
       ],
       "outputs": [
@@ -17611,6 +18374,18 @@
           "id": 66,
           "type": "w",
           "count": 1,
+          "categories": []
+        },
+        {
+          "id": 57,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 310,
+          "type": "a",
+          "count": 4,
           "categories": []
         }
       ],
@@ -17651,16 +18426,18 @@
       ],
       "ingredients": [
         {
-          "id": 30,
+          "id": 75,
           "type": "i",
           "count": 2,
           "categories": []
         },
         {
-          "id": 376,
-          "type": "a",
+          "id": 0,
+          "type": "i",
           "count": 1,
-          "categories": []
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -17700,16 +18477,18 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 76,
           "type": "i",
-          "count": 6,
+          "count": 4,
           "categories": []
         },
         {
-          "id": 377,
-          "type": "a",
+          "id": 0,
+          "type": "i",
           "count": 2,
-          "categories": []
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -17749,16 +18528,26 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 77,
           "type": "i",
-          "count": 8,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 377,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 3,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "acupuncture"
+          ]
         }
       ],
       "outputs": [
@@ -17798,16 +18587,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 78,
           "type": "i",
-          "count": 10,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 377,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 4,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "acupuncture"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "cell"
+          ]
         }
       ],
       "outputs": [
@@ -17847,16 +18654,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 79,
           "type": "i",
-          "count": 15,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 377,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 6,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "acupuncture"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "cell"
+          ]
         }
       ],
       "outputs": [
@@ -17896,16 +18721,42 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 80,
           "type": "i",
-          "count": 20,
+          "count": 12,
           "categories": []
         },
         {
-          "id": 377,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 8,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "acupuncture"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "powder"
+          ]
         }
       ],
       "outputs": [
@@ -17942,6 +18793,24 @@
           "id": 76,
           "type": "w",
           "count": 1,
+          "categories": []
+        },
+        {
+          "id": 80,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 465,
+          "type": "a",
+          "count": 4,
           "categories": []
         }
       ],
@@ -17982,16 +18851,18 @@
       ],
       "ingredients": [
         {
-          "id": 30,
+          "id": 45,
           "type": "i",
-          "count": 1,
+          "count": 2,
           "categories": []
         },
         {
-          "id": 47,
-          "type": "i",
-          "count": 3,
-          "categories": []
+          "id": 0,
+          "type": "a",
+          "count": 1,
+          "categories": [
+            "powder"
+          ]
         }
       ],
       "outputs": [
@@ -18031,16 +18902,18 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 47,
           "type": "i",
-          "count": 3,
+          "count": 4,
           "categories": []
         },
         {
-          "id": 49,
-          "type": "i",
-          "count": 3,
-          "categories": []
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "powder"
+          ]
         }
       ],
       "outputs": [
@@ -18080,16 +18953,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 49,
           "type": "i",
-          "count": 4,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 49,
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "powder"
+          ]
+        },
+        {
+          "id": 0,
           "type": "i",
-          "count": 4,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
         }
       ],
       "outputs": [
@@ -18129,16 +19020,42 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 51,
           "type": "i",
-          "count": 6,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 49,
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "powder"
+          ]
+        },
+        {
+          "id": 0,
           "type": "i",
-          "count": 6,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "mineral"
+          ]
         }
       ],
       "outputs": [
@@ -18178,16 +19095,42 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 53,
           "type": "i",
-          "count": 9,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 49,
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "powder"
+          ]
+        },
+        {
+          "id": 0,
           "type": "i",
-          "count": 9,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "mineral"
+          ]
         }
       ],
       "outputs": [
@@ -18227,16 +19170,42 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 55,
           "type": "i",
           "count": 12,
           "categories": []
         },
         {
-          "id": 49,
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "powder"
+          ]
+        },
+        {
+          "id": 0,
           "type": "i",
-          "count": 12,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "mineral"
+          ]
         }
       ],
       "outputs": [
@@ -18274,6 +19243,18 @@
           "type": "w",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 57,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 310,
+          "type": "a",
+          "count": 4,
+          "categories": []
         }
       ],
       "outputs": [
@@ -18307,16 +19288,18 @@
       ],
       "ingredients": [
         {
-          "id": 30,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 47,
+          "id": 45,
           "type": "i",
           "count": 2,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 1,
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -18350,16 +19333,18 @@
       ],
       "ingredients": [
         {
-          "id": 30,
+          "id": 47,
           "type": "i",
-          "count": 2,
+          "count": 4,
           "categories": []
         },
         {
-          "id": 371,
-          "type": "a",
+          "id": 0,
+          "type": "i",
           "count": 2,
-          "categories": []
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -18393,16 +19378,26 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 49,
           "type": "i",
-          "count": 3,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 372,
-          "type": "a",
-          "count": 3,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "vine"
+          ]
         }
       ],
       "outputs": [
@@ -18436,16 +19431,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 51,
           "type": "i",
-          "count": 5,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 373,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "vine"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 4,
-          "categories": []
+          "count": 3,
+          "categories": [
+            "plank"
+          ]
         }
       ],
       "outputs": [
@@ -18479,16 +19492,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 53,
           "type": "i",
-          "count": 7,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 374,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "vine"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 5,
-          "categories": []
+          "count": 3,
+          "categories": [
+            "plank"
+          ]
         }
       ],
       "outputs": [
@@ -18522,16 +19553,42 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 55,
           "type": "i",
-          "count": 9,
+          "count": 12,
           "categories": []
         },
         {
-          "id": 375,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "vine"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 6,
-          "categories": []
+          "count": 3,
+          "categories": [
+            "plank"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "bone"
+          ]
         }
       ],
       "outputs": [
@@ -18569,6 +19626,24 @@
           "type": "w",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 57,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 265,
+          "type": "i",
+          "count": 4,
+          "categories": []
         }
       ],
       "outputs": [
@@ -18602,16 +19677,18 @@
       ],
       "ingredients": [
         {
-          "id": 30,
-          "type": "i",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 47,
+          "id": 31,
           "type": "i",
           "count": 2,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 1,
+          "categories": [
+            "wood"
+          ]
         }
       ],
       "outputs": [
@@ -18645,16 +19722,18 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 33,
           "type": "i",
-          "count": 6,
+          "count": 4,
           "categories": []
         },
         {
-          "id": 421,
-          "type": "a",
+          "id": 0,
+          "type": "i",
           "count": 2,
-          "categories": []
+          "categories": [
+            "wood"
+          ]
         }
       ],
       "outputs": [
@@ -18688,16 +19767,26 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 35,
           "type": "i",
-          "count": 8,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 422,
-          "type": "a",
-          "count": 3,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "wood"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "blood"
+          ]
         }
       ],
       "outputs": [
@@ -18731,16 +19820,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 37,
           "type": "i",
-          "count": 10,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 423,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "wood"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "blood"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 4,
-          "categories": []
+          "count": 3,
+          "categories": [
+            "talon"
+          ]
         }
       ],
       "outputs": [
@@ -18774,16 +19881,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 39,
           "type": "i",
-          "count": 13,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 424,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "wood"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "blood"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 5,
-          "categories": []
+          "count": 3,
+          "categories": [
+            "talon"
+          ]
         }
       ],
       "outputs": [
@@ -18817,16 +19942,42 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 41,
           "type": "i",
-          "count": 16,
+          "count": 12,
           "categories": []
         },
         {
-          "id": 425,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "wood"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "blood"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 6,
-          "categories": []
+          "count": 3,
+          "categories": [
+            "talon"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "tooth"
+          ]
         }
       ],
       "outputs": [
@@ -18863,6 +20014,24 @@
           "id": 106,
           "type": "w",
           "count": 1,
+          "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 57,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 235,
+          "type": "i",
+          "count": 4,
           "categories": []
         }
       ],
@@ -18903,16 +20072,18 @@
       ],
       "ingredients": [
         {
-          "id": 30,
+          "id": 31,
           "type": "i",
           "count": 2,
           "categories": []
         },
         {
-          "id": 47,
+          "id": 0,
           "type": "i",
-          "count": 2,
-          "categories": []
+          "count": 1,
+          "categories": [
+            "fabric"
+          ]
         }
       ],
       "outputs": [
@@ -18952,22 +20123,18 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 33,
           "type": "i",
           "count": 4,
           "categories": []
         },
         {
-          "id": 49,
+          "id": 0,
           "type": "i",
-          "count": 3,
-          "categories": []
-        },
-        {
-          "id": 356,
-          "type": "a",
           "count": 2,
-          "categories": []
+          "categories": [
+            "fabric"
+          ]
         }
       ],
       "outputs": [
@@ -19007,22 +20174,26 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 35,
           "type": "i",
           "count": 6,
           "categories": []
         },
         {
-          "id": 49,
+          "id": 0,
           "type": "i",
-          "count": 5,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
         },
         {
-          "id": 357,
+          "id": 0,
           "type": "a",
-          "count": 3,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "mineral"
+          ]
         }
       ],
       "outputs": [
@@ -19062,22 +20233,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 37,
           "type": "i",
           "count": 8,
           "categories": []
         },
         {
-          "id": 49,
+          "id": 0,
           "type": "i",
-          "count": 7,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
         },
         {
-          "id": 358,
+          "id": 0,
           "type": "a",
-          "count": 4,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "mineral"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "bone"
+          ]
         }
       ],
       "outputs": [
@@ -19117,22 +20300,34 @@
       ],
       "ingredients": [
         {
-          "id": 32,
+          "id": 39,
           "type": "i",
-          "count": 11,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 49,
+          "id": 0,
           "type": "i",
-          "count": 9,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
         },
         {
-          "id": 359,
+          "id": 0,
           "type": "a",
-          "count": 5,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "mineral"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "bone"
+          ]
         }
       ],
       "outputs": [
@@ -19172,22 +20367,42 @@
       ],
       "ingredients": [
         {
-          "id": 32,
-          "type": "i",
-          "count": 14,
-          "categories": []
-        },
-        {
-          "id": 49,
+          "id": 41,
           "type": "i",
           "count": 12,
           "categories": []
         },
         {
-          "id": 360,
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 6,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "mineral"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "bone"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "fossil"
+          ]
         }
       ],
       "outputs": [
@@ -19225,6 +20440,24 @@
           "type": "w",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 94,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 430,
+          "type": "a",
+          "count": 4,
+          "categories": []
         }
       ],
       "outputs": [
@@ -19258,10 +20491,18 @@
       ],
       "ingredients": [
         {
-          "id": 47,
-          "type": "i",
+          "id": 421,
+          "type": "a",
           "count": 2,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "wood"
+          ]
         }
       ],
       "outputs": [
@@ -19295,16 +20536,18 @@
       ],
       "ingredients": [
         {
-          "id": 47,
-          "type": "i",
-          "count": 5,
+          "id": 421,
+          "type": "a",
+          "count": 4,
           "categories": []
         },
         {
-          "id": 321,
-          "type": "a",
-          "count": 2,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "wood"
+          ]
         }
       ],
       "outputs": [
@@ -19338,16 +20581,35 @@
       ],
       "ingredients": [
         {
-          "id": 49,
-          "type": "i",
+          "id": 422,
+          "type": "a",
           "count": 6,
           "categories": []
         },
         {
-          "id": 322,
+          "id": 0,
+          "type": "i",
+          "count": 6,
+          "categories": [
+            "wood"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "bleu"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 3,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "rune"
+          ]
         }
       ],
       "outputs": [
@@ -19381,16 +20643,43 @@
       ],
       "ingredients": [
         {
-          "id": 51,
-          "type": "i",
+          "id": 423,
+          "type": "a",
           "count": 8,
           "categories": []
         },
         {
-          "id": 323,
-          "type": "a",
+          "id": 0,
+          "type": "i",
+          "count": 8,
+          "categories": [
+            "wood"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
           "count": 4,
-          "categories": []
+          "categories": [
+            "elemental",
+            "bleu"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "rune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "memory"
+          ]
         }
       ],
       "outputs": [
@@ -19424,16 +20713,43 @@
       ],
       "ingredients": [
         {
-          "id": 53,
-          "type": "i",
-          "count": 11,
+          "id": 424,
+          "type": "a",
+          "count": 10,
           "categories": []
         },
         {
-          "id": 324,
+          "id": 0,
+          "type": "i",
+          "count": 10,
+          "categories": [
+            "wood"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "bleu"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 5,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "rune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "memory"
+          ]
         }
       ],
       "outputs": [
@@ -19467,16 +20783,43 @@
       ],
       "ingredients": [
         {
-          "id": 55,
-          "type": "i",
-          "count": 14,
+          "id": 425,
+          "type": "a",
+          "count": 12,
           "categories": []
         },
         {
-          "id": 325,
+          "id": 0,
+          "type": "i",
+          "count": 12,
+          "categories": [
+            "wood"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "bleu"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 6,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "rune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "memory"
+          ]
         }
       ],
       "outputs": [
@@ -19516,15 +20859,15 @@
           "categories": []
         },
         {
-          "id": 57,
+          "id": 16,
           "type": "i",
-          "count": 20,
+          "count": 6,
           "categories": []
         },
         {
-          "id": 59,
-          "type": "i",
-          "count": 1,
+          "id": 425,
+          "type": "a",
+          "count": 4,
           "categories": []
         }
       ],
@@ -19559,10 +20902,19 @@
       ],
       "ingredients": [
         {
-          "id": 371,
-          "type": "a",
+          "id": 45,
+          "type": "i",
           "count": 2,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "elemental",
+            "blanche"
+          ]
         }
       ],
       "outputs": [
@@ -19596,10 +20948,19 @@
       ],
       "ingredients": [
         {
-          "id": 372,
-          "type": "a",
-          "count": 6,
+          "id": 47,
+          "type": "i",
+          "count": 4,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "blanche"
+          ]
         }
       ],
       "outputs": [
@@ -19633,10 +20994,27 @@
       ],
       "ingredients": [
         {
-          "id": 372,
-          "type": "a",
+          "id": 49,
+          "type": "i",
           "count": 6,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "blanche"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
         }
       ],
       "outputs": [
@@ -19670,10 +21048,35 @@
       ],
       "ingredients": [
         {
-          "id": 372,
-          "type": "a",
-          "count": 6,
+          "id": 51,
+          "type": "i",
+          "count": 8,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "blanche"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "fossil"
+          ]
         }
       ],
       "outputs": [
@@ -19707,10 +21110,35 @@
       ],
       "ingredients": [
         {
-          "id": 372,
-          "type": "a",
-          "count": 9,
+          "id": 53,
+          "type": "i",
+          "count": 10,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "blanche"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "fossil"
+          ]
         }
       ],
       "outputs": [
@@ -19744,10 +21172,35 @@
       ],
       "ingredients": [
         {
-          "id": 372,
-          "type": "a",
+          "id": 55,
+          "type": "i",
           "count": 12,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "blanche"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "fossil"
+          ]
         }
       ],
       "outputs": [
@@ -19784,6 +21237,24 @@
           "id": 136,
           "type": "w",
           "count": 1,
+          "categories": []
+        },
+        {
+          "id": 57,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 25,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        },
+        {
+          "id": 490,
+          "type": "a",
+          "count": 4,
           "categories": []
         }
       ],
@@ -19824,16 +21295,19 @@
       ],
       "ingredients": [
         {
-          "id": 48,
+          "id": 46,
           "type": "i",
           "count": 2,
           "categories": []
         },
         {
-          "id": 396,
-          "type": "a",
-          "count": 4,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
         }
       ],
       "outputs": [
@@ -19873,16 +21347,19 @@
       ],
       "ingredients": [
         {
-          "id": 50,
+          "id": 48,
           "type": "i",
-          "count": 6,
+          "count": 4,
           "categories": []
         },
         {
-          "id": 397,
-          "type": "a",
-          "count": 8,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
         }
       ],
       "outputs": [
@@ -19928,10 +21405,21 @@
           "categories": []
         },
         {
-          "id": 397,
-          "type": "a",
-          "count": 8,
-          "categories": []
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "blood"
+          ]
         }
       ],
       "outputs": [
@@ -19971,16 +21459,35 @@
       ],
       "ingredients": [
         {
-          "id": 50,
+          "id": 52,
           "type": "i",
-          "count": 6,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 397,
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "blood"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 8,
-          "categories": []
+          "count": 3,
+          "categories": [
+            "skull"
+          ]
         }
       ],
       "outputs": [
@@ -20020,16 +21527,35 @@
       ],
       "ingredients": [
         {
-          "id": 50,
+          "id": 54,
           "type": "i",
-          "count": 9,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 397,
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "blood"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 12,
-          "categories": []
+          "count": 3,
+          "categories": [
+            "skull"
+          ]
         }
       ],
       "outputs": [
@@ -20069,16 +21595,35 @@
       ],
       "ingredients": [
         {
-          "id": 50,
+          "id": 56,
           "type": "i",
           "count": 12,
           "categories": []
         },
         {
-          "id": 397,
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "noire"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "blood"
+          ]
+        },
+        {
+          "id": 0,
           "type": "a",
-          "count": 16,
-          "categories": []
+          "count": 3,
+          "categories": [
+            "skull"
+          ]
         }
       ],
       "outputs": [
@@ -20116,6 +21661,24 @@
           "type": "w",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 58,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 28,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        },
+        {
+          "id": 235,
+          "type": "i",
+          "count": 4,
+          "categories": []
         }
       ],
       "outputs": [
@@ -20142,10 +21705,18 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 386,
-          "type": "a",
-          "count": 1,
+          "id": 82,
+          "type": "i",
+          "count": 2,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "pelt"
+          ]
         }
       ],
       "outputs": [
@@ -20172,10 +21743,27 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 386,
-          "type": "a",
-          "count": 3,
+          "id": 84,
+          "type": "i",
+          "count": 4,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 4,
+          "categories": [
+            "pelt"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "elemental",
+            "jaune"
+          ]
         }
       ],
       "outputs": [
@@ -20202,22 +21790,35 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 387,
-          "type": "a",
-          "count": 10,
-          "categories": []
-        },
-        {
-          "id": 402,
-          "type": "a",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 20,
+          "id": 86,
           "type": "i",
           "count": 6,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 6,
+          "categories": [
+            "pelt"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "jaune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "stone"
+          ]
         }
       ],
       "outputs": [
@@ -20244,22 +21845,43 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 387,
-          "type": "a",
-          "count": 10,
-          "categories": []
-        },
-        {
-          "id": 402,
-          "type": "a",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 20,
+          "id": 88,
           "type": "i",
-          "count": 6,
+          "count": 8,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 8,
+          "categories": [
+            "pelt"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "jaune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "stone"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "mineral"
+          ]
         }
       ],
       "outputs": [
@@ -20286,22 +21908,43 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 387,
-          "type": "a",
+          "id": 90,
+          "type": "i",
           "count": 10,
           "categories": []
         },
         {
-          "id": 402,
+          "id": 0,
           "type": "a",
-          "count": 4,
-          "categories": []
+          "count": 10,
+          "categories": [
+            "pelt"
+          ]
         },
         {
-          "id": 20,
+          "id": 0,
           "type": "i",
-          "count": 6,
-          "categories": []
+          "count": 4,
+          "categories": [
+            "elemental",
+            "jaune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "stone"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "mineral"
+          ]
         }
       ],
       "outputs": [
@@ -20328,22 +21971,43 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 387,
-          "type": "a",
-          "count": 15,
-          "categories": []
-        },
-        {
-          "id": 402,
-          "type": "a",
-          "count": 6,
-          "categories": []
-        },
-        {
-          "id": 20,
+          "id": 92,
           "type": "i",
-          "count": 9,
+          "count": 12,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 12,
+          "categories": [
+            "pelt"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 4,
+          "categories": [
+            "elemental",
+            "jaune"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "stone"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "mineral"
+          ]
         }
       ],
       "outputs": [
@@ -20381,6 +22045,24 @@
           "type": "w",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 94,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 22,
+          "type": "i",
+          "count": 6,
+          "categories": []
+        },
+        {
+          "id": 390,
+          "type": "a",
+          "count": 4,
+          "categories": []
         }
       ],
       "outputs": [
@@ -20407,16 +22089,18 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 30,
+          "id": 31,
           "type": "i",
           "count": 2,
           "categories": []
         },
         {
-          "id": 361,
+          "id": 0,
           "type": "a",
-          "count": 1,
-          "categories": []
+          "count": 2,
+          "categories": [
+            "pelt"
+          ]
         }
       ],
       "outputs": [
@@ -20443,16 +22127,18 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 32,
+          "id": 33,
           "type": "i",
-          "count": 6,
+          "count": 4,
           "categories": []
         },
         {
-          "id": 362,
+          "id": 0,
           "type": "a",
-          "count": 8,
-          "categories": []
+          "count": 4,
+          "categories": [
+            "pelt"
+          ]
         }
       ],
       "outputs": [
@@ -20479,16 +22165,26 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 32,
+          "id": 35,
           "type": "i",
           "count": 6,
           "categories": []
         },
         {
-          "id": 362,
+          "id": 0,
           "type": "a",
-          "count": 8,
-          "categories": []
+          "count": 6,
+          "categories": [
+            "pelt"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "talon"
+          ]
         }
       ],
       "outputs": [
@@ -20515,16 +22211,34 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 32,
+          "id": 37,
           "type": "i",
-          "count": 6,
+          "count": 8,
           "categories": []
         },
         {
-          "id": 362,
+          "id": 0,
           "type": "a",
           "count": 8,
-          "categories": []
+          "categories": [
+            "pelt"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "talon"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "fangs"
+          ]
         }
       ],
       "outputs": [
@@ -20551,16 +22265,34 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 32,
+          "id": 39,
           "type": "i",
-          "count": 9,
+          "count": 10,
           "categories": []
         },
         {
-          "id": 362,
+          "id": 0,
           "type": "a",
-          "count": 12,
-          "categories": []
+          "count": 10,
+          "categories": [
+            "pelt"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "talon"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "fangs"
+          ]
         }
       ],
       "outputs": [
@@ -20587,16 +22319,34 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 32,
+          "id": 41,
           "type": "i",
           "count": 12,
           "categories": []
         },
         {
-          "id": 362,
+          "id": 0,
           "type": "a",
-          "count": 16,
-          "categories": []
+          "count": 12,
+          "categories": [
+            "pelt"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "talon"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "fangs"
+          ]
         }
       ],
       "outputs": [
@@ -20634,6 +22384,18 @@
           "type": "w",
           "count": 1,
           "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 390,
+          "type": "a",
+          "count": 4,
+          "categories": []
         }
       ],
       "outputs": [
@@ -20667,10 +22429,18 @@
       ],
       "ingredients": [
         {
-          "id": 421,
-          "type": "a",
-          "count": 4,
+          "id": 75,
+          "type": "i",
+          "count": 2,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 1,
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -20704,10 +22474,18 @@
       ],
       "ingredients": [
         {
-          "id": 422,
-          "type": "a",
-          "count": 12,
+          "id": 76,
+          "type": "i",
+          "count": 4,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
         }
       ],
       "outputs": [
@@ -20741,10 +22519,34 @@
       ],
       "ingredients": [
         {
-          "id": 422,
-          "type": "a",
-          "count": 12,
+          "id": 77,
+          "type": "i",
+          "count": 6,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
         }
       ],
       "outputs": [
@@ -20778,10 +22580,42 @@
       ],
       "ingredients": [
         {
-          "id": 422,
-          "type": "a",
-          "count": 12,
+          "id": 78,
+          "type": "i",
+          "count": 8,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "plate"
+          ]
         }
       ],
       "outputs": [
@@ -20815,10 +22649,42 @@
       ],
       "ingredients": [
         {
-          "id": 422,
-          "type": "a",
-          "count": 18,
+          "id": 79,
+          "type": "i",
+          "count": 10,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "plate"
+          ]
         }
       ],
       "outputs": [
@@ -20852,10 +22718,42 @@
       ],
       "ingredients": [
         {
-          "id": 422,
-          "type": "a",
-          "count": 24,
+          "id": 80,
+          "type": "i",
+          "count": 12,
           "categories": []
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "ingot"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "i",
+          "count": 2,
+          "categories": [
+            "fabric"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 2,
+          "categories": [
+            "cell"
+          ]
+        },
+        {
+          "id": 0,
+          "type": "a",
+          "count": 3,
+          "categories": [
+            "plate"
+          ]
         }
       ],
       "outputs": [
@@ -20892,6 +22790,24 @@
           "id": 176,
           "type": "w",
           "count": 1,
+          "categories": []
+        },
+        {
+          "id": 80,
+          "type": "i",
+          "count": 12,
+          "categories": []
+        },
+        {
+          "id": 43,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 490,
+          "type": "a",
+          "count": 4,
           "categories": []
         }
       ],
@@ -21203,153 +23119,6 @@
       "cost": []
     },
     {
-      "key": "a-off-light-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-off"
-      ],
-      "tools": [
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 403,
-          "type": "a",
-          "count": 5,
-          "categories": []
-        },
-        {
-          "id": 24,
-          "type": "i",
-          "count": 5,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 7,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 7,
-      "cost": []
-    },
-    {
-      "key": "a-off-light-8",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-off"
-      ],
-      "tools": [
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 403,
-          "type": "a",
-          "count": 5,
-          "categories": []
-        },
-        {
-          "id": 24,
-          "type": "i",
-          "count": 5,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 8,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 8,
-      "cost": []
-    },
-    {
-      "key": "a-off-light-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-off"
-      ],
-      "tools": [
-        {
-          "id": 113,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 403,
-          "type": "a",
-          "count": 5,
-          "categories": []
-        },
-        {
-          "id": 24,
-          "type": "i",
-          "count": 5,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 9,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 9,
-      "cost": []
-    },
-    {
       "key": "a-off-light-10",
       "name": "",
       "iconIndex": -1,
@@ -21395,7 +23164,7 @@
           "categories": []
         }
       ],
-      "tier": 10,
+      "tier": 7,
       "cost": []
     },
     {
@@ -21687,153 +23456,6 @@
       "cost": []
     },
     {
-      "key": "a-off-medium-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-off"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 32,
-          "type": "i",
-          "count": 6,
-          "categories": []
-        },
-        {
-          "id": 372,
-          "type": "a",
-          "count": 5,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 17,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 7,
-      "cost": []
-    },
-    {
-      "key": "a-off-medium-8",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-off"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 32,
-          "type": "i",
-          "count": 6,
-          "categories": []
-        },
-        {
-          "id": 372,
-          "type": "a",
-          "count": 5,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 18,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 8,
-      "cost": []
-    },
-    {
-      "key": "a-off-medium-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-off"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 32,
-          "type": "i",
-          "count": 6,
-          "categories": []
-        },
-        {
-          "id": 372,
-          "type": "a",
-          "count": 5,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 19,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 9,
-      "cost": []
-    },
-    {
       "key": "a-off-medium-10",
       "name": "",
       "iconIndex": -1,
@@ -21879,7 +23501,7 @@
           "categories": []
         }
       ],
-      "tier": 10,
+      "tier": 7,
       "cost": []
     },
     {
@@ -21902,7 +23524,7 @@
       ],
       "ingredients": [
         {
-          "id": 47,
+          "id": 45,
           "type": "i",
           "count": 1,
           "categories": []
@@ -21945,7 +23567,7 @@
       ],
       "ingredients": [
         {
-          "id": 47,
+          "id": 45,
           "type": "i",
           "count": 2,
           "categories": []
@@ -22000,7 +23622,7 @@
       ],
       "ingredients": [
         {
-          "id": 49,
+          "id": 47,
           "type": "i",
           "count": 1,
           "categories": []
@@ -22061,7 +23683,7 @@
       ],
       "ingredients": [
         {
-          "id": 49,
+          "id": 47,
           "type": "i",
           "count": 8,
           "categories": []
@@ -22116,7 +23738,7 @@
       ],
       "ingredients": [
         {
-          "id": 49,
+          "id": 47,
           "type": "i",
           "count": 8,
           "categories": []
@@ -22171,7 +23793,7 @@
       ],
       "ingredients": [
         {
-          "id": 49,
+          "id": 47,
           "type": "i",
           "count": 8,
           "categories": []
@@ -22201,171 +23823,6 @@
       "cost": []
     },
     {
-      "key": "a-off-heavy-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-off"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 49,
-          "type": "i",
-          "count": 8,
-          "categories": []
-        },
-        {
-          "id": 31,
-          "type": "i",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 27,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 7,
-      "cost": []
-    },
-    {
-      "key": "a-off-heavy-8",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-off"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 49,
-          "type": "i",
-          "count": 8,
-          "categories": []
-        },
-        {
-          "id": 31,
-          "type": "i",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 28,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 8,
-      "cost": []
-    },
-    {
-      "key": "a-off-heavy-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-off"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 49,
-          "type": "i",
-          "count": 8,
-          "categories": []
-        },
-        {
-          "id": 31,
-          "type": "i",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 29,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 9,
-      "cost": []
-    },
-    {
       "key": "a-off-heavy-10",
       "name": "",
       "iconIndex": -1,
@@ -22391,7 +23848,7 @@
       ],
       "ingredients": [
         {
-          "id": 49,
+          "id": 47,
           "type": "i",
           "count": 8,
           "categories": []
@@ -22417,7 +23874,7 @@
           "categories": []
         }
       ],
-      "tier": 10,
+      "tier": 7,
       "cost": []
     },
     {
@@ -22661,117 +24118,6 @@
       "cost": []
     },
     {
-      "key": "a-body-light-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-body"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 366,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 37,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 7,
-      "cost": []
-    },
-    {
-      "key": "a-body-light-8",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-body"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 366,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 38,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 8,
-      "cost": []
-    },
-    {
-      "key": "a-body-light-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-body"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 366,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 39,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 9,
-      "cost": []
-    },
-    {
       "key": "a-body-light-10",
       "name": "",
       "iconIndex": -1,
@@ -22805,7 +24151,7 @@
           "categories": []
         }
       ],
-      "tier": 10,
+      "tier": 7,
       "cost": []
     },
     {
@@ -23085,117 +24431,6 @@
       "cost": []
     },
     {
-      "key": "a-body-medium-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-body"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 36,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 47,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 7,
-      "cost": []
-    },
-    {
-      "key": "a-body-medium-8",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-body"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 36,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 48,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 8,
-      "cost": []
-    },
-    {
-      "key": "a-body-medium-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-body"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 36,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 49,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 9,
-      "cost": []
-    },
-    {
       "key": "a-body-medium-10",
       "name": "",
       "iconIndex": -1,
@@ -23208,7 +24443,7 @@
       "tools": [],
       "ingredients": [
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
           "count": 6,
           "categories": []
@@ -23228,7 +24463,7 @@
           "categories": []
         }
       ],
-      "tier": 10,
+      "tier": 7,
       "cost": []
     },
     {
@@ -23490,135 +24725,6 @@
       "cost": []
     },
     {
-      "key": "a-body-heavy-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-body"
-      ],
-      "tools": [
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 12,
-          "type": "i",
-          "count": 10,
-          "categories": []
-        },
-        {
-          "id": 15,
-          "type": "i",
-          "count": 10,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 57,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 7,
-      "cost": []
-    },
-    {
-      "key": "a-body-heavy-8",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-body"
-      ],
-      "tools": [
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 12,
-          "type": "i",
-          "count": 10,
-          "categories": []
-        },
-        {
-          "id": 15,
-          "type": "i",
-          "count": 10,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 58,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 8,
-      "cost": []
-    },
-    {
-      "key": "a-body-heavy-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-body"
-      ],
-      "tools": [
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 12,
-          "type": "i",
-          "count": 10,
-          "categories": []
-        },
-        {
-          "id": 15,
-          "type": "i",
-          "count": 10,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 59,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 9,
-      "cost": []
-    },
-    {
       "key": "a-body-heavy-10",
       "name": "",
       "iconIndex": -1,
@@ -23658,7 +24764,7 @@
           "categories": []
         }
       ],
-      "tier": 10,
+      "tier": 7,
       "cost": []
     },
     {
@@ -23962,171 +25068,6 @@
       "cost": []
     },
     {
-      "key": "a-feet-light-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-feet"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 114,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 387,
-          "type": "a",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 392,
-          "type": "a",
-          "count": 2,
-          "categories": []
-        },
-        {
-          "id": 347,
-          "type": "a",
-          "count": 10,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 67,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 7,
-      "cost": []
-    },
-    {
-      "key": "a-feet-light-8",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-feet"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 114,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 387,
-          "type": "a",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 392,
-          "type": "a",
-          "count": 2,
-          "categories": []
-        },
-        {
-          "id": 347,
-          "type": "a",
-          "count": 10,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 68,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 8,
-      "cost": []
-    },
-    {
-      "key": "a-feet-light-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-feet"
-      ],
-      "tools": [
-        {
-          "id": 112,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 114,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 387,
-          "type": "a",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 392,
-          "type": "a",
-          "count": 2,
-          "categories": []
-        },
-        {
-          "id": 347,
-          "type": "a",
-          "count": 10,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 69,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 9,
-      "cost": []
-    },
-    {
       "key": "a-feet-light-10",
       "name": "",
       "iconIndex": -1,
@@ -24178,7 +25119,7 @@
           "categories": []
         }
       ],
-      "tier": 10,
+      "tier": 7,
       "cost": []
     },
     {
@@ -24458,153 +25399,6 @@
       "cost": []
     },
     {
-      "key": "a-feet-medium-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-feet"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 37,
-          "type": "i",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 78,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 77,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 7,
-      "cost": []
-    },
-    {
-      "key": "a-feet-medium-8",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-feet"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 39,
-          "type": "i",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 79,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 78,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 8,
-      "cost": []
-    },
-    {
-      "key": "a-feet-medium-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-feet"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
-          "id": 116,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 41,
-          "type": "i",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 80,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 79,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 9,
-      "cost": []
-    },
-    {
       "key": "a-feet-medium-10",
       "name": "",
       "iconIndex": -1,
@@ -24630,7 +25424,7 @@
       ],
       "ingredients": [
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
           "count": 6,
           "categories": []
@@ -24650,7 +25444,7 @@
           "categories": []
         }
       ],
-      "tier": 10,
+      "tier": 7,
       "cost": []
     },
     {
@@ -24936,171 +25730,6 @@
       "cost": []
     },
     {
-      "key": "a-feet-heavy-7",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-feet"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 30,
-          "type": "i",
-          "count": 10,
-          "categories": []
-        },
-        {
-          "id": 31,
-          "type": "i",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 6,
-          "categories": []
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 87,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 7,
-      "cost": []
-    },
-    {
-      "key": "a-feet-heavy-8",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-feet"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 30,
-          "type": "i",
-          "count": 10,
-          "categories": []
-        },
-        {
-          "id": 31,
-          "type": "i",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 6,
-          "categories": []
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 88,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 8,
-      "cost": []
-    },
-    {
-      "key": "a-feet-heavy-9",
-      "name": "",
-      "iconIndex": -1,
-      "description": "",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "survive-feet"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 30,
-          "type": "i",
-          "count": 10,
-          "categories": []
-        },
-        {
-          "id": 31,
-          "type": "i",
-          "count": 4,
-          "categories": []
-        },
-        {
-          "id": 32,
-          "type": "i",
-          "count": 6,
-          "categories": []
-        },
-        {
-          "id": 33,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        }
-      ],
-      "outputs": [
-        {
-          "id": 89,
-          "type": "a",
-          "count": 1,
-          "categories": []
-        }
-      ],
-      "tier": 9,
-      "cost": []
-    },
-    {
       "key": "a-feet-heavy-10",
       "name": "",
       "iconIndex": -1,
@@ -25146,7 +25775,7 @@
           "categories": []
         }
       ],
-      "tier": 10,
+      "tier": 7,
       "cost": []
     },
     {
@@ -25331,7 +25960,7 @@
       ],
       "ingredients": [
         {
-          "id": 44,
+          "id": 42,
           "type": "i",
           "count": 1,
           "categories": []
@@ -25576,7 +26205,7 @@
           "categories": []
         },
         {
-          "id": 44,
+          "id": 42,
           "type": "i",
           "count": 1,
           "categories": []
@@ -25863,7 +26492,7 @@
           "categories": []
         },
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
           "count": 1,
           "categories": []
@@ -26150,7 +26779,7 @@
           "categories": []
         },
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
           "count": 1,
           "categories": []
@@ -26437,7 +27066,7 @@
           "categories": []
         },
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
           "count": 1,
           "categories": []
@@ -26724,7 +27353,7 @@
           "categories": []
         },
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27011,7 +27640,7 @@
           "categories": []
         },
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
           "count": 1,
           "categories": []
@@ -27298,7 +27927,7 @@
           "categories": []
         },
         {
-          "id": 45,
+          "id": 43,
           "type": "i",
           "count": 1,
           "categories": []
@@ -30554,6 +31183,486 @@
       "name": "Sponge",
       "iconIndex": 0,
       "description": "Things whose job is to absorb whatever they are cooked in."
+    },
+    {
+      "key": "elemental",
+      "name": "Elemental",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "raw",
+      "name": "Raw",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "essence",
+      "name": "Essence",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "pure",
+      "name": "Pure",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "rouge",
+      "name": "Rouge",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "bleu",
+      "name": "Bleu",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "verte",
+      "name": "Verte",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "jaune",
+      "name": "Jaune",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "blanche",
+      "name": "Blanche",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "noire",
+      "name": "Noire",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "metal",
+      "name": "Metal",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "ore",
+      "name": "Ore",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "ingot",
+      "name": "Ingot",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "iron",
+      "name": "Iron",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "silver",
+      "name": "Silver",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "sandwraith",
+      "name": "Sandwraith",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "engle",
+      "name": "Engle",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "deepe",
+      "name": "Deepe",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "ultanium",
+      "name": "Ultanium",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "lumber",
+      "name": "Lumber",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "wood",
+      "name": "Wood",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "paper",
+      "name": "Paper",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "gem",
+      "name": "Gem",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "ruby",
+      "name": "Ruby",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "emerald",
+      "name": "Emerald",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "topaz",
+      "name": "Topaz",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "sapphire",
+      "name": "Sapphire",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "crystal",
+      "name": "Crystal",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "diamond",
+      "name": "Diamond",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "electronic",
+      "name": "Electronic",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "diode",
+      "name": "Diode",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "matrix",
+      "name": "Matrix",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "textile",
+      "name": "Textile",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "thread",
+      "name": "Thread",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "fabric",
+      "name": "Fabric",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "monster",
+      "name": "Monster Material",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "coremata",
+      "name": "Coremata",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "powder",
+      "name": "Powder",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "crumbles",
+      "name": "Crumbles",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "horn",
+      "name": "Horn",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "tongue",
+      "name": "Tongue",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "scales",
+      "name": "Scales",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "toe",
+      "name": "Toe",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "clover",
+      "name": "Clover",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "stinger",
+      "name": "Stinger",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "wings",
+      "name": "Wings",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "fangs",
+      "name": "Fangs",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "talon",
+      "name": "Talon",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "core",
+      "name": "Core",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "branch",
+      "name": "Branch",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "spines",
+      "name": "Spines",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "liver",
+      "name": "Liver",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "pelt",
+      "name": "Pelt",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "ear",
+      "name": "Ear",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "veil",
+      "name": "Veil",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "stone",
+      "name": "Stone",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "saline",
+      "name": "Saline",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "pills",
+      "name": "Pills",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "liquids",
+      "name": "Liquids",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "bone",
+      "name": "Bone",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "mineral",
+      "name": "Mineral",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "caviar",
+      "name": "Caviar",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "plate",
+      "name": "Plate",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "fossil",
+      "name": "Fossil",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "tooth",
+      "name": "Tooth",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "seashell",
+      "name": "Seashell",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "feather",
+      "name": "Feather",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "acupuncture",
+      "name": "Acupuncture",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "rune",
+      "name": "Rune",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "syringe",
+      "name": "Syringe",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "aid",
+      "name": "Aid",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "cell",
+      "name": "Cell",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "jar",
+      "name": "Jar",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "radiator",
+      "name": "Radiator",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "memory",
+      "name": "Memory",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "urn",
+      "name": "Urn",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "plank",
+      "name": "Plank",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "skull",
+      "name": "Skull",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "dust",
+      "name": "Dust",
+      "iconIndex": 0,
+      "description": ""
+    },
+    {
+      "key": "stick",
+      "name": "Stick",
+      "iconIndex": 0,
+      "description": ""
     }
   ],
   "professions": [
