@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.1 APT] A plugin that grants the ability to learn by gaining points.
+ * [v1.3.2 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -129,6 +129,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.2
+ *    Repointed AP gain and aptitude-growth logging at J-Log's new $mapLogs
+ *    registry. The $actionLogManager and $diaLogManager globals these called
+ *    are gone. Requires J-Log 3.0.0 when J-Log is installed at all.
  * - 1.3.1
  *    Fixed an aptitude multiplier of zero awarding the full unscaled amount. The
  *    guard tested truthiness, so the one value that must scale the award away
@@ -710,7 +714,7 @@ J.APT.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.3.1");
+J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.3.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1351,7 +1355,7 @@ var ApManager = class ApManager {
 		const headline = skill.message1 || `\\C[1]${actor.name()}\\C[0] learned \\C[1]${skill.name}\\C[0] from ${sourceName} aptitudes!`;
 		const instruction = skill.message2 || "Equip it from the skills menu to use it.";
 		const log = new DiaLogBuilder().addLine(headline).addLine(instruction).setFaceName(actor.faceName()).setFaceIndex(actor.faceIndex()).build();
-		$diaLogManager.addLog(log);
+		$mapLogs.dialog.addLog(log);
 	}
 };
 
@@ -1521,7 +1525,7 @@ if (J.ABS) {
 	JABS_Engine.prototype.createLogAp = function(apPoints, battler) {
 		if (!J.LOG) return;
 		const apLog = new ActionLogBuilder().setMessage(`\\C[16]${battler.battlerName()}\\C[0] gained \\C[29]\\*${apPoints}\\*\\C[0] AP.`).build();
-		$actionLogManager.addLog(apLog);
+		$mapLogs.action.addLog(apLog);
 	};
 }
 

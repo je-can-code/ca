@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.6 ABS-POSES] Enable action poses for JABS.
+ * [v1.0.7 ABS-POSES] Enable action poses for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -55,6 +55,10 @@
  * This is not a highly tested feature of JABS and may not work as intended.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.7
+ *    Removed the commented-out warnings for a missing pose sheet, and said in a
+ *    comment why the branch stays silent: it runs on every execution of the
+ *    skill, so a report would repeat for as long as the asset is absent.
  * - 1.0.6
  *    Fixed a skill with no pose building a sprite name ending in undefined; the
  *    absent tag answered an empty array, which is truthy.
@@ -144,7 +148,7 @@ J.ABS.EXT.POSES.EXT ||= {};
 * The metadata associated with this plugin.
 
 */
-J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.6");
+J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.7");
 /**
 
 * A collection of all aliased methods for this plugin.
@@ -419,7 +423,7 @@ JABS_Battler.prototype.tryStartPose = function(skill) {
 	if (spriteExists) {
 		ImageManager.loadCharacter(newCharacterSprite);
 		this.getCharacter().setImage(newCharacterSprite, skill.jabsPoseIndex);
-	} else {}
+	}
 };
 /**
 * Forcefully ends the pose animation.

@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.2 BASE-SAVE] Saves as readable JSON instead of a compressed heap dump.
+ * @plugindesc [v1.0.3 BASE-SAVE] Saves as readable JSON instead of a compressed heap dump.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -84,6 +84,10 @@
  * converter. Install it before a project has saves worth keeping.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Routed the generation-fallback and dropped-slice warnings through J-Base's
+ *    new Diagnostics, replacing the hand-written "[save]" prefix so these read
+ *    the same as every other plugin's console output.
  * - 1.0.2
  *    Declared the equipment-contribution cache J-Base added to Game_Actor as
  *    transient. It holds a Map, which is a registered type, so left undeclared
@@ -180,7 +184,7 @@ J.BASE.EXT.SAVE.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.BASE.EXT.SAVE.Metadata = new J_BaseSavePluginMetadata("J-Base-Save", "1.0.2");
+J.BASE.EXT.SAVE.Metadata = new J_BaseSavePluginMetadata("J-Base-Save", "1.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1690,7 +1694,8 @@ var SaveSectionRouter = class {
 			Object.keys(members).forEach((hostKey) => {
 				const host = hosts[hostKind] ? hosts[hostKind][hostKey] : undefined;
 				if (!host) {
-					console.warn(`[save] dropping the '${namespaceKey}' slice for ${hostKind}.${hostKey}; that host ` + "is not in this save.");
+					const dropped = `dropping the '${namespaceKey}' slice for ${hostKind}.${hostKey}`;
+					Diagnostics.warn("J-Base-Save", `${dropped}; that host is not in this save.`);
 					return;
 				}
 				host._j ||= {};
@@ -2801,8 +2806,10 @@ var SaveFileSystem = class {
 	*/
 	static announceGenerationFallback(slotName, current, generationName, failures) {
 		const savedAt = this.savedAtOf(slotName, generationName);
-		console.warn(`[save] ${slotName}: ${current} could not be loaded, so ${generationName} (saved ${savedAt}) ` + "was loaded instead. Anything after that point is not in this file.");
-		failures.forEach((failure) => console.warn(`[save] ${slotName}: skipped ${failure}`));
+		const substitution = `${current} could not be loaded, so ${generationName} (saved ${savedAt}) was loaded instead`;
+		const consequence = "anything after that point is not in this file.";
+		Diagnostics.warn("J-Base-Save", `${slotName}: ${substitution}. ${consequence}`);
+		failures.forEach((failure) => Diagnostics.warn("J-Base-Save", `${slotName}: skipped ${failure}`));
 	}
 	/**
 	* Reads when a generation was written, for reporting rather than for logic.
@@ -4838,7 +4845,7 @@ var Scene_Files = class Scene_Files extends Scene_MenuFacetBase {
 	* @param {Error} error Why it failed.
 	*/
 	onExecuteFailure(error) {
-		console.error(error);
+		Diagnostics.error("J-Base-Save", "a save file command failed; the player stays where they were.", error);
 		SoundManager.playBuzzer();
 		this.listWindow().activate();
 	}

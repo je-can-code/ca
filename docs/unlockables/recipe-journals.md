@@ -50,5 +50,6 @@ The recipe-unlock doctrine also holds, re-expressed:
    1→3: found pages, spent inside a relationship.
 
 The same ladder holds per discipline, deliberately: cooking (pages → Yelena → Cookbook), alchemy (pages →
-Leo → Leo's Original), smithing (scraps → Viktor → Named Steel). **Found < taught < inherited.** Loot <
+Leo → Leo's Original), smithing (scraps → Viktor → the smith's ghost in the Desolate Graves, see
+[`../weapons/acquisition.md`](../weapons/acquisition.md)). **Found < taught < inherited.** Loot <
 lessons < love.

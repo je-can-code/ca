@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 ABS-SHIELD] A JABS extension that provides state-based HP shields.
+ * [v1.1.2 ABS-SHIELD] A JABS extension that provides state-based HP shields.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -345,6 +345,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    Routed the shield-formula error through J-Base's new Diagnostics, so it
+ *    names J-ABS-Shield and shows the target, attacker and error as named keys
+ *    rather than three positional values.
  * - 1.1.1
  *    Fixed shields computing different values on application and recalculation.
  *    The attacker was omitted the first time, leaving the point formulas without
@@ -422,7 +426,7 @@ J.ABS.EXT.SHIELD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.1.1");
+J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.1.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -518,7 +522,11 @@ var JABS_Shield = class JABS_Shield {
 			try {
 				return total + new Function("a", "b", "s", `return (${formula})`)(a, b, s);
 			} catch (e) {
-				console.error(`Error evaluating shield formula: ${formula}`, target, attacker, e);
+				Diagnostics.error("J-ABS-Shield", `error evaluating shield formula: ${formula}`, {
+					target,
+					attacker,
+					error: e
+				});
 				return total;
 			}
 		};

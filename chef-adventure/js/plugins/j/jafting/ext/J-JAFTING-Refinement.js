@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.5.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
+ * [v1.5.1 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -149,6 +149,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.5.1
+ *    Routed the uncapturable-equip error through J-Base's new Diagnostics, so
+ *    it names J-JAFTING-Refinement and carries the equip as its detail rather
+ *    than as a second bare warning beneath it.
  * - 1.5.0
  *    Note effects now count against the refinement ceiling alongside traits.
  *    An equip could previously accumulate transferable note lines without
@@ -932,8 +936,7 @@ var JaftingManager = class JaftingManager {
 		} else if (equip.atypeId) {
 			$gameParty.addRefinedArmor(lineage);
 		} else {
-			console.error(`The following equip failed to be captured because it was neither weapon nor armor.`);
-			console.warn(equip);
+			Diagnostics.error("J-JAFTING-Refinement", "an equip failed to be captured because it was neither weapon nor armor.", equip);
 			throw new Error("please stop crafting stuff that isn't valid.");
 		}
 	}
@@ -1149,7 +1152,7 @@ J.JAFTING.EXT.REFINE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.5.0");
+J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.5.1");
 /**
 * A helpful mapping of the various messages that we use in JAFTING.
 */

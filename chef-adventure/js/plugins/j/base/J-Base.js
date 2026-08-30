@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.6.0 BASE] The base class for all J plugins.
+ * [v3.7.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,19 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.7.1
+ *    ParsableComment now admits the '#' character, so an event comment may carry
+ *    a hex colour as a tag value. Previously such a comment failed the shape test
+ *    and was discarded before parsing, which read downstream as the tag simply
+ *    not being there.
+ * - 3.7.0
+ *    Added Diagnostics, the channel every plugin now reports developer-facing
+ *    anomalies through. Diagnostics.warn/error/trace/info each take the emitting
+ *    plugin's name and stamp it on the message, so a console line says which of
+ *    eighty-odd plugins wrote it. Callers pass __PLUGIN_NAME__, so the name comes
+ *    from that ship's own meta.js and no file repeats it. They are thin
+ *    pass-throughs to the real console methods, so devtools keeps its own
+ *    grouping and object inspection.
  * - 3.6.0
  *    RPGManager array reads no longer take a tryParse argument. Every caller
  *    passed true, the false path was dead, and the singular form parsed twice -
@@ -552,6 +565,116 @@ var JCache = class JCache {
 	*/
 	recordHit() {
 		this._metrics.hits++;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/core/Diagnostics.js
+/**
+* The single channel every plugin in this ecosystem reports developer-facing anomalies through.
+*
+* This is not {@link MapLogManager} and has nothing to do with the J-Log ship. J-Log writes to
+* windows the *player* reads during play. This writes to the devtools console that only the
+* developer ever opens, and it exists because a console full of bare `console.warn` lines cannot
+* be triaged: nothing in the message says which of eighty-odd plugins emitted it, so the first
+* step in chasing any warning was grepping the whole tree for its wording.
+*
+* Every method takes the emitting plugin's name as its first argument and stamps it on the front
+* of the message. Callers pass `__PLUGIN_NAME__` - the build-time identifier Vite substitutes from
+* that ship's own `_metadata/meta.js`, the same one `initialization.js` builds its metadata from.
+* So the name has exactly one source of truth per ship, renaming a ship updates every diagnostic it
+* writes, and no file repeats a name that could drift out of step with the one it ships under.
+*
+* Deliberately the build-time identifier rather than `J.SOMETHING.Metadata.name`: substitution
+* bakes a literal into the bundle, so the message still identifies its ship in exactly the
+* situation where the runtime namespace is what broke.
+*
+* These are deliberately thin wrappers over the real `console` methods rather than a buffer or a
+* reformatter. Devtools' own grouping, filtering and object inspection are the reason anyone opens
+* the console at all, and anything that captures output first takes those away.
+*
+* Supporting values arrive as one optional `details` argument rather than a variadic tail, because
+* a rest parameter states no contract - and a caller with several values to show is better served
+* passing `{ target, attacker, error }` than three bare positional blobs, since devtools prints the
+* keys alongside the values.
+*
+* This is for anomalies only - a state that should not have been reachable, an input that failed
+* to parse, a contract a caller broke. Narrating normal operation is what this codebase means when
+* it says never ship logging.
+*/
+var Diagnostics = class Diagnostics {
+	/**
+	* Reports something wrong that the game can carry on through, usually by falling back to a
+	* sentinel or skipping the work. The caller keeps running after this returns.
+	* @param {string} pluginName The emitting plugin's name; callers pass `__PLUGIN_NAME__`.
+	* @param {string} message What is wrong, stated so a reader who has never seen this code knows.
+	* @param {*} [details] One value worth inspecting, or an object naming several.
+	*/
+	static warn(pluginName, message, details = null) {
+		const stamped = Diagnostics.format(pluginName, message);
+		if (details === null) {
+			console.warn(stamped);
+			return;
+		}
+		console.warn(stamped, details);
+	}
+	/**
+	* Reports something that went *right* and is worth confirming - a config file that loaded, a
+	* save section that migrated. This is the one method here that is not about an anomaly, and it
+	* exists for the small number of places where a developer deliberately asked to be told.
+	*
+	* It is not a licence to narrate normal operation. The bar is that somebody opted in: a plugin
+	* passing a `logSummary` builder wants the confirmation, and a scene rendering a menu does not.
+	* @param {string} pluginName The emitting plugin's name; callers pass `__PLUGIN_NAME__`.
+	* @param {string} message What happened, stated so it is useful without the surrounding code.
+	* @param {*} [details] One value worth inspecting, or an object naming several.
+	*/
+	static info(pluginName, message, details = null) {
+		const stamped = Diagnostics.format(pluginName, message);
+		if (details === null) {
+			console.info(stamped);
+			return;
+		}
+		console.info(stamped, details);
+	}
+	/**
+	* Reports something wrong that the game cannot carry on through correctly, whether or not it is
+	* about to throw. Use this when the result is going to be incorrect rather than merely absent.
+	* @param {string} pluginName The emitting plugin's name; callers pass `__PLUGIN_NAME__`.
+	* @param {string} message What is wrong, stated so a reader who has never seen this code knows.
+	* @param {*} [details] One value worth inspecting, or an object naming several.
+	*/
+	static error(pluginName, message, details = null) {
+		const stamped = Diagnostics.format(pluginName, message);
+		if (details === null) {
+			console.error(stamped);
+			return;
+		}
+		console.error(stamped, details);
+	}
+	/**
+	* Reports an anomaly whose *call path* is the diagnostic rather than its values - a method
+	* reached from somewhere it should never have been reached from, a static class someone tried
+	* to instantiate. The message alone cannot answer "who did this", so the stack comes with it.
+	* @param {string} pluginName The emitting plugin's name; callers pass `__PLUGIN_NAME__`.
+	* @param {string} message What is wrong, stated so a reader who has never seen this code knows.
+	* @param {*} [details] One value worth inspecting, or an object naming several.
+	*/
+	static trace(pluginName, message, details = null) {
+		Diagnostics.warn(pluginName, message, details);
+		console.trace();
+	}
+	/**
+	* Stamps the emitting plugin's name onto a message.
+	*
+	* Bracketed rather than colon-suffixed so the prefix survives being read next to a message that
+	* contains its own colons, which most of them do.
+	* @param {string} pluginName The emitting plugin's name; callers pass `__PLUGIN_NAME__`.
+	* @param {string} message The message to stamp.
+	* @returns {string}
+	*/
+	static format(pluginName, message) {
+		return `[${pluginName}] ${message}`;
 	}
 };
 
@@ -1208,8 +1331,7 @@ var RPGManager = class RPGManager {
 				const evalResult = new Function("a", "b", "v", `return (${formula})`)(a, b, v).toFixed(3);
 				val += parseFloat(evalResult);
 			} catch (error) {
-				console.error(`An error occurred while evaluating the formula: [${formula}].`);
-				console.error(error);
+				Diagnostics.error("J-Base", `an error occurred while evaluating the formula: [${formula}].`, error);
 			}
 		});
 		if (hasMatch === false && nullIfEmpty) {
@@ -1770,7 +1892,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.6.0";
+J.BASE.Metadata.Version = "3.7.1";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -1900,9 +2022,10 @@ J.BASE.RegExp.HealAmplification = /<har:(-?\d+)>/gi;
 *    <someKeyWithArrayAndManyNumberValues:[123,456]>
 *    <someKeyWithStringValue:someValue>
 *    <someKeyWithRangeValue:startRange-endRange>
+*    <someKeyWithHexColorValue:#ffa0a0>
 *  </pre>
 */
-J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\]+>$/i;
+J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\#]+>$/i;
 /**
 * The basic structure for retrieving summable max tech values.
 */
@@ -3143,7 +3266,10 @@ var PluginMetadata = class PluginMetadata {
 	*/
 	constructor(name = "", version = "") {
 		if (!name || !version) {
-			console.trace(`Emergency! Erroneous plugin metadata was provided!`);
+			Diagnostics.trace("J-Base", "erroneous plugin metadata was provided.", {
+				name,
+				version
+			});
 			const message = `Erroneous plugin metadata provided: name=[${name}], version=[${version}]`;
 			throw new Error(message);
 		}
@@ -4180,7 +4306,7 @@ var RPG_UsableEffect = class {
 			case 43: return "Learn Skill";
 			case 44: return "Execute Common Event";
 			default:
-				console.warn(`Unsupported code of [${this.code}] was provided.`);
+				Diagnostics.warn("J-Base", `unsupported usable-effect code of [${this.code}] was provided.`);
 				return "UNKNOWN";
 		}
 	}
@@ -4207,7 +4333,7 @@ var RPG_UsableEffect = class {
 			case 43: return "Learn Skill";
 			case 44: return "Execute Common Event";
 			default:
-				console.warn(`Unsupported code of [${this.code}] was provided.`);
+				Diagnostics.warn("J-Base", `unsupported usable-effect code of [${this.code}] was provided.`);
 				return "UNKNOWN";
 		}
 	}
@@ -6044,7 +6170,7 @@ var IconManager = class {
 			case 62: return this.specialFlag(trait._dataId);
 			case 64: return this.partyAbility(trait._dataId);
 			default:
-				console.error(`all traits are accounted for- is this a custom trait code: [${trait._code}]?`);
+				Diagnostics.error("J-Base", `all traits are accounted for- is this a custom trait code: [${trait._code}]?`);
 				return false;
 		}
 	}
@@ -8030,12 +8156,12 @@ var ExternalJsonConfigLoader = class {
 		if (logSummary) {
 			const built = logSummary(result);
 			const lines = Array.isArray(built) ? built : [built];
-			console.log(`loaded:
-${lines.map((line) => `      ${line}`).join("\n")}
-      from file ${configPath}.`);
+			const indented = lines.map((line) => `      ${line}`);
+			const body = indented.join("\n");
+			Diagnostics.info("J-Base", `loaded:\n${body}\n      from file ${configPath}.`);
 			return;
 		}
-		console.log(`loaded external JSON from file ${configPath}.`);
+		Diagnostics.info("J-Base", `loaded external JSON from file ${configPath}.`);
 	}
 };
 
@@ -8691,7 +8817,7 @@ TextManager.resource = function(paramId) {
 		case 1: return "Magi";
 		case 30: return "Tech";
 	}
-	console.warn(`TextManager.resource: unrecognized paramId [${paramId}].`);
+	Diagnostics.warn("J-Base", `TextManager.resource: unrecognized paramId [${paramId}].`);
 	return String.empty;
 };
 /**
@@ -8932,11 +9058,11 @@ TextManager.getTypeNameByIdAndType = function(id, type) {
 */
 TextManager.isValidTypeId = function(id, types) {
 	if (id === 0 && types !== $dataSystem.elements) {
-		console.error(`requested type id of [0] is always blank, and thus invalid.`);
+		Diagnostics.error("J-Base", `requested type id of [0] is always blank, and thus invalid.`);
 		return false;
 	}
 	if (id >= types.length) {
-		console.error(`requested type id of [${id}] is higher than the number of types.`);
+		Diagnostics.error("J-Base", `requested type id of [${id}] is higher than the number of types.`);
 		return false;
 	}
 	return true;
@@ -8962,7 +9088,7 @@ TextManager.usableEffectByCode = function(code) {
 		case 43: return "Learn Skill";
 		case 44: return "Execute Common Event";
 		default:
-			console.warn(`Unsupported code of [${code}] was provided.`);
+			Diagnostics.warn("J-Base", `unsupported effect code of [${code}] was provided.`);
 			return "UNKNOWN";
 	}
 };
@@ -11728,7 +11854,10 @@ Game_Map.prototype.clearEventByIndex = function(index) {
 */
 Game_Map.prototype.note = function() {
 	if (!$dataMap) {
-		console.warn(`attempted to get the note for a map that isn't available.`, this, $dataMap);
+		Diagnostics.warn("J-Base", `attempted to get the note for a map that isn't available.`, {
+			map: this,
+			dataMap: $dataMap
+		});
 		return String.empty;
 	}
 	return $dataMap.note;
@@ -11841,7 +11970,9 @@ Game_Party.prototype.pruneMissingFromContainer = function(container, datastore, 
 Game_Party.prototype.reportPrunedInventoryEntries = function(pruned) {
 	const plural = pruned.length === 1 ? "entry" : "entries";
 	const listed = pruned.join(",");
-	console.warn(`J-BASE: dropped ${pruned.length} inventory ${plural} whose database rows no longer exist ` + `(rows deleted after this save was written): [${listed}]`);
+	const cause = "rows deleted after this save was written";
+	const summary = `dropped ${pruned.length} inventory ${plural} whose database rows no longer exist`;
+	Diagnostics.warn("J-Base", `${summary} (${cause}): [${listed}]`);
 };
 /**
 * Overwrites {@link #gainItem}.<br/>
@@ -11889,8 +12020,11 @@ Game_Party.prototype.processItemGain = function(item, amount, includeEquip) {
 * @param {boolean} includeEquip Whether or not to include equipped items for equipment.
 */
 Game_Party.prototype.processContainerlessItemGain = function(item, amount, includeEquip) {
-	console.warn(`an item was gained that is not flagged as a database object; ${item.name}.<br>`);
-	console.error(item, amount, includeEquip);
+	Diagnostics.error("J-Base", `an item was gained that is not flagged as a database object: ${item.name}.`, {
+		item,
+		amount,
+		includeEquip
+	});
 };
 /**
 * Extends {@link #maxItems}.<br/>
@@ -13341,7 +13475,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 		const structure = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
 		const isHexColor = structure.test(color);
 		if (!isHexColor) {
-			console.error(`Attempted to assign ${color} as a hex color to this text sprite:`, this);
+			Diagnostics.error("J-Base", `attempted to assign ${color} as a hex color to this text sprite.`, this);
 		}
 		return isHexColor;
 	}
@@ -13523,7 +13657,7 @@ Sprite_Character.prototype.character = function() {
 Sprite_Character.prototype.isErased = function() {
 	const character = this.character();
 	if (!character) {
-		console.warn("attempted to check erasure status on a non-existing character:", this);
+		Diagnostics.warn("J-Base", "attempted to check erasure status on a non-existing character.", this);
 		return true;
 	}
 	return character.isErased();
@@ -15796,7 +15930,7 @@ var Window_MoreData = class Window_MoreData extends Window_Command {
 				break;
 			default:
 				this.type = Window_MoreData.Types.Unknown;
-				console.warn("was provided an unknown item type to display more data for.", this.item);
+				Diagnostics.warn("J-Base", "was provided an unknown item type to display more data for.", this.item);
 				break;
 		}
 	}

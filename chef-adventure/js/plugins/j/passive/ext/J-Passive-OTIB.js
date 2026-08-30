@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 PASSIVE-OTIB] One-Time Item Boosts as permanent passive states.
+ * [v1.1.1 PASSIVE-OTIB] One-Time Item Boosts as permanent passive states.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -57,6 +57,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Repointed the unlock announcement at J-Log's new $mapLogs registry, and
+ *    the presence check with it. The $diaLogManager global this called is
+ *    gone. Requires J-Log 3.0.0 when J-Log is installed at all.
  * - 1.1.0
  *    Routed the _otib namespace into its own save section, so one-time item
  *    boost state lands in systems/otib.json rather than in the system blob.
@@ -107,7 +111,7 @@ J.PASSIVE.EXT.OTIB = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.OTIB.Metadata = new JPassiveOTIB_PluginMetadata("J-Passive-OTIB", "1.1.0");
+J.PASSIVE.EXT.OTIB.Metadata = new JPassiveOTIB_PluginMetadata("J-Passive-OTIB", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -238,20 +242,20 @@ Game_Actor.prototype.handleOtibUnlock = function(item) {
 	if (this.isOtibUnlocked(item.id)) return;
 	this.addOtibUnlock(new OtibUnlockRecord(item.id, stateIds));
 	this.refreshPassiveStates();
-	if (J.LOG && $diaLogManager) {
+	if (J.LOG && $mapLogs) {
 		this.notifyOtibUnlock(item, stateIds);
 	}
 };
 /**
 * Fires one DiaLog message per unlocked state, telling the player what was gained.
-* Falls through silently if $diaLogManager is not yet available on the scene.
+* Falls through silently if $mapLogs is not yet available on the scene.
 * @param {RPG_Item} item The item that triggered the unlock.
 * @param {number[]} stateIds The state ids that were just unlocked.
 */
 Game_Actor.prototype.notifyOtibUnlock = function(item, stateIds) {
 	stateIds.forEach((stateId) => {
 		const log = new DiaLogBuilder().addLine(`Consuming the \\item[${item.id}]`).addLine(`unlocked \\state[${stateId}] effect!`).build();
-		$diaLogManager.addLog(log);
+		$mapLogs.dialog.addLog(log);
 	});
 };
 /**

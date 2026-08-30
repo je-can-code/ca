@@ -1,0 +1,20 @@
+{
+  "breathe": { "amount": 0.05, "period": 150 },
+  "stretch": { "amount": 0.05, "period": 150 },
+  "pulse": { "amount": 0.05, "period": 150 },
+  "float": { "distance": 12, "period": 180 },
+  "sway": { "distance": 6, "period": 200 },
+  "swing": { "angle": 8, "period": 170 },
+  "spin": { "period": 120, "direction": "cw" },
+  "ghost": { "min": 0.25, "max": 1.0, "period": 240 },
+  "flicker": { "min": 0.6, "max": 1.0, "interval": 6 },
+  "shake": { "strength": 4, "axis": "x", "interval": 1 },
+  "hop": { "height": 24, "duration": 24, "rest": 30 },
+  "throb": { "red": 0, "green": 0, "blue": 80, "gray": 0, "period": 120 },
+  "flash": { "color": "#ffffff", "period": 40 },
+  "scale": { "percent": 150, "duration": 30 },
+  "angle": { "degrees": 90, "duration": 30 },
+  "fade": { "percent": 50, "duration": 30 },
+  "hue": { "degrees": 180, "duration": 30 },
+  "tint": { "color": "#ffa0a0", "duration": 30 }
+}

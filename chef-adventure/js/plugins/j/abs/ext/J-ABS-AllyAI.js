@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0.2 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v3.0.3 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -94,6 +94,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.3
+ *    Routed the invalid-preset error through J-Base's new Diagnostics, so it
+ *    names J-ABS-AllyAI in the console.
  * - 3.0.2
  *    Moved the ally AI namespace seeding from the initialize alias to
  *    initMembers, so a decoded save can establish it without a constructor.
@@ -351,7 +354,7 @@ J.ABS.EXT.ALLYAI = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.0.2");
+J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -729,7 +732,7 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	applyPreset(presetKey) {
 		const preset = JABS_AllyAI.getPresetByKey(presetKey);
 		if (!preset) {
-			console.error(`Attempted to apply ally AI preset: [${presetKey}], but it is not a valid preset.`);
+			Diagnostics.error("J-ABS-AllyAI", `attempted to apply ally AI preset: [${presetKey}], but it is not a valid preset.`);
 			return;
 		}
 		this.setRisk(preset.risk);

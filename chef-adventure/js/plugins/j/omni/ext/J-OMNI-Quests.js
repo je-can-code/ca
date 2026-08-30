@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v2.0.2 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -140,6 +140,15 @@
  * This choice is only shown while objective 2 of that quest is completed.
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.2
+ *    Routed every quest and objective warning and error through J-Base's new
+ *    Diagnostics, so each names J-OMNI-Quests. Removed the console.log lines
+ *    narrating category changes, tracking toggles, index moves, quest additions
+ *    and no-op state refreshes; none reported a fault.
+ * - 2.0.1
+ *    Repointed quest and objective update announcements at J-Log's new
+ *    $mapLogs registry. The $diaLogManager global these called is gone.
+ *    Requires J-Log 3.0.0 when J-Log is installed at all.
  * - 2.0.0
  *    Renamed from J-Omni-Questopedia to J-OMNI-Quests. The shipped file is
  *    renamed with it, so an existing plugins.js entry must be updated or the
@@ -857,7 +866,7 @@ var QuestManager = class {
 	static quest(key) {
 		const tracking = $gameParty.getQuestopediaEntryByKey(key);
 		if (!tracking) {
-			console.error(`The key of ${key} was not found in the list of quests.`);
+			Diagnostics.error("J-OMNI-Quests", `the key of ${key} was not found in the list of quests.`);
 			throw new Error(`Attempted to leverage a non-existent quest with the key of: ${key}.`);
 		}
 		return tracking;
@@ -894,7 +903,7 @@ var QuestManager = class {
 	static category(key) {
 		const category = J.OMNI.EXT.QUEST.Metadata.categoriesMap.get(key);
 		if (!category) {
-			console.error(`The key of ${key} was not found in the list of quest categories.`);
+			Diagnostics.error("J-OMNI-Quests", `the key of ${key} was not found in the list of quest categories.`);
 			throw new Error(`Attempted to leverage a non-existent quest category with the key of: ${key}.`);
 		}
 		return category;
@@ -915,7 +924,7 @@ var QuestManager = class {
 	static tag(key) {
 		const tag = J.OMNI.EXT.QUEST.Metadata.tagsMap.get(key);
 		if (!tag) {
-			console.error(`The key of ${key} was not found in the list of quest tags.`);
+			Diagnostics.error("J-OMNI-Quests", `the key of ${key} was not found in the list of quest tags.`);
 			throw new Error(`Attempted to leverage a non-existent quest tag with the key of: ${key}.`);
 		}
 		return tag;
@@ -1068,7 +1077,9 @@ var QuestManager = class {
 			const validObjectives = quest.objectives.filter((objective) => {
 				if (!objective.isValid(OmniObjective.Types.Quest)) return false;
 				if (objective.questCompletionData().length === 0) {
-					console.warn(`quest of ${objective.questKey} has objective of id ${objective.id} set to "quest completion", but lacks 'fulfillmentQuestKeys'}.`);
+					const objectiveRef = `quest of ${objective.questKey} has objective of id ${objective.id}`;
+					const problem = `set to "quest completion", but lacks 'fulfillmentQuestKeys'.`;
+					Diagnostics.warn("J-OMNI-Quests", `${objectiveRef} ${problem}`);
 					return false;
 				}
 				return true;
@@ -1706,7 +1717,7 @@ var TrackedOmniObjective = class {
 			default: throw new Error("Unknown finalization state for objective update message.");
 		}
 		const log = new DiaLogBuilder().setLines(objectiveMessage).build();
-		$diaLogManager.addLog(log);
+		$mapLogs.dialog.addLog(log);
 	}
 };
 SerializableRegistry.register(TrackedOmniObjective);
@@ -1945,7 +1956,8 @@ var TrackedOmniQuest = class {
 	*/
 	unlock(objectiveId = null) {
 		if (!this.canBeUnlocked()) {
-			console.warn(`Attempted to unlock quest with key ${this.key}, but it cannot be unlocked from state ${this.state}.`);
+			const attempt = `attempted to unlock quest with key ${this.key}`;
+			Diagnostics.warn("J-OMNI-Quests", `${attempt}, but it cannot be unlocked from state ${this.state}.`);
 			return;
 		}
 		this.flagObjectiveAsActive(objectiveId);
@@ -1981,7 +1993,7 @@ var TrackedOmniQuest = class {
 	progressObjectives() {
 		const activeObjectives = this.activeObjectives();
 		if (activeObjectives.length > 1) {
-			console.warn(`multiple quest objectives are currently active and must be finalized manually by id.`);
+			Diagnostics.warn("J-OMNI-Quests", "multiple quest objectives are currently active and must be finalized manually by id.");
 			return;
 		}
 		if (activeObjectives.length === 1) {
@@ -2155,7 +2167,6 @@ var TrackedOmniQuest = class {
 			this.setState(OmniObjective.States.Completed);
 			return;
 		}
-		console.info(`refreshed state without changing state for quest key: ${this.key}`);
 	}
 	/**
 	* Sets the state of the quest to a designated state regardless of objectives' status.<br/>
@@ -2166,7 +2177,7 @@ var TrackedOmniQuest = class {
 	*/
 	setState(newState) {
 		if (newState < 0 || newState > 4) {
-			console.error(`Attempted to set invalid state for this quest: ${newState}.`);
+			Diagnostics.error("J-OMNI-Quests", `attempted to set invalid state for this quest: ${newState}.`);
 			throw new Error("Invalid quest state provided for setting of state.");
 		}
 		if (this.state === newState) return;
@@ -2201,11 +2212,11 @@ var TrackedOmniQuest = class {
 				questUpdatedLines.push("Quest missed.");
 				break;
 			default:
-				console.warn(`unexpected state change for logging: ${this.state}`);
+				Diagnostics.warn("J-OMNI-Quests", `unexpected state change for logging: ${this.state}`);
 				return;
 		}
 		const log = new DiaLogBuilder().setLines(questUpdatedLines).build();
-		$diaLogManager.addLog(log);
+		$mapLogs.dialog.addLog(log);
 	}
 };
 SerializableRegistry.register(TrackedOmniQuest);
@@ -2409,7 +2420,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "2.0.0");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "2.0.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3256,7 +3267,6 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		listWindow.setCurrentCategoryKey(categoriesWindow.currentSymbol());
 		listWindow.refresh();
 		this.onQuestopediaIndexChange();
-		console.log(`changed to category: ${categoriesWindow.currentSymbol()}`);
 	}
 	/**
 	* Triggered when the player hits the OK button on a quest.<br/>
@@ -3267,7 +3277,6 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		const highlighted = listWindow.currentExt();
 		if (highlighted) {
 			highlighted.toggleTracked();
-			console.log(`quest ${highlighted.key} is tracked: ${highlighted.isTracked()}`);
 		}
 		listWindow.refresh();
 		listWindow.activate();
@@ -3294,7 +3303,6 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 			}
 		}
 		this.getQuestopediaListWindow().activate();
-		console.log(`old index: ${currentIndex}; new index: ${categoriesWindow.index()}.`);
 	}
 	/**
 	* Close the questopedia and return to the main omnipedia.
@@ -3415,7 +3423,6 @@ Game_Party.prototype.updateTrackedOmniQuestsFromConfig = function() {
 				objective.optional = newObjective.optional;
 			});
 		} else {
-			console.log(`adding new quest; ${omniquest.key}`);
 			trackings.push(newTracking);
 		}
 	});

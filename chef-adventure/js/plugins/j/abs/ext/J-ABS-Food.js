@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 ABS-FOOD] A JABS extension enabling food group chain states and a dedicated R2 food slot.
+ * [v1.0.3 ABS-FOOD] A JABS extension enabling food group chain states and a dedicated R2 food slot.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -74,6 +74,14 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Routed the missing-duration authoring warning through J-Base's new
+ *    Diagnostics, so it names J-ABS-Food in the console rather than the
+ *    J-ABS-FOOD spelling this ship never actually shipped under.
+ * - 1.0.2
+ *    Repointed the last-item-consumed log at J-Log's new $mapLogs registry.
+ *    The $lootLogManager global this called is gone. Requires J-Log 3.0.0
+ *    when J-Log is installed at all.
  * - 1.0.1
  *    Corrected PLUGIN_NAME from J-ABS-FOOD to J-ABS-Food, matching the name the
  *    ship has always been built and shipped under.
@@ -151,7 +159,7 @@ J.ABS.EXT.FOOD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.FOOD.Metadata = new JFood_PluginMetadata("J-ABS-Food", "1.0.1");
+J.ABS.EXT.FOOD.Metadata = new JFood_PluginMetadata("J-ABS-Food", "1.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -399,7 +407,11 @@ var JABS_FoodChainPlan = class JABS_FoodChainPlan {
 				const hasDurationTag = RPGManager.getNumberFromNoteByRegex(state, J.ABS.RegExp.StateDuration, true) !== null;
 				const hasDurationSecTag = RPGManager.getNumberFromNoteByRegex(state, J.ABS.RegExp.StateDurationSec, true) !== null;
 				if (hasDurationTag === false && hasDurationSecTag === false) {
-					console.warn(`J-ABS-FOOD: State ${currentId} (${state.name}) has <foodChain> but no ` + `<stateDuration> — using stepsToRemove=${frames} (~${Math.round(frames / 60)}s). ` + `Add <stateDuration:FRAMES> per ca/docs/food/food-chain-durations.md.`);
+					const seconds = Math.round(frames / 60);
+					const fallback = `using stepsToRemove=${frames} (~${seconds}s)`;
+					const remedy = "add <stateDuration:FRAMES> per ca/docs/food/food-chain-durations.md.";
+					const message = `state ${currentId} (${state.name}) has <foodChain> but no <stateDuration>`;
+					Diagnostics.warn("J-ABS-Food", `${message} - ${fallback}. ${remedy}`);
 				}
 			}
 			segments.push(new JABS_FoodChainSegment(currentId, chainType, frames, color));
@@ -660,7 +672,7 @@ JABS_Battler.prototype.applyUsableItemEffects = function(itemId, isLoot = false)
 	if (!$gameParty.items().includes(item)) {
 		battler.getSkillSlotManager().clearSlot(JABS_Button.UsableItem);
 		const lastUsedLog = new LootLogBuilder().setupUsedLastItem(item.id).build();
-		$lootLogManager.addLog(lastUsedLog);
+		$mapLogs.loot.addLog(lastUsedLog);
 	} else {
 		this.modCooldownCounter(JABS_Button.UsableItem, J.ABS.DefaultValues.CooldownlessItems);
 	}

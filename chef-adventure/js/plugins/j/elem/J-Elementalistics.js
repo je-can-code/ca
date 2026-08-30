@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.3.1 ELEM] Enables greater control over elements.
+ * @plugindesc [v1.3.2 ELEM] Enables greater control over elements.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -283,6 +283,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.2
+ *    Routed the damage-formula failure through J-Base's new Diagnostics. It was
+ *    two warnings plus a separate error; it is now one error naming
+ *    J-Elementalistics and the offending skill id, carrying the item and the
+ *    caught error as named keys.
  * - 1.3.1
  *    Fixed Game_Actor#elementRate capturing its own original into the actor
  *    alias map and then invoking the enemy's chain instead. Harmless only by
@@ -343,7 +348,7 @@ J.ELEM = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.3.1");
+J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.3.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -816,9 +821,10 @@ Game_Action.prototype.evalDamageFormula = function(target) {
 		}
 		return isNaN(value) ? 0 : value;
 	} catch (e) {
-		console.warn(`Error with the damage formula for item/skill id: ${item.id}.`);
-		console.warn(item);
-		console.error(e);
+		Diagnostics.error("J-Elementalistics", `error with the damage formula for item/skill id: ${item.id}.`, {
+			item,
+			error: e
+		});
 		return 0;
 	}
 };

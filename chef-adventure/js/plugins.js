@@ -6,7 +6,7 @@ var $plugins =
 {"name":"j/base/J-Base","status":true,"description":"[v3.5.0 BASE] The base class for all J plugins.","parameters":{"actorBaseTp":"0","enemyBaseTp":"100"}},
 {"name":"j/base/ext/J-Base-Save","status":true,"description":"[v1.0.2 BASE-SAVE] Saves as readable JSON instead of a compressed heap dump.","parameters":{"retainedSaveGenerations":"3"}},
 {"name":"j/cms/core/J-CMS","status":true,"description":"[v1.2.0 CMS] A redesign of the main menu.","parameters":{"parentConfig":"","help-item":"Review and use the items the party is carrying.","help-skill":"Review every ability this character knows.","help-equip":"Change the weapons and armor this character has equipped.","help-status":"Inspect this character's parameters in detail.","help-options":"Adjust sound, display, and other game settings.","help-save":"Record your progress to a save file.","help-gameEnd":"Return to the title screen or close the game.","help-formation":"Rearrange the order of the party."}},
-{"name":"others/MOG_CharacterMotion","status":true,"description":"(v1.0) Sistema de animações dos sprites dos personagens.","parameters":{}},
+{"name":"j/motion/J-Motion","status":true,"description":"[v1.0.0 MOTION] Ambient and reactive motion for character sprites.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},
 {"name":"others/MOG_Weather_EX","status":true,"description":"(v1.3) Adiciona novos efeitos de climas.","parameters":{"Battle Weather":"true","/":""}},

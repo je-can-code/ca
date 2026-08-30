@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 HUD-BOSS] A HUD frame that displays a single target, like a boss.
+ * [v1.0.2 HUD-BOSS] A HUD frame that displays a single target, like a boss.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -25,6 +25,9 @@
  * the player's current target, not a specially-tagged "boss".
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Routed the boss-creation failure through J-Base's new Diagnostics, so it
+ *    names J-HUD-BossFrame in the console.
  * - 1.0.1
  *    Fixed the HP-percent threshold check using a chained comparison
  *    (lowerRange <= hpPercent <= upperRange), which does not perform a
@@ -73,7 +76,7 @@ J.HUD.EXT.BOSS = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudBoss_PluginMetadata}
 */
-J.HUD.EXT.BOSS.Metadata = new JHudBoss_PluginMetadata("J-HUD-BossFrame", "1.0.1");
+J.HUD.EXT.BOSS.Metadata = new JHudBoss_PluginMetadata("J-HUD-BossFrame", "1.0.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -258,7 +261,7 @@ var BossFrameManager = class {
 	*/
 	static #createBossFrameFromEventId(eventId) {
 		if (!this.#canCreateBossFrameFromEventId(eventId)) {
-			console.error(`could not create a boss from event of id: [ ${eventId} ].`);
+			Diagnostics.error("J-HUD-BossFrame", `could not create a boss from event of id: [ ${eventId} ].`);
 			throw new Error("Failed to create boss for boss frame.");
 		}
 		const bossJabsBattler = $gameMap.event(eventId).getJabsBattler();

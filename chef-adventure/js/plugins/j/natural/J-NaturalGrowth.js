@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.4.0 NATURAL] Enables level-based growth of all parameters.
+ * @plugindesc [v2.4.1 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -234,6 +234,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.4.1
+ *    Routed the unrecognized-subclass warning through J-Base's new Diagnostics,
+ *    so it names J-NaturalGrowth in the console.
  * - 2.4.0
  *    Routed the _natural namespace into its own save section, so accumulated
  *    growth lands in systems/natural.json rather than in the system blob.
@@ -331,7 +334,7 @@ J.NATURAL = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.NATURAL.Metadata = new J_NaturalGrowthPluginMetadata("J-NaturalGrowth", "2.4.0");
+J.NATURAL.Metadata = new J_NaturalGrowthPluginMetadata("J-NaturalGrowth", "2.4.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1357,7 +1360,7 @@ Game_Battler.prototype.getRegexBySpParamId = function(sParamId) {
 * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
 */
 Game_Battler.prototype.getParamBaseNaturalBonuses = function(paramId, baseParam) {
-	console.warn(`Leveraged a Game_Battler subclass that isn't recognized by this plugin.`, this);
+	Diagnostics.warn("J-NaturalGrowth", `leveraged a Game_Battler subclass that isn't recognized by this plugin.`, this);
 	return 0;
 };
 /**
