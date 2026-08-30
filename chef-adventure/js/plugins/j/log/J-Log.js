@@ -1,7 +1,7 @@
 //region introduction
 /*:
  * @target MZ
- * @plugindesc [v2.2.3 LOG] A log window for viewing on the map.
+ * @plugindesc [v3.0.1 LOG] A log window for viewing on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -113,6 +113,18 @@
  * JABS integration (when installed) and by plugin commands.
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.1
+ *    Routed the non-array DiaLog warning through J-Base's new Diagnostics. That
+ *    channel is for developer console output and is unrelated to the log windows
+ *    this plugin draws for the player.
+ * - 3.0.0
+ *    BREAKING: the three log manager globals are gone. $actionLogManager,
+ *    $diaLogManager and $lootLogManager are replaced by a single $mapLogs
+ *    registry that owns all three channels: $mapLogs.action, $mapLogs.dialog
+ *    and $mapLogs.loot. Any code calling the old names must be updated.
+ *    The three feeds are still three separate managers with their own
+ *    capacities and their own windows; only the bootstrap changed, from three
+ *    top-level globals for one service down to one.
  * - 2.2.3
  *    Fixed Scene_Map's loot log window accessors reading and writing
  *    this._j._log._diaLog. Since createAllWindows builds the dia log first,
@@ -228,6 +240,64 @@
  *
  */
 
+//#region src/plugins/log/core/_metadata/_pluginMetadata.js
+var J_LogPluginMetadata = class extends PluginMetadata {
+	/**
+	* Constructor.
+	*/
+	constructor(name, version) {
+		super(name, version);
+	}
+	/**
+	* Extends {@link #postInitialize}.<br/>
+	* Maps plugin parameters into instance fields used by map log windows.
+	*/
+	postInitialize() {
+		super.postInitialize();
+		/**
+		* Frames of inactivity before the log window fades.
+		* @type {number}
+		*/
+		this.InactivityTimerDuration = Number(this.parsedPluginParameters["defaultInactivityTime"]);
+	}
+};
+
+//#endregion
+//#region src/plugins/log/core/_metadata/initialization.js
+/**
+* The core where all of my extensions live: in the `J` object.
+*/
+globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "3.2.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (hasBaseRequirement === false) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+})();
+/**
+* The plugin umbrella that governs all things related to this plugin.
+*/
+J.LOG = {};
+/**
+* The `metadata` associated with this plugin, such as version.
+*/
+J.LOG.Metadata = new J_LogPluginMetadata("J-Log", "3.0.1");
+/**
+* A collection of all aliased methods for this plugin.
+*/
+J.LOG.Aliased = {};
+J.LOG.Aliased.DataManager = new Map();
+J.LOG.Aliased.Scene_Map = new Map();
+/**
+* The owner of every log channel belonging to {@link Scene_Map}.<br/>
+* Holds the combat, dialog, and loot feeds as {@link MapLogManager} instances, each with its own
+* capacity and its own window: `$mapLogs.action`, `$mapLogs.dialog`, `$mapLogs.loot`.
+* @type {MapLogRegistry}
+*/
+globalThis.$mapLogs = null;
+
+//#endregion
 //#region src/plugins/log/core/_models/ActionLog.js
 /**
 * A model representing a single log in the log window.
@@ -260,6 +330,86 @@ var ActionLog = class {
 	*/
 	message() {
 		return this.#message;
+	}
+};
+
+//#endregion
+//#region src/plugins/log/core/_models/DiaLog.js
+/**
+* A single log message designed for the {@link Window_DiaLog} to display.
+*/
+var DiaLog = class {
+	/**
+	* The lines that make up the text for this log.
+	* @type {string[]}
+	*/
+	#lines = [];
+	/**
+	* The filename of the face image associated with this log.
+	* @type {string|String.empty}
+	*/
+	#faceName = String.empty;
+	/**
+	* The index of the face image associated with this log.
+	* @type {number}
+	*/
+	#faceIndex = -1;
+	/**
+	* Constructor.<br/>
+	* All parameters have defaults.
+	* @param {string[]=} messageLines The lines that make up the message portion of this log.
+	* @param {string=} faceName The filename that contains the face for this log.
+	* @param {number=} faceIndex The index that maps to the face for this log.
+	*/
+	constructor(messageLines = [], faceName = "", faceIndex = -1) {
+		this.#setLines(messageLines);
+		this.#setFaceName(faceName);
+		this.#setFaceIndex(faceIndex);
+	}
+	/**
+	* Sets the lines that make up this message log.
+	* @param {string[]} lines The lines of the message.
+	*/
+	#setLines(lines) {
+		if (!Array.isArray(lines)) {
+			Diagnostics.warn("J-Log", "attempted to set the lines of a DiaLog with a non-array.", lines);
+		}
+		this.#lines = lines;
+	}
+	/**
+	* Gets the lines that make up this message log.
+	* @returns {string[]}
+	*/
+	lines() {
+		return this.#lines;
+	}
+	/**
+	* Sets the filename of the face image associated with this message.
+	* @param {string} faceName The filename of the face image for this message.
+	*/
+	#setFaceName(faceName) {
+		this.#faceName = faceName;
+	}
+	/**
+	* Gets the filename of the face associated with this message.
+	* @returns {string}
+	*/
+	faceName() {
+		return this.#faceName;
+	}
+	/**
+	* Sets the face index to the given index.
+	* @param {number} faceIndex The face index for this message.
+	*/
+	#setFaceIndex(faceIndex) {
+		this.#faceIndex = faceIndex;
+	}
+	/**
+	* Gets the face index associated with this message.
+	* @returns {number}
+	*/
+	faceIndex() {
+		return this.#faceIndex;
 	}
 };
 
@@ -387,152 +537,58 @@ var MapLogManager = class {
 };
 
 //#endregion
-//#region src/plugins/log/core/_metadata/_pluginMetadata.js
-var J_LogPluginMetadata = class extends PluginMetadata {
-	/**
-	* Constructor.
-	*/
-	constructor(name, version) {
-		super(name, version);
-	}
-	/**
-	* Extends {@link #postInitialize}.<br/>
-	* Maps plugin parameters into instance fields used by map log windows.
-	*/
-	postInitialize() {
-		super.postInitialize();
-		/**
-		* Frames of inactivity before the log window fades.
-		* @type {number}
-		*/
-		this.InactivityTimerDuration = Number(this.parsedPluginParameters["defaultInactivityTime"]);
-	}
-};
-
-//#endregion
-//#region src/plugins/log/core/_metadata/initialization.js
+//#region src/plugins/log/core/managers/MapLogRegistry.js
 /**
-* The core where all of my extensions live: in the `J` object.
+* The owner of every log channel shown on {@link Scene_Map}.
+*
+* J-Log has always run three separate {@link MapLogManager} instances, because the three feeds
+* genuinely are separate things: combat scrolls fast and matters briefly, dialog is read
+* deliberately, and loot is a long tail worth scrolling back through. Each therefore keeps its own
+* capacity and its own window. That part is instancing done right and is unchanged here.
+*
+* What this class replaces is the bootstrap shape around them. Three top-level `$` globals for one
+* conceptual service meant three `globalThis` writes and three entries in the verify allowlist, and
+* it gave a reader three names to learn where there is only one idea. One owner constructs all
+* three, so `$mapLogs` is the single name to know and the channel is a word in the call rather than
+* a prefix fused onto a manager: `$mapLogs.action.addLog(log)`.
+*
+* The channels are deliberately plain fields rather than accessors. This object owns no state of
+* its own — it is a fixed set of three collaborators, closer to a namespace than to storage — and
+* every caller wants the manager itself in order to talk to it.
 */
-globalThis.J ||= {};
-(() => {
-	const requiredBaseVersion = "3.2.0";
-	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-	if (hasBaseRequirement === false) {
-		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-	}
-})();
-/**
-* The plugin umbrella that governs all things related to this plugin.
-*/
-J.LOG = {};
-/**
-* The `metadata` associated with this plugin, such as version.
-*/
-J.LOG.Metadata = new J_LogPluginMetadata("J-Log", "2.2.3");
-/**
-* A collection of all aliased methods for this plugin.
-*/
-J.LOG.Aliased = {};
-J.LOG.Aliased.DataManager = new Map();
-J.LOG.Aliased.Scene_Map = new Map();
-/**
-* One of the log managers that are for {@link Scene_Map}.<br/>
-* This manager handles the window that contains the combat and loot interactions.
-* @type {MapLogManager}
-*/
-globalThis.$actionLogManager = null;
-/**
-* One of the log managers that are for {@link Scene_Map}.<br/>
-* This manager handles the window that contains the various chat messages.
-* @type {MapLogManager}
-*/
-globalThis.$diaLogManager = null;
-/**
-* One of the log managers that are for {@link Scene_Map}.<br/>
-* This manager handles the window that contains the various loot messages.
-* @type {MapLogManager}
-*/
-globalThis.$lootLogManager = null;
-
-//#endregion
-//#region src/plugins/log/core/_models/DiaLog.js
-/**
-* A single log message designed for the {@link Window_DiaLog} to display.
-*/
-var DiaLog = class {
+var MapLogRegistry = class {
 	/**
-	* The lines that make up the text for this log.
-	* @type {string[]}
+	* The combat feed: damage, healing, states applied, skills used.
+	*
+	* Capped low and tightest of the three, because combat lines arrive in bursts during a fight and
+	* lose their meaning almost immediately after it.
+	* @type {MapLogManager}
 	*/
-	#lines = [];
+	action = new MapLogManager();
 	/**
-	* The filename of the face image associated with this log.
-	* @type {string|String.empty}
+	* The conversational feed: chat messages, quest updates, narration.
+	*
+	* The smallest cap of the three. These lines are meant to be read as they arrive rather than
+	* scrolled back through, and a short window keeps the most recent one from being pushed off by
+	* combat chatter it has to share screen space with.
+	* @type {MapLogManager}
 	*/
-	#faceName = String.empty;
+	dialog = new MapLogManager();
 	/**
-	* The index of the face image associated with this log.
-	* @type {number}
+	* The acquisition feed: items picked up, gold gained, drops collected.
+	*
+	* Capped highest by a wide margin, because this is the one feed a player scrolls back through to
+	* answer "did that actually drop?" long after the fight that produced it ended.
+	* @type {MapLogManager}
 	*/
-	#faceIndex = -1;
+	loot = new MapLogManager();
 	/**
-	* Constructor.<br/>
-	* All parameters have defaults.
-	* @param {string[]=} messageLines The lines that make up the message portion of this log.
-	* @param {string=} faceName The filename that contains the face for this log.
-	* @param {number=} faceIndex The index that maps to the face for this log.
+	* Initializes the three channels with the capacities that distinguish them.
 	*/
-	constructor(messageLines = [], faceName = "", faceIndex = -1) {
-		this.#setLines(messageLines);
-		this.#setFaceName(faceName);
-		this.#setFaceIndex(faceIndex);
-	}
-	/**
-	* Sets the lines that make up this message log.
-	* @param {string[]} lines The lines of the message.
-	*/
-	#setLines(lines) {
-		if (!Array.isArray(lines)) {
-			console.warn("Attempted to set the lines of a DiaLog with a non-array.");
-			console.warn(lines);
-		}
-		this.#lines = lines;
-	}
-	/**
-	* Gets the lines that make up this message log.
-	* @returns {string[]}
-	*/
-	lines() {
-		return this.#lines;
-	}
-	/**
-	* Sets the filename of the face image associated with this message.
-	* @param {string} faceName The filename of the face image for this message.
-	*/
-	#setFaceName(faceName) {
-		this.#faceName = faceName;
-	}
-	/**
-	* Gets the filename of the face associated with this message.
-	* @returns {string}
-	*/
-	faceName() {
-		return this.#faceName;
-	}
-	/**
-	* Sets the face index to the given index.
-	* @param {number} faceIndex The face index for this message.
-	*/
-	#setFaceIndex(faceIndex) {
-		this.#faceIndex = faceIndex;
-	}
-	/**
-	* Gets the face index associated with this message.
-	* @returns {number}
-	*/
-	faceIndex() {
-		return this.#faceIndex;
+	constructor() {
+		this.action.setMaxLogCount(30);
+		this.dialog.setMaxLogCount(10);
+		this.loot.setMaxLogCount(100);
 	}
 };
 
@@ -961,12 +1017,7 @@ var LootLogBuilder = class {
 J.LOG.Aliased.DataManager.set("createGameObjects", DataManager.createGameObjects);
 DataManager.createGameObjects = function() {
 	J.LOG.Aliased.DataManager.get("createGameObjects").call(this);
-	$actionLogManager = new MapLogManager();
-	$actionLogManager.setMaxLogCount(30);
-	$diaLogManager = new MapLogManager();
-	$diaLogManager.setMaxLogCount(10);
-	$lootLogManager = new MapLogManager();
-	$lootLogManager.setMaxLogCount(100);
+	$mapLogs = new MapLogRegistry();
 };
 
 //#endregion
@@ -1472,7 +1523,7 @@ Scene_Map.prototype.createActionLogWindow = function() {
 */
 Scene_Map.prototype.buildActionLogWindow = function() {
 	const rectangle = this.actionLogWindowRect();
-	const window = new Window_MapLog(rectangle, $actionLogManager);
+	const window = new Window_MapLog(rectangle, $mapLogs.action);
 	window.deselect();
 	window.deactivate();
 	return window;
@@ -1517,7 +1568,7 @@ Scene_Map.prototype.createDiaLogWindow = function() {
 */
 Scene_Map.prototype.buildDiaLogWindow = function() {
 	const rectangle = this.diaLogWindowRect();
-	const window = new Window_DiaLog(rectangle, $diaLogManager);
+	const window = new Window_DiaLog(rectangle, $mapLogs.dialog);
 	window.deselect();
 	window.deactivate();
 	return window;
@@ -1562,7 +1613,7 @@ Scene_Map.prototype.createLootLogWindow = function() {
 */
 Scene_Map.prototype.buildLootLogWindow = function() {
 	const rectangle = this.lootLogWindowRect();
-	const window = new Window_LootLog(rectangle, $lootLogManager);
+	const window = new Window_LootLog(rectangle, $mapLogs.loot);
 	window.deselect();
 	window.deactivate();
 	return window;
@@ -1600,13 +1651,13 @@ Scene_Map.prototype.setLootLogWindow = function(window) {
 * Plugin command for enabling the text log and showing it.
 */
 PluginManager.registerCommand(J.LOG.Metadata.name, "showActionLog", () => {
-	$actionLogManager.showLog();
+	$mapLogs.action.showLog();
 });
 /**
 * Plugin command for disabling the text log and hiding it.
 */
 PluginManager.registerCommand(J.LOG.Metadata.name, "hideActionLog", () => {
-	$actionLogManager.hideLog();
+	$mapLogs.action.hideLog();
 });
 /**
 * Plugin command for adding an arbitrary log to the action log window.
@@ -1614,25 +1665,25 @@ PluginManager.registerCommand(J.LOG.Metadata.name, "hideActionLog", () => {
 PluginManager.registerCommand(J.LOG.Metadata.name, "addActionLog", (args) => {
 	const { text } = args;
 	const customActionLog = new ActionLogBuilder().setMessage(text).build();
-	$actionLogManager.addLog(customActionLog);
+	$mapLogs.action.addLog(customActionLog);
 });
 /**
 * Plugin command for adding an arbitrary log to the dialog window.
 */
 PluginManager.registerCommand(J.LOG.Metadata.name, "clearActionLog", () => {
-	$actionLogManager.clearLogs();
+	$mapLogs.action.clearLogs();
 });
 /**
 * Plugin command for enabling the dialog and showing it.
 */
 PluginManager.registerCommand(J.LOG.Metadata.name, "showDiaLog", () => {
-	$diaLogManager.showLog();
+	$mapLogs.dialog.showLog();
 });
 /**
 * Plugin command for disabling the dialog and hiding it.
 */
 PluginManager.registerCommand(J.LOG.Metadata.name, "hideDiaLog", () => {
-	$diaLogManager.hideLog();
+	$mapLogs.dialog.hideLog();
 });
 /**
 * Plugin command for adding an arbitrary log to the dialog window.
@@ -1641,25 +1692,25 @@ PluginManager.registerCommand(J.LOG.Metadata.name, "addDiaLog", (args) => {
 	const { lines, faceName, faceIndex } = args;
 	const actualLines = lines.split(/[\r\n]+/);
 	const log = new DiaLogBuilder().setLines(actualLines).setFaceName(faceName).setFaceIndex(faceIndex).build();
-	$diaLogManager.addLog(log);
+	$mapLogs.dialog.addLog(log);
 });
 /**
 * Plugin command for adding an arbitrary log to the dialog window.
 */
 PluginManager.registerCommand(J.LOG.Metadata.name, "clearDiaLog", () => {
-	$diaLogManager.clearLogs();
+	$mapLogs.dialog.clearLogs();
 });
 /**
 * Plugin command for enabling the loot log and showing it.
 */
 PluginManager.registerCommand(J.LOG.Metadata.name, "showLootLog", () => {
-	$lootLogManager.showLog();
+	$mapLogs.loot.showLog();
 });
 /**
 * Plugin command for disabling the loot log and hiding it.
 */
 PluginManager.registerCommand(J.LOG.Metadata.name, "hideLootLog", () => {
-	$lootLogManager.hideLog();
+	$mapLogs.loot.hideLog();
 });
 /**
 * Plugin command for adding an arbitrary log to the loot log window.
@@ -1667,13 +1718,13 @@ PluginManager.registerCommand(J.LOG.Metadata.name, "hideLootLog", () => {
 PluginManager.registerCommand(J.LOG.Metadata.name, "addLootLog", (args) => {
 	const { lootId, lootType } = args;
 	const log = new LootLogBuilder().setupLootObtained(lootType, lootId).build();
-	$lootLogManager.addLog(log);
+	$mapLogs.loot.addLog(log);
 });
 /**
 * Plugin command for clearing the loot log window.
 */
 PluginManager.registerCommand(J.LOG.Metadata.name, "clearLootLog", () => {
-	$lootLogManager.clearLogs();
+	$mapLogs.loot.clearLogs();
 });
 
 //#endregion

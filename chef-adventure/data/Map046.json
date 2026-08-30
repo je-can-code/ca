@@ -7435,7 +7435,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "float motion"
+                "<motion:[float]>"
               ]
             },
             {
@@ -7516,7 +7516,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "float motion"
+                "<motion:[float]>"
               ]
             },
             {
@@ -7731,7 +7731,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 1"
+                "<motion:[stretch]>"
               ]
             },
             {
@@ -7847,7 +7847,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 2"
+                "<motion:[breathe]>"
               ]
             },
             {
@@ -7928,7 +7928,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "swing motion"
+                "<motion:[swing]>"
               ]
             },
             {
@@ -8009,7 +8009,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 1"
+                "<motion:[stretch]>"
               ]
             },
             {
@@ -8150,7 +8150,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "float motion"
+                "<motion:[float]>"
               ]
             },
             {
@@ -8231,7 +8231,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 1"
+                "<motion:[stretch]>"
               ]
             },
             {
@@ -8386,7 +8386,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 1"
+                "<motion:[stretch]>"
               ]
             },
             {
@@ -8467,7 +8467,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "float motion"
+                "<motion:[float]>"
               ]
             },
             {
@@ -8548,7 +8548,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "float motion"
+                "<motion:[float]>"
               ]
             },
             {
@@ -8629,7 +8629,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 1"
+                "<motion:[stretch]>"
               ]
             },
             {
@@ -8710,7 +8710,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 1"
+                "<motion:[stretch]>"
               ]
             },
             {
@@ -8791,7 +8791,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 1"
+                "<motion:[stretch]>"
               ]
             },
             {
@@ -9168,7 +9168,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 1"
+                "<motion:[stretch]>"
               ]
             },
             {
@@ -9331,8 +9331,8 @@
           },
           "directionFix": true,
           "image": {
-            "tileId": 104,
-            "characterName": "",
+            "tileId": 0,
+            "characterName": "$o_ore-iron",
             "characterIndex": 0,
             "direction": 2,
             "pattern": 0
@@ -9342,7 +9342,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 2"
+                "<motion:[breathe]>"
               ]
             },
             {
@@ -9350,6 +9350,13 @@
               "indent": 0,
               "parameters": [
                 "<enemyId:21>"
+              ]
+            },
+            {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<passive:[386]>"
               ]
             },
             {
@@ -9984,7 +9991,7 @@
               "code": 108,
               "indent": 0,
               "parameters": [
-                "breath motion 1"
+                "<motion:[stretch]>"
               ]
             },
             {

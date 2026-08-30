@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.1.2 TIME] A system for tracking time- real or artificial.
+ * @plugindesc [v1.1.3 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -201,6 +201,10 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 1.1.3
+ *    Routed the season and time-of-day validation errors, the unrecognized TIME
+ *    tag warning, and the fresh-clock notice through J-Base's new Diagnostics,
+ *    so each names J-TIME in the console.
  * - 1.1.2
  *    Stopped re-running the clock's member backfill after extracting a save.
  *    Game_Time is registered as serializable, so its seed already runs on the
@@ -665,7 +669,7 @@ J.TIME = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.1.2");
+J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.1.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -829,7 +833,7 @@ var Time_Snapshot = class Time_Snapshot {
 			case 2: return "Autumn";
 			case 3: return "Winter";
 			default:
-				console.error(`${seasonId} is not a valid season id.`);
+				Diagnostics.error("J-TIME", `${seasonId} is not a valid season id.`);
 				return null;
 		}
 	}
@@ -860,7 +864,7 @@ var Time_Snapshot = class Time_Snapshot {
 			case "fall": return 2;
 			case "winter": return 3;
 			default:
-				console.error(`${seasonName} is not a valid season name.`);
+				Diagnostics.error("J-TIME", `${seasonName} is not a valid season name.`);
 				return -1;
 		}
 	}
@@ -878,7 +882,7 @@ var Time_Snapshot = class Time_Snapshot {
 			case 4: return "Evening";
 			case 5: return "Twilight";
 			default:
-				console.error(`${timeOfDayId} is not a valid time of day id.`);
+				Diagnostics.error("J-TIME", `${timeOfDayId} is not a valid time of day id.`);
 				return null;
 		}
 	}
@@ -912,7 +916,7 @@ var Time_Snapshot = class Time_Snapshot {
 			case "evening": return 4;
 			case "twilight": return 5;
 			default:
-				console.error(`${timeOfDayString} is not a valid time of day name.`);
+				Diagnostics.error("J-TIME", `${timeOfDayString} is not a valid time of day name.`);
 				return -1;
 		}
 	}
@@ -2240,7 +2244,7 @@ DataManager.extractSaveContents = function(contents) {
 	$gameTime = contents.time;
 	if (!$gameTime) {
 		$gameTime = new Game_Time();
-		console.info("J-Time did not exist in the loaded save file- creating anew.");
+		Diagnostics.info("J-TIME", "no clock existed in the loaded save file; creating one anew.");
 		return;
 	}
 	$gameTime.updateCurrentTone();
@@ -2363,7 +2367,7 @@ Game_Event.toTimeConditional = function(commentCommand) {
 		case J.TIME.RegExp.MonthRangeChoice.test(comment): return TimeMapper.monthRangeToConditional(comment, J.TIME.RegExp.MonthRangeChoice);
 		case J.TIME.RegExp.YearRangeChoice.test(comment): return TimeMapper.yearRangeToConditional(comment, J.TIME.RegExp.YearRangeChoice);
 		default:
-			console.warn(`time conditional was not generated for an identified TIME tag; ${comment}`);
+			Diagnostics.warn("J-TIME", `a time conditional was not generated for an identified TIME tag; ${comment}`);
 			return new TimeConditional();
 	}
 };

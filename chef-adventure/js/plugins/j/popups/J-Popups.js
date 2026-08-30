@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.0 POPUPS] Map text popups for JABS and beyond.
+ * [v2.1.1 POPUPS] Map text popups for JABS and beyond.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -45,6 +45,10 @@
  * Resources) build popups on top of.
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.1
+ *    Routed the rejected-text-pop warning through J-Base's new Diagnostics. The
+ *    prefix is now a literal rather than read from J.POPUPS.Metadata.name, so it
+ *    still identifies the ship if the namespace is what went wrong.
  * - 2.1.0
  *    Sprite_MapDamage accumulation phase; merge helpers + PopupEmitter flush hooks.
  *    Merge idle flush is battler-wide (any merged stream refreshes the timer); strike floats release on that idle
@@ -107,7 +111,7 @@ J.POPUPS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.POPUPS.Metadata = new J_PopupsPluginMetadata("J-Popups", "2.1.0");
+J.POPUPS.Metadata = new J_PopupsPluginMetadata("J-Popups", "2.1.1");
 /**
 * Namespace for optional first-party extensions (J-Popups-ABS, J-Popups-APT, …).
 */
@@ -2266,7 +2270,7 @@ Game_Character.prototype.acknowledgeTextPops = function() {
 Game_Character.prototype.addTextPop = function(textPop) {
 	if (J.POPUPS.Metadata.disablePopups === true) return;
 	if (PopupLayoutHelper.isValidTextPopForQueue(textPop) === false) {
-		console.warn(`[${J.POPUPS.Metadata.name}] addTextPop rejected invalid Map_TextPop (bad type or layoutRing).`, textPop);
+		Diagnostics.warn("J-Popups", "addTextPop rejected an invalid Map_TextPop (bad type or layoutRing).", textPop);
 		return;
 	}
 	this.getTextPops().push(textPop);

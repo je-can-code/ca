@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v2.2.0 DIFFICULTY] A layered difficulty system.
+ * @plugindesc [v2.2.1 DIFFICULTY] A layered difficulty system.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -24,6 +24,9 @@
  * All difficulties are defined in an external JSON file.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.1
+ *    Routed the duplicate-key and lock/unlock/enable/disable warnings through
+ *    J-Base's new Diagnostics, so each one names J-Difficulty in the console.
  * - 2.2.0
  *    Difficulty layers now retain the raw configuration they were built from.
  *    The classifier reads a fixed set of fields by name, so anything an
@@ -788,7 +791,7 @@ var J_DiffPluginMetadata = class J_DiffPluginMetadata extends PluginMetadata {
 			/** @type {DifficultyMetadata} */
 			const completeDifficulty = new DifficultyBuilder(name, key).setDescription(description).setIconIndex(iconIndex).setCost(cost).setEnabled(enabled).setHidden(hidden).setUnlocked(unlocked).setActorEffects(mappedActorEffects).setEnemyEffects(mappedEnemyEffects).setRewards(rewards).build();
 			if (difficultiesMap.get(key)) {
-				console.warn(`Duplicate difficulty key definition detected for [${key}].`);
+				Diagnostics.warn("J-Difficulty", `duplicate difficulty key definition detected for [${key}].`);
 			}
 			difficultiesMap.set(key, completeDifficulty);
 		};
@@ -866,7 +869,7 @@ J.DIFFICULTY = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.2.0");
+J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.2.1");
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -933,7 +936,7 @@ var DifficultyManager = class {
 		if (foundDifficulty) {
 			foundDifficulty.lock();
 		} else {
-			console.warn(`could not lock difficulty with key: [${key}].`);
+			Diagnostics.warn("J-Difficulty", `could not lock difficulty with key: [${key}].`);
 		}
 	}
 	/**
@@ -945,7 +948,7 @@ var DifficultyManager = class {
 		if (foundDifficulty) {
 			foundDifficulty.unlock();
 		} else {
-			console.warn(`could not lock difficulty with key: [${key}].`);
+			Diagnostics.warn("J-Difficulty", `could not lock difficulty with key: [${key}].`);
 		}
 	}
 	/**
@@ -957,7 +960,7 @@ var DifficultyManager = class {
 		if (foundDifficulty) {
 			foundDifficulty.hide();
 		} else {
-			console.warn(`could not lock difficulty with key: [${key}].`);
+			Diagnostics.warn("J-Difficulty", `could not lock difficulty with key: [${key}].`);
 		}
 	}
 	/**
@@ -969,7 +972,7 @@ var DifficultyManager = class {
 		if (foundDifficulty) {
 			foundDifficulty.unhide();
 		} else {
-			console.warn(`could not unlock difficulty with key: [${key}].`);
+			Diagnostics.warn("J-Difficulty", `could not unlock difficulty with key: [${key}].`);
 		}
 	}
 	/**
@@ -982,7 +985,7 @@ var DifficultyManager = class {
 			foundDifficulty.enable();
 			this.refreshAppliedDifficulty();
 		} else {
-			console.warn(`could not enable difficulty with key: [${key}].`);
+			Diagnostics.warn("J-Difficulty", `could not enable difficulty with key: [${key}].`);
 		}
 	}
 	/**
@@ -995,7 +998,7 @@ var DifficultyManager = class {
 			foundDifficulty.disable();
 			this.refreshAppliedDifficulty();
 		} else {
-			console.warn(`could not disable difficulty with key: [${key}].`);
+			Diagnostics.warn("J-Difficulty", `could not disable difficulty with key: [${key}].`);
 		}
 	}
 };

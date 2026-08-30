@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 OMNI] Enables the "omnipedia" data-centric scene.
+ * [v1.1.1 OMNI] Enables the "omnipedia" data-centric scene.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -28,6 +28,9 @@
  * plug into. Those extensions own their own respective tags.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Removed the console.debug narrating each root pedia selection. The method
+ *    is an extension point every pedia overrides, so it now says that instead.
  * - 1.1.0
  *    Routed the _omni namespace into its own save section, so every
  *    omnipedia extension's data lands in systems/omni.json together rather
@@ -108,7 +111,7 @@ J.OMNI = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.OMNI.Metadata = new J_Omnipedia_PluginMetadata("J-Omnipedia", "1.1.0");
+J.OMNI.Metadata = new J_Omnipedia_PluginMetadata("J-Omnipedia", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -434,9 +437,7 @@ var Scene_Omnipedia = class extends Scene_MenuBase {
 	* When an pedia choice is made, execute this logic.
 	* This is only implemented/extended by the pedias.
 	*/
-	onRootPediaSelection() {
-		console.debug(`selected "${this.getRootOmnipediaKey()}" option.`);
-	}
+	onRootPediaSelection() {}
 };
 
 //#endregion

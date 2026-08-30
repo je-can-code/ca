@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.17.1 ABS] Enables combat to be carried out on the map.
+ * [v4.17.4 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,21 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.17.4
+ *    Routed every console warning and error through J-Base's new Diagnostics, so
+ *    each one names J-ABS in the console. Replaced the placeholder messages left
+ *    behind while debugging - console.warn('omg') and 'that rare error occurred!'
+ *    - with text that states what actually went wrong. The per-frame catch in
+ *    Sprite_Animation now stays silent as its own comment always said it should.
+ * - 4.17.3
+ *    Repointed combat and loot logging at J-Log's new $mapLogs registry. The
+ *    $actionLogManager and $lootLogManager globals this called are gone.
+ *    Requires J-Log 3.0.0 when J-Log is installed at all.
+ * - 4.17.2
+ *    Fixed losing a state stack leaving the battler's trait caches describing the
+ *    deeper stack. Gaining a stack always refreshed them; losing one never did, so
+ *    additive trait families like element rate kept reporting the resistance of a
+ *    stack depth the battler no longer had.
  * - 4.17.1
  *    Corrected the guard documentation, which credited EVA with extending the
  *    parry window. Parry extension became its own parameter and EVA went back
@@ -4155,7 +4170,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 					arr.forEach(ingest);
 				}
 			} catch (e) {
-				console.warn("J-ABS: globalCooldownSkillTypes JSON parse failed.", e);
+				Diagnostics.warn("J-ABS", "globalCooldownSkillTypes JSON parse failed.", e);
 			}
 		} else if (str.length) {
 			str.split(",").forEach((part) => ingest(part.trim()));
@@ -4182,7 +4197,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 				});
 			}
 		} catch (e) {
-			console.warn("J-ABS: skillExecutionExcludedSkillTypes JSON parse failed.", e);
+			Diagnostics.warn("J-ABS", "skillExecutionExcludedSkillTypes JSON parse failed.", e);
 		}
 		this.SkillExecutionExcludedSkillTypeSet = excludedSet;
 	}
@@ -4371,7 +4386,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.17.1");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.17.4");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -7006,7 +7021,7 @@ var JABS_LocationBuilder = class {
 				this.#d = J.ABS.Directions.LOWERLEFT;
 				return this.facingLowerLeft();
 			case null:
-				console.warn("Attempted to face reverse a null direction.");
+				Diagnostics.warn("J-ABS", "attempted to face the reverse of a null direction; facing up instead.");
 				return this.facingUp();
 		}
 	}
@@ -8133,7 +8148,7 @@ var JABS_EnemyAI = class extends JABS_AI {
 		const usableSkills = this.filterUncastableSkills(user, availableSkills);
 		const { careful, executor, reckless, tactical, berserker, cleanser, healer, buffer } = this;
 		if (reckless && usableSkills.length === 0) {
-			console.warn("a battler with the \"reckless\" trait was found with no skills.", user);
+			Diagnostics.warn("J-ABS", "a battler with the \"reckless\" trait was found with no skills.", user);
 		}
 		if (cleanser) {
 			const picked = this.decideCleanserAction(user, usableSkills);
@@ -11272,7 +11287,7 @@ var JABS_SkillSlot = class {
 			case Sprite_SkillCost.Types.TP: return this.needsTpCostRefresh;
 			case Sprite_SkillCost.Types.Item: return this.needsItemCostRefresh;
 		}
-		console.warn(`attempted to request a refresh of type: ${costType}, but it isn't implemented.`);
+		Diagnostics.warn("J-ABS", `attempted to request a refresh of type: ${costType}, but it isn't implemented.`);
 		return false;
 	}
 	/**
@@ -11293,7 +11308,7 @@ var JABS_SkillSlot = class {
 				this.needsItemCostRefresh = false;
 				break;
 			default:
-				console.warn(`attempted to acknowledge a refresh of type: ${costType}, but it isn't implemented.`);
+				Diagnostics.warn("J-ABS", `attempted to acknowledge a refresh of type: ${costType}, but it isn't implemented.`);
 				break;
 		}
 	}
@@ -11437,7 +11452,7 @@ var JABS_SkillSlot = class {
 	*/
 	setSkillId(skillId) {
 		if (this.isLocked()) {
-			console.warn("This slot is currently locked.");
+			Diagnostics.warn("J-ABS", `a locked skill slot rejected an assignment of skill id ${skillId}.`, this);
 			SoundManager.playBuzzer();
 			return this;
 		}
@@ -12821,7 +12836,7 @@ var JABS_Battler = class JABS_Battler {
 	addFollower(newFollowerUuid) {
 		const found = this.getFollowerByUuid(newFollowerUuid);
 		if (found) {
-			console.error("this follower already existed within the follower list.");
+			Diagnostics.error("J-ABS", "this follower already existed within the follower list.", newFollowerUuid);
 		} else {
 			this.followers().push(newFollowerUuid);
 		}
@@ -15579,7 +15594,7 @@ var JABS_Battler = class JABS_Battler {
 		} else if (scopeAllOpponents) {
 			this.applyToolForAllOpponents(toolId);
 		} else if (scopeNone) {} else {
-			console.warn(`unhandled scope for tool: [ ${gameAction.item().scope} ]!`);
+			Diagnostics.warn("J-ABS", `unhandled scope for tool: [ ${gameAction.item().scope} ]!`);
 		}
 		gameAction.applyGlobal();
 		this.createToolLog(item);
@@ -15594,7 +15609,7 @@ var JABS_Battler = class JABS_Battler {
 		if (!isLoot && !$gameParty.items().includes(item)) {
 			battler.getSkillSlotManager().clearSlot(buttonType);
 			const lastUsedItemLog = new LootLogBuilder().setupUsedLastItem(item.id).build();
-			$lootLogManager.addLog(lastUsedItemLog);
+			$mapLogs.loot.addLog(lastUsedItemLog);
 		} else {
 			if (itemCooldown) {
 				if (!isLoot) this.modCooldownCounter(buttonType, itemCooldown);
@@ -15688,7 +15703,7 @@ var JABS_Battler = class JABS_Battler {
 	createToolLog(item) {
 		if (!J.LOG) return;
 		const toolUsedLog = new LootLogBuilder().setupUsedItem(item.id).build();
-		$lootLogManager.addLog(toolUsedLog);
+		$mapLogs.loot.addLog(toolUsedLog);
 	}
 	/**
 	* Executes the pre-defeat processing for a battler.
@@ -15853,7 +15868,7 @@ var JABS_Battler = class JABS_Battler {
 	getCooldown(cooldownKey) {
 		const skillSlot = this.getBattler().getSkillSlot(cooldownKey);
 		if (!skillSlot) {
-			console.warn("omg");
+			Diagnostics.warn("J-ABS", `no skill slot exists for cooldown key "${cooldownKey}"; there is no cooldown to report.`, this);
 			return null;
 		}
 		return skillSlot.getCooldown();
@@ -16031,8 +16046,10 @@ var JABS_Battler = class JABS_Battler {
 		}
 		const cooldown = this.getCooldown(skillSlotKey);
 		if (!cooldown) {
-			console.warn(this, skillSlotKey);
-			console.trace();
+			Diagnostics.trace("J-ABS", "a follower was asked to cast a skill it does not own a cooldown for.", {
+				battler: this,
+				skillSlotKey
+			});
 			return false;
 		}
 		const isCombo = this.getBattler().getSkillSlot(skillSlotKey).comboId === chosenSkillId;
@@ -16082,7 +16099,7 @@ var JABS_Battler = class JABS_Battler {
 			if (!slot) return false;
 			return slot.key === JABS_Button.Mainhand || slot.key === JABS_Button.Offhand;
 		}
-		console.warn(`non-actor/non-enemy checked for basic attack.`, this);
+		Diagnostics.warn("J-ABS", "a non-actor/non-enemy was checked for basic attack.", this);
 		return false;
 	}
 	/**
@@ -16470,12 +16487,11 @@ var JABS_Battler = class JABS_Battler {
 		try {
 			result = new Function("a", "b", "v", "s", `return (${formula})`)(a, b, v, s) * -1;
 			if (!Number.isFinite(result)) {
-				console.warn("result was: ", result);
+				Diagnostics.warn("J-ABS", "a slip-effect formula produced a non-finite result.", result);
 				throw new Error("Invalid formula.");
 			}
 		} catch (err) {
-			console.warn(`failed to eval() this formula: [ ${formula} ]`);
-			console.trace();
+			Diagnostics.trace("J-ABS", `failed to eval() this slip-effect formula: [ ${formula} ]`, err);
 			throw err;
 		}
 		const formattedResult = Math.round(result);
@@ -17095,12 +17111,16 @@ var JABS_State = class {
 	* @param {number=} stacksToRemove The number of stacks to decrement; defaults to 1.
 	*/
 	decrementStacks(stacksToRemove = 1) {
+		const previousStackCount = this.stackCount;
 		this.stackCount -= stacksToRemove;
 		if (this.stackCount > 0) {
 			this.refreshDuration();
 		}
 		if (this.stackCount < 0) {
 			this.stackCount = 0;
+		}
+		if (this.stackCount !== previousStackCount) {
+			this.battler.onBattlerDataChange();
 		}
 	}
 	/**
@@ -18975,8 +18995,8 @@ var JABS_Engine = class JABS_Engine {
 	updateInput() {
 		if (!this.canUpdateInput()) return;
 		if (!JABS_InputAdapter.hasControllers()) {
-			console.warn(`No input managers have been registered with the input adapter!`);
-			console.warn(`if you built your own, be sure to run "JABS_InputAdapter.register(controller)"!`);
+			const remedy = "if you built your own controller, run \"JABS_InputAdapter.register(controller)\".";
+			Diagnostics.warn("J-ABS", `no input managers have been registered with the input adapter. ${remedy}`);
 		}
 	}
 	/**
@@ -19057,7 +19077,7 @@ var JABS_Engine = class JABS_Engine {
 		if (!J.LOG) return;
 		const player1 = this.getPlayer1();
 		const partyCycleLog = new ActionLogBuilder().setupPartyCycle(player1.battlerName()).build();
-		$actionLogManager.addLog(partyCycleLog);
+		$mapLogs.action.addLog(partyCycleLog);
 	}
 	/**
 	* Handle actions to perform after party cycling, such as flagging the engine for refresh.
@@ -19578,7 +19598,7 @@ var JABS_Engine = class JABS_Engine {
 				newDirection = clockwise ? 3 : 7;
 				break;
 			default:
-				console.warn("non-dir8 provided, no rotation performed.");
+				Diagnostics.warn("J-ABS", "a non-dir8 direction was provided; no rotation was performed.");
 				break;
 		}
 		return newDirection;
@@ -19616,7 +19636,7 @@ var JABS_Engine = class JABS_Engine {
 				newDirection = 1;
 				break;
 			default:
-				console.warn("non-dir8 provided, no rotation performed.");
+				Diagnostics.warn("J-ABS", "a non-dir8 direction was provided; no rotation was performed.");
 				break;
 		}
 		return newDirection;
@@ -19748,7 +19768,11 @@ var JABS_Engine = class JABS_Engine {
 		const casterName = action.getCaster().battlerName();
 		actionEventSprite.__actionName = `_${casterName}-${skillName}-${index}`;
 		if (!actionEventData || !actionEventData.pages.length) {
-			console.error("that rare error occurred!");
+			Diagnostics.error("J-ABS", "an action was added to the map after its caster was removed; it has no event data to render.", {
+				skillName,
+				casterName,
+				index
+			});
 			return;
 		}
 		const pageIndex = actionEventSprite.findProperPageIndex();
@@ -19827,7 +19851,7 @@ var JABS_Engine = class JABS_Engine {
 		}
 		const originalEnemyData = JABS_Engine.getEnemyCloneList().at(enemyCloneEventId);
 		if (!originalEnemyData) {
-			console.error(`The enemy id of [ ${enemyCloneEventId} ] did not align with an event on the enemy clone map.`);
+			Diagnostics.error("J-ABS", `the enemy id of [ ${enemyCloneEventId} ] did not align with an event on the enemy clone map.`);
 			return;
 		}
 		const enemyData = JsonEx.makeDeepCopy(originalEnemyData);
@@ -20615,7 +20639,7 @@ var JABS_Engine = class JABS_Engine {
 		purged.forEach((state) => {
 			if (state.jabsNoLogs === true) return;
 			const log = new ActionLogBuilder().setupStatePurged(targetName, state.id).build();
-			$actionLogManager.addLog(log);
+			$mapLogs.action.addLog(log);
 		});
 	}
 	/**
@@ -20634,19 +20658,19 @@ var JABS_Engine = class JABS_Engine {
 		const targetName = target.getBattlerDatabaseData().name;
 		if (result.parried) {
 			const parryLog = new ActionLogBuilder().setupParry(targetName, casterName, skill.id, target.parrying()).build();
-			$actionLogManager.addLog(parryLog);
+			$mapLogs.action.addLog(parryLog);
 			return;
 		} else if (result.evaded) {
 			const dodgeLog = new ActionLogBuilder().setupDodge(targetName, casterName, skill.id).build();
-			$actionLogManager.addLog(dodgeLog);
+			$mapLogs.action.addLog(dodgeLog);
 			return;
 		} else if (action.isRetaliation()) {
 			const retaliationLog = new ActionLogBuilder().setupRetaliation(casterName).build();
-			$actionLogManager.addLog(retaliationLog);
+			$mapLogs.action.addLog(retaliationLog);
 		} else if (!result.hpDamage && !result.mpDamage && !result.tpDamage && !result.addedStates.length) {
 			if (skill.damage.type === 0) return;
 			const undamagedLog = new ActionLogBuilder().setupUndamaged(targetName, casterName, skill.id).build();
-			$actionLogManager.addLog(undamagedLog);
+			$mapLogs.action.addLog(undamagedLog);
 			return;
 		}
 		if (result.hpDamage) {
@@ -20660,23 +20684,23 @@ var JABS_Engine = class JABS_Engine {
 			}
 			if (action.isTerrainDamage()) {
 				const terrainAttackLog = new ActionLogBuilder().setupTerrainDamage(targetName, skill.id, roundedDamage, reducedAmount, !isNotHeal, result.critical).build();
-				$actionLogManager.addLog(terrainAttackLog);
+				$mapLogs.action.addLog(terrainAttackLog);
 			} else {
 				const actionExecutedLog = new ActionLogBuilder().setupExecution(targetName, casterName, skill.id, roundedDamage, reducedAmount, !isNotHeal, result.critical).build();
-				$actionLogManager.addLog(actionExecutedLog);
+				$mapLogs.action.addLog(actionExecutedLog);
 			}
 		}
 		if (result.addedStates.length) {
 			result.addedStates.forEach((stateId) => {
 				if (stateId === targetBattler.deathStateId()) {
 					const targetDefeatedLog = new ActionLogBuilder().setupTargetDefeated(targetName).build();
-					$actionLogManager.addLog(targetDefeatedLog);
+					$mapLogs.action.addLog(targetDefeatedLog);
 					return;
 				}
 				const targetAfflictedState = targetBattler.state(stateId);
 				if (targetAfflictedState.jabsNoLogs === true) return;
 				const stateAfflictedLog = new ActionLogBuilder().setupStateAfflicted(targetName, stateId).build();
-				$actionLogManager.addLog(stateAfflictedLog);
+				$mapLogs.action.addLog(stateAfflictedLog);
 			});
 		}
 	}
@@ -21351,11 +21375,11 @@ var JABS_Engine = class JABS_Engine {
 		if (!J.LOG) return;
 		if (experience !== 0) {
 			const expLog = new ActionLogBuilder().setupExperienceGained(caster.getBattlerDatabaseData().name, experience).build();
-			$actionLogManager.addLog(expLog);
+			$mapLogs.action.addLog(expLog);
 		}
 		if (gold !== 0) {
 			const goldLog = new LootLogBuilder().setupGoldFound(gold).build();
-			$lootLogManager.addLog(goldLog);
+			$mapLogs.loot.addLog(goldLog);
 		}
 	}
 	/**
@@ -21384,7 +21408,7 @@ var JABS_Engine = class JABS_Engine {
 			lootType = "item";
 		}
 		const lootLog = new LootLogBuilder().setupLootObtained(lootType, item.id).build();
-		$lootLogManager.addLog(lootLog);
+		$mapLogs.loot.addLog(lootLog);
 	}
 	/**
 	* Lifecycle event: items were picked up by a character on the map.
@@ -21413,7 +21437,7 @@ var JABS_Engine = class JABS_Engine {
 		if (!J.LOG) return;
 		const battler = jabsBattler.getBattler();
 		const log = this.configureLevelUpLog(battler.name(), battler.level);
-		$actionLogManager.addLog(log);
+		$mapLogs.action.addLog(log);
 	}
 	/**
 	* Configures the log for the actor reaching a new level.
@@ -21451,7 +21475,7 @@ var JABS_Engine = class JABS_Engine {
 	createSkillLearnLog(skill, player) {
 		if (!J.LOG) return;
 		const log = this.configureSkillLearnLog(player.getBattlerDatabaseData().name, skill.id);
-		$actionLogManager.addLog(log);
+		$mapLogs.action.addLog(log);
 	}
 	/**
 	* Configures the log for the skill learned.
@@ -23353,7 +23377,7 @@ var JABS_SkillSlotManager = class {
 	getSlotComboId(key) {
 		const jabsSkillSlot = this.getSkillSlotByKey(key);
 		if (!jabsSkillSlot) {
-			console.warn(`[J-ABS] getSlotComboId: no skill slot for key "${key}". Returning 0 (no combo).`);
+			Diagnostics.warn("J-ABS", `getSlotComboId: no skill slot for key "${key}". Returning 0 (no combo).`);
 			return 0;
 		}
 		return jabsSkillSlot.getComboId();
@@ -23938,7 +23962,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.17.1";
+var PLUGIN_VERSION = "4.17.4";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
@@ -23989,7 +24013,7 @@ PluginManager.registerCommand(J.ABS.Metadata.name, "Set JABS Skill", (args) => {
 PluginManager.registerCommand(J.ABS.Metadata.name, "Unlock JABS Skill Slot", (args) => {
 	const leader = $gameParty.leader();
 	if (!leader) {
-		console.warn("There is no leader to manage skills for.");
+		Diagnostics.warn("J-ABS", "there is no party leader to manage skill slots for.");
 		return;
 	}
 	const { Slot } = args;
@@ -24002,7 +24026,7 @@ PluginManager.registerCommand(J.ABS.Metadata.name, "Unlock JABS Skill Slot", (ar
 PluginManager.registerCommand(J.ABS.Metadata.name, "Unlock All JABS Skill Slots", () => {
 	const leader = $gameParty.leader();
 	if (!leader) {
-		console.warn("There is no leader to manage skills for.");
+		Diagnostics.warn("J-ABS", "there is no party leader to manage skill slots for.");
 		return;
 	}
 	leader.unlockAllSlots();
@@ -24036,7 +24060,7 @@ PluginManager.registerCommand(J.ABS.Metadata.name, "Apply Global Cooldown", (arg
 	const actor = $gameActors.actor(parseInt(actorId, 10));
 	const jabsBattler = JABS_GlobalCooldown.jabsBattlerForActor(actor);
 	if (!jabsBattler) {
-		console.warn("Apply Global Cooldown: actor is not the leader or a visible follower on the map.");
+		Diagnostics.warn("J-ABS", "Apply Global Cooldown: actor is not the leader or a visible follower on the map.", { actorId });
 		return;
 	}
 	const n = parseInt(frames, 10);
@@ -24055,8 +24079,7 @@ PluginManager.registerCommand(J.ABS.Metadata.name, "Spawn Enemy", (args) => {
 	const addedEnemy = $jabsEngine.addEnemyToMap(parsedX, parsedY, parsedEnemyEventId);
 	if (parsedAnimationId) {
 		if (!addedEnemy) {
-			console.error("enemy failed to be dynamically generated.");
-			console.warn(addedEnemy);
+			Diagnostics.error("J-ABS", "an enemy failed to be dynamically generated.", addedEnemy);
 			return;
 		}
 		setTimeout(() => addedEnemy.requestAnimation(parsedAnimationId), 50);
@@ -25998,7 +26021,11 @@ DataManager.onMapGet = function(xhr, name, src, url) {
 * @param {string} url The path of the problemed file.
 */
 DataManager.gracefulFail = function(name, src, url) {
-	console.error(name, src, url);
+	Diagnostics.error("J-ABS", `failed to load a data file: ${name}`, {
+		name,
+		src,
+		url
+	});
 };
 /**
 * Extends {@link DataManager.makeSaveContents}.<br/>
@@ -30599,8 +30626,10 @@ Game_Event.prototype.findProperPageIndex = function() {
 		const test = J.ABS.Aliased.Game_Event.get("findProperPageIndex").call(this);
 		if (Number.isInteger(test)) return test;
 	} catch (err) {
-		console.trace();
-		console.error(`could not find page index for this event.`, err, this);
+		Diagnostics.trace("J-ABS", "could not find the page index for this event.", {
+			error: err,
+			event: this
+		});
 		return -1;
 	}
 };
@@ -30643,7 +30672,7 @@ Game_Event.prototype.page = function() {
 		return J.ABS.Aliased.Game_Event.get("page").call(this);
 	}
 	const { stack } = new Error();
-	console.warn("[JABS] Game_Event#page: missing event data (race / teardown?).", {
+	Diagnostics.warn("J-ABS", "Game_Event#page: missing event data (race / teardown?).", {
 		eventId: this.eventId(),
 		pageIndex: this.pageIndex(),
 		x: this.x(),
@@ -32104,7 +32133,6 @@ Sprite_Animation.prototype.targetSpritePosition = function(sprite) {
 	try {
 		return J.ABS.Aliased.Sprite_Animation.get("targetSpritePosition").call(this, sprite);
 	} catch {
-		console.log("error happened with sprite targeting anyway: ", sprite);
 		return new Point(0, 0);
 	}
 };
@@ -32826,7 +32854,7 @@ Sprite_Character.prototype.isJabsBattler = function() {
 Sprite_Character.prototype.isJabsAction = function() {
 	const character = this.character();
 	if (!character) {
-		console.warn("attempted to check erasure status on a non-existing character:", this);
+		Diagnostics.warn("J-ABS", "attempted to check erasure status on a non-existing character.", this);
 		return false;
 	}
 	return character.isJabsAction();

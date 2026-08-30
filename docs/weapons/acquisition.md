@@ -10,8 +10,10 @@
 > been renamed in the database since it was written. Its **locations were accurate**, and are carried
 > forward below, re-derived from the maps rather than copied.
 >
-> **⭐ rung: 13 of 18 placed and live in the maps.** ⭐⭐, ⭐⭐⭐ and all 18 legendaries: nothing placed,
-> nothing decided.
+> **Status update, 2026-08-27:** the acquisition chain is **decided** — see [The chain](#the-chain-decided-2026-08-27).
+> Only the ⭐ rung is ever placed; ⭐⭐, ⭐⭐⭐ and the legendaries are all forged. **13 of 18 ⭐ weapons are
+> live in the maps**; five remain. The 27 named *armors* are a separate throughline and are not covered
+> by this file's chain.
 
 ---
 
@@ -51,62 +53,87 @@ legendary to be reachable. Neither is decided yet.
 
 ---
 
-## Open decisions
+## The chain `DECIDED 2026-08-27`
 
-These are the questions this doc exists to close. Nothing below is settled.
+**Only the ⭐ rung is ever placed in the world. Everything above it is forged.**
 
-### 1. How are the ⭐⭐ and ⭐⭐⭐ named weapons found?
+| Rung | How | Unlocked by |
+|---|---|---|
+| **⭐ n1** | Found in the world, hand-placed | — |
+| **⭐⭐ n2** | Forged, **consuming the ⭐** | Viktor's second quest teaches the enhancement |
+| **⭐⭐⭐ n3** | Forged, **consuming the ⭐⭐** | Maxing Viktor's social link opens the n3 recipes |
+| **legendary** | Forged from the t6 craftable, **⭐⭐⭐ as tool** | The rite, taught by the ghost of a dead master smith in the **Desolate Graves**, reachable only once the Viktor/Viskra line is maxed |
 
-**The ⭐ rung is already answered — thirteen of eighteen are placed in the maps today**, each as a
-hand-placed pickup event named `named weapon: <subgroup>`. See the roster below for exact maps. So
-the open question is narrower than it first appears: it is only about the upper two rungs.
+Recipes still cost scraps and materials at every rung. What the unlocks buy is the *right* to forge,
+not the forging itself — the same shape the study shop already uses.
 
-Five ⭐ weapons remain unplaced: `"Blaster"` (Boomstick), `"Crescent Blossom"` (Glaive),
-`"Plate Peeler"` (Mace), `"Brought Down"` (Claws), `"Meta Arm"` (Arm). Whether those follow the same
-hand-placed pattern or adopt whatever is chosen for ⭐⭐/⭐⭐⭐ is open.
+### Why the line consumes itself
 
-Candidates for the upper rungs:
+**The sequence has to be forced.** A player must not be able to hold Claidheamh Soluis without having
+carried Light Thrust and Sacred Spine first. Placement can never guarantee that — whatever you hide,
+somebody finds it in the wrong order. Consumption guarantees it structurally: the n3 recipe cannot
+run without the n2 in the bag, and the n2 cannot run without the n1.
 
-- **Rare drop** from a themed enemy or family
-- **Chest** in optional/late content, still hand-placed but not pre-announced
-- **Boss reward**, one named weapon per major fight
-- **Vendor** for an unusual currency
-- **Quest reward**, tied to the questline that fits the weapon's story
+It also reads better. The line is **one weapon growing**, not a collection accumulating. You are
+never holding two rungs of the same family, and the sword you pulled out of the stone is the same
+sword you finish the game with.
 
-Likely a **mix**, weighted by rung. Worth deciding whether the rung determines the *method* or only
-the *rarity* — the ⭐ answer is already "hand-placed in a dungeon", so a different method for ⭐⭐⭐
-would be a deliberate change of kind, not just of frequency.
+**The ⭐⭐⭐ is the exception and survives**, because it is the *tool* for the legendary rather than its
+feedstock — the legendary consumes the t6 craftable instead. So the line eats itself upward until it
+reaches the myth weapon, and that one is permanent. A player is never punished for forging.
 
-### 2. How is a legendary blueprint acquired?
+### Why it routes through Viktor
 
-Candidate under discussion (2026-08-22): **trade a bulk quantity of a top-tier monster material for the
-blueprint.** The worked example was **20× `Impervious Seashell`** (`Armors[455]`, top rung of the `ctr`
-block) for the sword blueprint — a deliberate Link's Awakening echo, where twenty shells bought the
-Koholint Sword.
+`../unlockables/recipe-journals.md` already states the unlock doctrine, and states it as holding per
+discipline: **found < taught < inherited. Loot < lessons < love.** Smithing's rungs are written there
+as **scraps → Viktor → (an inherited tier)**. This chain is that doctrine applied to weapons rather
+than a new idea: scraps buy n2, Viktor teaches n3, and the legendary comes from the inherited tier.
 
-What makes this attractive:
+**The inherited tier is the ghost, not Viktor.** Viktor is already the *taught* rung, so having him
+also hand over the legendary would collapse two tiers into one person. Knowledge from someone who is
+gone is a stronger read of "inherited," and it gives the Desolate Graves the purpose `story-canon.md`
+currently records as `OPEN`.
 
-- It gives top-tier materials a **sink**, which they currently lack entirely.
-- It is a **goal, not a lottery** — the same doctrine already adopted for recipe pages in
-  [`../food/recipe-system.md`](../food/recipe-system.md): rarity is the price, and an unaffordable
-  thing is something to work toward.
-- It scales: eighteen legendaries × one bulk material each is eighteen material lines given purpose.
+### Losing Viktor loses the ladder, and that is intended
 
-Open sub-questions:
+`../quests/SE-raevula/smiths-apprentice.md` has a branch where **the Metal Petal closes forever and
+Viktor exits the game entirely.** Under this chain that branch also costs the player every named
+weapon above ⭐ and every legendary. **That is the accepted price of the decision** (Jeremy,
+2026-08-27) — the tragedy is meant to have teeth, and no fallback path is provided.
 
-- **One material per subgroup, or a shared legendary currency?** Per-subgroup ties each legendary to a
-  region and an enemy family. Shared makes the economy legible but flattens it.
-- **Who trades it?** Viktor is already the smithing "taught" tier in the found/taught/inherited ladder.
-  A dedicated legendary vendor is a different feel from Viktor grudgingly agreeing.
-- **Does the blueprint need the ⭐⭐⭐ in hand to purchase**, or only to craft? Requiring it at purchase
-  makes the sequence explicit; requiring it only at craft lets a player buy early and aspire.
-- **Bulk count.** Twenty is the Link's Awakening number and reads well. Whether every subgroup uses
-  twenty, or the count varies by material rarity, is undecided.
+### Materials come from outside weaponcrafting
 
-### 3. Where do the bulk materials come from?
+Every rung above ⭐ demands high-tier materials **from disciplines other than weapon forging** —
+armourcraft, alchemy, and cooking among them. Two reasons, and the second is the real one:
 
-Any bulk requirement needs a drop source that can actually supply it. As of 2026-08-22 **no top-tier
-material has a drop source** — see the coverage note at the bottom of this file.
+- Top-tier materials currently have **no sink at all**, and this gives them one.
+- It breaks the closed loop. Most games gate the ultimate weapon behind ultimate *weapon* materials,
+  so a weapon-focused player never leaves their own discipline. Requiring a dish to finish a sword is
+  the premise of this game expressed as a mechanic rather than as a joke.
+
+**The legendary's cross-discipline demand should be characteristic, not universal.** "One top-tier
+item from every family" ×18 would give the most distinctive objects in the game the most generic
+recipe. Ichor is the blood of gods and should want alchemy; Seismos shakes the ground and should want
+heavy plate; Gemini is twins and should want two of something.
+
+### What is still open
+
+- **Armor gets a different throughline entirely.** Viktor owns weapons; `design-contract.md` puts
+  armor and survival crafting on **Millie**. The 27 named armors therefore do not route through this
+  chain, and their ladder is unsorted (Jeremy, 2026-08-27). Whether the Desolate Graves holds a second
+  ghost or one who covers both crafts is undecided.
+- **The five unplaced ⭐ weapons** — `"Blaster"` (Boomstick), `"Crescent Blossom"` (Glaive),
+  `"Plate Peeler"` (Mace), `"Brought Down"` (Claws), `"Meta Arm"` (Arm). Their switches
+  (`got-named-shotgun` 208, `got-named-2h-axe` 211, `got-named-doubleaxe` 212, `got-named-claw` 217,
+  `got-named-arm` 218) are already reserved and waiting.
+- **The exact material bills** at each rung.
+
+### Where the materials come from
+
+Any material requirement needs a drop source that can actually supply it. This was the blocker as of
+2026-08-22 and **is now answered** — see
+[`../enemies/drop-sources.md`](../enemies/drop-sources.md), which maps all 46 material blocks onto
+enemy subgroups and harvest nodes.
 
 ---
 

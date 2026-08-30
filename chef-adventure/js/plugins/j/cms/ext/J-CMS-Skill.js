@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 CMS-SKILL] A redesign of the skill menu.
+ * [v1.1.1 CMS-SKILL] A redesign of the skill menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -24,6 +24,10 @@
  * this plugin.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Routed the invalid skill-reward report through J-Base's new Diagnostics.
+ *    It was a console.log with no message and a bare conditional dumped beside
+ *    it; it now names J-CMS-Skill and states which reward id was rejected.
  * - 1.1.0
  *    Fixed long related-skill names overlapping the fixed-position
  *    required/current proficiency values; names now truncate with an
@@ -80,7 +84,7 @@ J.CMS.EXT.SKILL = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS.EXT.SKILL.Metadata = new J_CmsSkill_PluginMetadata("J-CMS-Skill", "1.1.0");
+J.CMS.EXT.SKILL.Metadata = new J_CmsSkill_PluginMetadata("J-CMS-Skill", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -477,8 +481,7 @@ var Window_SkillDetail = class extends Window_Base {
 			if (!conditional.skillRewards.length) return;
 			conditional.skillRewards.forEach((skillRewardId) => {
 				if (!skillRewardId) {
-					console.warn(conditional);
-					console.log(skillRewardId, "not a valid skill reward.");
+					Diagnostics.warn("J-CMS-Skill", `[${skillRewardId}] is not a valid skill reward.`, conditional);
 					return;
 				}
 				const proficiencyRequirement = conditional.requirements.find((requirement) => requirement.skillId === skill.id);

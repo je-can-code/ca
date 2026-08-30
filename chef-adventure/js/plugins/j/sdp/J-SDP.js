@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v3.3.1 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v3.3.3 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -366,6 +366,14 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.3.3
+ *    Routed every panel, rarity and rank-reward warning and error through
+ *    J-Base's new Diagnostics, so each names J-SDP in the console.
+ * - 3.3.2
+ *    Repointed SDP point, panel-unlock and mastery logging at J-Log's new
+ *    $mapLogs registry. The $actionLogManager and $diaLogManager globals
+ *    these called are gone. Requires J-Log 3.0.0 when J-Log is installed at
+ *    all.
  * - 3.3.1
  *    Adapted to the RPGManager array read signature.
  * - 3.3.0
@@ -1561,7 +1569,7 @@ var PanelRarity = class PanelRarity {
 			case PanelRarity.RARITY_LEGENDARY: return PanelRarity.WindowColorLegendary;
 			case PanelRarity.RARITY_GODLIKE: return PanelRarity.WindowColorGodlike;
 			default:
-				console.warn(`PanelRarity.rarityIndexToColorIndex: unknown rarity index [ ${rarityIndex} ].`);
+				Diagnostics.warn("J-SDP", `PanelRarity.rarityIndexToColorIndex: unknown rarity index [ ${rarityIndex} ].`);
 				return 0;
 		}
 	}
@@ -1583,7 +1591,7 @@ var PanelRarity = class PanelRarity {
 		if (raw >= PanelRarity.RARITY_COMMON && raw <= PanelRarity.RARITY_MAX) {
 			return raw;
 		}
-		console.warn(`PanelRarity.normalizeRarityFromJson: out-of-range rarity [ ${raw} ]; clamped to Common.`);
+		Diagnostics.warn("J-SDP", `PanelRarity.normalizeRarityFromJson: out-of-range rarity [ ${raw} ]; clamped to Common.`);
 		return PanelRarity.RARITY_COMMON;
 	}
 	/**
@@ -1950,7 +1958,7 @@ var SdpMasteryManager = class SdpMasteryManager {
 		const headline = skill.message1 || (supersededPanel !== null ? `\\C[1]${actor.name()}\\C[0] deepened their mastery: \\C[1]${skill.name}\\C[0] supersedes ${actor.skill(supersededPanel.mastery.masterySkillId).name}!` : `\\C[1]${actor.name()}\\C[0] achieved mastery of \\C[1]${skill.name}\\C[0]!`);
 		const instruction = skill.message2 || "Equip it from the skills menu to use it.";
 		const log = new DiaLogBuilder().addLine(headline).addLine(instruction).setFaceName(actor.faceName()).setFaceIndex(actor.faceIndex()).build();
-		$diaLogManager.addLog(log);
+		$mapLogs.dialog.addLog(log);
 	}
 	/**
 	* Finds the highest-tier maxed mastery panel for a subgroup on an actor.
@@ -2083,10 +2091,8 @@ var PanelRanking = class {
 			try {
 				new Function("a", rewardEffect.effect)(a);
 			} catch (err) {
-				console.error(`
-        An error occurred while trying to execute the rank-${this.currentRank} 
-        reward for panel: ${this.key}`);
-				console.error(err);
+				const reward = `the rank-${this.currentRank} reward for panel: ${this.key}`;
+				Diagnostics.error("J-SDP", `an error occurred while trying to execute ${reward}`, err);
 			}
 		});
 	}
@@ -2579,7 +2585,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.3.1");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.3.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3120,8 +3126,9 @@ Game_Enemy.prototype.canDropSdp = function() {
 	if (!this.hasSdpDropData()) return false;
 	const panel = J.SDP.Metadata.panelsMap.get(this.enemy().sdpDropKey);
 	if (!panel) {
-		console.warn(`Panel of key ${this.enemy().sdpDropKey} is not defined, but was trying to be dropped.`);
-		console.warn(`Consider defining a panel with the key of ${this.enemy().sdpDropKey}.<br>`);
+		const dropKey = this.enemy().sdpDropKey;
+		const remedy = `consider defining a panel with the key of ${dropKey}.`;
+		Diagnostics.warn("J-SDP", `panel of key ${dropKey} is not defined, but was trying to be dropped; ${remedy}`);
 		return false;
 	}
 	if ($gameParty.isSdpUnlocked(panel.key)) return false;
@@ -3240,7 +3247,7 @@ Game_Party.prototype.hasAnyUnlockedSdps = function() {
 */
 Game_Party.prototype.unlockSdp = function(key) {
 	if (J.SDP.Metadata.panelsMap.has(key) === false) {
-		console.error(`The SDP key of ${key} was not found in the list of panels to unlock.`);
+		Diagnostics.error("J-SDP", `the SDP key of ${key} was not found in the list of panels to unlock.`);
 		return;
 	}
 	$gameActors.actors().forEach((member) => member.unlockSdpByKey(key));
@@ -3268,7 +3275,7 @@ Game_Party.prototype.isSdpUnlocked = function(key) {
 */
 Game_Party.prototype.lockSdp = function(key) {
 	if (J.SDP.Metadata.panelsMap.has(key) === false) {
-		console.error(`The SDP key of ${key} was not found in the list of panels to lock.`);
+		Diagnostics.error("J-SDP", `the SDP key of ${key} was not found in the list of panels to lock.`);
 		return;
 	}
 	$gameActors.actors().forEach((member) => member.lockSdpByKey(key));
@@ -3282,7 +3289,7 @@ Game_Party.prototype.lockSdp = function(key) {
 Game_Party.prototype.getSdpRankByActorAndKey = function(actorId, key) {
 	const actor = $gameActors.actor(actorId);
 	if (!actor) {
-		console.error(`The actor id of ${actorId} was invalid.`);
+		Diagnostics.error("J-SDP", `the actor id of ${actorId} was invalid.`);
 		return 0;
 	}
 	const panelRanking = actor.getSdpByKey(key);
@@ -3568,7 +3575,7 @@ if (J.ABS) {
 	JABS_Engine.prototype.createSdpLog = function(sdpPoints, battler) {
 		if (!J.LOG) return;
 		const sdpLog = new ActionLogBuilder().setupSdpAcquired(battler.battlerName(), sdpPoints).build();
-		$actionLogManager.addLog(sdpLog);
+		$mapLogs.action.addLog(sdpLog);
 	};
 	/**
 	* Creates the log entry if using the J-LOG.
@@ -3577,7 +3584,7 @@ if (J.ABS) {
 	JABS_Engine.prototype.createSdpUnlockLog = function(sdpKey) {
 		if (!J.LOG) return;
 		const sdpLog = new ActionLogBuilder().setupSdpUnlocked(sdpKey).build();
-		$actionLogManager.addLog(sdpLog);
+		$mapLogs.action.addLog(sdpLog);
 	};
 }
 

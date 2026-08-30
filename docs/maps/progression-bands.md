@@ -90,6 +90,51 @@ drop tables plus the Raevula innkeeper.
 
 ---
 
+## Planned bands — after chapter 3
+
+> **Design intent, not derived.** Everything above this section was computed from `chef-adventure/data/`.
+> Everything in this section is the opposite: target levels for areas that are unbuilt or barely built,
+> given by Jeremy on **2026-08-24** and described by him as guesstimates. Data supersedes it the moment
+> each area is built and populated. Do not regenerate this section — regenerating would delete it.
+
+The eighteen bands above stop at the end of chapter 3, which is also where the world stops being a
+sequence. Chapter 4 is deliberately wrapperless: the continent opens and the player mounts expeditions
+in whatever order they like. So the four optional areas below are a **parallel set with overlapping
+bands**, not rungs — the overlap is the design, not a rounding artifact.
+
+| Area | Band | Reached from | Source |
+|---|---|---|---|
+| Crystalline Ravine | 75-90 | Erocia Isthmus | JE, 2026-08-24 |
+| Seashell Shores | 80-95 | Outer Cliffs | JE, 2026-08-24 |
+| Deluge Plains | 85-100 | ch4 continent | JE, 2026-08-24 |
+| Nimbus ("Heaven") | 85-100 | Negative Peaks, Room of Sacrifice `Map322` | `story-canon.md` |
+| Desolate Graves | 90-105 | ch4 continent, purpose open | JE, 2026-08-24 |
+| The Subterranean ("Hell") | 95-110 | Pearlsalt Mines *and* Forlorn Basin, snakerope-gated | `story-canon.md` |
+| Windward Tunnels | - | Deluge Plains to Pearlsalt Mines | unassigned |
+| Frozen Fortress (ch5) | 115-130 | RGB Technohypercube | `story-canon.md` |
+| The gent | ~150 | Frozen Fortress, Courtyard | `story-canon.md` |
+
+**The two technodisk retrievals are the only mandatory beats in chapter 4** — Nimbus and the
+Subterranean. The other four areas are optional content the player may skip entirely, which is a
+constraint on anything that gates progress behind them.
+
+### Two seams worth stating plainly
+
+- **Deluge is listed twice and the numbers disagree on purpose.** Band 18 above reports Deluge Valley
+  at 51-75, because that is what its eight built spawns measure today. The 85-100 here is the target
+  it is being adjusted *to*. When those spawns are re-levelled the derived row will move and this line
+  can go. "Deluge Valley" is the map-tree name; "Deluge Plains" is the design name.
+- **Crystalline Ravine's floor sits on a known disagreement.** `story-canon.md` estimates ~75 entering
+  chapter 4; the derived data tops out at 64-65 with bosses at 70, so the shape note above puts a real
+  player nearer 65-70. A 75 floor assumes the canon figure. Whichever way that resolves, the ravine
+  should stay the softest landing of the four.
+
+**Where the level ladder actually lives.** Built content covers levels 1-70. Everything from 70 to 150
+is in this section — more than half the ladder, and none of it exists yet. That is the direct
+explanation for why tier 4-5 monster materials have no drop sources: their homes are unbuilt.
+
+---
+
 ## Maps
 
 Columns are map id, name, level range, and spawn count. Ordered within each area by level, then id.

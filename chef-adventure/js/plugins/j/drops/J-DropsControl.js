@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.5.0 DROPS] Enables greater control over loot drops.
+ * @plugindesc [v2.5.1 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -210,6 +210,10 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.5.1
+ *    Routed the static-instantiation and invalid-drop reports through J-Base's
+ *    new Diagnostics, so each names J-DropsControl. The invalid-drop warning now
+ *    shows the enemy, kind and id as named keys instead of a wrapped string.
  * - 2.5.0
  *    Added drop upgrade ladders. A ladder names a chain of rows in ascending
  *    order, and a battler carrying <dropUpgrade:N> promotes each drop N rungs
@@ -433,7 +437,7 @@ J.DROPS.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.5.0");
+J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.5.1");
 /**
 * All regular expressions used by this plugin.
 */
@@ -705,9 +709,8 @@ RPG_Enemy.prototype.validDropItemFilter = function(dropItem) {
 */
 var DropsPartyStrategy = class {
 	constructor() {
-		console.warn(`Attempted to instantiate the PartyStrategy class.`);
-		console.warn(`Please directly use the static properties on it instead of instantiating it.`);
-		console.trace();
+		const remedy = "use the static properties on it directly instead of instantiating it.";
+		Diagnostics.trace("J-DropsControl", `attempted to instantiate the PartyStrategy class; ${remedy}`);
 		throw new Error(`PartyStrategy is a static class that cannot be instantiated.`);
 	}
 	/**
@@ -1080,9 +1083,11 @@ Game_Enemy.prototype.resolveDropQuantityBonus = function(killer = null) {
 Game_Enemy.prototype.findLoot = function(drop, itemsFound) {
 	const item = this.itemObject(drop.kind, drop.dataId);
 	if (!item) {
-		console.warn(`Invalid drop resolved:
-       enemy=${this.enemy().name}, kind=${drop.kind}, id=${drop.dataId},
-      "(check DB entry and note tags).`);
+		Diagnostics.warn("J-DropsControl", "an invalid drop resolved; check the DB entry and note tags.", {
+			enemy: this.enemy().name,
+			kind: drop.kind,
+			dataId: drop.dataId
+		});
 		return;
 	}
 	itemsFound.push(item);

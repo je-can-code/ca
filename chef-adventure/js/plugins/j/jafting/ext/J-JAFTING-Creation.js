@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.1 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
+ * [v1.3.2 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -156,6 +156,10 @@
  * so retuning an economy is done in the data editor rather than here.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.2
+ *    Routed the unsupported-component-type error and the four recipe/category
+ *    lock and unlock errors through J-Base's new Diagnostics, so each names
+ *    J-JAFTING-Creation in the console.
  * - 1.3.1
  *    Fixed a recipe carrying an SDP cost throwing when J-SDP is not installed.
  *    The affordability check read the leader's panel points directly, while the
@@ -454,7 +458,7 @@ var CraftingComponent = class CraftingComponent {
 			case CraftingComponent.Types.Gold:
 			case CraftingComponent.Types.SDP: return false;
 			default:
-				console.error(`unsupported item type found: [${this.#type}]`);
+				Diagnostics.error("J-JAFTING-Creation", `unsupported item type found: [${this.#type}]`);
 				throw new Error("The type of this component is unsupported.");
 		}
 	}
@@ -1837,7 +1841,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.3.1");
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.3.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2291,7 +2295,7 @@ Game_Party.prototype.getCategoryTrackingByKey = function(key) {
 Game_Party.prototype.lockRecipe = function(key) {
 	const tracking = this.getRecipeTrackingByKey(key);
 	if (!tracking) {
-		console.error(`The recipe key of ${key} was not found in the list of recipes to lock.`);
+		Diagnostics.error("J-JAFTING-Creation", `the recipe key of ${key} was not found in the list of recipes to lock.`);
 		return;
 	}
 	tracking.lock();
@@ -2303,7 +2307,8 @@ Game_Party.prototype.lockRecipe = function(key) {
 Game_Party.prototype.unlockRecipe = function(key) {
 	const tracking = this.getRecipeTrackingByKey(key);
 	if (!tracking) {
-		console.error(`The recipe key of ${key} was not found in the list of recipes to unlock.`);
+		const problem = `the recipe key of ${key} was not found in the list of recipes to unlock.`;
+		Diagnostics.error("J-JAFTING-Creation", problem);
 		return;
 	}
 	tracking.unlock();
@@ -2315,7 +2320,8 @@ Game_Party.prototype.unlockRecipe = function(key) {
 Game_Party.prototype.lockCategory = function(key) {
 	const tracking = this.getCategoryTrackingByKey(key);
 	if (!tracking) {
-		console.error(`The category of ${key} was not found in the list of categorys to lock.`);
+		const problem = `the category key of ${key} was not found in the list of categories to lock.`;
+		Diagnostics.error("J-JAFTING-Creation", problem);
 		return;
 	}
 	tracking.lock();
@@ -2327,7 +2333,8 @@ Game_Party.prototype.lockCategory = function(key) {
 Game_Party.prototype.unlockCategory = function(key) {
 	const tracking = this.getCategoryTrackingByKey(key);
 	if (!tracking) {
-		console.error(`The category key of ${key} was not found in the list of categories to unlock.`);
+		const problem = `the category key of ${key} was not found in the list of categories to unlock.`;
+		Diagnostics.error("J-JAFTING-Creation", problem);
 		return;
 	}
 	tracking.unlock();

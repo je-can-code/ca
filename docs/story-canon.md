@@ -44,6 +44,23 @@ involved in that fusion; RL predates all junction tech. Canon consequence (`SHIP
 the fusion clouds Jerald's cognition — *"since you and RL fused, you have a hard time looking beyond the
 obvious."*
 
+**What the fusion cost him `LOCKED (lineage)`:** his magic. Jerald traded **element** and **morph** —
+his whole non-physical toolkit — for what RL was. That is not flavour; it *is* his class design. A
+magicless frontliner who only engages what is directly in front of him is the shape of the bargain, not
+a balance decision made afterwards.
+
+**RL's axe `LOCKED (lineage)`:** he wielded **The Styrofoam Axe** in the prequel, and the joke was
+entirely the reveal — a ridiculous name attached to cap attack. The material never mattered; as long as
+it was an axe he could kill with it, and he swung fast enough that *cleaving the air* did the killing,
+which is why the packing-peanut edge never chipped. Jeremy wielded axes in the original as well, so the
+line runs **Jeremy → RL → Jerald** — which is why the Academy's axe teacher greets him as the **Maestro
+of Axes** and he deflects that the plot has not unveiled it. The weapon survives into CA as the glaive
+legendary, and the entire glaive craftable ladder was built backwards from it; see
+[`weapons/families/axe.md`](weapons/families/axe.md).
+
+**The tell in the art:** Robert hand-drew both. Jeremy has green eyes with pupils; **RL has grey irises
+and no pupils.** That is the only visual difference, and it is the whole characterisation.
+
 ### The Elementals `SHIPPED (dialogue) / LOCKED (extensions)`
 
 A space-faring **symbiote race**: a physical homunculus + a spirit, bound by a **limiter** — a technological
@@ -384,8 +401,8 @@ mounts when ready — not corridor stops.**
 
 - **Nimbus**: a "Heaven" dungeon above the Negative Peaks, unlocked at the **Room of Sacrifice** (Map322),
   just before the summit.
-- **The gate gag** `LOCKED (drafted)`: the room's grim sacrificial decor demands... `Armor[401]`
-  **"Big Gelatin"** (price: 30; dropped by the first slimes in the game — **the same ingredient as the
+- **The gate gag** `LOCKED (drafted)`: the room's grim sacrificial decor demands... `Items[242]`
+  **"Big Gelatin"** (price: 40; dropped by the first slimes in the game — **the same ingredient as the
   intro-dungeon pudding recipe**). Pride's gate, guardian of glory, opens for the game's very first
   ingredient — the most disposable material that exists. Full circle. Jerald refuses to believe the
   scripture; Rupert makes him read it; vindication; the gelatin jiggles, melts into the pedestal, the gate
