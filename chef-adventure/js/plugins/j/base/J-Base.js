@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.7.0 BASE] The base class for all J plugins.
+ * [v3.7.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.7.1
+ *    ParsableComment now admits the '#' character, so an event comment may carry
+ *    a hex colour as a tag value. Previously such a comment failed the shape test
+ *    and was discarded before parsing, which read downstream as the tag simply
+ *    not being there.
  * - 3.7.0
  *    Added Diagnostics, the channel every plugin now reports developer-facing
  *    anomalies through. Diagnostics.warn/error/trace/info each take the emitting
@@ -1887,7 +1892,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.7.0";
+J.BASE.Metadata.Version = "3.7.1";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
