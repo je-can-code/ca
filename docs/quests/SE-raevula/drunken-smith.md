@@ -22,8 +22,8 @@ reason he may not feel what's building at his own forge until it's too late. See
 means — because in this shop, one imprecise word can cost a soul. Completing his chain is what changes the
 ending of [Viskra's](./smiths-apprentice.md).
 
-**Reward family: smithing** — blueprint scraps, the refinement system (shipped, CE105), Smith's Soulcrystal
-synthesis, and named-weapon enhancement ("the new way").
+**Reward family: smithing** — blueprint scraps, the refinement system (shipped, CE105), and named-weapon
+enhancement ("the new way"): the right to forge ⭐⭐ and ⭐⭐⭐ from the rung beneath.
 
 ## THE RACE (read this before building either chain)
 Viktor's chain and Viskra's final quest are available in the same window (late-game; her rite ingredients are
@@ -73,14 +73,14 @@ conversation-forcer?] and refuses to leave until the lesson is taught to the per
 - The pub visits drop to almost never.
 
 ### 4) The New Way: `???`
-The capstone, and the reform: if souls make steel great, and the price is unpayable — synthesize the essence
-without the sacrifice. With the duo fetching the components (late-zone exotics, list TBD), Viktor distills the
-first **Smith's Soulcrystal** (`Items.json [46]`) ever made without a death. The man who paid half his soul
-invents the version that costs none.
+The capstone, and the reform: if souls make steel great, and the price is unpayable — find the way to deepen a
+blade without anyone dying into it. With the duo fetching the components (late-zone exotics, list TBD), Viktor
+works out the first enhancement ever performed without a death. The man who paid half his soul invents the
+version that costs none.
 
 #### After effects of "The New Way"
-- **Smith's Soulcrystal synthesis unlocks** (the recipe family — the ONLY recipes that consume named weapons
-  as ingredients live here; see `config.crafting.json`).
-- **Named-weapon enhancement teaching**: named weapons can now be raised "to new heights" the new way.
+- **Named-weapon enhancement unlocks** — the ⭐⭐ and ⭐⭐⭐ recipes, each consuming the rung beneath it. These are
+  the only recipes in the game that consume named weapons; see
+  [`../../acquisition.md`](../../acquisition.md) for the full chain.
 - Viktor's final dialogue state: a teacher. Still profane. But a teacher.
 - (Good-timeline Viskra beats now available — her doc.)

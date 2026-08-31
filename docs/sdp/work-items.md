@@ -292,7 +292,7 @@ Design source: `rmmz-plugins/.backlog/unstarted/ca-food-group-chain-system.md`.
 - **Reference strip:** `undead-ghosty` (`GHO_1`…`GHO_10`) — first authored pass.
 - **Scale:** all currently implemented enemies (~100+ panels).
 - **Depends on:** Phase 0 content (registry keys exist); families/subgroups authored.
-- **Ship blocker (strict):** [**protag class / job tree**](../../../rmmz-plugins/.backlog/unstarted/ca-protag-class-job-tree-system.md)
+- **Ship blocker (strict):** [**protag class / job tree**](../../../rmmz-plugins/.backlog/completed/ca-protag-class-job-tree-system.md)
   — without class swapping (or equivalent base-param pivot), `%`-only panels leave low-base actors
   (e.g. Jerald on Wizard strips) with no meaningful growth path. **Not a nice-to-have.**
 

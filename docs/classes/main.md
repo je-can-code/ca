@@ -2,7 +2,7 @@
 
 > **Status:** brainstorm / pre-implementation. No RMMZ data authored yet.
 >
-> **Backlog item:** [`rmmz-plugins/.backlog/unstarted/ca-protag-class-job-tree-system.md`](../../../rmmz-plugins/.backlog/unstarted/ca-protag-class-job-tree-system.md)
+> **Backlog item:** [`rmmz-plugins/.backlog/completed/ca-protag-class-job-tree-system.md`](../../../rmmz-plugins/.backlog/completed/ca-protag-class-job-tree-system.md)
 >
 > **Related:** [`../sdp/archetype-mapping.md`](../sdp/archetype-mapping.md) · [`../weapons/families.md`](../weapons/families.md)
 

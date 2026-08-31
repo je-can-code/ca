@@ -1,6 +1,6 @@
 # Axe (wtype 4)
 
-> Index: [`../families.md`](../families.md) · Acquisition: [`../acquisition.md`](../acquisition.md) · **Target skill IDs:** **91–120** · Stat lean: **MHP** (family); **2H skills ATK-only**
+> Index: [`../families.md`](../families.md) · Acquisition: [`../../acquisition.md`](../../acquisition.md) · **Target skill IDs:** **91–120** · Stat lean: **MHP** (family); **2H skills ATK-only**
 >
 > **Planning:** [`../skill-lots.md`](../skill-lots.md) — **family complete**
 

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 MOTION] Ambient and reactive motion for character sprites.
+ * [v1.2.0 MOTION] Ambient and reactive motion for character sprites.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -123,6 +123,9 @@
  * all beyond the arithmetic.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Adds `passive` to the source ranking, between an event page and an applied
+ *    state, for the motions J-Motion-Passive declares.
  * - 1.1.0
  *    Centred rotation now lifts the sprite instead of dropping it, and scales that
  *    lift by the sprite's own scale, so a character that spins while changing size
@@ -296,7 +299,7 @@ J.MOTION.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.MOTION.Metadata = new J_MOTION_PluginMetadata("J-Motion", "1.1.0");
+J.MOTION.Metadata = new J_MOTION_PluginMetadata("J-Motion", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1985,12 +1988,23 @@ var CharacterMotionComposer = class CharacterMotionComposer {
 	static #emptyComposition = new MotionComposition();
 	/**
 	* How strongly a source's claim on a channel outranks another's.
+	*
+	* The order is how transient each kind is, because the more fleeting a motion is the more likely
+	* it is the thing a player is meant to be reading right now. A page's ambient motion is what a
+	* character does forever, a passive is what it does for as long as it is that sort of creature,
+	* an applied state is what it does until the affliction wears off, and a combat reaction is what
+	* it does for a handful of frames.
+	*
+	* Kinds owned by extensions live here rather than with the extension because ranking is a
+	* comparison, and a table that only holds half the entries cannot make one. Core does not need to
+	* know what a passive or a death is to know where it sits.
 	* @type {Map<string, number>}
 	*/
 	static #sourcePriorities = new Map([
-		["combat", 4],
-		["command", 3],
-		["state", 2],
+		["combat", 5],
+		["command", 4],
+		["state", 3],
+		["passive", 2],
 		["page", 1]
 	]);
 	/**

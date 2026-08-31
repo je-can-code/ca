@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.1.3 TIME] A system for tracking time- real or artificial.
+ * @plugindesc [v1.2.0 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -201,6 +201,12 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Added a day-of-week vocabulary to Time_Snapshot: DaysOfWeekName and
+ *    DaysOfWeekId translate between names and ids (0-6 starting from Monday),
+ *    and dayOfWeekId/dayOfWeekName derive which weekday a snapshot lands on.
+ *    The artificial calendar anchors day 1 of month 1 of year 0 as a Monday
+ *    and cycles a seven-day week; real-time mode asks the real calendar.
  * - 1.1.3
  *    Routed the season and time-of-day validation errors, the unrecognized TIME
  *    tag warning, and the fresh-clock notice through J-Base's new Diagnostics,
@@ -669,7 +675,7 @@ J.TIME = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.1.3");
+J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -746,468 +752,6 @@ var TimeConditional = class {
 	* @type {[number, number]|[number,number,number,number,number,number]}
 	*/
 	endRange = [];
-};
-
-//#endregion
-//#region src/plugins/time/core/_models/Time_Snapshot.js
-/**
-* A class representing a snapshot in time of a moment.
-*/
-var Time_Snapshot = class Time_Snapshot {
-	/**
-	* Gets the season of year id.
-	* @returns {number} The seasonOfYearId.
-	*/
-	seasonOfYearId() {
-		return this._seasonOfYearId;
-	}
-	/**
-	* Gets the time of day id.
-	* @returns {number} The timeOfDayId.
-	*/
-	timeOfDayId() {
-		return this._timeOfDayId;
-	}
-	/**
-	* @constructor
-	* @param {number} seconds The seconds of the current time.
-	* @param {number} minutes The minutes of the current time.
-	* @param {number} hours The hours of the current time.
-	* @param {number} days The days of the current time.
-	* @param {number} months The months of the current time.
-	* @param {number} years The years of the current time.
-	* @param {number} timeOfDayId The id of the time of day.
-	* @param {number} seasonOfYearId The id of the season of the year.
-	*/
-	constructor(seconds, minutes, hours, days, months, years, timeOfDayId, seasonOfYearId) {
-		/**
-		* The seconds of the current time.
-		* @type {number}
-		*/
-		this.seconds = seconds;
-		/**
-		* The minutes of the current time.
-		* @type {number}
-		*/
-		this.minutes = minutes;
-		/**
-		* The hours of the current time.
-		* @type {number}
-		*/
-		this.hours = hours;
-		/**
-		* The days of the current time.
-		* @type {number}
-		*/
-		this.days = days;
-		/**
-		* The months of the current time.
-		* @type {number}
-		*/
-		this.months = months;
-		/**
-		* The years of the current time.
-		* @type {number}
-		*/
-		this.years = years;
-		/**
-		* The id of the time of day.
-		* @type {number}
-		*/
-		this._timeOfDayId = timeOfDayId;
-		/**
-		* The id of the season of the year.
-		* @type {number}
-		*/
-		this._seasonOfYearId = seasonOfYearId;
-	}
-	/**
-	* Translates the numeric season of the year into it's proper name.
-	* @param {number} seasonId The numeric representation of the season of the year.
-	* @returns {string}
-	*/
-	static SeasonsName(seasonId) {
-		switch (seasonId) {
-			case 0: return "Spring";
-			case 1: return "Summer";
-			case 2: return "Autumn";
-			case 3: return "Winter";
-			default:
-				Diagnostics.error("J-TIME", `${seasonId} is not a valid season id.`);
-				return null;
-		}
-	}
-	/**
-	* Translates the numeric season of the year into it's icon index.
-	* @param {number} seasonId The numeric representation of the season of the year.
-	* @returns {string}
-	*/
-	static SeasonsIconIndex(seasonId) {
-		switch (seasonId) {
-			case 0: return 887;
-			case 1: return 888;
-			case 2: return 889;
-			case 3: return 890;
-			default: return `${seasonId} is not a valid season id.`;
-		}
-	}
-	/**
-	* Translates the name of the season into its id.
-	* @param {string} seasonName The name of the season.
-	* @returns {number}
-	*/
-	static SeasonsId(seasonName) {
-		switch (seasonName.toLowerCase()) {
-			case "spring": return 0;
-			case "summer": return 1;
-			case "autumn":
-			case "fall": return 2;
-			case "winter": return 3;
-			default:
-				Diagnostics.error("J-TIME", `${seasonName} is not a valid season name.`);
-				return -1;
-		}
-	}
-	/**
-	* Translates the numeric time of the day into it's proper name.
-	* @param {number} timeOfDayId The numeric representation of the time of the day.
-	* @returns {string}
-	*/
-	static TimesOfDayName(timeOfDayId) {
-		switch (timeOfDayId) {
-			case 0: return "Night";
-			case 1: return "Dawn";
-			case 2: return "Morning";
-			case 3: return "Afternoon";
-			case 4: return "Evening";
-			case 5: return "Twilight";
-			default:
-				Diagnostics.error("J-TIME", `${timeOfDayId} is not a valid time of day id.`);
-				return null;
-		}
-	}
-	/**
-	* Translates the numeric time of the day into it's icon index.
-	* @param {number} timeOfDayId The numeric representation of the time of the day.
-	* @returns {string}
-	*/
-	static TimesOfDayIcon(timeOfDayId) {
-		switch (timeOfDayId) {
-			case 0: return 2256;
-			case 1: return 2260;
-			case 2: return 2261;
-			case 3: return 2261;
-			case 4: return 2257;
-			case 5: return 2256;
-			default: return `${timeOfDayId} is not a valid time of day id.`;
-		}
-	}
-	/**
-	* Translates the name of a time of the day into its id.
-	* @param {string} timeOfDayString The name of the time of the day.
-	* @returns {number}
-	*/
-	static TimesOfDayId(timeOfDayString) {
-		switch (timeOfDayString.toLowerCase()) {
-			case "night": return 0;
-			case "dawn": return 1;
-			case "morning": return 2;
-			case "afternoon": return 3;
-			case "evening": return 4;
-			case "twilight": return 5;
-			default:
-				Diagnostics.error("J-TIME", `${timeOfDayString} is not a valid time of day name.`);
-				return -1;
-		}
-	}
-	/**
-	* Gets the name of the current season of the year.
-	* @type {string}
-	*/
-	get seasonOfTheYearName() {
-		return Time_Snapshot.SeasonsName(this.seasonOfYearId());
-	}
-	/**
-	* Gets the icon index of the current season of the year.
-	* @type {number}
-	*/
-	get seasonOfTheYearIcon() {
-		return Time_Snapshot.SeasonsIconIndex(this.seasonOfYearId());
-	}
-	/**
-	* Gets the name of the current time of the day.
-	* @type {string}
-	*/
-	get timeOfDayName() {
-		return Time_Snapshot.TimesOfDayName(this.timeOfDayId());
-	}
-	/**
-	* Gets the icon index of the current time of the day.
-	* @type {number}
-	*/
-	get timeOfDayIcon() {
-		return Time_Snapshot.TimesOfDayIcon(this.timeOfDayId());
-	}
-	/**
-	* Determines if this {@link Time_Snapshot} is effectively the same as the provided snapshot.<br/>
-	* "Effectively the same" translates to "all time properties are the same from seconds to years" as the target.
-	* @param {Time_Snapshot} snapshot The target snapshot to compare equality against.
-	* @returns {boolean} True if this snapshot is effectively the same, false otherwise.
-	*/
-	equals(snapshot) {
-		if (this.years !== snapshot.years) return false;
-		if (this.months !== snapshot.months) return false;
-		if (this.days !== snapshot.days) return false;
-		if (this.hours !== snapshot.hours) return false;
-		if (this.minutes !== snapshot.minutes) return false;
-		if (this.seconds !== snapshot.seconds) return false;
-		return true;
-	}
-	/**
-	* Determines if this {@link Time_Snapshot} is after the provided snapshot.
-	* @param {Time_Snapshot} snapshot The target snapshot to see if this snapshot is after.
-	* @returns {boolean} True if this snapshot is after the target, false otherwise.
-	*/
-	isAfter(snapshot) {
-		const thisDate = new Date(this.years, this.months - 1, this.days, this.hours, this.minutes, this.seconds);
-		const targetDate = new Date(snapshot.years, snapshot.months - 1, snapshot.days, snapshot.hours, snapshot.minutes, snapshot.seconds);
-		return thisDate > targetDate;
-	}
-	/**
-	* Determines if this {@link Time_Snapshot} is before the provided snapshot.
-	* @param {Time_Snapshot} snapshot The target snapshot to see if this snapshot is before.
-	* @returns {boolean} True if this snapshot is before the target, false otherwise.
-	*/
-	isBefore(snapshot) {
-		const thisDate = new Date(this.years, this.months - 1, this.days, this.hours, this.minutes, this.seconds);
-		const targetDate = new Date(snapshot.years, snapshot.months - 1, snapshot.days, snapshot.hours, snapshot.minutes, snapshot.seconds);
-		return thisDate < targetDate;
-	}
-	/**
-	* Determines of this {@link Time_Snapshot} is between the two provided snapshots.
-	* @param {Time_Snapshot} start The starting snapshot to check betweenness against.
-	* @param {Time_Snapshot} end The ending snapshot to check betweenness against.
-	* @param {boolean} [startInclusive=false] Whether or not to include the start time as "between"; defaults to false.
-	* @param {boolean} [endInclusive=false] Whether or not to include the end time as "between"; defaults to false.
-	*/
-	isBetweenSnapshots(start, end, startInclusive = false, endInclusive = false) {
-		const isAfterStart = this.isAfter(start) || startInclusive && this.equals(start);
-		if (!isAfterStart) return false;
-		const isBeforeEnd = this.isBefore(end) || endInclusive && this.equals(end);
-		if (!isBeforeEnd) return false;
-		return true;
-	}
-	/**
-	* Determines whether or not this {@link Time_Snapshot} is between the given start and end {@link Date}s.
-	* @param {Date} start The start date.
-	* @param {Date} end The end date.
-	* @param {boolean} [startInclusive=false] Whether or not to include the start time as "between"; defaults to false.
-	* @param {boolean} [endInclusive=false] Whether or not to include the end time as "between"; defaults to false.
-	*/
-	isBetweenDates(start, end, startInclusive = false, endInclusive = false) {
-		const startTimeSnapshot = this.#dateToSnapshot(start);
-		const endTimeSnapshot = this.#dateToSnapshot(end);
-		return this.isBetweenSnapshots(startTimeSnapshot, endTimeSnapshot, startInclusive, endInclusive);
-	}
-	/**
-	* Maps a {@link Date} to a {@link Time_Snapshot}.
-	* @param {Date} date The date to map to a {@link Time_Snapshot}.
-	* @returns {Time_Snapshot} The mapped snapshot.
-	*/
-	#dateToSnapshot(date) {
-		const dateTimeOfDay = $gameTime.timeOfDay(date.getHours());
-		const seasonOfYear = $gameTime.seasonOfYear(date.getMonth() + 1);
-		return new Time_Snapshot(date.getSeconds(), date.getMinutes(), date.getHours(), date.getDate(), date.getMonth() + 1, date.getFullYear(), dateTimeOfDay, seasonOfYear);
-	}
-};
-
-//#endregion
-//#region src/plugins/time/core/objects/TimeMapper.js
-/**
-* A class with several static mapping functions for parsing comments into {@link TimeConditional}s.
-* Registered and referenced by time/initialization, not in-file.
-*/
-var TimeMapper = class {
-	constructor() {
-		throw new Error("This is a static class.");
-	}
-	static minuteToConditional(comment, regex) {
-		const [, minutes] = regex.exec(comment);
-		const timeConditional = new TimeConditional();
-		timeConditional.minutes = parseInt(minutes);
-		return timeConditional;
-	}
-	static hourToConditional(comment, regex) {
-		const [, hours] = regex.exec(comment);
-		const timeConditional = new TimeConditional();
-		timeConditional.hours = parseInt(hours);
-		return timeConditional;
-	}
-	static dayToConditional(comment, regex) {
-		const [, days] = regex.exec(comment);
-		const timeConditional = new TimeConditional();
-		timeConditional.days = parseInt(days);
-		return timeConditional;
-	}
-	static monthToConditional(comment, regex) {
-		const [, months] = regex.exec(comment);
-		const timeConditional = new TimeConditional();
-		timeConditional.months = parseInt(months);
-		return timeConditional;
-	}
-	static yearToConditional(comment, regex) {
-		const [, years] = regex.exec(comment);
-		const timeConditional = new TimeConditional();
-		timeConditional.years = parseInt(years);
-		return timeConditional;
-	}
-	static timeOfDayToConditional(comment, regex) {
-		const [, timeOfDay] = regex.exec(comment);
-		const maybeStringTimeOfDay = parseInt(timeOfDay);
-		const timeConditional = new TimeConditional();
-		isNaN(maybeStringTimeOfDay) === false ? timeConditional.timeOfDay = maybeStringTimeOfDay : timeConditional.timeOfDay = Time_Snapshot.TimesOfDayId(timeOfDay);
-		return timeConditional;
-	}
-	static seasonOfYearToConditional(comment, regex) {
-		const [, seasonOfYear] = regex.exec(comment);
-		const maybeStringSeasonOfYear = parseInt(seasonOfYear);
-		const timeConditional = new TimeConditional();
-		isNaN(maybeStringSeasonOfYear) === false ? timeConditional.seasonOfYear = maybeStringSeasonOfYear : timeConditional.seasonOfYear = Time_Snapshot.SeasonsId(seasonOfYear);
-		return timeConditional;
-	}
-	static timeRangeToConditional(comment, regex) {
-		const [, startHour, startMinute, endHour, endMinute] = regex.exec(comment);
-		const startTimeRange = [parseInt(startHour), parseInt(startMinute)];
-		const endTimeRange = [parseInt(endHour), parseInt(endMinute)];
-		const timeConditional = new TimeConditional();
-		timeConditional.startRange = startTimeRange;
-		timeConditional.endRange = endTimeRange;
-		timeConditional.isTimeRange = true;
-		return timeConditional;
-	}
-	static fullDateRangeToConditional(comment, regex) {
-		const [, startFullRangeRaw, endFullRangeRaw] = regex.exec(comment);
-		const startFullRange = [0, ...JSON.parse(startFullRangeRaw)];
-		const endFullRange = [59, ...JSON.parse(endFullRangeRaw)];
-		const timeConditional = new TimeConditional();
-		timeConditional.startRange = startFullRange;
-		timeConditional.endRange = endFullRange;
-		timeConditional.isFullDateRange = true;
-		return timeConditional;
-	}
-	static minuteRangeToConditional(comment, regex) {
-		const currentTimeSnapshot = $gameTime.currentTime();
-		const [, startMinuteRange, endMinuteRange] = regex.exec(comment);
-		const minuteRangeHourStart = currentTimeSnapshot.hours;
-		let minuteRangeHourEnd = startMinuteRange < endMinuteRange ? currentTimeSnapshot.hours : currentTimeSnapshot.hours + 1;
-		if (minuteRangeHourEnd === 24) {
-			minuteRangeHourEnd = 0;
-		}
-		const startMinuteRangeTimeRange = [minuteRangeHourStart, parseInt(startMinuteRange)];
-		const endMinuteRangeTimeRange = [minuteRangeHourEnd, parseInt(endMinuteRange)];
-		const timeConditional = new TimeConditional();
-		timeConditional.startRange = startMinuteRangeTimeRange;
-		timeConditional.endRange = endMinuteRangeTimeRange;
-		timeConditional.isTimeRange = true;
-		return timeConditional;
-	}
-	static hourRangeToConditional(comment, regex) {
-		const [, startHourRange, endHourRange] = regex.exec(comment);
-		const startHourRangeTimeRange = [parseInt(startHourRange), 0];
-		const endHourRangeTimeRange = [parseInt(endHourRange), 0];
-		const timeConditional = new TimeConditional();
-		timeConditional.startRange = startHourRangeTimeRange;
-		timeConditional.endRange = endHourRangeTimeRange;
-		timeConditional.isTimeRange = true;
-		return timeConditional;
-	}
-	static dayRangeToConditional(comment, regex) {
-		const currentTimeSnapshot = $gameTime.currentTime();
-		const [, startDayRange, endDayRange] = regex.exec(comment);
-		const dayRangeStart = parseInt(startDayRange);
-		const dayRangeEnd = parseInt(endDayRange);
-		const fullDateRangeStart = [
-			0,
-			0,
-			0,
-			dayRangeStart,
-			currentTimeSnapshot.months,
-			currentTimeSnapshot.years
-		];
-		let dayRangeMonthEnd = dayRangeEnd < dayRangeStart ? currentTimeSnapshot.months + 1 : currentTimeSnapshot.months;
-		let dayRangeYearEnd = currentTimeSnapshot.years;
-		if (dayRangeMonthEnd === 13) {
-			dayRangeMonthEnd = 1;
-			dayRangeYearEnd += 1;
-		}
-		const fullDateRangeEnd = [
-			59,
-			59,
-			23,
-			dayRangeEnd,
-			dayRangeMonthEnd,
-			dayRangeYearEnd
-		];
-		const timeConditional = new TimeConditional();
-		timeConditional.startRange = fullDateRangeStart;
-		timeConditional.endRange = fullDateRangeEnd;
-		timeConditional.isFullDateRange = true;
-		return timeConditional;
-	}
-	static monthRangeToConditional(comment, regex) {
-		const currentTimeSnapshot = $gameTime.currentTime();
-		const [, startMonthRange, endMonthRange] = regex.exec(comment);
-		const monthRangeStart = parseInt(startMonthRange);
-		const monthRangeEnd = parseInt(endMonthRange);
-		const fullDateRangeStart = [
-			0,
-			0,
-			0,
-			1,
-			monthRangeStart,
-			currentTimeSnapshot.years
-		];
-		const monthRangeYearEnd = monthRangeEnd < monthRangeStart ? currentTimeSnapshot.years + 1 : currentTimeSnapshot.years;
-		const fullDateRangeEnd = [
-			59,
-			59,
-			23,
-			30,
-			monthRangeEnd,
-			monthRangeYearEnd
-		];
-		const timeConditional = new TimeConditional();
-		timeConditional.startRange = fullDateRangeStart;
-		timeConditional.endRange = fullDateRangeEnd;
-		timeConditional.isFullDateRange = true;
-		return timeConditional;
-	}
-	static yearRangeToConditional(comment, regex) {
-		const [, startYearRange, endYearRange] = regex.exec(comment);
-		const yearRangeStart = parseInt(startYearRange);
-		const yearRangeEnd = parseInt(endYearRange);
-		const fullDateRangeStart = [
-			0,
-			0,
-			0,
-			1,
-			1,
-			yearRangeStart
-		];
-		const fullDateRangeEnd = [
-			0,
-			0,
-			0,
-			1,
-			1,
-			yearRangeEnd
-		];
-		const timeConditional = new TimeConditional();
-		timeConditional.startRange = fullDateRangeStart;
-		timeConditional.endRange = fullDateRangeEnd;
-		timeConditional.isFullDateRange = true;
-		return timeConditional;
-	}
 };
 
 //#endregion
@@ -2212,6 +1756,531 @@ var Game_Time = class Game_Time {
 	}
 };
 SerializableRegistry.register(Game_Time);
+
+//#endregion
+//#region src/plugins/time/core/_models/Time_Snapshot.js
+/**
+* A class representing a snapshot in time of a moment.
+*/
+var Time_Snapshot = class Time_Snapshot {
+	/**
+	* Gets the season of year id.
+	* @returns {number} The seasonOfYearId.
+	*/
+	seasonOfYearId() {
+		return this._seasonOfYearId;
+	}
+	/**
+	* Gets the time of day id.
+	* @returns {number} The timeOfDayId.
+	*/
+	timeOfDayId() {
+		return this._timeOfDayId;
+	}
+	/**
+	* @constructor
+	* @param {number} seconds The seconds of the current time.
+	* @param {number} minutes The minutes of the current time.
+	* @param {number} hours The hours of the current time.
+	* @param {number} days The days of the current time.
+	* @param {number} months The months of the current time.
+	* @param {number} years The years of the current time.
+	* @param {number} timeOfDayId The id of the time of day.
+	* @param {number} seasonOfYearId The id of the season of the year.
+	*/
+	constructor(seconds, minutes, hours, days, months, years, timeOfDayId, seasonOfYearId) {
+		/**
+		* The seconds of the current time.
+		* @type {number}
+		*/
+		this.seconds = seconds;
+		/**
+		* The minutes of the current time.
+		* @type {number}
+		*/
+		this.minutes = minutes;
+		/**
+		* The hours of the current time.
+		* @type {number}
+		*/
+		this.hours = hours;
+		/**
+		* The days of the current time.
+		* @type {number}
+		*/
+		this.days = days;
+		/**
+		* The months of the current time.
+		* @type {number}
+		*/
+		this.months = months;
+		/**
+		* The years of the current time.
+		* @type {number}
+		*/
+		this.years = years;
+		/**
+		* The id of the time of day.
+		* @type {number}
+		*/
+		this._timeOfDayId = timeOfDayId;
+		/**
+		* The id of the season of the year.
+		* @type {number}
+		*/
+		this._seasonOfYearId = seasonOfYearId;
+	}
+	/**
+	* Translates the numeric season of the year into it's proper name.
+	* @param {number} seasonId The numeric representation of the season of the year.
+	* @returns {string}
+	*/
+	static SeasonsName(seasonId) {
+		switch (seasonId) {
+			case 0: return "Spring";
+			case 1: return "Summer";
+			case 2: return "Autumn";
+			case 3: return "Winter";
+			default:
+				Diagnostics.error("J-TIME", `${seasonId} is not a valid season id.`);
+				return null;
+		}
+	}
+	/**
+	* Translates the numeric season of the year into it's icon index.
+	* @param {number} seasonId The numeric representation of the season of the year.
+	* @returns {string}
+	*/
+	static SeasonsIconIndex(seasonId) {
+		switch (seasonId) {
+			case 0: return 887;
+			case 1: return 888;
+			case 2: return 889;
+			case 3: return 890;
+			default: return `${seasonId} is not a valid season id.`;
+		}
+	}
+	/**
+	* Translates the name of the season into its id.
+	* @param {string} seasonName The name of the season.
+	* @returns {number}
+	*/
+	static SeasonsId(seasonName) {
+		switch (seasonName.toLowerCase()) {
+			case "spring": return 0;
+			case "summer": return 1;
+			case "autumn":
+			case "fall": return 2;
+			case "winter": return 3;
+			default:
+				Diagnostics.error("J-TIME", `${seasonName} is not a valid season name.`);
+				return -1;
+		}
+	}
+	/**
+	* Translates the numeric time of the day into it's proper name.
+	* @param {number} timeOfDayId The numeric representation of the time of the day.
+	* @returns {string}
+	*/
+	static TimesOfDayName(timeOfDayId) {
+		switch (timeOfDayId) {
+			case 0: return "Night";
+			case 1: return "Dawn";
+			case 2: return "Morning";
+			case 3: return "Afternoon";
+			case 4: return "Evening";
+			case 5: return "Twilight";
+			default:
+				Diagnostics.error("J-TIME", `${timeOfDayId} is not a valid time of day id.`);
+				return null;
+		}
+	}
+	/**
+	* Translates the numeric time of the day into it's icon index.
+	* @param {number} timeOfDayId The numeric representation of the time of the day.
+	* @returns {string}
+	*/
+	static TimesOfDayIcon(timeOfDayId) {
+		switch (timeOfDayId) {
+			case 0: return 2256;
+			case 1: return 2260;
+			case 2: return 2261;
+			case 3: return 2261;
+			case 4: return 2257;
+			case 5: return 2256;
+			default: return `${timeOfDayId} is not a valid time of day id.`;
+		}
+	}
+	/**
+	* Translates the numeric day of the week into its proper name.
+	* Day-of-week ids run 0-6 starting from Monday.
+	* @param {number} dayOfWeekId The numeric representation of the day of the week.
+	* @returns {string}
+	*/
+	static DaysOfWeekName(dayOfWeekId) {
+		switch (dayOfWeekId) {
+			case 0: return "Monday";
+			case 1: return "Tuesday";
+			case 2: return "Wednesday";
+			case 3: return "Thursday";
+			case 4: return "Friday";
+			case 5: return "Saturday";
+			case 6: return "Sunday";
+			default:
+				Diagnostics.error("J-TIME", `${dayOfWeekId} is not a valid day of week id.`);
+				return null;
+		}
+	}
+	/**
+	* Translates the name of a day of the week into its id.
+	* @param {string} dayOfWeekName The name of the day of the week.
+	* @returns {number}
+	*/
+	static DaysOfWeekId(dayOfWeekName) {
+		switch (dayOfWeekName.toLowerCase()) {
+			case "monday": return 0;
+			case "tuesday": return 1;
+			case "wednesday": return 2;
+			case "thursday": return 3;
+			case "friday": return 4;
+			case "saturday": return 5;
+			case "sunday": return 6;
+			default:
+				Diagnostics.error("J-TIME", `${dayOfWeekName} is not a valid day of week name.`);
+				return -1;
+		}
+	}
+	/**
+	* Translates the name of a time of the day into its id.
+	* @param {string} timeOfDayString The name of the time of the day.
+	* @returns {number}
+	*/
+	static TimesOfDayId(timeOfDayString) {
+		switch (timeOfDayString.toLowerCase()) {
+			case "night": return 0;
+			case "dawn": return 1;
+			case "morning": return 2;
+			case "afternoon": return 3;
+			case "evening": return 4;
+			case "twilight": return 5;
+			default:
+				Diagnostics.error("J-TIME", `${timeOfDayString} is not a valid time of day name.`);
+				return -1;
+		}
+	}
+	/**
+	* Gets the name of the current season of the year.
+	* @type {string}
+	*/
+	get seasonOfTheYearName() {
+		return Time_Snapshot.SeasonsName(this.seasonOfYearId());
+	}
+	/**
+	* Gets the icon index of the current season of the year.
+	* @type {number}
+	*/
+	get seasonOfTheYearIcon() {
+		return Time_Snapshot.SeasonsIconIndex(this.seasonOfYearId());
+	}
+	/**
+	* Gets the name of the current time of the day.
+	* @type {string}
+	*/
+	get timeOfDayName() {
+		return Time_Snapshot.TimesOfDayName(this.timeOfDayId());
+	}
+	/**
+	* Gets the icon index of the current time of the day.
+	* @type {number}
+	*/
+	get timeOfDayIcon() {
+		return Time_Snapshot.TimesOfDayIcon(this.timeOfDayId());
+	}
+	/**
+	* Gets the day of the week this snapshot lands on, as an id running 0-6 from Monday.
+	*
+	* The artificial calendar has no authored weekday, so one is derived: with 30-day months and
+	* 12-month years, the total day count since day 1 of month 1 of year 0 cycles through a
+	* seven-day week, and that epoch day is declared a Monday. Real time simply asks the real
+	* calendar, remapped from JS's Sunday-first convention to this Monday-first one.
+	* @returns {number}
+	*/
+	dayOfWeekId() {
+		if (J.TIME.Metadata.UseRealTime) {
+			const date = new Date(this.years, this.months - 1, this.days, this.hours, this.minutes, this.seconds);
+			return (date.getDay() + 6) % 7;
+		}
+		const totalDays = (this.years * Game_Time.monthsPerYear + (this.months - 1)) * Game_Time.daysPerMonth + (this.days - 1);
+		return totalDays % 7;
+	}
+	/**
+	* Gets the name of the day of the week this snapshot lands on.
+	* @type {string}
+	*/
+	get dayOfWeekName() {
+		return Time_Snapshot.DaysOfWeekName(this.dayOfWeekId());
+	}
+	/**
+	* Determines if this {@link Time_Snapshot} is effectively the same as the provided snapshot.<br/>
+	* "Effectively the same" translates to "all time properties are the same from seconds to years" as the target.
+	* @param {Time_Snapshot} snapshot The target snapshot to compare equality against.
+	* @returns {boolean} True if this snapshot is effectively the same, false otherwise.
+	*/
+	equals(snapshot) {
+		if (this.years !== snapshot.years) return false;
+		if (this.months !== snapshot.months) return false;
+		if (this.days !== snapshot.days) return false;
+		if (this.hours !== snapshot.hours) return false;
+		if (this.minutes !== snapshot.minutes) return false;
+		if (this.seconds !== snapshot.seconds) return false;
+		return true;
+	}
+	/**
+	* Determines if this {@link Time_Snapshot} is after the provided snapshot.
+	* @param {Time_Snapshot} snapshot The target snapshot to see if this snapshot is after.
+	* @returns {boolean} True if this snapshot is after the target, false otherwise.
+	*/
+	isAfter(snapshot) {
+		const thisDate = new Date(this.years, this.months - 1, this.days, this.hours, this.minutes, this.seconds);
+		const targetDate = new Date(snapshot.years, snapshot.months - 1, snapshot.days, snapshot.hours, snapshot.minutes, snapshot.seconds);
+		return thisDate > targetDate;
+	}
+	/**
+	* Determines if this {@link Time_Snapshot} is before the provided snapshot.
+	* @param {Time_Snapshot} snapshot The target snapshot to see if this snapshot is before.
+	* @returns {boolean} True if this snapshot is before the target, false otherwise.
+	*/
+	isBefore(snapshot) {
+		const thisDate = new Date(this.years, this.months - 1, this.days, this.hours, this.minutes, this.seconds);
+		const targetDate = new Date(snapshot.years, snapshot.months - 1, snapshot.days, snapshot.hours, snapshot.minutes, snapshot.seconds);
+		return thisDate < targetDate;
+	}
+	/**
+	* Determines of this {@link Time_Snapshot} is between the two provided snapshots.
+	* @param {Time_Snapshot} start The starting snapshot to check betweenness against.
+	* @param {Time_Snapshot} end The ending snapshot to check betweenness against.
+	* @param {boolean} [startInclusive=false] Whether or not to include the start time as "between"; defaults to false.
+	* @param {boolean} [endInclusive=false] Whether or not to include the end time as "between"; defaults to false.
+	*/
+	isBetweenSnapshots(start, end, startInclusive = false, endInclusive = false) {
+		const isAfterStart = this.isAfter(start) || startInclusive && this.equals(start);
+		if (!isAfterStart) return false;
+		const isBeforeEnd = this.isBefore(end) || endInclusive && this.equals(end);
+		if (!isBeforeEnd) return false;
+		return true;
+	}
+	/**
+	* Determines whether or not this {@link Time_Snapshot} is between the given start and end {@link Date}s.
+	* @param {Date} start The start date.
+	* @param {Date} end The end date.
+	* @param {boolean} [startInclusive=false] Whether or not to include the start time as "between"; defaults to false.
+	* @param {boolean} [endInclusive=false] Whether or not to include the end time as "between"; defaults to false.
+	*/
+	isBetweenDates(start, end, startInclusive = false, endInclusive = false) {
+		const startTimeSnapshot = this.#dateToSnapshot(start);
+		const endTimeSnapshot = this.#dateToSnapshot(end);
+		return this.isBetweenSnapshots(startTimeSnapshot, endTimeSnapshot, startInclusive, endInclusive);
+	}
+	/**
+	* Maps a {@link Date} to a {@link Time_Snapshot}.
+	* @param {Date} date The date to map to a {@link Time_Snapshot}.
+	* @returns {Time_Snapshot} The mapped snapshot.
+	*/
+	#dateToSnapshot(date) {
+		const dateTimeOfDay = $gameTime.timeOfDay(date.getHours());
+		const seasonOfYear = $gameTime.seasonOfYear(date.getMonth() + 1);
+		return new Time_Snapshot(date.getSeconds(), date.getMinutes(), date.getHours(), date.getDate(), date.getMonth() + 1, date.getFullYear(), dateTimeOfDay, seasonOfYear);
+	}
+};
+
+//#endregion
+//#region src/plugins/time/core/objects/TimeMapper.js
+/**
+* A class with several static mapping functions for parsing comments into {@link TimeConditional}s.
+* Registered and referenced by time/initialization, not in-file.
+*/
+var TimeMapper = class {
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	static minuteToConditional(comment, regex) {
+		const [, minutes] = regex.exec(comment);
+		const timeConditional = new TimeConditional();
+		timeConditional.minutes = parseInt(minutes);
+		return timeConditional;
+	}
+	static hourToConditional(comment, regex) {
+		const [, hours] = regex.exec(comment);
+		const timeConditional = new TimeConditional();
+		timeConditional.hours = parseInt(hours);
+		return timeConditional;
+	}
+	static dayToConditional(comment, regex) {
+		const [, days] = regex.exec(comment);
+		const timeConditional = new TimeConditional();
+		timeConditional.days = parseInt(days);
+		return timeConditional;
+	}
+	static monthToConditional(comment, regex) {
+		const [, months] = regex.exec(comment);
+		const timeConditional = new TimeConditional();
+		timeConditional.months = parseInt(months);
+		return timeConditional;
+	}
+	static yearToConditional(comment, regex) {
+		const [, years] = regex.exec(comment);
+		const timeConditional = new TimeConditional();
+		timeConditional.years = parseInt(years);
+		return timeConditional;
+	}
+	static timeOfDayToConditional(comment, regex) {
+		const [, timeOfDay] = regex.exec(comment);
+		const maybeStringTimeOfDay = parseInt(timeOfDay);
+		const timeConditional = new TimeConditional();
+		isNaN(maybeStringTimeOfDay) === false ? timeConditional.timeOfDay = maybeStringTimeOfDay : timeConditional.timeOfDay = Time_Snapshot.TimesOfDayId(timeOfDay);
+		return timeConditional;
+	}
+	static seasonOfYearToConditional(comment, regex) {
+		const [, seasonOfYear] = regex.exec(comment);
+		const maybeStringSeasonOfYear = parseInt(seasonOfYear);
+		const timeConditional = new TimeConditional();
+		isNaN(maybeStringSeasonOfYear) === false ? timeConditional.seasonOfYear = maybeStringSeasonOfYear : timeConditional.seasonOfYear = Time_Snapshot.SeasonsId(seasonOfYear);
+		return timeConditional;
+	}
+	static timeRangeToConditional(comment, regex) {
+		const [, startHour, startMinute, endHour, endMinute] = regex.exec(comment);
+		const startTimeRange = [parseInt(startHour), parseInt(startMinute)];
+		const endTimeRange = [parseInt(endHour), parseInt(endMinute)];
+		const timeConditional = new TimeConditional();
+		timeConditional.startRange = startTimeRange;
+		timeConditional.endRange = endTimeRange;
+		timeConditional.isTimeRange = true;
+		return timeConditional;
+	}
+	static fullDateRangeToConditional(comment, regex) {
+		const [, startFullRangeRaw, endFullRangeRaw] = regex.exec(comment);
+		const startFullRange = [0, ...JSON.parse(startFullRangeRaw)];
+		const endFullRange = [59, ...JSON.parse(endFullRangeRaw)];
+		const timeConditional = new TimeConditional();
+		timeConditional.startRange = startFullRange;
+		timeConditional.endRange = endFullRange;
+		timeConditional.isFullDateRange = true;
+		return timeConditional;
+	}
+	static minuteRangeToConditional(comment, regex) {
+		const currentTimeSnapshot = $gameTime.currentTime();
+		const [, startMinuteRange, endMinuteRange] = regex.exec(comment);
+		const minuteRangeHourStart = currentTimeSnapshot.hours;
+		let minuteRangeHourEnd = startMinuteRange < endMinuteRange ? currentTimeSnapshot.hours : currentTimeSnapshot.hours + 1;
+		if (minuteRangeHourEnd === 24) {
+			minuteRangeHourEnd = 0;
+		}
+		const startMinuteRangeTimeRange = [minuteRangeHourStart, parseInt(startMinuteRange)];
+		const endMinuteRangeTimeRange = [minuteRangeHourEnd, parseInt(endMinuteRange)];
+		const timeConditional = new TimeConditional();
+		timeConditional.startRange = startMinuteRangeTimeRange;
+		timeConditional.endRange = endMinuteRangeTimeRange;
+		timeConditional.isTimeRange = true;
+		return timeConditional;
+	}
+	static hourRangeToConditional(comment, regex) {
+		const [, startHourRange, endHourRange] = regex.exec(comment);
+		const startHourRangeTimeRange = [parseInt(startHourRange), 0];
+		const endHourRangeTimeRange = [parseInt(endHourRange), 0];
+		const timeConditional = new TimeConditional();
+		timeConditional.startRange = startHourRangeTimeRange;
+		timeConditional.endRange = endHourRangeTimeRange;
+		timeConditional.isTimeRange = true;
+		return timeConditional;
+	}
+	static dayRangeToConditional(comment, regex) {
+		const currentTimeSnapshot = $gameTime.currentTime();
+		const [, startDayRange, endDayRange] = regex.exec(comment);
+		const dayRangeStart = parseInt(startDayRange);
+		const dayRangeEnd = parseInt(endDayRange);
+		const fullDateRangeStart = [
+			0,
+			0,
+			0,
+			dayRangeStart,
+			currentTimeSnapshot.months,
+			currentTimeSnapshot.years
+		];
+		let dayRangeMonthEnd = dayRangeEnd < dayRangeStart ? currentTimeSnapshot.months + 1 : currentTimeSnapshot.months;
+		let dayRangeYearEnd = currentTimeSnapshot.years;
+		if (dayRangeMonthEnd === 13) {
+			dayRangeMonthEnd = 1;
+			dayRangeYearEnd += 1;
+		}
+		const fullDateRangeEnd = [
+			59,
+			59,
+			23,
+			dayRangeEnd,
+			dayRangeMonthEnd,
+			dayRangeYearEnd
+		];
+		const timeConditional = new TimeConditional();
+		timeConditional.startRange = fullDateRangeStart;
+		timeConditional.endRange = fullDateRangeEnd;
+		timeConditional.isFullDateRange = true;
+		return timeConditional;
+	}
+	static monthRangeToConditional(comment, regex) {
+		const currentTimeSnapshot = $gameTime.currentTime();
+		const [, startMonthRange, endMonthRange] = regex.exec(comment);
+		const monthRangeStart = parseInt(startMonthRange);
+		const monthRangeEnd = parseInt(endMonthRange);
+		const fullDateRangeStart = [
+			0,
+			0,
+			0,
+			1,
+			monthRangeStart,
+			currentTimeSnapshot.years
+		];
+		const monthRangeYearEnd = monthRangeEnd < monthRangeStart ? currentTimeSnapshot.years + 1 : currentTimeSnapshot.years;
+		const fullDateRangeEnd = [
+			59,
+			59,
+			23,
+			30,
+			monthRangeEnd,
+			monthRangeYearEnd
+		];
+		const timeConditional = new TimeConditional();
+		timeConditional.startRange = fullDateRangeStart;
+		timeConditional.endRange = fullDateRangeEnd;
+		timeConditional.isFullDateRange = true;
+		return timeConditional;
+	}
+	static yearRangeToConditional(comment, regex) {
+		const [, startYearRange, endYearRange] = regex.exec(comment);
+		const yearRangeStart = parseInt(startYearRange);
+		const yearRangeEnd = parseInt(endYearRange);
+		const fullDateRangeStart = [
+			0,
+			0,
+			0,
+			1,
+			1,
+			yearRangeStart
+		];
+		const fullDateRangeEnd = [
+			0,
+			0,
+			0,
+			1,
+			1,
+			yearRangeEnd
+		];
+		const timeConditional = new TimeConditional();
+		timeConditional.startRange = fullDateRangeStart;
+		timeConditional.endRange = fullDateRangeEnd;
+		timeConditional.isFullDateRange = true;
+		return timeConditional;
+	}
+};
 
 //#endregion
 //#region src/plugins/time/core/database/DataManager.js

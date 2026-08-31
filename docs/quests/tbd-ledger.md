@@ -133,9 +133,8 @@
 - **001:** WHICH three blueprints from the /24 pool he assigns.
 - **003:** the relic that forces the lesson — doc floats "one of the 57 named weapons laid on his
   bench"; pick it. **This quest is what saves Viskra; the game never says so.**
-- **004:** the late-zone exotics list; the Soulcrystal synthesis recipe family in
-  `config.crafting.json` (the ONLY recipes that consume named weapons live here); the named-weapon
-  enhancement ("the new way") mechanics.
+- **004:** the late-zone exotics list; the ⭐⭐/⭐⭐⭐ enhancement recipes in `config.crafting.json` (the
+  ONLY recipes that consume named weapons live here) and their cross-discipline material bills.
 - **RACE mechanics (data is ready, events are everything):** order tracking between his chain and
   `viskra-004`, the MISSED marking of his remaining quests (their `missed` logs are already
   authored), the permanent Metal Petal closure state, and his full exit from the game.
