@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 MOTION] Ambient and reactive motion for character sprites.
+ * [v1.1.0 MOTION] Ambient and reactive motion for character sprites.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -123,6 +123,19 @@
  * all beyond the arithmetic.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Centred rotation now lifts the sprite instead of dropping it, and scales that
+ *    lift by the sprite's own scale, so a character that spins while changing size
+ *    stays where it was standing. The anchor is also restored once the rotation
+ *    ends rather than being left at the middle for the rest of the sprite's life.
+ *    A source that withdraws a transition and immediately re-declares it now
+ *    resumes the one already travelling home rather than starting a second on the
+ *    same channel, where the two combined into a value nobody asked for. Asking a
+ *    second time for a removal already underway no longer restarts the journey
+ *    from further out than the sprite had reached.
+ *    Compositions can be asked whether a contribution would actually land, so an
+ *    effect that lost a channel no longer acts as though it had won it. Adds
+ *    removeDeclarationKind for withdrawing every source of one kind at once.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -283,7 +296,7 @@ J.MOTION.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.MOTION.Metadata = new J_MOTION_PluginMetadata("J-Motion", "1.0.0");
+J.MOTION.Metadata = new J_MOTION_PluginMetadata("J-Motion", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -788,6 +801,21 @@ var MotionComposition = class {
 		this.#values.set(channel, contribution);
 	}
 	/**
+	* Determines whether a contribution from this effect would actually reach a channel.
+	*
+	* An effect that has lost a channel to a claimant is still asked to write it, and the write is
+	* discarded — which is fine for a value, and not fine for anything an effect does *alongside* the
+	* write. Asking first is how an effect avoids acting on a contribution that never lands.
+	* @param {MotionEffect} contributor The effect that wants to contribute.
+	* @param {string} channel The channel it wants to write.
+	* @returns {boolean}
+	*/
+	accepts(contributor, channel) {
+		const claimant = this.claimantFor(channel);
+		if (claimant === null) return true;
+		return claimant === contributor;
+	}
+	/**
 	* Gets whether the sprite should rotate about its centre this frame.
 	* @returns {boolean} The centerRotation.
 	*/
@@ -900,6 +928,17 @@ var MotionEffect = class {
 	*/
 	requestRemoval() {
 		this.#removalRequested = true;
+	}
+	/**
+	* Takes back a removal request, because whatever withdrew this motion has asked for it again.
+	*
+	* A state that lapses and is immediately re-applied is the case this exists for. Rebuilding the
+	* effect would be visibly wrong — the replacement starts from the channel's rest state, so the
+	* character drops all the way back to normal and climbs again — while resuming the one already
+	* running simply carries on to where it was going.
+	*/
+	cancelRemoval() {
+		this.#removalRequested = false;
 	}
 	/**
 	* Advances this effect by one frame.
@@ -1099,6 +1138,7 @@ var SpinMotionEffect = class extends MotionEffect {
 	*/
 	applyTo(composition) {
 		composition.contribute(this, MotionChannels.ROTATION, this.currentRotation());
+		if (composition.accepts(this, MotionChannels.ROTATION) === false) return;
 		composition.flagCenterRotation();
 	}
 	/**
@@ -1335,8 +1375,18 @@ var TransitionMotionEffect = class extends MotionEffect {
 	* Captures where the channels currently sit, so the ease-out starts from there.
 	*/
 	requestRemoval() {
+		if (this.hasRemovalRequested() === true) return;
 		this.channels().forEach((channel) => this.#releaseValues.set(channel, this.arrivingValue(channel)), this);
 		super.requestRemoval();
+	}
+	/**
+	* Extends {@link MotionEffect#cancelRemoval}.<br/>
+	* Abandons the journey home, because there is somewhere to be again.
+	*/
+	cancelRemoval() {
+		super.cancelRemoval();
+		this.#releaseFrames = 0;
+		this.#releaseValues.clear();
 	}
 	/**
 	* Determines whether the composer may forget about this effect.
@@ -1961,7 +2011,13 @@ var CharacterMotionComposer = class CharacterMotionComposer {
 			CharacterMotionComposer.#scheduleExpiry(state, sourceKey, expiryFrames);
 			return;
 		}
+		if (CharacterMotionComposer.#reclaimWithdrawn(state, sourceKey, declarations) === true) {
+			state.declarationsBySource.set(sourceKey, declarations);
+			CharacterMotionComposer.#scheduleExpiry(state, sourceKey, expiryFrames);
+			return;
+		}
 		CharacterMotionComposer.removeDeclarations(character, sourceKey);
+		state.effects = state.effects.filter((effect) => CharacterMotionComposer.#isFromSource(effect, sourceKey) === false);
 		state.declarationsBySource.set(sourceKey, declarations);
 		declarations.forEach((declaration) => state.effects.push(CharacterMotionComposer.#buildEffect(declaration)), this);
 		CharacterMotionComposer.#scheduleExpiry(state, sourceKey, expiryFrames);
@@ -1976,6 +2032,23 @@ var CharacterMotionComposer = class CharacterMotionComposer {
 		state.declarationsBySource.delete(sourceKey);
 		state.expiryBySource.delete(sourceKey);
 		state.effects.filter((effect) => CharacterMotionComposer.#isFromSource(effect, sourceKey)).forEach((effect) => effect.requestRemoval());
+	}
+	/**
+	* Withdraws every declaration on a character that came from one kind of source.
+	*
+	* This exists for the case where a character's whole relationship to a kind of source has changed
+	* rather than one declaration within it — most of all a character that now represents somebody
+	* else, which is what party cycling does to the player. Withdrawing declaration by declaration
+	* cannot work there, because the thing that would know which ones to withdraw is exactly the thing
+	* that just changed.
+	* @param {Game_CharacterBase} character The character to clear.
+	* @param {string} sourceKind The kind of source to withdraw, ex: `state`.
+	*/
+	static removeDeclarationKind(character, sourceKind) {
+		const state = CharacterMotionComposer.#stateFor(character);
+		const keys = Array.from(state.declarationsBySource.keys());
+		const matching = keys.filter((sourceKey) => CharacterMotionComposer.#kindOf(sourceKey) === sourceKind);
+		matching.forEach((sourceKey) => CharacterMotionComposer.removeDeclarations(character, sourceKey));
 	}
 	/**
 	* Determines whether a character has any motion worth composing.
@@ -2083,9 +2156,57 @@ var CharacterMotionComposer = class CharacterMotionComposer {
 	*/
 	static #priorityFor(effect) {
 		const sourceKey = effect.declaration().sourceKey();
-		const [sourceKind] = sourceKey.split(":");
+		const sourceKind = CharacterMotionComposer.#kindOf(sourceKey);
 		if (CharacterMotionComposer.#sourcePriorities.has(sourceKind) === false) return 0;
 		return CharacterMotionComposer.#sourcePriorities.get(sourceKind);
+	}
+	/**
+	* The kind of source a key names, which is everything in front of the colon.
+	*
+	* Source keys carry an id for anything there can be several of at once — `state:42`, `combat:death`
+	* — and the part in front is what says how the declaration should behave.
+	* @param {string} sourceKey The source key to read.
+	* @returns {string}
+	*/
+	static #kindOf(sourceKey) {
+		const [sourceKind] = sourceKey.split(":");
+		return sourceKind;
+	}
+	/**
+	* Resumes a source's withdrawn effects when it comes straight back asking for the same thing.
+	*
+	* Only an exact match resumes. A source that changed its mind about what it wants gets a fresh
+	* set, because the running effects are animating toward targets nobody is asking for any more.
+	* @param {Object} state The character's motion state.
+	* @param {string} sourceKey The source declaring again.
+	* @param {MotionDeclaration[]} declarations What it is asking for now.
+	* @returns {boolean} True when the withdrawal was taken back.
+	*/
+	static #reclaimWithdrawn(state, sourceKey, declarations) {
+		const winding = state.effects.filter((effect) => CharacterMotionComposer.#isWindingDown(effect, sourceKey));
+		if (winding.length === 0) return false;
+		if (winding.length !== declarations.length) return false;
+		const sameRequest = winding.every((effect, index) => effect.declaration().matches(declarations.at(index)));
+		if (sameRequest === false) return false;
+		winding.forEach((effect) => effect.cancelRemoval());
+		return true;
+	}
+	/**
+	* Determines whether an effect from a source is still travelling back to its rest state.
+	*
+	* This is the difference between an effect that is *gone* and one that is *going*. Most motions
+	* stop the instant their declaration does, and a source that re-declares over the top of one of
+	* those genuinely wants a fresh start — a battler struck twice by the same weapon has to flinch
+	* twice. Only a motion that parks a channel somewhere visible outlives its declaration, and only
+	* that kind is worth resuming rather than rebuilding.
+	* @param {MotionEffect} effect The effect being tested.
+	* @param {string} sourceKey The source declaring again.
+	* @returns {boolean}
+	*/
+	static #isWindingDown(effect, sourceKey) {
+		if (CharacterMotionComposer.#isFromSource(effect, sourceKey) === false) return false;
+		if (effect.hasRemovalRequested() === false) return false;
+		return effect.isDiscardable() === false;
 	}
 	/**
 	* Determines whether an effect came from a given source.
@@ -2195,6 +2316,15 @@ Sprite_Character.prototype.initMotionMembers = function() {
 	* @type {boolean}
 	*/
 	this._motionColored = false;
+	/**
+	* Where this sprite's anchor sits when no motion is moving it.
+	*
+	* Captured rather than assumed, because the only thing that knows where a character sprite rests
+	* is the engine that just placed it there — and a motion that borrows the anchor has to have
+	* somewhere exact to give it back to.
+	* @type {number}
+	*/
+	this._motionRestingAnchorY = this.anchor.y;
 };
 /**
 * Gets whether this sprite has ever had a colour motion applied to it.
@@ -2208,6 +2338,13 @@ Sprite_Character.prototype.isMotionColored = function() {
 */
 Sprite_Character.prototype.flagMotionColored = function() {
 	this._motionColored = true;
+};
+/**
+* Gets where this sprite's anchor sits when no motion is moving it.
+* @returns {number} The motionRestingAnchorY.
+*/
+Sprite_Character.prototype.motionRestingAnchorY = function() {
+	return this._motionRestingAnchorY;
 };
 /**
 * Extends {@link #update}.<br/>
@@ -2227,7 +2364,6 @@ Sprite_Character.prototype.update = function() {
 */
 Sprite_Character.prototype.updateCharacterMotion = function() {
 	const character = this.character();
-	if (!character) return;
 	const composition = CharacterMotionComposer.compose(character);
 	this.applyMotionTransform(composition);
 	this.applyMotionColor(composition);
@@ -2255,13 +2391,37 @@ Sprite_Character.prototype.applyMotionTransform = function(composition) {
 *
 * A character sprite is anchored at its feet so that it stands on its tile. Rotating about that
 * point swings the character around like a conker on a string, so a spin asks for the anchor to
-* move — and then the sprite has to drop half its own height to keep standing where it was.
+* move to the middle — which drops the drawn image by half its own height, because the point the
+* engine pinned to the tile is now the sprite's waist instead of its feet. Lifting it back by the
+* same amount is what keeps a spinning character standing where it was.
+*
+* The resting anchor is restored on every frame that does not want centred rotation, for the same
+* reason {@link #applyMotionTransform} writes every channel unconditionally: nothing else in the
+* engine ever puts an anchor back, so a spin that ended would otherwise leave the character sunk
+* into the ground for the rest of its life.
 * @param {MotionComposition} composition This character's composed motion.
 */
 Sprite_Character.prototype.applyMotionAnchor = function(composition) {
-	if (composition.hasCenterRotation() === false) return;
+	if (composition.hasCenterRotation() === false) {
+		this.anchor.y = this.motionRestingAnchorY();
+		return;
+	}
+	const lift = this.motionAnchorLift();
 	this.anchor.y = .5;
-	this.y += this.height / 2;
+	this.y -= lift;
+};
+/**
+* How far the sprite has to climb to stay put while its anchor sits at its middle.
+*
+* The engine's `height` is deliberately the raw frame height with no scale applied, but the drop
+* caused by moving the anchor happens in world space and is therefore scaled along with everything
+* else. Scaling it here is what keeps a character that spins *and* changes size — a breathing enemy
+* turning in place, a caster flipping mid-squish — from sliding as its own scale animates.
+* @returns {number} The distance to lift, in screen pixels.
+*/
+Sprite_Character.prototype.motionAnchorLift = function() {
+	const anchorTravel = this.motionRestingAnchorY() - .5;
+	return anchorTravel * this.height * this.scale.y;
 };
 /**
 * Applies the colour half of a composition: hue, tint, tone and flash.

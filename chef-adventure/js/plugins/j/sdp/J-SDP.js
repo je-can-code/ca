@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v3.3.3 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v3.3.4 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -366,6 +366,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.3.4
+ *    Removed the J.SDP namespace check from getSdpBonusForParameterKey. A plugin
+ *    cannot be absent from itself, so that guard had no reachable false case.
+ *    The panel identity, mastery and progression field parsers no longer pre-check
+ *    for a missing or blank value; parsing one yields NaN, which the check beneath
+ *    already turns into the supplied default.
  * - 3.3.3
  *    Routed every panel, rarity and rank-reward warning and error through
  *    J-Base's new Diagnostics, so each names J-SDP in the console.
@@ -845,9 +851,6 @@ var PanelMastery = class PanelMastery {
 	* @returns {number}
 	*/
 	static #parseIntField(value, defaultValue) {
-		if (value === undefined || value === null || value === "") {
-			return defaultValue;
-		}
 		const parsed = Number.parseInt(String(value), 10);
 		if (Number.isNaN(parsed)) {
 			return defaultValue;
@@ -1005,9 +1008,6 @@ var PanelIdentity = class PanelIdentity {
 	* @returns {number}
 	*/
 	static #parseIntField(value, defaultValue) {
-		if (value === undefined || value === null || value === "") {
-			return defaultValue;
-		}
 		const parsed = Number.parseInt(String(value), 10);
 		if (Number.isNaN(parsed)) {
 			return defaultValue;
@@ -1102,9 +1102,6 @@ var PanelProgression = class PanelProgression {
 	* @returns {number}
 	*/
 	static #parseIntField(value, defaultValue) {
-		if (value === undefined || value === null || value === "") {
-			return defaultValue;
-		}
 		const parsed = Number.parseInt(String(value), 10);
 		if (Number.isNaN(parsed)) {
 			return defaultValue;
@@ -1117,9 +1114,6 @@ var PanelProgression = class PanelProgression {
 	* @returns {number}
 	*/
 	static #parseFloatField(value, defaultValue) {
-		if (value === undefined || value === null || value === "") {
-			return defaultValue;
-		}
 		const parsed = Number.parseFloat(String(value));
 		if (Number.isNaN(parsed)) {
 			return defaultValue;
@@ -2417,9 +2411,6 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	* @returns {number}
 	*/
 	static #parsePositiveFloatOr(value, fallback) {
-		if (value === undefined || value === null || value === "") {
-			return fallback;
-		}
 		const parsed = Number.parseFloat(String(value));
 		if (Number.isFinite(parsed) && parsed > 0) {
 			return parsed;
@@ -2585,7 +2576,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.3.3");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.3.4");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2935,7 +2926,6 @@ Game_Actor.prototype.rankUpPanel = function(panelKey) {
 * @returns {number}
 */
 Game_Actor.prototype.getSdpBonusForParameterKey = function(parameterKey, baseParam) {
-	if (!J.SDP) return 0;
 	if (!parameterKey) return 0;
 	const panelRankings = this.getAllSdpRankings();
 	if (!panelRankings.length) return 0;

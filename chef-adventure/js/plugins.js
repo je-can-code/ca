@@ -41,6 +41,7 @@ var $plugins =
 {"name":"j/abs/ext/J-ABS-Boss","status":true,"description":"[v1.0.1 ABS-BOSS] Data-driven boss encounters for J-ABS.","parameters":{}},
 {"name":"j/abs/ext/J-ABS-DangerIndicator","status":false,"description":"[v1.0.3 ABS-DANGER] Enable danger indicators on foes on the map.","parameters":{"defaultEnemyShowDangerIndicator":"true","dangerIndicatorIconData":"{\"Worthless\":\"880\",\"Simple\":\"881\",\"Easy\":\"882\",\"Average\":\"883\",\"Hard\":\"884\",\"Grueling\":\"885\",\"Deadly\":\"886\"}"}},
 {"name":"j/abs/ext/J-ABS-Star","status":false,"description":"[v1.0.0 ABS-STAR] Converts random encounters into star battles.","parameters":{}},
+{"name":"j/motion/ext/J-Motion-ABS","status":true,"description":"[v1.0.0 MOTION-ABS] Combat-driven motion: state effects and death animations.","parameters":{}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},
 {"name":"j/resources/J-Resources","status":true,"description":"[v1.1.0 RESOURCES] Extends skill cost/gain system to include HP, MP, and TP.","parameters":{"parentConfig":"","menu-switch":"101"}},
 {"name":"j/resources/ext/J-Resources-ABS","status":true,"description":"[v1.1.0 RESOURCES-ABS] Damage-linked HP, MP, and TP resource effects.","parameters":{"healChainDepth":"5"}},
