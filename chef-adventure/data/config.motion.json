@@ -16,5 +16,10 @@
   "angle": { "degrees": 90, "duration": 30 },
   "fade": { "percent": 50, "duration": 30 },
   "hue": { "degrees": 180, "duration": 30 },
-  "tint": { "color": "#ffa0a0", "duration": 30 }
+  "tint": { "color": "#ffa0a0", "duration": 30 },
+  "collapse": { "style": "swift", "duration": 30 },
+  "death": {
+    "defaultStyle": "swift",
+    "durations": { "swift": 30, "moderate": 60, "slow": 120 }
+  }
 }

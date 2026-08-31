@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 PASSIVE-AFFIX] Random passive affixes + tier presentation for JABS enemies.
+ * [v1.1.1 PASSIVE-AFFIX] Random passive affixes + tier presentation for JABS enemies.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -246,6 +246,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    The tier stripe colour resolver no longer tests for an empty string on top of
+ *    testing the value itself. String.empty is falsy, so the first half of that
+ *    condition had already answered for both.
  * - 1.1.0
  *    An affix can now be weighted at zero, making it a member of its pool that
  *    is never rolled. The state stays recognized everywhere else, so an event
@@ -405,7 +409,7 @@ J.PASSIVE.EXT.AFFIX = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.AFFIX.Metadata = new JPassiveAffix_PluginMetadata("J-Passive-Affix", "1.1.0");
+J.PASSIVE.EXT.AFFIX.Metadata = new JPassiveAffix_PluginMetadata("J-Passive-Affix", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -487,7 +491,7 @@ J.PASSIVE.EXT.AFFIX.Helpers.findFirstEnemyPrefixState = function(battler) {
 J.PASSIVE.EXT.AFFIX.Helpers.resolvePassiveTierStripeColorHex = function(battler) {
 	const state = J.PASSIVE.EXT.AFFIX.Helpers.findFirstEnemyPrefixState(battler);
 	if (!state) return String.empty;
-	if (state.tierColorHex && state.tierColorHex !== String.empty) {
+	if (state.tierColorHex) {
 		return state.tierColorHex;
 	}
 	return String.empty;

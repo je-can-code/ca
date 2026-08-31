@@ -2,13 +2,15 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
+ * [v1.2.0 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @base J-ABS
+ * @base J-Motion
  * @orderAfter J-Base
  * @orderAfter J-ABS
+ * @orderAfter J-Motion
  * @orderAfter J-ABS-InputManager
  * @orderAfter J-ABS-Poses
  * @orderAfter J-ABS-Hitstop
@@ -20,16 +22,25 @@
  * IconSet weapon swing overlays driven by skills or equipped weapons.
  *
  * Load order:
- * Place after J-ABS-InputManager (dodge key binding), J-ABS-Poses (attack poses),
- * and J-ABS-Hitstop (impact timing). Juice wraps engine hooks that chain after
+ * Place after J-Motion (which owns character motion), and after
+ * J-ABS-InputManager (dodge key binding), J-ABS-Poses (attack poses), and
+ * J-ABS-Hitstop (impact timing). Juice wraps engine hooks that chain after
  * those extensions so gameplay semantics stay unchanged.
  *
+ * Relationship to J-Motion:
+ * Juice decides WHEN a battler reacts and HOW HARD; J-Motion decides what the
+ * sprite looks like. Everything a battler does with its own body is declared on
+ * J-Motion's composer under the `combat:reaction` source, so a reaction composes
+ * with whatever ambient motion that battler already has rather than fighting it.
+ * The four reactions register as ordinary motion types — `squish`, `tilt`,
+ * `flip` and `charge` — which means an event page or a state can ask for them by
+ * name too. The weapon swing overlay is the exception: it is a sprite this
+ * plugin creates and owns, so it is driven directly rather than composed.
+ *
  * Coexistence with J-ABS-Poses:
- * Poses swap character sheets / patterns for readable attacks. Juice adjusts
- * Pixi scale and rotation on the live Sprite_Character (plus a short IconSet
- * overlay child for swings). Keep juice intensities modest so pose readability
- * stays primary; if a pose plugin ever writes scale each frame, raise juice
- * timings only after verifying the interaction in-game.
+ * Poses swap character sheets / patterns for readable attacks, which is a
+ * different layer entirely from the transform J-Motion composes. Keep juice
+ * intensities modest so pose readability stays primary.
  *
  * ============================================================================
  * REQUIRED EXTERNAL CONFIGURATION
@@ -168,6 +179,19 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Caster and target body motion is now declared on J-Motion's composer rather
+ *    than written onto the sprite directly, which makes J-Motion a hard dependency.
+ *    A battler's reaction composes with whatever ambient motion it already carries
+ *    instead of cancelling it, and the four reactions register as ordinary motion
+ *    types - squish, tilt, flip and charge - so an event page or a state can ask
+ *    for them by name. Every skill notetag is unchanged.
+ *    The casting pulse is now renewed each frame with a short life rather than
+ *    started once and cancelled, so a cast that ends by any route at all lapses on
+ *    its own. It also holds its own source, so a battler struck while casting
+ *    flinches in full instead of for a single frame, and it stops on death rather
+ *    than shimmering through the corpse's collapse.
+ *    The weapon swing overlay is unchanged and still drives its sprite directly.
  * - 1.1.1
  *    Simplified six guards that tested a value for null and undefined before
  *    asking whether it was finite, which Number.isFinite already answers for
@@ -334,6 +358,11 @@ globalThis.J ||= {};
 	if (hasJabsRequirement === false) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
 	}
+	const requiredMotionVersion = "1.1.0";
+	const hasMotionRequirement = J.BASE.Helpers.satisfies(J.MOTION.Metadata.version.version(), requiredMotionVersion);
+	if (hasMotionRequirement === false) {
+		throw new Error(`Either missing J-Motion or has a lower version than the required: ${requiredMotionVersion}`);
+	}
 })();
 /**
 * The plugin umbrella that governs all things related to this plugin.
@@ -342,7 +371,7 @@ J.ABS.EXT.JUICE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.JUICE.Metadata = new JAbsJuice_PluginMetadata("J-ABS-Juice", "1.1.1");
+J.ABS.EXT.JUICE.Metadata = new JAbsJuice_PluginMetadata("J-ABS-Juice", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -350,7 +379,6 @@ J.ABS.EXT.JUICE.Aliased = {};
 J.ABS.EXT.JUICE.Aliased.JABS_Engine = new Map();
 J.ABS.EXT.JUICE.Aliased.JABS_Battler = new Map();
 J.ABS.EXT.JUICE.Aliased.Scene_Map = new Map();
-J.ABS.EXT.JUICE.Aliased.Sprite_Character = new Map();
 /**
 * All regular expressions used by this plugin.
 */
@@ -402,7 +430,7 @@ J.ABS.EXT.JUICE.RegExp = {
 //#endregion
 //#region src/plugins/abs/ext/juice/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS-Juice";
-var PLUGIN_VERSION = "1.1.1";
+var PLUGIN_VERSION = "1.2.0";
 var PLUGIN_DESC_TAG = "ABS-JUICE";
 
 //#endregion
@@ -1562,592 +1590,177 @@ var JuiceProfileResolver = class JuiceProfileResolver {
 };
 
 //#endregion
-//#region src/plugins/abs/ext/juice/models/JuiceTiltMotionEffect.js
-/**
-* One-shot rotation wobble (strike tilt juice) on a sprite.
-*/
-var JuiceTiltMotionEffect = class extends JuiceBaseEffect {
-	/**
-	* Gets the sprite.
-	* @returns {Sprite} The sprite.
-	*/
-	sprite() {
-		return this._sprite;
-	}
-	/**
-	* Gets the base rotation.
-	* @returns {number} The baseRotation.
-	*/
-	baseRotation() {
-		return this._baseRotation;
-	}
-	/**
-	* Gets the frame.
-	* @returns {number} The frame.
-	*/
-	frame() {
-		return this._frame;
-	}
-	/**
-	* Sets the frame.
-	* @param {number} newFrame The new frame.
-	*/
-	setFrame(newFrame) {
-		this._frame = newFrame;
-	}
-	/**
-	* Gets the duration frames.
-	* @returns {number} The durationFrames.
-	*/
-	durationFrames() {
-		return this._durationFrames;
-	}
-	/**
-	* Gets the peak radians.
-	* @returns {number} The peakRadians.
-	*/
-	peakRadians() {
-		return this._peakRadians;
-	}
-	/**
-	* @param {Sprite} sprite The Pixi sprite being driven.
-	* @param {number} peakRadians Peak rotation magnitude (radians).
-	* @param {number} durationFrames Frames to run.
-	*/
-	constructor(sprite, peakRadians, durationFrames) {
-		super();
-		this._sprite = sprite;
-		this._peakRadians = peakRadians;
-		this._durationFrames = durationFrames;
-		this._frame = 0;
-		this._baseRotation = sprite.rotation;
-	}
-	/**
-	* Returns false when the target sprite's Pixi transform has been nulled out.
-	*
-	* Pixi sets {@code transform = null} when a sprite is destroyed; it does NOT reliably set
-	* a {@code destroyed} boolean in all RMMZ-bundled versions, so checking transform directly
-	* is the safe guard. A null transform means any rotation write would immediately throw.
-	* @returns {boolean}
-	*/
-	isSpriteAlive() {
-		return !!this.sprite().transform;
-	}
-	/**
-	* Snaps rotation back to the baseline captured at construction time.
-	*/
-	restore() {
-		this.sprite().rotation = this.baseRotation();
-	}
-	/**
-	* Advances one frame of the tilt envelope.
-	* @returns {boolean} True while the effect should stay in the runner queue.
-	*/
-	tick() {
-		this.setFrame(this.frame() + 1);
-		const t = this.frame() / this.durationFrames();
-		const envelope = Math.sin(t * Math.PI);
-		this.sprite().rotation = this.baseRotation() + envelope * this.peakRadians();
-		if (this.frame() >= this.durationFrames()) {
-			this.restore();
-			JuiceMotionManager.relinquishSpriteLock(this.sprite());
-			return false;
-		}
-		return true;
-	}
-};
-
-//#endregion
-//#region src/plugins/abs/ext/juice/models/JuiceSquishMotionEffect.js
-/**
-* One-shot scale squash / stretch envelope on a sprite (body squish juice).
-*/
-var JuiceSquishMotionEffect = class extends JuiceBaseEffect {
-	/**
-	* Gets the sprite.
-	* @returns {Sprite} The sprite.
-	*/
-	sprite() {
-		return this._sprite;
-	}
-	/**
-	* Gets the base scale x.
-	* @returns {number} The baseScaleX.
-	*/
-	baseScaleX() {
-		return this._baseScaleX;
-	}
-	/**
-	* Gets the base scale y.
-	* @returns {number} The baseScaleY.
-	*/
-	baseScaleY() {
-		return this._baseScaleY;
-	}
-	/**
-	* Gets the frame.
-	* @returns {number} The frame.
-	*/
-	frame() {
-		return this._frame;
-	}
-	/**
-	* Sets the frame.
-	* @param {number} newFrame The new frame.
-	*/
-	setFrame(newFrame) {
-		this._frame = newFrame;
-	}
-	/**
-	* Gets the duration frames.
-	* @returns {number} The durationFrames.
-	*/
-	durationFrames() {
-		return this._durationFrames;
-	}
-	/**
-	* Gets the intensity scale.
-	* @returns {number} The intensityScale.
-	*/
-	intensityScale() {
-		return this._intensityScale;
-	}
-	/**
-	* Gets the repeats remaining.
-	* @returns {number} The repeatsRemaining.
-	*/
-	repeatsRemaining() {
-		return this._repeatsRemaining;
-	}
-	/**
-	* Sets the repeats remaining.
-	* @param {number} newRepeatsRemaining The new repeatsRemaining.
-	*/
-	setRepeatsRemaining(newRepeatsRemaining) {
-		this._repeatsRemaining = newRepeatsRemaining;
-	}
-	/**
-	* @param {Sprite} sprite The Pixi sprite being driven.
-	* @param {number} intensityScale Max delta applied via sine envelope (e.g. 0.12).
-	* @param {number} durationFrames Frames to run per repeat cycle.
-	* @param {number} [repeatCount=1] How many times to cycle the squish envelope before finishing.
-	*/
-	constructor(sprite, intensityScale, durationFrames, repeatCount = 1) {
-		super();
-		this._sprite = sprite;
-		this._intensityScale = intensityScale;
-		this._durationFrames = durationFrames;
-		this._repeatCount = Math.max(1, repeatCount);
-		this._repeatsRemaining = this._repeatCount;
-		this._frame = 0;
-		this._baseScaleX = sprite.scale.x;
-		this._baseScaleY = sprite.scale.y;
-	}
-	/**
-	* Returns false when the target sprite's Pixi transform has been nulled out.
-	*
-	* Pixi sets {@code transform = null} when a sprite is destroyed; it does NOT reliably set
-	* a {@code destroyed} boolean in all RMMZ-bundled versions, so checking transform directly
-	* is the safe guard. A null transform means any scale/rotation write would immediately
-	* throw "Cannot read properties of null (reading 'scale')".
-	* @returns {boolean}
-	*/
-	isSpriteAlive() {
-		return !!this.sprite().transform;
-	}
-	/**
-	* Snaps the sprite back to the baseline captured at construction time.
-	*/
-	restore() {
-		this.sprite().scale.x = this.baseScaleX();
-		this.sprite().scale.y = this.baseScaleY();
-	}
-	/**
-	* Advances one frame of the squish envelope.
-	* @returns {boolean} True while the effect should stay in the runner queue.
-	*/
-	tick() {
-		this.setFrame(this.frame() + 1);
-		const t = this.frame() / this.durationFrames();
-		const envelope = Math.sin(t * Math.PI);
-		const mul = 1 + envelope * this.intensityScale();
-		this.sprite().scale.x = this.baseScaleX() * mul;
-		this.sprite().scale.y = this.baseScaleY() * (1 / mul);
-		if (this.frame() >= this.durationFrames()) {
-			this.setRepeatsRemaining(this.repeatsRemaining() - 1);
-			if (this.repeatsRemaining() > 0) {
-				this.setFrame(0);
-				return true;
-			}
-			this.restore();
-			JuiceMotionManager.relinquishSpriteLock(this.sprite());
-			return false;
-		}
-		return true;
-	}
-};
-
-//#endregion
-//#region src/plugins/abs/ext/juice/models/JuiceCastingPulseMotionEffect.js
-/**
-* Continuous scale shimmer while a caller-supplied predicate stays true (casting juice).
-*/
-var JuiceCastingPulseMotionEffect = class extends JuiceBaseEffect {
-	/**
-	* Gets the sprite.
-	* @returns {Sprite} The sprite.
-	*/
-	sprite() {
-		return this._sprite;
-	}
-	/**
-	* Gets the base scale x.
-	* @returns {number} The baseScaleX.
-	*/
-	baseScaleX() {
-		return this._baseScaleX;
-	}
-	/**
-	* Gets the base scale y.
-	* @returns {number} The baseScaleY.
-	*/
-	baseScaleY() {
-		return this._baseScaleY;
-	}
-	/**
-	* Gets the base blend color.
-	* @returns {[number, number, number, number]} The baseBlendColor.
-	*/
-	baseBlendColor() {
-		return this._baseBlendColor;
-	}
-	/**
-	* Gets the base color tone.
-	* @returns {[number, number, number, number]} The baseColorTone.
-	*/
-	baseColorTone() {
-		return this._baseColorTone;
-	}
-	/**
-	* Gets the phase.
-	* @returns {number} The phase.
-	*/
-	phase() {
-		return this._phase;
-	}
-	/**
-	* Sets the phase.
-	* @param {number} newPhase The new phase.
-	*/
-	setPhase(newPhase) {
-		this._phase = newPhase;
-	}
-	/**
-	* Gets the amplitude scale.
-	* @returns {number} The amplitudeScale.
-	*/
-	amplitudeScale() {
-		return this._amplitudeScale;
-	}
-	/**
-	* @param {Sprite} sprite The Pixi sprite being driven.
-	* @param {number} amplitudeScale Scale wobble amplitude (small, e.g. 0.04).
-	* @param {function(): boolean} continuePredicate While true, pulse continues.
-	*/
-	constructor(sprite, amplitudeScale, continuePredicate) {
-		super();
-		this._sprite = sprite;
-		this._amplitudeScale = amplitudeScale;
-		this._continuePredicate = continuePredicate;
-		this._phase = 0;
-		this._baseScaleX = sprite.scale.x;
-		this._baseScaleY = sprite.scale.y;
-		this._baseBlendColor = sprite.getBlendColor();
-		this._baseColorTone = sprite.getColorTone();
-	}
-	/**
-	* Returns false when the target sprite's Pixi transform has been nulled out.
-	*
-	* Pixi sets {@code transform = null} when a sprite is destroyed; it does NOT reliably set
-	* a {@code destroyed} boolean in all RMMZ-bundled versions, so checking transform directly
-	* is the safe guard. A null transform means any scale or blend write would immediately throw.
-	* @returns {boolean}
-	*/
-	isSpriteAlive() {
-		return !!this.sprite().transform;
-	}
-	/**
-	* Snaps scale back to the baseline captured at construction time.
-	*/
-	restore() {
-		this.sprite().scale.x = this.baseScaleX();
-		this.sprite().scale.y = this.baseScaleY();
-		this.sprite().setBlendColor(this.baseBlendColor());
-		this.sprite().setColorTone(this.baseColorTone());
-	}
-	/**
-	* Advances one frame of the casting pulse.
-	* @returns {boolean} True while the effect should stay in the runner queue.
-	*/
-	tick() {
-		if (this._continuePredicate() === false) {
-			this.restore();
-			JuiceMotionManager.relinquishSpriteLock(this.sprite());
-			return false;
-		}
-		this.setPhase(this.phase() + 1);
-		const startPeriodFrames = 60;
-		const endPeriodFrames = 24;
-		const rampDurationFrames = 180;
-		const t = Math.min(this.phase() / rampDurationFrames, 1);
-		const periodFrames = Math.round(startPeriodFrames + (endPeriodFrames - startPeriodFrames) * t);
-		const phaseRadians = this.phase() % periodFrames / periodFrames * (Math.PI * 2);
-		const wave = Math.sin(phaseRadians);
-		const mul = 1 + wave * this.amplitudeScale();
-		this.sprite().scale.x = this.baseScaleX() * mul;
-		this.sprite().scale.y = this.baseScaleY() * mul;
-		const glowMin = 0;
-		const glowMax = 96;
-		const glowAlpha = Math.round((wave + 1) / 2 * (glowMax - glowMin) + glowMin);
-		this.sprite().setBlendColor([
-			180,
-			220,
-			255,
-			glowAlpha
-		]);
-		return true;
-	}
-};
-
-//#endregion
-//#region src/plugins/abs/ext/juice/models/JuiceFlipBodyMotionEffect.js
-/**
-* Full-rotation body spin on a sprite — drives `rotation` through N × 2π over the total duration.
-* Direction is controlled by the sign of {@link directionSign}: +1 = clockwise, -1 = counter-clockwise.
-*
-* Sprite_Character anchors at (0.5, 1). Shifting to (0.5, 0.5) re-centers the rotation pivot
-* but causes a visible drop of ~half the sprite height on entry because RMMZ's updatePosition
-* writes screenY() every frame (calibrated for anchor.y=1) and cannot be compensated.
-* This is a known limitation of the current approach.
-*/
-var JuiceFlipBodyMotionEffect = class extends JuiceBaseEffect {
-	/**
-	* Gets the sprite.
-	* @returns {Sprite} The sprite.
-	*/
-	sprite() {
-		return this._sprite;
-	}
-	/**
-	* Gets the base rotation.
-	* @returns {number} The baseRotation.
-	*/
-	baseRotation() {
-		return this._baseRotation;
-	}
-	/**
-	* Gets the base anchor x.
-	* @returns {number} The baseAnchorX.
-	*/
-	baseAnchorX() {
-		return this._baseAnchorX;
-	}
-	/**
-	* Gets the base anchor y.
-	* @returns {number} The baseAnchorY.
-	*/
-	baseAnchorY() {
-		return this._baseAnchorY;
-	}
-	/**
-	* Gets the frame.
-	* @returns {number} The frame.
-	*/
-	frame() {
-		return this._frame;
-	}
-	/**
-	* Sets the frame.
-	* @param {number} newFrame The new frame.
-	*/
-	setFrame(newFrame) {
-		this._frame = newFrame;
-	}
-	/**
-	* Gets the duration frames.
-	* @returns {number} The durationFrames.
-	*/
-	durationFrames() {
-		return this._durationFrames;
-	}
-	/**
-	* Gets the direction sign.
-	* @returns {number} The directionSign.
-	*/
-	directionSign() {
-		return this._directionSign;
-	}
-	/**
-	* Gets the repeat count.
-	* @returns {number} The repeatCount.
-	*/
-	repeatCount() {
-		return this._repeatCount;
-	}
-	/**
-	* @param {Sprite} sprite The Pixi sprite being driven.
-	* @param {number} directionSign +1 for clockwise (flip), -1 for counter-clockwise (flip-reverse).
-	* @param {number} durationFrames Total frames for the entire animation (all rotations).
-	* @param {number} [repeatCount=1] Number of full 360° rotations to complete.
-	*/
-	constructor(sprite, directionSign, durationFrames, repeatCount = 1) {
-		super();
-		this._sprite = sprite;
-		this._directionSign = directionSign;
-		this._durationFrames = durationFrames;
-		this._repeatCount = Math.max(1, repeatCount);
-		this._frame = 0;
-		this._baseRotation = sprite.rotation;
-		this._baseAnchorX = sprite.anchor.x;
-		this._baseAnchorY = sprite.anchor.y;
-		sprite.anchor.x = .5;
-		sprite.anchor.y = .5;
-	}
-	/**
-	* Returns false when the target sprite's Pixi transform has been nulled out.
-	* @returns {boolean}
-	*/
-	isSpriteAlive() {
-		return !!this.sprite().transform;
-	}
-	/**
-	* Snaps rotation and anchor back to the baselines captured at construction time.
-	*/
-	restore() {
-		this.sprite()._juiceFlipping = false;
-		this.sprite().rotation = this.baseRotation();
-		this.sprite().anchor.x = this.baseAnchorX();
-		this.sprite().anchor.y = this.baseAnchorY();
-	}
-	/**
-	* Advances one frame of the flip envelope.
-	* Rotation sweeps linearly through repeatCount × 2π over the total duration.
-	* @returns {boolean} True while the effect should stay in the runner queue.
-	*/
-	tick() {
-		this.sprite()._juiceFlipping = true;
-		this.setFrame(this.frame() + 1);
-		const t = this.frame() / this.durationFrames();
-		this.sprite().rotation = this.baseRotation() + this.directionSign() * t * (Math.PI * 2) * this.repeatCount();
-		if (this.frame() >= this.durationFrames()) {
-			this.restore();
-			JuiceMotionManager.relinquishSpriteLock(this.sprite());
-			return false;
-		}
-		return true;
-	}
-};
-
-//#endregion
 //#region src/plugins/abs/ext/juice/managers/JuiceMotionManager.js
 /**
-* Owns lightweight per-frame juice tweens on Pixi sprites (scale / rotation).
+* Turns combat events into the motion a battler makes about them.
+*
+* Everything that happens to a character's own body — squashing on impact, leaning into a swing,
+* flipping, shimmering while it charges — is declared on J-Motion's composer and animated there.
+* This class decides *when* a reaction happens and *how hard*; it does not animate anything, and it
+* never touches a sprite to do it.
+*
+* That split is why an enemy can be breathing, poisoned and recoiling from a hit at the same time
+* without any of those three knowing the others exist. The composer resolves them.
+*
+* Every reaction is declared under one source key, so a new one replaces whatever the last one was
+* doing. A battler has one body and can only be doing one thing with it, which used to be enforced
+* with a lock and is now simply what sharing a source key means.
+*
+* The queue further down is the exception, and it is a different job: the weapon swing overlay is a
+* sprite this plugin creates and owns outright, not a character the engine is drawing for us, so it
+* has nowhere to be composed and is driven frame by frame from here.
+*
+* `CharacterMotionComposer` and `MotionDeclaration` are reached as globals rather than imports:
+* they ship inside J-Motion's bundle and are hoisted by the time this one loads.
 */
 var JuiceMotionManager = class JuiceMotionManager {
 	/**
+	* The source key every combat reaction is declared under.
+	*
+	* `combat` is the highest-priority source there is, which is what lets a reaction claim scale or
+	* rotation away from whatever ambient motion a battler happens to be carrying.
+	* @type {string}
+	*/
+	static REACTION_SOURCE_KEY = "combat:reaction";
+	/**
+	* The source key the casting pulse is declared under.
+	*
+	* Deliberately not the reaction key. The pulse is renewed every frame and relies on the composer
+	* recognising an unchanged declaration, while a one-shot reaction deliberately defeats that same
+	* check to restart itself — sharing a key means each destroys the other, and a battler struck
+	* while casting would flinch for exactly one frame before the next renewal wiped it.
+	*
+	* Separated, they compose: both rank `combat`, the reaction is declared later so it takes the
+	* scale claim, and the charge glow keeps burning underneath it.
+	* @type {string}
+	*/
+	static CASTING_SOURCE_KEY = "combat:casting";
+	/**
+	* Sprite-bound effects this plugin drives itself, rather than through the composer.
 	* @type {JuiceBaseEffect[]}
 	*/
 	static #effects = [];
 	/**
-	* @type {WeakMap<Sprite, JuiceBaseEffect>}
+	* Squashes a battler's body, optionally several times over.
+	* @param {Game_Character} character The character reacting.
+	* @param {number} intensity How far the body deforms at the peak of a cycle, ex: `0.12`.
+	* @param {number} durationFrames How long one cycle lasts.
+	* @param {number} [repeatCount=1] How many cycles to run.
 	*/
-	static #spriteLocks = new WeakMap();
+	static scheduleSquish(character, intensity, durationFrames, repeatCount = 1) {
+		const parameters = [
+			intensity,
+			durationFrames,
+			repeatCount
+		];
+		const totalFrames = durationFrames * repeatCount;
+		JuiceMotionManager.#declareReaction(character, "squish", parameters, totalFrames);
+	}
 	/**
-	* Clears the active sprite lock after a bound effect finishes its own teardown.
-	* Motion effect instances call this from {@link JuiceBaseEffect#tick} when they return false.
+	* Leans a battler's body into a swing.
+	* @param {Game_Character} character The character reacting.
+	* @param {number} peakRadians How far it leans at the peak of the arc.
+	* @param {number} durationFrames How long the lean lasts.
+	*/
+	static scheduleTilt(character, peakRadians, durationFrames) {
+		const parameters = [peakRadians, durationFrames];
+		JuiceMotionManager.#declareReaction(character, "tilt", parameters, durationFrames);
+	}
+	/**
+	* Turns a battler's body through one or more complete rotations.
+	* @param {Game_Character} character The character reacting.
+	* @param {string} direction Which way it turns: `cw` or `ccw`.
+	* @param {number} durationFrames How long the whole flip takes.
+	* @param {number} [turnCount=1] How many complete turns to make in that time.
+	*/
+	static scheduleFlipBody(character, direction, durationFrames, turnCount = 1) {
+		const parameters = [
+			turnCount,
+			durationFrames,
+			direction
+		];
+		JuiceMotionManager.#declareReaction(character, "flip", parameters, durationFrames);
+	}
+	/**
+	* Keeps a battler shimmering while it charges a skill.
 	*
-	* @param {Sprite} sprite The sprite that was exclusively owned by a juice motion.
-	*/
-	static relinquishSpriteLock(sprite) {
-		JuiceMotionManager.#spriteLocks.delete(sprite);
-	}
-	/**
-	* Schedules a body squish on a sprite (scale pulse), optionally repeated N times.
-	* @param {Sprite} sprite The Pixi sprite.
-	* @param {number} intensityScale Max delta applied via sine envelope (e.g. 0.12).
-	* @param {number} durationFrames Frames to run per cycle.
-	* @param {number} [repeatCount=1] Number of times to cycle the squish envelope.
-	*/
-	static scheduleSquish(sprite, intensityScale, durationFrames, repeatCount = 1) {
-		JuiceMotionManager.#cancelSpriteLock(sprite);
-		const effect = new JuiceSquishMotionEffect(sprite, intensityScale, durationFrames, repeatCount);
-		JuiceMotionManager.#spriteLocks.set(sprite, effect);
-		JuiceMotionManager.#effects.push(effect);
-	}
-	/**
-	* Schedules a short tilt on the sprite (rotation around anchor).
-	* @param {Sprite} sprite The Pixi sprite.
-	* @param {number} peakRadians Peak rotation magnitude (radians).
-	* @param {number} durationFrames Frames to run.
-	*/
-	static scheduleTilt(sprite, peakRadians, durationFrames) {
-		JuiceMotionManager.#cancelSpriteLock(sprite);
-		const effect = new JuiceTiltMotionEffect(sprite, peakRadians, durationFrames);
-		JuiceMotionManager.#spriteLocks.set(sprite, effect);
-		JuiceMotionManager.#effects.push(effect);
-	}
-	/**
-	* Schedules a full-body rotation spin on a sprite, optionally repeated N times.
-	* @param {Sprite} sprite The Pixi sprite.
-	* @param {number} directionSign +1 for clockwise (flip), -1 for counter-clockwise (flip-reverse).
-	* @param {number} durationFrames Total frames for the entire animation.
-	* @param {number} [repeatCount=1] Number of full 360° rotations to complete.
-	*/
-	static scheduleFlipBody(sprite, directionSign, durationFrames, repeatCount = 1) {
-		JuiceMotionManager.#cancelSpriteLock(sprite);
-		const effect = new JuiceFlipBodyMotionEffect(sprite, directionSign, durationFrames, repeatCount);
-		JuiceMotionManager.#spriteLocks.set(sprite, effect);
-		JuiceMotionManager.#effects.push(effect);
-	}
-	/**
-	* Schedules a casting pulse while {@link code frameFn} returns true (caller-driven envelope).
-	* @param {Sprite} sprite The Pixi sprite.
-	* @param {number} amplitudeScale Scale wobble amplitude (small, e.g. 0.04).
-	* @param {function(): boolean} continuePredicate While true, pulse continues.
-	*/
-	static scheduleCastingPulse(sprite, amplitudeScale, continuePredicate) {
-		JuiceMotionManager.#cancelSpriteLock(sprite);
-		const effect = new JuiceCastingPulseMotionEffect(sprite, amplitudeScale, continuePredicate);
-		JuiceMotionManager.#spriteLocks.set(sprite, effect);
-		JuiceMotionManager.#effects.push(effect);
-	}
-	/**
-	* Cancels any active juice motion tied to this sprite.
-	* @param {Sprite} sprite The Pixi sprite.
-	*/
-	static cancelForSprite(sprite) {
-		JuiceMotionManager.#cancelSpriteLock(sprite);
-	}
-	/**
-	* Discards all queued effects and clears all sprite locks.
+	* This is declared with no duration and is expected to be called again on every frame the cast is
+	* still running. Re-declaring the same thing does not restart it — the composer recognises an
+	* unchanged declaration and lets the effect keep running — so the pulse builds continuously while
+	* something keeps asking for it and lapses shortly after anything stops.
 	*
-	* Call this whenever the map scene is about to be torn down so that effects referencing
-	* soon-to-be-destroyed sprites do not linger in the static queue and crash the next
-	* Scene_Map instance when frameTick runs again.
+	* That is deliberately a heartbeat rather than a start and a stop. A cast can end in ways nobody
+	* hooked: the caster is killed mid-incantation, knocked out of it, or moved to another map. An
+	* explicit teardown has to know about every one of those, while a heartbeat only has to stop
+	* beating.
+	* @param {Game_Character} character The character charging.
+	* @param {number} amplitude How far it swells at the peak of a pulse, ex: `0.04`.
+	* @param {number} heartbeatFrames How long to keep pulsing after the last call.
+	*/
+	static scheduleCastingPulse(character, amplitude, heartbeatFrames) {
+		const sourceKey = JuiceMotionManager.CASTING_SOURCE_KEY;
+		const declaration = new MotionDeclaration("charge", [amplitude], sourceKey);
+		CharacterMotionComposer.declare(character, sourceKey, [declaration], heartbeatFrames);
+	}
+	/**
+	* Stops a battler's casting pulse.
+	* @param {Game_Character} character The character to settle.
+	*/
+	static cancelCastingPulse(character) {
+		CharacterMotionComposer.removeDeclarations(character, JuiceMotionManager.CASTING_SOURCE_KEY);
+	}
+	/**
+	* Stops every motion a battler is making about combat, of either kind.
+	*
+	* Used when something ends a battler's participation outright rather than ending one reaction —
+	* a death, most of all, where anything still shimmering would be shimmering on a corpse.
+	* @param {Game_Character} character The character to settle.
+	*/
+	static cancelForCharacter(character) {
+		CharacterMotionComposer.removeDeclarations(character, JuiceMotionManager.REACTION_SOURCE_KEY);
+		CharacterMotionComposer.removeDeclarations(character, JuiceMotionManager.CASTING_SOURCE_KEY);
+	}
+	/**
+	* Declares a one-off reaction with a frame budget.
+	*
+	* The previous reaction is withdrawn before the new one is declared, which looks redundant next to
+	* a method whose whole job is to replace what a source had — and is not. The composer deliberately
+	* leaves an unchanged declaration alone so that an ambient motion is not restarted every time a
+	* map refreshes, and a reaction wants the opposite: hitting something twice with the same weapon
+	* has to squash it twice, not extend one squash into a longer one.
+	* @param {Game_Character} character The character reacting.
+	* @param {string} motionType The registered motion to run.
+	* @param {Array<string|number>} parameters The motion's parameters, in registered order.
+	* @param {number} totalFrames How long the whole reaction lasts.
+	*/
+	static #declareReaction(character, motionType, parameters, totalFrames) {
+		const sourceKey = JuiceMotionManager.REACTION_SOURCE_KEY;
+		const declaration = new MotionDeclaration(motionType, parameters, sourceKey);
+		CharacterMotionComposer.removeDeclarations(character, sourceKey);
+		CharacterMotionComposer.declare(character, sourceKey, [declaration], totalFrames);
+	}
+	/**
+	* Discards every queued overlay effect.
+	*
+	* Call this whenever the map scene is about to be torn down, so that effects referencing
+	* soon-to-be-destroyed sprites do not linger in the static queue and crash the next `Scene_Map`
+	* the first time {@link #frameTick} runs again.
+	*
+	* Character reactions need no equivalent: the composer keys them by character in a `WeakMap`, so
+	* leaving a map takes its motions with it.
 	*/
 	static clearAll() {
 		JuiceMotionManager.#effects.length = 0;
-		JuiceMotionManager.#spriteLocks = new WeakMap();
 	}
 	/**
-	* Registers an external effect (usually a {@link JuiceBaseEffect} subclass) on the global queue.
+	* Registers a sprite-bound effect on the overlay queue.
 	* @param {JuiceBaseEffect} effect The effect instance.
 	*/
 	static pushExternalEffect(effect) {
 		JuiceMotionManager.#effects.push(effect);
 	}
 	/**
-	* Runs every frame while on the map (via {@link Scene_Map#update} alias).
+	* Runs every frame while on the map, via the {@link Scene_Map#update} alias.
 	*/
 	static frameTick() {
 		if (!JuiceMotionManager.#effects.length) {
@@ -2165,19 +1778,6 @@ var JuiceMotionManager = class JuiceMotionManager {
 		}
 		JuiceMotionManager.#effects.length = 0;
 		survivors.forEach((s) => JuiceMotionManager.#effects.push(s));
-	}
-	/**
-	* Forces restoration if we still hold a lock on the sprite.
-	* @param {Sprite} sprite The Pixi sprite.
-	*/
-	static #cancelSpriteLock(sprite) {
-		const held = JuiceMotionManager.#spriteLocks.get(sprite);
-		if (!held) {
-			return;
-		}
-		held.restore();
-		JuiceMotionManager.#effects = JuiceMotionManager.#effects.filter((e) => e !== held);
-		JuiceMotionManager.#spriteLocks.delete(sprite);
 	}
 };
 
@@ -2460,10 +2060,7 @@ var JuiceHookManager = class JuiceHookManager {
 		if (result.evaded === true) {
 			return;
 		}
-		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(target.getCharacter());
-		if (!sprite) {
-			return;
-		}
+		const character = target.getCharacter();
 		const md = J.ABS.EXT.JUICE.Metadata;
 		const ga = action.getAction();
 		if (ga.item().damage.type === 0) {
@@ -2477,7 +2074,7 @@ var JuiceHookManager = class JuiceHookManager {
 			intensity *= md.healingRecipientSquishScale;
 		}
 		intensity *= JuiceHookManager.#computeFlurryAmplitudeScale(action, target);
-		JuiceMotionManager.scheduleSquish(sprite, intensity, md.targetSquishFrames);
+		JuiceMotionManager.scheduleSquish(character, intensity, md.targetSquishFrames);
 	}
 	/**
 	* Hook: {@link JABS_Engine.executeMapAction}.
@@ -2514,13 +2111,13 @@ var JuiceHookManager = class JuiceHookManager {
 		if (motionKey === "flip") {
 			const repeatCount = JuiceProfileResolver.resolveJuiceRepeatCount(action);
 			const duration = JuiceProfileResolver.resolveJuiceDuration(action);
-			JuiceHookManager.#applyFlipBodyJuice(caster, 1, repeatCount, duration);
+			JuiceHookManager.#applyFlipBodyJuice(caster, "cw", repeatCount, duration);
 			return;
 		}
 		if (motionKey === "flip-reverse") {
 			const repeatCount = JuiceProfileResolver.resolveJuiceRepeatCount(action);
 			const duration = JuiceProfileResolver.resolveJuiceDuration(action);
-			JuiceHookManager.#applyFlipBodyJuice(caster, -1, repeatCount, duration);
+			JuiceHookManager.#applyFlipBodyJuice(caster, "ccw", repeatCount, duration);
 			return;
 		}
 		if (action.isHealing()) {
@@ -2541,18 +2138,9 @@ var JuiceHookManager = class JuiceHookManager {
 	*/
 	static #applyDodgeJuice(caster) {
 		const md = J.ABS.EXT.JUICE.Metadata;
-		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(caster.getCharacter());
-		if (!sprite) {
-			return;
-		}
-		JuiceMotionManager.scheduleSquish(sprite, md.dodgeSquishIntensity, md.dodgeSquishFrames);
+		const character = caster.getCharacter();
+		JuiceMotionManager.scheduleSquish(character, md.dodgeSquishIntensity, md.dodgeSquishFrames);
 	}
-	/**
-	* Applies a body squash on the caster, optionally repeated {@link repeatCount} times.
-	* Used by <juiceMotion:squish> for skills that want a punchy caster reaction without a weapon overlay.
-	* @param {JABS_Battler} caster The caster.
-	* @param {number} [repeatCount=1] How many times to cycle the squish.
-	*/
 	/**
 	* Applies a body squash on the caster, optionally repeated {@link repeatCount} times.
 	* Used by <juiceMotion:squish> for skills that want a punchy caster reaction without a weapon overlay.
@@ -2562,13 +2150,10 @@ var JuiceHookManager = class JuiceHookManager {
 	*/
 	static #applySquishCasterJuice(caster, repeatCount = 1, totalDuration = null) {
 		const md = J.ABS.EXT.JUICE.Metadata;
-		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(caster.getCharacter());
-		if (!sprite) {
-			return;
-		}
+		const character = caster.getCharacter();
 		const baseDuration = totalDuration ?? md.unarmedStrikeSquishFrames;
 		const perCycleDuration = Math.max(1, Math.floor(baseDuration / repeatCount));
-		JuiceMotionManager.scheduleSquish(sprite, md.unarmedStrikeSquishIntensity, perCycleDuration, repeatCount);
+		JuiceMotionManager.scheduleSquish(character, md.unarmedStrikeSquishIntensity, perCycleDuration, repeatCount);
 	}
 	/**
 	* Applies gentle caster pulse for healing or support actions, optionally repeated {@link repeatCount} times.
@@ -2578,30 +2163,24 @@ var JuiceHookManager = class JuiceHookManager {
 	*/
 	static #applySupportCasterJuice(caster, repeatCount = 1, totalDuration = null) {
 		const md = J.ABS.EXT.JUICE.Metadata;
-		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(caster.getCharacter());
-		if (!sprite) {
-			return;
-		}
+		const character = caster.getCharacter();
 		const baseDuration = totalDuration ?? md.supportCasterPulseFrames;
 		const perCycleDuration = Math.max(1, Math.floor(baseDuration / repeatCount));
-		JuiceMotionManager.scheduleSquish(sprite, md.supportCasterPulseIntensity, perCycleDuration, repeatCount);
+		JuiceMotionManager.scheduleSquish(character, md.supportCasterPulseIntensity, perCycleDuration, repeatCount);
 	}
 	/**
 	* Spins the caster sprite through N full 360° rotations over the total duration.
 	* Used by <juiceMotion:flip> (clockwise) and <juiceMotion:flip-reverse> (counter-clockwise).
 	* @param {JABS_Battler} caster The caster.
-	* @param {number} directionSign +1 for clockwise, -1 for counter-clockwise.
+	* @param {string} direction Which way the caster turns: `cw` or `ccw`.
 	* @param {number} [repeatCount=1] Number of full rotations to complete.
 	* @param {number|null} [totalDuration=null] Total frame budget. Defaults to metadata unarmed squish frames.
 	*/
-	static #applyFlipBodyJuice(caster, directionSign, repeatCount = 1, totalDuration = null) {
+	static #applyFlipBodyJuice(caster, direction, repeatCount = 1, totalDuration = null) {
 		const md = J.ABS.EXT.JUICE.Metadata;
-		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(caster.getCharacter());
-		if (!sprite) {
-			return;
-		}
+		const character = caster.getCharacter();
 		const duration = totalDuration ?? md.unarmedStrikeSquishFrames;
-		JuiceMotionManager.scheduleFlipBody(sprite, directionSign, duration, repeatCount);
+		JuiceMotionManager.scheduleFlipBody(character, direction, duration, repeatCount);
 	}
 	/**
 	* Applies strike motion: tilt + optional weapon swing for actors when an icon resolves.
@@ -2610,55 +2189,81 @@ var JuiceHookManager = class JuiceHookManager {
 	*/
 	static #applyStrikeJuice(caster, action) {
 		const md = J.ABS.EXT.JUICE.Metadata;
-		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(caster.getCharacter());
-		if (!sprite) {
+		const character = caster.getCharacter();
+		const iconIndex = JuiceProfileResolver.resolveWeaponIconIndex(caster, action);
+		if (iconIndex < 0) {
+			JuiceMotionManager.scheduleSquish(character, md.unarmedStrikeSquishIntensity, md.unarmedStrikeSquishFrames);
 			return;
 		}
 		const styleKey = JuiceProfileResolver.resolveWeaponStyleKey(caster, action);
 		const mul = JuiceProfileResolver.resolveStyleMultipliers(styleKey);
-		JuiceMotionManager.scheduleTilt(sprite, md.casterStrikeTiltRadians * mul.tiltMul, md.casterStrikeTiltFrames);
-		const iconIndex = JuiceProfileResolver.resolveWeaponIconIndex(caster, action);
-		if (iconIndex >= 0) {
-			const swingWidthMultiplier = 2;
-			const swingDurationMultiplier = 2;
-			const motionType = JuiceProfileResolver.resolveJuiceMotion(action);
-			const arcSpanDegrees = JuiceProfileResolver.resolveJuiceArcSpanDegrees(action);
-			const weaponTipRadians = JuiceProfileResolver.resolveJuiceWeaponTipRadians(action, motionType);
-			const spinCount = JuiceProfileResolver.resolveJuiceRepeatCount(action);
-			const profileGun = JuiceProfileResolver.resolveJuiceProfileGun(action);
-			const juiceDuration = JuiceProfileResolver.resolveJuiceDuration(action) ?? md.weaponSwingFrames * swingDurationMultiplier;
-			JuiceWeaponSwingOverlay.play(sprite, iconIndex, md.weaponSwingPeakRadians * mul.swingMul * swingWidthMultiplier, juiceDuration, motionType, arcSpanDegrees, action.direction(), weaponTipRadians, spinCount, profileGun);
-		} else {
-			JuiceMotionManager.scheduleSquish(sprite, md.unarmedStrikeSquishIntensity, md.unarmedStrikeSquishFrames);
-		}
+		JuiceMotionManager.scheduleTilt(character, md.casterStrikeTiltRadians * mul.tiltMul, md.casterStrikeTiltFrames);
+		JuiceHookManager.#playWeaponSwing(caster, action, iconIndex, mul.swingMul);
 	}
 	/**
-	* Hook: cast timer loop — starts a casting pulse once per cast session.
+	* Arcs a weapon icon out of the caster to accompany a strike.
+	*
+	* This is the one piece of juice that still drives a sprite directly, and it has to: the overlay
+	* is a sprite this plugin creates and parents itself, not a character the engine is drawing, so
+	* there is nothing for the motion composer to compose it onto.
+	* @param {JABS_Battler} caster The attacker.
+	* @param {JABS_Action} action The strike action.
+	* @param {number} iconIndex The weapon icon to arc.
+	* @param {number} swingMultiplier The style multiplier applied to the swing's width.
+	*/
+	static #playWeaponSwing(caster, action, iconIndex, swingMultiplier) {
+		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(caster.getCharacter());
+		if (!sprite) {
+			return;
+		}
+		const md = J.ABS.EXT.JUICE.Metadata;
+		const swingWidthMultiplier = 2;
+		const swingDurationMultiplier = 2;
+		const motionType = JuiceProfileResolver.resolveJuiceMotion(action);
+		const arcSpanDegrees = JuiceProfileResolver.resolveJuiceArcSpanDegrees(action);
+		const weaponTipRadians = JuiceProfileResolver.resolveJuiceWeaponTipRadians(action, motionType);
+		const spinCount = JuiceProfileResolver.resolveJuiceRepeatCount(action);
+		const profileGun = JuiceProfileResolver.resolveJuiceProfileGun(action);
+		const juiceDuration = JuiceProfileResolver.resolveJuiceDuration(action) ?? md.weaponSwingFrames * swingDurationMultiplier;
+		const peakRadians = md.weaponSwingPeakRadians * swingMultiplier * swingWidthMultiplier;
+		JuiceWeaponSwingOverlay.play(sprite, iconIndex, peakRadians, juiceDuration, motionType, arcSpanDegrees, action.direction(), weaponTipRadians, spinCount, profileGun);
+	}
+	/**
+	* How long a casting pulse outlives the last frame that asked for it.
+	*
+	* Short enough that a cast ending is indistinguishable from the pulse stopping, long enough to
+	* survive a frame the cast loop happens not to run on.
+	* @type {number}
+	*/
+	static #castingHeartbeatFrames = 4;
+	/**
+	* Hook: cast timer loop — keeps the casting pulse alive while a cast is running.
+	*
+	* Called on every frame of a cast rather than once at the start, which is what makes the pulse
+	* self-limiting: it is declared with a few frames of life and renewed for as long as something
+	* keeps calling. A cast that ends in a way nobody hooked — the caster killed mid-incantation,
+	* interrupted, or moved to another map — simply stops renewing, and the pulse lapses on its own.
 	* @param {JABS_Battler} battler The casting battler.
 	*/
 	static tickCastingJuice(battler) {
-		if (battler._juiceCastingScheduled === true) {
-			return;
-		}
-		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(battler.getCharacter());
-		if (!sprite) {
-			return;
-		}
-		battler._juiceCastingScheduled = true;
 		const md = J.ABS.EXT.JUICE.Metadata;
-		JuiceMotionManager.scheduleCastingPulse(sprite, md.castingPulseAmplitude, () => battler.isCasting());
+		const character = battler.getCharacter();
+		JuiceMotionManager.scheduleCastingPulse(character, md.castingPulseAmplitude, JuiceHookManager.#castingHeartbeatFrames);
 	}
 	/**
 	* Hook: cast completion — tears down casting-layer motion before execution juice runs.
+	*
+	* The heartbeat above would retire the pulse on its own within a few frames, but a cast that
+	* completes is immediately followed by the juice for whatever it cast, and those few frames are
+	* exactly the ones the player is watching. This ends it on the frame it actually ended.
+	*
+	* Only the pulse is withdrawn. A reaction running at the same time belongs to something else that
+	* happened to this battler, and finishing a cast is no reason to cut it short.
 	* @param {JABS_Battler} battler The battler who finished casting.
 	*/
 	static endCastingJuice(battler) {
-		battler._juiceCastingScheduled = false;
-		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(battler.getCharacter());
-		if (!sprite) {
-			return;
-		}
-		JuiceMotionManager.cancelForSprite(sprite);
+		const character = battler.getCharacter();
+		JuiceMotionManager.cancelCastingPulse(character);
 	}
 };
 
@@ -2684,6 +2289,315 @@ JABS_Engine.prototype.executeMapAction = function(caster, action, targetX, targe
 };
 
 //#endregion
+//#region src/plugins/abs/ext/juice/models/JuiceCastingPulseMotionEffect.js
+/**
+* The shimmer a battler gives off while it is charging a skill.
+*
+* Unlike every other juice reaction this one has no duration, because a cast has no duration either
+* — it lasts until the caster finishes, is interrupted, or dies. It animates for exactly as long as
+* something keeps declaring it, which is the composer's ordinary contract and needs no clock.
+*
+* The pulse accelerates as it runs, from a slow swell to a fast one over about three seconds. That
+* ramp is the whole reason this is not just a `pulse` oscillator: a steady rhythm reads as ambient
+* and this needs to read as building toward something.
+*
+* `MotionEffect`, `MotionChannels` and `MotionEasing` are reached as globals rather than imports:
+* they ship inside J-Motion's bundle and are hoisted by the time this one loads.
+*/
+var JuiceCastingPulseMotionEffect = class extends MotionEffect {
+	/**
+	* The channels a casting pulse takes exclusive ownership of.
+	*
+	* Scale only. The glow is deliberately left unclaimed so that it resolves against every other
+	* flash on the character by strength — a caster who is also bleeding should show whichever of the
+	* two is currently brighter, rather than the charge-up suppressing the injury outright.
+	* @returns {string[]}
+	*/
+	claims() {
+		return [MotionChannels.SCALE_X, MotionChannels.SCALE_Y];
+	}
+	/**
+	* How many frames one swell currently takes.
+	*
+	* The period contracts as the cast goes on, which is what turns a rhythm into a build-up. It stops
+	* contracting once the ramp is spent so that a very long cast settles into an urgent pulse rather
+	* than accelerating into a vibration.
+	* @returns {number}
+	*/
+	periodFrames() {
+		const startPeriodFrames = 60;
+		const endPeriodFrames = 24;
+		const rampDurationFrames = 180;
+		const ramp = MotionEasing.normalize(this.elapsedFrames() / rampDurationFrames);
+		return Math.round(startPeriodFrames + (endPeriodFrames - startPeriodFrames) * ramp);
+	}
+	/**
+	* Where in the current swell this frame sits, from -1 to 1.
+	* @returns {number}
+	*/
+	wave() {
+		const period = this.periodFrames();
+		const phaseRadians = this.elapsedFrames() % period / period * (Math.PI * 2);
+		return Math.sin(phaseRadians);
+	}
+	/**
+	* The charge glow for a point in the swell.
+	*
+	* A cold blue-white, at up to roughly a third strength. Anything stronger stops reading as energy
+	* gathering around a caster and starts reading as the sprite being washed out.
+	* @param {number} wave Where in the swell this frame sits, from -1 to 1.
+	* @returns {number[]} The `[r, g, b, a]` blend colour.
+	*/
+	glowFor(wave) {
+		const peakAlpha = 96;
+		const strength = (wave + 1) / 2;
+		return [
+			180,
+			220,
+			255,
+			Math.round(strength * peakAlpha)
+		];
+	}
+	/**
+	* Writes this frame of the casting pulse into the composition.
+	* @param {MotionComposition} composition The composition being built for this character.
+	*/
+	applyTo(composition) {
+		const { amplitude } = this.parameters();
+		const wave = this.wave();
+		const swell = 1 + wave * amplitude;
+		composition.contribute(this, MotionChannels.SCALE_X, swell);
+		composition.contribute(this, MotionChannels.SCALE_Y, swell);
+		composition.contribute(this, MotionChannels.FLASH, this.glowFor(wave));
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/juice/models/JuiceFlipBodyMotionEffect.js
+/**
+* A full body rotation, for skills whose whole idea is that the caster went end over end.
+*
+* The rotation sweeps linearly rather than easing, because a flip that slows into its landing reads
+* as a stumble. It travels a whole number of turns over its duration, so it finishes pointing
+* exactly where it started and can be withdrawn on its final frame without a snap.
+*
+* Rotating a character sprite is not free: they are anchored at the feet so they stand on a tile,
+* and turning about that point swings the body around like a conker on a string. Asking the
+* composition for centred rotation is the entire fix — the view owns the anchor and the height
+* compensation, so nothing about that problem lives here.
+*
+* `MotionEffect`, `MotionChannels` and `MotionEasing` are reached as globals rather than imports:
+* they ship inside J-Motion's bundle and are hoisted by the time this one loads.
+*/
+var JuiceFlipBodyMotionEffect = class extends MotionEffect {
+	/**
+	* The channel a flip takes exclusive ownership of.
+	* @returns {string[]}
+	*/
+	claims() {
+		return [MotionChannels.ROTATION];
+	}
+	/**
+	* How far through the flip this frame is, from 0 to 1.
+	* @returns {number}
+	*/
+	progress() {
+		const { duration } = this.parameters();
+		return MotionEasing.normalize(this.elapsedFrames() / duration);
+	}
+	/**
+	* Which way round the flip goes, as a multiplier on the angle.
+	*
+	* Anything that is not explicitly counter-clockwise turns clockwise, matching how a spin reads its
+	* own direction — an unrecognised value is an authoring typo, and a flip going the wrong way is a
+	* better outcome than a caster that stands still with no clue anything was wrong.
+	* @returns {number} `1` for clockwise, `-1` for counter-clockwise.
+	*/
+	directionSign() {
+		const { direction } = this.parameters();
+		return direction === "ccw" ? -1 : 1;
+	}
+	/**
+	* The angle this frame sits at, in radians.
+	* @returns {number}
+	*/
+	currentRotation() {
+		const { turns } = this.parameters();
+		return 2 * Math.PI * turns * this.directionSign() * this.progress();
+	}
+	/**
+	* Writes this frame of the flip into the composition.
+	* @param {MotionComposition} composition The composition being built for this character.
+	*/
+	applyTo(composition) {
+		composition.contribute(this, MotionChannels.ROTATION, this.currentRotation());
+		if (composition.accepts(this, MotionChannels.ROTATION) === false) return;
+		composition.flagCenterRotation();
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/juice/models/JuiceSquishMotionEffect.js
+/**
+* The body squash a battler gives when it hits something or gets hit.
+*
+* A sine envelope, which matters more than it sounds: the shape starts and ends at exactly no
+* deformation, so a squish can be handed to the composer with a frame budget and simply stop being
+* declared when the budget runs out. There is no snap back to normal because the last frame it drew
+* was already normal.
+*
+* Width swells as height compresses rather than both shrinking together. That is the whole trick to
+* making it read as impact — something being flattened rather than something being scaled down.
+*
+* `MotionEffect` and `MotionChannels` are reached as globals rather than imports: they ship inside
+* J-Motion's bundle and are hoisted by the time this one loads.
+*/
+var JuiceSquishMotionEffect = class extends MotionEffect {
+	/**
+	* The channels a squish takes exclusive ownership of.
+	*
+	* Scale, and only scale. A combat reaction has to read at the size the designer tuned it to, so
+	* it replaces an ambient breathe for its duration rather than multiplying against it — two
+	* compounding scale motions produce an amplitude neither of them asked for.
+	* @returns {string[]}
+	*/
+	claims() {
+		return [MotionChannels.SCALE_X, MotionChannels.SCALE_Y];
+	}
+	/**
+	* How far through the current squish cycle this frame is, from 0 to 1.
+	*
+	* Cycles are counted by wrapping the elapsed frames rather than by resetting a counter, so a
+	* repeated squish needs no per-cycle bookkeeping and cannot drift.
+	* @returns {number}
+	*/
+	cycleProgress() {
+		const { duration } = this.parameters();
+		return this.elapsedFrames() % duration / duration;
+	}
+	/**
+	* Writes this frame of the squish into the composition.
+	* @param {MotionComposition} composition The composition being built for this character.
+	*/
+	applyTo(composition) {
+		const { intensity } = this.parameters();
+		const envelope = Math.sin(this.cycleProgress() * Math.PI);
+		const swell = 1 + envelope * intensity;
+		composition.contribute(this, MotionChannels.SCALE_X, swell);
+		composition.contribute(this, MotionChannels.SCALE_Y, 1 / swell);
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/juice/models/JuiceTiltMotionEffect.js
+/**
+* The lean a battler takes as it swings a weapon.
+*
+* This is the caster half of a strike — the weapon overlay does the arc, and this tips the body
+* into it so the swing looks like it came from somewhere. On its own it is barely visible, which is
+* the point: a strike that reads as a whole-body action is a dozen small things agreeing, not one
+* large one.
+*
+* Like the squish it rides a sine envelope, so it begins and ends at no rotation at all and can be
+* withdrawn on any frame without the sprite jumping.
+*
+* `MotionEffect`, `MotionChannels` and `MotionEasing` are reached as globals rather than imports:
+* they ship inside J-Motion's bundle and are hoisted by the time this one loads.
+*/
+var JuiceTiltMotionEffect = class extends MotionEffect {
+	/**
+	* The channel a tilt takes exclusive ownership of.
+	*
+	* A strike lean has to be the only thing rotating the body while it runs, or an ambient swing
+	* adds an angle the designer never tuned for and the strike stops reading as deliberate.
+	* @returns {string[]}
+	*/
+	claims() {
+		return [MotionChannels.ROTATION];
+	}
+	/**
+	* How far through the tilt this frame is, from 0 to 1.
+	* @returns {number}
+	*/
+	progress() {
+		const { duration } = this.parameters();
+		return MotionEasing.normalize(this.elapsedFrames() / duration);
+	}
+	/**
+	* Writes this frame of the tilt into the composition.
+	* @param {MotionComposition} composition The composition being built for this character.
+	*/
+	applyTo(composition) {
+		const { peak } = this.parameters();
+		const envelope = Math.sin(this.progress() * Math.PI);
+		composition.contribute(this, MotionChannels.ROTATION, envelope * peak);
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/juice/core/registerJuiceMotionTypes.js
+/**
+* Teaches J-Motion the four shapes a battler makes when it does something.
+*
+* These are registered rather than kept private because the registry is the only way into the
+* composer, and going through it has a second benefit worth having: a combat reaction becomes
+* something an event page or a state can ask for by name, so the squish a sword makes is available
+* to a cutscene without a line of code being written for it.
+*
+* None of them take a phase offset. Every other motion in the ecosystem starts somewhere random in
+* its cycle so that a room full of them does not animate in lockstep, but a reaction happens because
+* something just happened — starting one halfway through would drop the frame the player is watching
+* for.
+*
+* The defaults here are the fallback for a hand-authored tag. Combat passes every parameter
+* explicitly, resolved from this plugin's own metadata and the skill's notetags, so nothing on this
+* page affects what a weapon does.
+*/
+MotionTypeRegistry.register("squish", {
+	implementation: JuiceSquishMotionEffect,
+	parameterNames: [
+		"intensity",
+		"duration",
+		"repeats"
+	],
+	defaults: {
+		intensity: .12,
+		duration: 12,
+		repeats: 1
+	},
+	phaseSpan: () => 0
+});
+MotionTypeRegistry.register("tilt", {
+	implementation: JuiceTiltMotionEffect,
+	parameterNames: ["peak", "duration"],
+	defaults: {
+		peak: .35,
+		duration: 12
+	},
+	phaseSpan: () => 0
+});
+MotionTypeRegistry.register("flip", {
+	implementation: JuiceFlipBodyMotionEffect,
+	parameterNames: [
+		"turns",
+		"duration",
+		"direction"
+	],
+	defaults: {
+		turns: 1,
+		duration: 24,
+		direction: "cw"
+	},
+	phaseSpan: () => 0
+});
+MotionTypeRegistry.register("charge", {
+	implementation: JuiceCastingPulseMotionEffect,
+	parameterNames: ["amplitude"],
+	defaults: { amplitude: .04 },
+	phaseSpan: () => 0
+});
+
+//#endregion
 //#region src/plugins/abs/ext/juice/objects/JABS_Battler.js
 /**
 * Extends {@link JABS_Battler.processCastingTimer}.<br/>
@@ -2692,7 +2606,7 @@ JABS_Engine.prototype.executeMapAction = function(caster, action, targetX, targe
 J.ABS.EXT.JUICE.Aliased.JABS_Battler.set("processCastingTimer", JABS_Battler.prototype.processCastingTimer);
 JABS_Battler.prototype.processCastingTimer = function() {
 	J.ABS.EXT.JUICE.Aliased.JABS_Battler.get("processCastingTimer").call(this);
-	if (this.isCasting()) {
+	if (this.isCasting() === true && this.isDead() === false) {
 		JuiceHookManager.tickCastingJuice(this);
 	}
 };
@@ -2731,29 +2645,6 @@ J.ABS.EXT.JUICE.Aliased.Scene_Map.set("terminate", Scene_Map.prototype.terminate
 Scene_Map.prototype.terminate = function() {
 	JuiceMotionManager.clearAll();
 	J.ABS.EXT.JUICE.Aliased.Scene_Map.get("terminate").call(this);
-};
-
-//#endregion
-//#region src/plugins/abs/ext/juice/sprites/Sprite_Character.js
-/**
-* Extends {@link Sprite_Character#updatePosition}.<br/>
-* When a flip-body juice effect is active, compensates for the anchor shift from (0.5, 1)
-* to (0.5, 0.5) by adding half the sprite height back to y each frame so the character
-* does not visually drop during the animation.
-*/
-J.ABS.EXT.JUICE.Aliased.Sprite_Character.set("updatePosition", Sprite_Character.prototype.updatePosition);
-Sprite_Character.prototype.updatePosition = function() {
-	J.ABS.EXT.JUICE.Aliased.Sprite_Character.get("updatePosition").call(this);
-	if (this.juiceFlipping() === true) {
-		this.y -= this.height / 2;
-	}
-};
-/**
-* Gets the juice flipping.
-* @returns {boolean} The juiceFlipping.
-*/
-Sprite_Character.prototype.juiceFlipping = function() {
-	return this._juiceFlipping;
 };
 
 //#endregion

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.7.1 BASE] The base class for all J plugins.
+ * [v3.7.2 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.7.2
+ *    parsePluginInt no longer pre-checks for a missing or blank value. Parsing one
+ *    yields NaN, which the finite check below already turns into the fallback, so
+ *    the guard could never be the reason a caller received its default.
  * - 3.7.1
  *    ParsableComment now admits the '#' character, so an event comment may carry
  *    a hex colour as a tag value. Previously such a comment failed the shape test
@@ -1892,7 +1896,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.7.1";
+J.BASE.Metadata.Version = "3.7.2";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -2301,9 +2305,6 @@ J.BASE.Helpers.satisfies = function(currentVersion, minimumVersion) {
 * @returns {number}
 */
 J.BASE.Helpers.parsePluginInt = function(value, fallback) {
-	if (value === undefined || value === null || value === "") {
-		return fallback;
-	}
 	const parsed = Number.parseInt(String(value), 10);
 	if (Number.isFinite(parsed)) {
 		return parsed;

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.0 JAFTING] Root JAFTING menu, salvage loop, and extension hooks.
+ * [v2.2.1 JAFTING] Root JAFTING menu, salvage loop, and extension hooks.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -40,6 +40,11 @@
  * their own respective tags.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.1
+ *    Removed refinementMaterialHasNoRecoverableRows along with the early exit it
+ *    drove in buildRefinementOutputLedger. A bare vendor donor already reached the
+ *    final return with base lineage alone, so the pre-check spent four branches
+ *    reaching the answer the pipeline arrived at anyway.
  * - 2.2.0
  *    Routed the _jafting namespace into its own save section, so crafting
  *    state lands in systems/jafting.json rather than in the system blob.
@@ -172,7 +177,7 @@ J.JAFTING.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.JAFTING.Metadata = new J_CraftingPluginMetadata("J-JAFTING", "2.2.0");
+J.JAFTING.Metadata = new J_CraftingPluginMetadata("J-JAFTING", "2.2.1");
 /**
 * A helpful mapping of all the various RMMZ classes being extended.
 */
@@ -866,41 +871,13 @@ var JaftingSalvageManager = class JaftingSalvageManager {
 		JaftingSalvageManager.recomputeMergedRowsFromPartyLedgerBag(bag);
 	}
 	/**
-	* True when the refinement **material** contributes **no extra dismantle rows** onto the output stamp.<br>
-	* <br>
-	* Check order matters: stamped ledger wins first, then ingredient-type exceptions, then the blunt "vendor shell"
-	* weapon/armor rule—stack items fall through to `false` so we never mis-classify a normal item donor.<br>
-	* Pair with {@link JaftingSalvageManager.buildRefinementOutputLedger}; that method mirrors these branches when
-	* building rows.
-	*
-	* @param {RPG_Item|RPG_Weapon|RPG_Armor} materialDatum The material datum driving this step.
-	* @returns {boolean}
-	*/
-	static refinementMaterialHasNoRecoverableRows(materialDatum) {
-		const ledger = JaftingSalvageManager.getLedgerForDatum(materialDatum);
-		if (ledger && ledger.rows && ledger.rows.length > 0) {
-			return false;
-		}
-		if (materialDatum.isArmor() && materialDatum.atypeId === JaftingSalvageLedger.getMaterialArmorTypeId()) {
-			return false;
-		}
-		if (JaftingSalvageLedger.isMaterialWeaponDatum(materialDatum)) {
-			return false;
-		}
-		if (materialDatum.isWeapon() || materialDatum.isArmor()) {
-			return true;
-		}
-		return false;
-	}
-	/**
 	* Builds the merged salvage ledger that should attach to refined output equipment.<br>
 	* <br>
-	* **Pipeline (same story as {@link JaftingSalvageManager.refinementMaterialHasNoRecoverableRows}, but emitting
-	* rows):** clone the base stamp, optionally fold donor rows, always end on a deduped snapshot so duplicate `t:id`
-	* keys from parallel crafts collapse cleanly.<br>
-	* Early exit when the donor is a **gold-only** vendor shell—base lineage alone defines dismantle. Stamped donor
-	* merges next. Ingredient-class gear without a nested ledger still gets a **synthetic** single row so dismantle
-	* refunds the part. The final `return` catches non-equip donors where none of the above applied.
+	* **Pipeline:** clone the base stamp, optionally fold donor rows, always end on a deduped snapshot so duplicate
+	* `t:id` keys from parallel crafts collapse cleanly.<br>
+	* A stamped donor merges first. Ingredient-class gear without a nested ledger still gets a **synthetic** single row
+	* so dismantle refunds the part. The final `return` catches everything else — non-equip donors and the gold-only
+	* vendor shells that contribute no rows at all — with base lineage alone defining dismantle.
 	*
 	* @param {RPG_Item|RPG_Weapon|RPG_Armor} baseDatum The base datum driving this step.
 	* @param {RPG_Item|RPG_Weapon|RPG_Armor} materialDatum The material datum driving this step.
@@ -909,9 +886,6 @@ var JaftingSalvageManager = class JaftingSalvageManager {
 	static buildRefinementOutputLedger(baseDatum, materialDatum) {
 		const baseLedger = JaftingSalvageManager.getLedgerForDatum(baseDatum);
 		const baseRows = baseLedger && baseLedger.rows ? JaftingSalvageLedger.cloneRows(baseLedger.rows) : [];
-		if (JaftingSalvageManager.refinementMaterialHasNoRecoverableRows(materialDatum)) {
-			return new JaftingSalvageLedgerSnapshot(JaftingSalvageLedger.mergeDuplicateRows(baseRows));
-		}
 		const materialLedger = JaftingSalvageManager.getLedgerForDatum(materialDatum);
 		if (materialLedger && materialLedger.rows && materialLedger.rows.length > 0) {
 			return new JaftingSalvageLedgerSnapshot(JaftingSalvageLedger.mergeRowArrays(baseRows, materialLedger.rows));
