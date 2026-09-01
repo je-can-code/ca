@@ -358,5 +358,6 @@ null,
 {"id":356,"expanded":false,"name":"Regions Oasis","order":25,"parentId":1,"scrollX":960.5,"scrollY":735.5},
 {"id":357,"expanded":false,"name":"SDP Oasis","order":26,"parentId":1,"scrollX":960.5,"scrollY":735.5},
 {"id":358,"expanded":true,"name":"Bathroom","order":62,"parentId":40,"scrollX":848,"scrollY":800},
-{"id":359,"expanded":false,"name":"Respawn Test","order":359,"parentId":1,"scrollX":969.5,"scrollY":735.5}
+{"id":359,"expanded":false,"name":"Respawn Test","order":359,"parentId":1,"scrollX":969.5,"scrollY":735.5},
+{"id":360,"expanded":false,"name":"Motion Test","order":360,"parentId":1,"scrollX":969.5,"scrollY":735.5}
 ]
