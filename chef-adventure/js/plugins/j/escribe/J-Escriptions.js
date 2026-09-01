@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.0.1 ESCRIBE] Enables "describing" the event with some text and/or an icon.
+ * @plugindesc [v1.0.2 ESCRIBE] Enables "describing" the event with some text and/or an icon.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -39,6 +39,18 @@
  * event is visible on the map.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Text escriptions are now horizontally centered on their event. The map
+ *    coordinate was being added into a pixel offset, drifting every label one
+ *    pixel to the right per tile from the left edge of the map.
+ *    Escription height is now measured from the character sprite instead of
+ *    being picked from the sheet's "$" prefix, which is a single-character
+ *    marker rather than a tall-character one. Small "$" sheets floated their
+ *    labels far too high, and sheets taller than 96 pixels wore theirs inside
+ *    the sprite. Sheets 48 and 96 pixels tall are unaffected.
+ *    <proximityText:DISTANCE> now fades its text in. It was being gated on the
+ *    icon's proximity, so an event with proximity text and no icon never
+ *    showed the text at all.
  * - 1.0.1
  *    <proximityText>/<proximityIcon> now require an explicit DISTANCE; the
  *    no-argument form (implicit distance 0) is no longer supported- use
@@ -80,7 +92,7 @@ J.ESCRIBE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ESCRIBE.Metadata = new J_EscriptionsPluginMetadata("J-Escriptions", "1.0.1");
+J.ESCRIBE.Metadata = new J_EscriptionsPluginMetadata("J-Escriptions", "1.0.2");
 /**
 * All regular expressions used by this plugin.
 */
@@ -634,6 +646,27 @@ Sprite_Character.prototype.isEmptyCharacter = function() {
 	return J.ESCRIBE.Aliased.Sprite_Character.get("isEmptyCharacter").call(this);
 };
 /**
+* The height an escription floats above this sprite's feet, in pixels.<br/>
+* Both the text and the icon hang off this one number so they never drift apart.
+*
+* The thirty-two is the gap that reads as "labelled" rather than "collided", measured from the top
+* of the character rather than guessed from its sheet. A `$` prefix means a sheet holds a single
+* character, not that the character is tall - `$o_grass` is a `$` sheet with 47 pixel frames, and a
+* height picked off that prefix buried its label sixty pixels up in the scenery while `$dragon`, at
+* 120, wore its label inside its own silhouette.
+*
+* This is deliberately recomputed every frame rather than settled when the sprite is built.
+* {@link Sprite_Character.patternHeight} divides the character bitmap's height, and escriptions are
+* created from `setCharacterBitmap` - one line after the image is *requested*. On a cold load that
+* bitmap has not decoded yet and reports a height of zero, so a value computed there is right only
+* when the image happened to be cached. Reading it per frame costs one subtraction and is correct
+* the moment the image lands, and again whenever a page change swaps the sprite for a taller one.
+* @returns {number}
+*/
+Sprite_Character.prototype.escriptionBaseY = function() {
+	return -(this.patternHeight() + 32);
+};
+/**
 * Parses the event comments on the character that belongs to this sprite.
 */
 Sprite_Character.prototype.refreshCharacterEscription = function() {
@@ -683,11 +716,9 @@ Sprite_Character.prototype.createDescribeTextSprite = function() {
 	const describeText = describe.text();
 	this.setEscriptionText(describeText);
 	this.setEscriptionTextProximity(describe.proximityTextRange());
-	const { _realX, _characterName } = this.character();
 	const sprite = new Sprite_BaseText().setText(describeText).setFontSize(14).setAlignment(Sprite_BaseText.Alignments.Center).setColor("#ffffff");
-	const x = _realX - sprite.width / 2;
-	const y = ImageManager.isBigCharacter(_characterName) ? -128 : -80;
-	sprite.move(x, y);
+	const x = -(sprite.width / 2);
+	sprite.move(x, this.escriptionBaseY());
 	if (this.escriptionTextProximity() > -1) {
 		sprite.opacity = 0;
 	}
@@ -713,12 +744,9 @@ Sprite_Character.prototype.createDescribeIconSprite = function() {
 	const describeIconIndex = describe.iconIndex();
 	this.setEscriptionIconIndex(describeIconIndex);
 	this.setEscriptionIconProximity(describe.proximityIconRange());
-	const { _characterName } = this.character();
 	const x = 0 - ImageManager.iconWidth / 2 - 4;
-	let y = ImageManager.isBigCharacter(_characterName) ? -128 : -80;
-	y -= 32;
 	const sprite = new Sprite_Icon(describeIconIndex);
-	sprite.move(x, y);
+	sprite.move(x, this.escriptionBaseY() - 32);
 	if (this.escriptionIconProximity() > -1) {
 		sprite.opacity = 0;
 	}
@@ -789,15 +817,27 @@ Sprite_Character.prototype.removeEscriptionIconData = function() {
 * Updates all describe sprites where applicable.
 */
 Sprite_Character.prototype.updateEscribe = function() {
+	this.updateEscriptionPositions();
 	this.updateTextEscribe();
 	this.updateIconEscribe();
+};
+/**
+* Parks the text and icon escriptions above the character sprite.
+*
+* See {@link Sprite_Character.escriptionBaseY} for why this is a per-frame job rather than
+* something the sprites could have been built with.
+*/
+Sprite_Character.prototype.updateEscriptionPositions = function() {
+	const baseY = this.escriptionBaseY();
+	this.escriptionTextSprite().y = baseY;
+	this.escriptionIconSprite().y = baseY - 32;
 };
 /**
 * Manages the visibility of the describe text on this sprite's event.
 */
 Sprite_Character.prototype.updateTextEscribe = function() {
 	if (!this.escriptionText()) return;
-	if (this.escriptionIconProximity() < 0) return;
+	if (this.escriptionTextProximity() < 0) return;
 	if (this.characterCanSeeText()) {
 		this.fadeInEscribeText();
 	} else {
