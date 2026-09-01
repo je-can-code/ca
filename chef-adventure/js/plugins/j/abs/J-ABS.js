@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.18.0 ABS] Enables combat to be carried out on the map.
+ * [v4.19.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,21 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.19.0
+ *    Added the Force Respawn plugin command, which frees every pending respawn
+ *    record in the world at once regardless of the method each was scheduled
+ *    with. It is the counterpart to the respawn tags rather than a bypass of
+ *    them: a tag says how long a placement stays down if the player keeps
+ *    playing, and this says that something happened which moved the world on -
+ *    a night at an inn, a chapter break. Placements on the current map are
+ *    rebuilt immediately; every other map is freed and rebuilds on the next
+ *    visit. Permanence is honored unless the includePermanent argument
+ *    overrules it, since <noRespawn> usually marks a story beat rather than a
+ *    farmable placement.
+ *    The world-default respawn is now "seconds" at 120 rather than blank. A
+ *    world where the dead stay dead until the player power-cycles the map is a
+ *    world that asks the player to manage it; a blank method remains the
+ *    deliberate opt-out for projects that want no timers anywhere.
  * - 4.18.0
  *    Added respawn timers for defeated battlers. A defeated enemy may declare
  *    when it returns via the new <respawn:[METHOD, PARAM]> tag - resolved as
@@ -4444,7 +4459,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.18.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.19.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -24373,7 +24388,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.18.0";
+var PLUGIN_VERSION = "4.19.0";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
