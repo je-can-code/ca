@@ -81,16 +81,20 @@
  *
  * ============================================================================
  * WHICH MOTION WINS:
- * When two sources want the same thing from a sprite- both want to scale it,
- * say- the more fleeting one wins, on the reasoning that the shorter something
- * lasts the more likely it is the thing the player is meant to be reading.
+ * Most of the time, nothing wins- motions compose. Two things scaling a sprite
+ * multiply together, two things nudging it add up, and motions driving
+ * different channels never meet at all.
  *
- * From weakest to strongest: an event page's ambient motion, then a passive,
- * then an applied state, then a plugin command, then a combat reaction.
+ * Contests only happen where a motion CLAIMS a channel, which combat reactions
+ * do so that a hit reads exactly as tuned instead of compounding with whatever
+ * ambient wobble the character had. Among claimants the ranking decides it,
+ * weakest to strongest: event page, passive, applied state, plugin command,
+ * combat reaction.
  *
- * So an elite's permanent swell is overridden by the flicker of it catching
- * fire, and returns when the fire goes out. Motions that want different things
- * do not contest at all and simply run together.
+ * A held size is not a wobble, so it is not suppressed. An enemy at 150% that
+ * gets hit squishes AROUND its own size rather than snapping to normal for the
+ * length of the hit- the reaction still reads as tuned, and the creature stays
+ * the size it is.
  * ============================================================================
  * CHANGELOG:
  * - 1.0.0
