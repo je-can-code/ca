@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 MOTION] Ambient and reactive motion for character sprites.
+ * [v1.2.0 MOTION] Ambient and reactive motion for character sprites.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -123,6 +123,16 @@
  * all beyond the arithmetic.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Adds `passive` to the source ranking, between an event page and an applied
+ *    state, for the motions J-Motion-Passive declares.
+ *    A claimed channel now composes with whatever was holding it rather than
+ *    discarding it, so a hit reaction on a character that is permanently scaled
+ *    or rotated modulates around that instead of snapping it back to normal for
+ *    the length of the reaction. Ambient wobbles are still suppressed by a
+ *    claim, which is what claiming was for.
+ *    Fixed a source declaring an empty set leaving its motions running forever,
+ *    which an event page changing to one with no motion tags does.
  * - 1.1.0
  *    Centred rotation now lifts the sprite instead of dropping it, and scales that
  *    lift by the sprite's own scale, so a character that spins while changing size
@@ -296,7 +306,7 @@ J.MOTION.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.MOTION.Metadata = new J_MOTION_PluginMetadata("J-Motion", "1.1.0");
+J.MOTION.Metadata = new J_MOTION_PluginMetadata("J-Motion", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -740,6 +750,16 @@ var MotionComposition = class {
 	*/
 	#claimants = new Map();
 	/**
+	* What baseline effects contributed to channels somebody else had claimed.
+	*
+	* Only claimed channels ever reach this, because on an unclaimed one a baseline composes through
+	* the ordinary path like anything else. Left null until such a contribution actually arrives —
+	* a claim landing on a character that also holds a baseline is the uncommon case, and this class
+	* allocates one composition per sprite per frame.
+	* @type {Map<string, number|number[]>|null}
+	*/
+	#baselines = null;
+	/**
 	* Whether any contributing effect needs the sprite rotated about its middle rather than its feet.
 	* @type {boolean}
 	*/
@@ -756,7 +776,11 @@ var MotionComposition = class {
 	* @returns {number|number[]} The composed value.
 	*/
 	valueFor(channel) {
-		return this.#values.get(channel);
+		const composed = this.#values.get(channel);
+		if (this.#baselines === null) return composed;
+		if (this.#baselines.has(channel) === false) return composed;
+		const baseline = this.#baselines.get(channel);
+		return MotionChannels.combine(channel, baseline, composed);
 	}
 	/**
 	* Records which effect has won exclusive ownership of a channel for this frame.
@@ -797,8 +821,31 @@ var MotionComposition = class {
 			this.#values.set(channel, combined);
 			return;
 		}
-		if (claimant !== contributor) return;
+		if (claimant !== contributor) {
+			if (contributor.isBaseline() === true) {
+				this.#recordBaseline(channel, contribution);
+			}
+			return;
+		}
 		this.#values.set(channel, contribution);
+	}
+	/**
+	* Folds a baseline contribution into what a claimed channel is resting at.
+	*
+	* Several baselines on one channel compose with each other exactly as they would have without a
+	* claim in the way, which is what keeps a claim from changing the answer for anyone but itself.
+	* @param {string} channel The claimed channel being held.
+	* @param {number|number[]} contribution The baseline's value this frame.
+	*/
+	#recordBaseline(channel, contribution) {
+		this.#baselines ??= new Map();
+		if (this.#baselines.has(channel) === false) {
+			this.#baselines.set(channel, contribution);
+			return;
+		}
+		const accumulated = this.#baselines.get(channel);
+		const combined = MotionChannels.combine(channel, accumulated, contribution);
+		this.#baselines.set(channel, combined);
 	}
 	/**
 	* Determines whether a contribution from this effect would actually reach a channel.
@@ -813,6 +860,7 @@ var MotionComposition = class {
 	accepts(contributor, channel) {
 		const claimant = this.claimantFor(channel);
 		if (claimant === null) return true;
+		if (contributor.isBaseline() === true) return true;
 		return claimant === contributor;
 	}
 	/**
@@ -967,6 +1015,19 @@ var MotionEffect = class {
 	*/
 	claims() {
 		return [];
+	}
+	/**
+	* Determines whether this effect states what a channel *is* rather than how it is wobbling.
+	*
+	* A claim exists to stop ambient motion compounding with a reaction that has to read exactly as
+	* tuned. That is the right treatment for a wobble and the wrong one for a baseline: an enemy at
+	* 150% is not decorating its size, it is that size, and a squish that discarded it would flatten
+	* a giant to the dimensions of a rat for the length of the hit. So a baseline survives a claim
+	* and composes with it, while everything else is still suppressed.
+	* @returns {boolean}
+	*/
+	isBaseline() {
+		return false;
 	}
 	/**
 	* Writes this frame's contribution into the composition.
@@ -1400,6 +1461,14 @@ var TransitionMotionEffect = class extends MotionEffect {
 		if (this.hasRemovalRequested() === false) return false;
 		const { duration } = this.parameters();
 		return this.#releaseFrames >= duration;
+	}
+	/**
+	* Overrides {@link MotionEffect#isBaseline}.<br/>
+	* A transition parks a channel and holds it, which is a statement about where the channel sits.
+	* @returns {boolean}
+	*/
+	isBaseline() {
+		return true;
 	}
 	/**
 	* Writes this frame's position into the composition.
@@ -1985,12 +2054,23 @@ var CharacterMotionComposer = class CharacterMotionComposer {
 	static #emptyComposition = new MotionComposition();
 	/**
 	* How strongly a source's claim on a channel outranks another's.
+	*
+	* The order is how transient each kind is, because the more fleeting a motion is the more likely
+	* it is the thing a player is meant to be reading right now. A page's ambient motion is what a
+	* character does forever, a passive is what it does for as long as it is that sort of creature,
+	* an applied state is what it does until the affliction wears off, and a combat reaction is what
+	* it does for a handful of frames.
+	*
+	* Kinds owned by extensions live here rather than with the extension because ranking is a
+	* comparison, and a table that only holds half the entries cannot make one. Core does not need to
+	* know what a passive or a death is to know where it sits.
 	* @type {Map<string, number>}
 	*/
 	static #sourcePriorities = new Map([
-		["combat", 4],
-		["command", 3],
-		["state", 2],
+		["combat", 5],
+		["command", 4],
+		["state", 3],
+		["passive", 2],
 		["page", 1]
 	]);
 	/**

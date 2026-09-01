@@ -61,20 +61,17 @@ they will consume are largely unauthored.
 
 ---
 
-## Named weapons and the Smith's Soulcrystal
+## Named weapons need no material of their own
 
-**Smith's Soulcrystal is not a general smithing material.** It appears in nineteen recipes, and every
-single output is a named weapon - `"Light Thrust"`, `"Colossus"`, `"Akai Supeeya"`, `"Fly Zapper"`,
-`"Crescent Blossom"`, `"Royal Fist"` and the rest. Every weapon family has its own, three apiece across
-the six families.
+**There is no dedicated named-weapon material, and there is not meant to be one.** A ⭐ is found in the
+world; every rung above it is forged by consuming the rung beneath, and the right to forge is what
+Viktor's questline sells. [`../acquisition.md`](../acquisition.md) is the authority on
+that chain and this document defers to it entirely.
 
-So the crystal reads as universal when counted per-family and is not: it gates the handful of weapons a
-player meets once each in a run, rather than a quarter of all smithing.
-
-**Planned, not built: upgrading named weapons.** The intent is roughly **three crystals per named
-weapon** — about **54 in total**, which is every crystal that will exist. They are to be **hidden across
-the maps** rather than bought or dropped, so finishing a named weapon means having explored rather than
-having farmed. Today each recipe asks for one and the upgrade path does not exist yet.
+What the upper rungs *do* demand is **high-tier material from disciplines other than weaponcraft** —
+armourcraft, alchemy and cooking among them. That is deliberate: top-tier materials otherwise have no
+sink, and requiring a dish to finish a sword is this game's premise expressed as a mechanic rather than
+as a joke.
 
 ---
 

@@ -151,7 +151,7 @@ SDP panels are **multipliers on who you already are**, not a second level-up tab
 | **Level, gear, traits, masteries** | Base stats + passive hooks |
 | **SDP panels** | **`%` amplification** and archetype tradeoffs on top |
 
-**Strict prerequisite:** [**protag class / job tree**](../../../rmmz-plugins/.backlog/unstarted/ca-protag-class-job-tree-system.md) (SD3-style). Without class swapping (or equivalent base-param pivot), `%`-only panels **crumble** — low-base actors never get meaningful value from off-archetype strips. This is **required for ship**, not a nice-to-have. Tracked in [`work-items.md`](./work-items.md) under P4-1.
+**Strict prerequisite:** [**protag class / job tree**](../../../rmmz-plugins/.backlog/completed/ca-protag-class-job-tree-system.md) (SD3-style). Without class swapping (or equivalent base-param pivot), `%`-only panels **crumble** — low-base actors never get meaningful value from off-archetype strips. This is **required for ship**, not a nice-to-have. Tracked in [`work-items.md`](./work-items.md) under P4-1.
 
 **Reference strip:** `undead-ghosty` (`GHO_1`…`GHO_10`) — first panel pass authored to this policy.
 

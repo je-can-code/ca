@@ -20,6 +20,7 @@ As such, while the plugins living in my [other repository can be found over here
 - [some additional area detail, separate from the actual story walk through][11]
 - [some weapon type information][12]
 - [weapon family identity (living design)][24]
+- [**named equipment acquisition** (how named weapons and armors are obtained)][36]
 - [some enemy family information][13]
 - [SDP node / panel overview][14]
 - [SDP implementation status (living tracker)][21]
@@ -73,3 +74,5 @@ And of course, a list of unlockables and their details:
 [34]: ./crafting/material-tools.md
 
 [35]: ./crafting/refinement-parameters.md
+
+[36]: ./acquisition.md

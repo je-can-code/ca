@@ -83,7 +83,7 @@ Aftermath:
 Viktor, entering: **"Oh, at it again?"** — because she isn't doing it in secret. She's working openly, for the
 shop, and she KNOWS the legend now — the true price, taught to her plainly by a man who finally learned to say
 what he means. The tablet is research, not a recipe she intends to follow. She forges her masterpiece the
-mortal way — and with the new way's Soulcrystals, it reaches heights the old way claimed only death could buy.
+mortal way — and with the new way Viktor worked out, it reaches heights the old way claimed only death could buy.
 
 Aftermath:
 - Her masterwork joins the shop (her line, final revision — name TBD, HER name on it, soul intact).

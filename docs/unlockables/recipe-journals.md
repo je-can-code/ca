@@ -51,5 +51,5 @@ The recipe-unlock doctrine also holds, re-expressed:
 
 The same ladder holds per discipline, deliberately: cooking (pages → Yelena → Cookbook), alchemy (pages →
 Leo → Leo's Original), smithing (scraps → Viktor → the smith's ghost in the Desolate Graves, see
-[`../weapons/acquisition.md`](../weapons/acquisition.md)). **Found < taught < inherited.** Loot <
+[`../acquisition.md`](../acquisition.md)). **Found < taught < inherited.** Loot <
 lessons < love.

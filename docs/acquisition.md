@@ -1,19 +1,27 @@
-# Weapon acquisition — named weapons and legendary blueprints
+# Named equipment acquisition — weapons and armor
 
-> **Purpose:** the single record of **where the three named weapons of each subgroup come from**, and
-> **how the blueprint for that subgroup's legendary is acquired**.
+> **Purpose:** the single record of **where the three named weapons of each subgroup come from**, **how
+> the blueprint for that subgroup's legendary is acquired**, and **how the 27 named armors are built**.
 >
-> Pair with [`families.md`](./families.md) (identity design) and [`skill-lots.md`](./skill-lots.md)
-> (skill bands). This file owns *acquisition only* — not stats, not skills, not identity.
+> The two chains are deliberately different mechanisms and are documented separately below. They meet
+> again only at rung 10, where both consume a t6 craftable and use their ⭐⭐⭐ as a tool.
+>
+> Pair with [`weapons/families.md`](./weapons/families.md) (identity design) and
+> [`weapons/skill-lots.md`](./weapons/skill-lots.md) (skill bands). This file owns *acquisition only* —
+> not stats, not skills, not identity. It sits at the docs root rather than under `weapons/` because
+> it stopped being about weapons on 2026-08-31.
 >
 > **Status:** started 2026-08-22. Supersedes `main.md`, whose *weapon names* were stale — four had
 > been renamed in the database since it was written. Its **locations were accurate**, and are carried
 > forward below, re-derived from the maps rather than copied.
 >
-> **Status update, 2026-08-27:** the acquisition chain is **decided** — see [The chain](#the-chain-decided-2026-08-27).
+> **Status update, 2026-08-27:** the weapon chain is **decided** — see [The weapon chain](#the-weapon-chain-decided-2026-08-27).
 > Only the ⭐ rung is ever placed; ⭐⭐, ⭐⭐⭐ and the legendaries are all forged. **13 of 18 ⭐ weapons are
-> live in the maps**; five remain. The 27 named *armors* are a separate throughline and are not covered
-> by this file's chain.
+> live in the maps**; five remain.
+>
+> **Status update, 2026-08-31:** the **armor** chain is decided too — see
+> [The armor chain](#the-armor-chain-decided-2026-08-31). It is a different mechanism on purpose, and it
+> lands on the same rung-10 invariant the weapons already use.
 
 ---
 
@@ -53,7 +61,7 @@ legendary to be reachable. Neither is decided yet.
 
 ---
 
-## The chain `DECIDED 2026-08-27`
+## The weapon chain `DECIDED 2026-08-27`
 
 **Only the ⭐ rung is ever placed in the world. Everything above it is forged.**
 
@@ -84,7 +92,7 @@ reaches the myth weapon, and that one is permanent. A player is never punished f
 
 ### Why it routes through Viktor
 
-`../unlockables/recipe-journals.md` already states the unlock doctrine, and states it as holding per
+`./unlockables/recipe-journals.md` already states the unlock doctrine, and states it as holding per
 discipline: **found < taught < inherited. Loot < lessons < love.** Smithing's rungs are written there
 as **scraps → Viktor → (an inherited tier)**. This chain is that doctrine applied to weapons rather
 than a new idea: scraps buy n2, Viktor teaches n3, and the legendary comes from the inherited tier.
@@ -96,7 +104,7 @@ currently records as `OPEN`.
 
 ### Losing Viktor loses the ladder, and that is intended
 
-`../quests/SE-raevula/smiths-apprentice.md` has a branch where **the Metal Petal closes forever and
+`./quests/SE-raevula/smiths-apprentice.md` has a branch where **the Metal Petal closes forever and
 Viktor exits the game entirely.** Under this chain that branch also costs the player every named
 weapon above ⭐ and every legendary. **That is the accepted price of the decision** (Jeremy,
 2026-08-27) — the tragedy is meant to have teeth, and no fallback path is provided.
@@ -118,10 +126,6 @@ heavy plate; Gemini is twins and should want two of something.
 
 ### What is still open
 
-- **Armor gets a different throughline entirely.** Viktor owns weapons; `design-contract.md` puts
-  armor and survival crafting on **Millie**. The 27 named armors therefore do not route through this
-  chain, and their ladder is unsorted (Jeremy, 2026-08-27). Whether the Desolate Graves holds a second
-  ghost or one who covers both crafts is undecided.
 - **The five unplaced ⭐ weapons** — `"Blaster"` (Boomstick), `"Crescent Blossom"` (Glaive),
   `"Plate Peeler"` (Mace), `"Brought Down"` (Claws), `"Meta Arm"` (Arm). Their switches
   (`got-named-shotgun` 208, `got-named-2h-axe` 211, `got-named-doubleaxe` 212, `got-named-claw` 217,
@@ -132,8 +136,100 @@ heavy plate; Gemini is twins and should want two of something.
 
 Any material requirement needs a drop source that can actually supply it. This was the blocker as of
 2026-08-22 and **is now answered** — see
-[`../enemies/drop-sources.md`](../enemies/drop-sources.md), which maps all 46 material blocks onto
+[`./enemies/drop-sources.md`](./enemies/drop-sources.md), which maps all 46 material blocks onto
 enemy subgroups and harvest nodes.
+
+---
+
+## The armor chain `DECIDED 2026-08-31`
+
+**A named armor has nobody inside it.** That is weapons-only lore and it does not transfer. A named
+armor is simply **exceptional** — a cut above the rest of its class, roughly half a tier to a full tier
+stronger, and carrying the class's identity without the class's usual cost. Straight-As armor. The
+name is a distinction, not a haunting.
+
+So armor needs no crafter's soul, no ghost, and no second Viktor. What it needs is a reason the player
+cannot simply climb to it, and that reason is a **found, finite ingredient**.
+
+### The mechanism
+
+| Rung | How |
+|---|---|
+| **1-6** craftable | ordinary recipes, ordinary materials |
+| **⭐ n1** | **crafted** — one salvage plus band-appropriate materials |
+| **⭐⭐ n2** | crafted — another salvage, higher materials, **consuming the ⭐** |
+| **⭐⭐⭐ n3** | crafted — another salvage, higher materials still, **consuming the ⭐⭐** |
+| **10** legendary | the t6 craftable consumed, **⭐⭐⭐ as tool** — already recipe'd, all nine lines |
+
+**Nothing named is ever found ready-made.** That is the clean inversion against weapons: a ⭐ weapon is
+picked up because somebody already paid its price long ago, while every rung of armor is built, because
+being *able* to build it is the entire gift Millie gives. She teaches once and gets out of the way —
+she is not a relationship the player escalates through, and the chain deliberately does not route back
+to her at each rung.
+
+### The salvage
+
+Three items, `Items.json` **95-97**, authored 2026-08-31 into the empty block between the fabric line
+and the cooking tools:
+
+| Id | Item | Feeds |
+|---|---|---|
+| `i95` | **Fractured Handgear** | relic · gauntlet · shield |
+| `i96` | **Perforated Suit** | cloth · mail · armor |
+| `i97` | **Dilapidated Footwear** | shoes · sabatons · greaves |
+
+**They are deliberately generic, one per slot rather than one per line.** Nine specific wreck types
+would let a player pull three ruined relics while maining shields and be stranded holding the wrong
+corpses; three fungible ones can never block a build, and choosing which line to spend a salvage on is
+a real decision instead of a lottery.
+
+They are **priced at 0 and therefore unsellable**. One salvage gates one named armor, and a player who
+sold one would break that line permanently without ever learning why.
+
+The fiction is **salvage, not restoration** — you are stripping what is still good out of a ruin and
+building around it, which is the carpenter's answer rather than the smith's. Reclaimed timber.
+
+### The count
+
+Three slots × three lines × three named rungs = **27 named armors, and 27 salvage pickups.**
+
+| Slot | Lines |
+|---|---|
+| **Offhand** | relic · gauntlet · shield |
+| **Body** | cloth · mail · armor |
+| **Feet** | shoes · sabatons · greaves |
+
+Salvage is **hand-placed in the world**, not dropped and not bought, so finishing a named armor means
+having explored rather than having farmed — the same standard the ⭐ weapons already hold.
+
+**Accessories are excluded.** `survive-extra` has 36 items, no named rungs under this scheme, and no
+recipes authored at all. That is a deliberate gap rather than an oversight, and it stays open.
+
+### Why the rungs land where they do
+
+The material tier ladder in [`./enemies/harvest-nodes.md`](./enemies/harvest-nodes.md) already binds
+a rung to a level band without anything new being tuned — t2 is 10-35, t4 is 45-75, t6 is 90-130. A
+salvage plus t2 materials makes an ⭐; plus t4 an ⭐⭐; plus t6 an ⭐⭐⭐. Named armor therefore interleaves
+against the craftable ladder exactly as named weapons do.
+
+### The receipt that confirms this was right
+
+All nine rung-10 armor recipes already exist and already follow the weapon invariant. `a-off-light-10`
+outputs **Omni-Badge**, consumes **1x Pristine Artefact** (the t6 craftable), and requires
+**`a9 Draupnir` — the ⭐⭐⭐ relic — as a tool.**
+
+The database has been demanding a named armor that had no way to exist since before this chain was
+designed. Rungs 7-9 were the only hole, and this fills it.
+
+### What is still open for armor
+
+- **The 27 recipes.** `config.crafting.json` carries rungs 1-6 and 10 for all nine lines; 7-9 are
+  absent entirely.
+- **The 27 salvage placements**, and whether they sit in chests, behind tool gates, or both.
+- **The exact material bills** at each rung.
+- **Survival's inherited tier.** `./unlockables/recipe-journals.md` holds the doctrine — *found <
+  taught < inherited* — and cooking, alchemy and smithing each have all three. Survival has pattern
+  scraps and Millie, and nothing above her.
 
 ---
 

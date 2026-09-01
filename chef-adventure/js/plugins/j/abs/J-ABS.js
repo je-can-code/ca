@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.17.5 ABS] Enables combat to be carried out on the map.
+ * [v4.18.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,18 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.18.0
+ *    Added respawn timers for defeated battlers. A defeated enemy may declare
+ *    when it returns via the new <respawn:[METHOD, PARAM]> tag - resolved as
+ *    world default < enemy note < event comment - and until that moment its
+ *    event stays down through map transitions, saves, and loads. The battler
+ *    then reappears at its authored coordinates while the player watches,
+ *    optionally announced by <respawnAnimation:ID>. <noRespawn> makes a battler
+ *    permanent instead: defeated once, gone for the playthrough. Core ships the
+ *    "seconds" method (playtime-based); extensions can register richer methods
+ *    with the new JABS_RespawnManager. Battlers declaring nothing behave as
+ *    they always have. Dynamically-spawned clones are never tracked, since
+ *    their event ids do not survive a map setup.
  * - 4.17.5
  *    Fixed the Set JABS Skill plugin command assigning nothing when aimed at the
  *    tool or usable item slot. Plugin command arguments arrive as strings, so an
@@ -3128,6 +3140,27 @@
  * @desc Setting this to true will cause all enemies to be inanimate by default. USE WITH CAUTION.
  * @default false
  *
+ * @param defaultRespawnMethod
+ * @parent enemyDefaultConfigs
+ * @type string
+ * @text Default Respawn Method
+ * @desc The world-default respawn method for defeated enemies. Leave blank for no respawn tracking at all.
+ * @default
+ *
+ * @param defaultRespawnParam
+ * @parent enemyDefaultConfigs
+ * @type string
+ * @text Default Respawn Param
+ * @desc The parameter fed to the world-default respawn method, such as the number of seconds.
+ * @default
+ *
+ * @param defaultRespawnAnimationId
+ * @parent enemyDefaultConfigs
+ * @type animation
+ * @text Default Respawn Animation
+ * @desc The default animation to play on an event when its battler respawns. Set to 0 for no animation.
+ * @default 0
+ *
  * @param defaultConfigs
  * @text WHEN UNASSIGNED
  *
@@ -3997,6 +4030,9 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 		this.DefaultEnemyShowBattlerName = Boolean(this.parsedPluginParameters["defaultEnemyShowBattlerName"] === "true");
 		this.DefaultEnemyIsInvincible = Boolean(this.parsedPluginParameters["defaultEnemyIsInvincible"] === "true");
 		this.DefaultEnemyIsInanimate = Boolean(this.parsedPluginParameters["defaultEnemyIsInanimate"] === "true");
+		this.DefaultRespawnMethod = this.parsedPluginParameters["defaultRespawnMethod"] || String.empty;
+		this.DefaultRespawnParam = this.parsedPluginParameters["defaultRespawnParam"] || String.empty;
+		this.DefaultRespawnAnimationId = Number(this.parsedPluginParameters["defaultRespawnAnimationId"] || 0);
 	}
 	/**
 	* Maps elemental icon usage from plugin parameters.
@@ -4397,7 +4433,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.17.5");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.18.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -4968,6 +5004,57 @@ J.ABS.RegExp = {
 	GuardRange: /<guardRange:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
 	MoveSpeed: /<moveSpeed:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
 	PrepareTime: /<prepare:[ ]?(\d+)>/i,
+	/**
+	* The respawn declaration for a defeated battler, as a method and its parameter.
+	* The method names how the return moment is measured; the parameter feeds that method.
+	* Core ships the "seconds" method; extensions may register additional methods.
+	*
+	* <pre>
+	* Structure:
+	*  <respawn:[METHOD, PARAM]>
+	*
+	* Example:
+	*  <respawn:[seconds, 90]>
+	*
+	* Translation:
+	*  This battler returns 90 seconds of playtime after its defeat.
+	* </pre>
+	* @type {RegExp}
+	*/
+	Respawn: /<respawn:[ ]?(\[[\w-]+,[ ]?[\w-]+])>/i,
+	/**
+	* The declaration that a defeated battler never returns.
+	* The permanence is recorded at death and survives every save thereafter.
+	*
+	* <pre>
+	* Structure:
+	*  <noRespawn>
+	*
+	* Example:
+	*  <noRespawn>
+	*
+	* Translation:
+	*  Once defeated, this battler is gone for the rest of the playthrough.
+	* </pre>
+	* @type {RegExp}
+	*/
+	NoRespawn: /<noRespawn>/i,
+	/**
+	* The animation to play on a battler's event when it respawns on the map.
+	*
+	* <pre>
+	* Structure:
+	*  <respawnAnimation:ANIMATION_ID>
+	*
+	* Example:
+	*  <respawnAnimation:12>
+	*
+	* Translation:
+	*  Animation 12 plays on the event as the battler returns.
+	* </pre>
+	* @type {RegExp}
+	*/
+	RespawnAnimation: /<respawnAnimation:[ ]?(\d+)>/i,
 	VisionMultiplier: /<visionMultiplier:[ ]?(-?\d+)>/i,
 	ProjectileDurationMultiplier: /<projectileDuration:[ ]?(-?\d+)>/i,
 	AlertDuration: /<alertDuration:[ ]?(\d+)>/i,
@@ -5696,6 +5783,7 @@ J.ABS.Aliased = {
 	Game_Map: new Map(),
 	Game_Party: new Map(),
 	Game_Player: new Map(),
+	Game_System: new Map(),
 	Game_Unit: new Map(),
 	RPG_Actor: new Map(),
 	RPG_Enemy: new Map(),
@@ -9142,6 +9230,205 @@ var JABS_BattlerCoreData = class {
 };
 
 //#endregion
+//#region src/plugins/abs/core/models/JABS_RespawnRecord.js
+/**
+* A single pending (or permanent) respawn for one authored event on one map.
+*
+* Written the moment a battler dies and read every time something asks whether that event may
+* become a battler again. The `due` value is a plain number whose unit belongs entirely to the
+* method that scheduled it- playtime frames for core's "seconds" method, or whatever comparable
+* scalar an extension's method encodes its appointments into. This class never interprets `due`;
+* only the registered method that produced it can.
+*/
+var JABS_RespawnRecord = class JABS_RespawnRecord {
+	/**
+	* The reserved method name meaning "this battler never returns".
+	* @type {string}
+	*/
+	static PERMANENT_METHOD = "never";
+	/**
+	* @param {string} method The respawn method that scheduled this record.
+	* @param {string} param The raw tag parameter the method was scheduled with.
+	* @param {number} due The method-defined moment at which the battler may return.
+	*/
+	constructor(method, param, due) {
+		this.initMembers(method, param, due);
+	}
+	/**
+	* Initializes the members of this class.
+	* @param {string} method The respawn method that scheduled this record.
+	* @param {string} param The raw tag parameter the method was scheduled with.
+	* @param {number} due The method-defined moment at which the battler may return.
+	*/
+	initMembers(method, param, due) {
+		/**
+		* The respawn method that scheduled this record.
+		* @type {string}
+		*/
+		this.method = method;
+		/**
+		* The raw tag parameter the method was scheduled with.
+		* Kept for diagnostics and for methods whose due-ness depends on more than the scalar.
+		* @type {string}
+		*/
+		this.param = param;
+		/**
+		* The method-defined moment at which the battler may return.
+		* The unit is owned by the method; compare it only through that method's own due check.
+		* @type {number}
+		*/
+		this.due = due;
+	}
+	/**
+	* Whether this record represents a battler that never returns.
+	* @returns {boolean}
+	*/
+	isPermanent() {
+		return this.method === JABS_RespawnRecord.PERMANENT_METHOD;
+	}
+};
+/**
+* Respawn records live in the registry map on `Game_System` and thus survive into a savefile-
+* permanence records are the whole point of surviving. The seed is explicit because
+* {@link JABS_RespawnRecord.initMembers} takes its values as parameters, and the decoder never
+* runs a constructor; the defaults are the cold equivalents of an unscheduled record.
+*/
+SerializableRegistry.register(JABS_RespawnRecord, {
+	id: "jabs-respawn-record",
+	aliases: ["JABS_RespawnRecord"],
+	seed: (instance) => {
+		instance.method = String.empty;
+		instance.param = String.empty;
+		instance.due = 0;
+	}
+});
+
+//#endregion
+//#region src/plugins/abs/core/managers/JABS_RespawnManager.js
+/**
+* This static class governs how defeated battlers schedule their return to the map.
+*
+* It is a registry of "respawn methods". A method owns one way of measuring the wait- core ships
+* `seconds`, which counts playtime frames- and extensions may register richer methods (calendar
+* appointments, and so on) without core ever knowing they exist. A method is two functions:
+*
+* - `schedule(param)` runs once at death and converts the tag parameter into a `due` scalar,
+*   or null when the parameter is nonsense.
+* - `isDue(due)` runs during sweeps and answers whether that scheduled moment has passed.
+*
+* The `due` scalar's unit is entirely the method's own business; nothing outside the method that
+* produced it may interpret it.
+*/
+var JABS_RespawnManager = class {
+	/**
+	* The registry of all known respawn methods, keyed by the method name used in tags.
+	* @type {Map<string, {schedule: Function, isDue: Function}>}
+	*/
+	static #methods = new Map();
+	/**
+	* The method names already complained about, so a save full of records pointing at an
+	* uninstalled extension's method warns once instead of once per sweep.
+	* @type {Set<string>}
+	*/
+	static #warnedMethods = new Set();
+	/**
+	* Registers a respawn method under the given name.
+	* Registering over an existing name is allowed but announced, because it usually means two
+	* plugins believe they own the same method.
+	* @param {string} name The method name as it appears in `<respawn:[METHOD, PARAM]>` tags.
+	* @param {{schedule: Function, isDue: Function}} handler The scheduling pair for this method.
+	*/
+	static registerMethod(name, handler) {
+		if (this.#methods.has(name)) {
+			Diagnostics.warn("J-ABS", `respawn method [ ${name} ] was registered more than once.`);
+		}
+		this.#methods.set(name, handler);
+	}
+	/**
+	* Gets the handler registered under the given method name.
+	* @param {string} name The method name to look up.
+	* @returns {{schedule: Function, isDue: Function}|null} The handler, or null if unregistered.
+	*/
+	static method(name) {
+		return this.#methods.get(name) ?? null;
+	}
+	/**
+	* Builds the respawn record for a freshly-defeated battler, if it should have one.
+	*
+	* Resolution order is `global default < enemy note < event comment`- the same laddering every
+	* other per-battler JABS tag follows. `<noRespawn>` outranks any `<respawn:...>` declaration,
+	* because permanence is the stronger statement.
+	* @param {Game_Event} event The event whose battler was just defeated.
+	* @param {Game_Enemy} enemy The underlying enemy battler that was defeated.
+	* @returns {JABS_RespawnRecord|null} The record to register, or null when nothing tracks.
+	*/
+	static createRecord(event, enemy) {
+		const noRespawn = event.getNoRespawnOverrides() ?? enemy.isNoRespawn();
+		if (noRespawn === true) {
+			return new JABS_RespawnRecord(JABS_RespawnRecord.PERMANENT_METHOD, String.empty, 0);
+		}
+		const respawnData = event.getRespawnOverrides() ?? enemy.respawnData();
+		if (respawnData === null) return null;
+		const [methodName, rawParam] = respawnData;
+		const param = String(rawParam);
+		const handler = this.method(methodName);
+		if (handler === null) {
+			Diagnostics.warn("J-ABS", `unknown respawn method: [ ${methodName} ]; no respawn will be tracked.`);
+			return null;
+		}
+		const due = handler.schedule(param);
+		if (due === null) {
+			Diagnostics.warn("J-ABS", `invalid respawn param: [ ${param} ] for method: [ ${methodName} ]; no respawn will be tracked.`);
+			return null;
+		}
+		return new JABS_RespawnRecord(methodName, param, due);
+	}
+	/**
+	* Determines whether the given record's scheduled moment has passed.
+	* Permanent records are never due- that is what permanent means.
+	* @param {JABS_RespawnRecord} record The record to evaluate.
+	* @returns {boolean} True if the battler may return now, false otherwise.
+	*/
+	static isDue(record) {
+		if (record.isPermanent()) return false;
+		const handler = this.method(record.method);
+		if (handler === null) {
+			if (!this.#warnedMethods.has(record.method)) {
+				this.#warnedMethods.add(record.method);
+				Diagnostics.warn("J-ABS", `respawn method [ ${record.method} ] is not registered; its records will never come due.`);
+			}
+			return false;
+		}
+		return handler.isDue(record.due);
+	}
+};
+/**
+* The one respawn method core owns: a flat count of seconds, measured in playtime frames.
+*
+* Playtime frames are the right clock for a single-player game- they pause when the game does,
+* and `Graphics.frameCount` is restored from `_framesOnSave` on load, so a pending timer crosses
+* a save/load cycle without losing its place.
+*/
+JABS_RespawnManager.registerMethod("seconds", {
+	/**
+	* Converts a count of seconds into the absolute playtime frame at which the battler returns.
+	* @param {string} param The tag parameter- a positive whole number of seconds.
+	* @returns {number|null} The due frame, or null for a non-positive or non-numeric parameter.
+	*/
+	schedule: (param) => {
+		const seconds = parseInt(param);
+		if (!Number.isFinite(seconds) || seconds <= 0) return null;
+		return Graphics.frameCount + seconds * 60;
+	},
+	/**
+	* Determines whether the scheduled playtime frame has been reached.
+	* @param {number} due The absolute playtime frame at which the battler returns.
+	* @returns {boolean}
+	*/
+	isDue: (due) => Graphics.frameCount >= due
+});
+
+//#endregion
 //#region src/plugins/abs/core/managers/JABS_AiManager.js
 /**
 * This static class tracks and manages all {@link JABS_Battler}s on the map.
@@ -9545,6 +9832,7 @@ var JABS_AiManager = class JABS_AiManager {
 		const battler = new Game_Enemy(event.getBattlerId(), null, null);
 		const jabsBattler = new JABS_Battler(event, battler, event.getBattlerCoreData());
 		event.setJabsBattlerUuid(jabsBattler.getUuid());
+		$gameSystem.clearRespawnRecord($gameMap.mapId(), event.eventId());
 		this.postConvertMutate(battler, jabsBattler);
 		battler.recoverAll();
 		return jabsBattler;
@@ -9570,7 +9858,19 @@ var JABS_AiManager = class JABS_AiManager {
 	*/
 	static canConvertEventToBattler(event) {
 		if (!event.isJabsBattler()) return false;
+		if (this.isRespawnPending(event)) return false;
 		return true;
+	}
+	/**
+	* Determines whether the given event is blocked from conversion by a respawn record.
+	* A record that has come due no longer blocks; the conversion consumes it instead.
+	* @param {Game_Event} event The event to check the registry for.
+	* @returns {boolean} True if a pending or permanent record blocks this event, false otherwise.
+	*/
+	static isRespawnPending(event) {
+		const record = $gameSystem.respawnRecord($gameMap.mapId(), event.eventId());
+		if (record === null) return false;
+		return !JABS_RespawnManager.isDue(record);
 	}
 	/**
 	* Converts a collection of followers into allies if possible.
@@ -18143,6 +18443,12 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	forcedCombat = false;
 	/**
+	* The countdown until the next respawn registry sweep, in frames.
+	* Sweeping every frame buys nothing- a respawn landing within the same second is invisible.
+	* @type {number}
+	*/
+	respawnSweepCountdown = JABS_Engine.RESPAWN_SWEEP_INTERVAL;
+	/**
 	* @constructor
 	*/
 	constructor() {
@@ -18151,6 +18457,11 @@ var JABS_Engine = class JABS_Engine {
 			JABS_Engine.initializeEnemyMap();
 		}
 	}
+	/**
+	* The number of frames between respawn registry sweeps.
+	* @type {number}
+	*/
+	static RESPAWN_SWEEP_INTERVAL = 60;
 	/**
 	* Gets the collection of enemy clone events currently tracked.
 	* @returns {RPG_MapEvent[]}
@@ -18569,7 +18880,68 @@ var JABS_Engine = class JABS_Engine {
 		this.updateActions();
 		this.updateJabsStates();
 		this.updateSkillExecutionLog();
+		this.updateRespawns();
 		this.updateInput();
+	}
+	/**
+	* Ticks the respawn sweep throttle, and sweeps the current map's records when it lapses.
+	* Respawning must not be a map-transition effect- things return while the player stands there.
+	*/
+	updateRespawns() {
+		this.respawnSweepCountdown--;
+		if (this.respawnSweepCountdown > 0) return;
+		this.respawnSweepCountdown = JABS_Engine.RESPAWN_SWEEP_INTERVAL;
+		this.processDueRespawns();
+	}
+	/**
+	* Sweeps the current map's respawn records and revives every battler that has come due.
+	*/
+	processDueRespawns() {
+		const records = $gameSystem.respawnRecordsForMap($gameMap.mapId());
+		records.forEach((entry) => {
+			const [eventId, record] = entry;
+			if (!JABS_RespawnManager.isDue(record)) return;
+			this.respawnEnemy(eventId);
+		});
+	}
+	/**
+	* Respawns the battler belonging to the given authored event on the current map.
+	*
+	* A respawned battler is an existing event whose battler was destroyed, not a clone- so the
+	* authored slot is rebuilt in place from `$dataMap`, which restores the authored coordinates
+	* regardless of where the battler wandered before it died. This mirrors what a full map
+	* re-entry produces, so one mechanic yields one behavior on both paths.
+	* @param {number} eventId The id of the authored event to rebuild.
+	*/
+	respawnEnemy(eventId) {
+		const mapId = $gameMap.mapId();
+		const staleEvent = $gameMap.event(eventId);
+		if (!staleEvent) {
+			$gameSystem.clearRespawnRecord(mapId, eventId);
+			return;
+		}
+		const { x, y } = staleEvent.event();
+		if ($gamePlayer.pos(x, y)) return;
+		const freshEvent = new Game_Event(mapId, eventId);
+		$gameMap.setEventByIndex(eventId, freshEvent);
+		$gameSystem.clearRespawnRecord(mapId, eventId);
+		$gameMap.refreshOneBattler(freshEvent);
+		freshEvent.flagBattlerForAdding();
+		this.requestBattlerRendering = true;
+		this.processRespawnAnimation(freshEvent);
+	}
+	/**
+	* Plays the resolved respawn animation on a freshly-respawned event, if any is configured.
+	* Resolution follows the usual ladder: global default < enemy note < event comment.
+	* @param {Game_Event} freshEvent The event that just respawned.
+	*/
+	processRespawnAnimation(freshEvent) {
+		const jabsBattler = freshEvent.getJabsBattler();
+		if (!jabsBattler) return;
+		const enemy = jabsBattler.getBattler();
+		const animationId = freshEvent.getRespawnAnimationOverrides() ?? enemy.respawnAnimationId();
+		if (animationId === 0) return;
+		setTimeout(() => freshEvent.requestAnimation(animationId), 50);
 	}
 	/**
 	* Updates all battlers registered as "players" to JABS.
@@ -19844,6 +20216,7 @@ var JABS_Engine = class JABS_Engine {
 		const normalizedIndex = $dataMap.events.length;
 		$dataMap.events[normalizedIndex] = enemyData;
 		const newEnemy = new Game_Event($gameMap.mapId(), normalizedIndex);
+		newEnemy.flagAsDynamicSpawn();
 		$gameMap.addEvent(newEnemy);
 		newEnemy.flagBattlerForAdding();
 		this.requestBattlerRendering = true;
@@ -21263,7 +21636,23 @@ var JABS_Engine = class JABS_Engine {
 			this.gainBasicRewards(targetBattler, caster);
 			this.createLootDrops(defeatedTarget, caster);
 		}
+		this.processRespawnTracking(defeatedTarget);
 		defeatedTarget.setDying(true);
+	}
+	/**
+	* Records the respawn schedule for a defeated enemy, if it declares one.
+	* The timer starts on death, immediately- a player who wants to stand there and wait is
+	* welcome to; that is their time to spend.
+	* @param {JABS_Battler} defeatedTarget The `JABS_Battler` that was defeated.
+	*/
+	processRespawnTracking(defeatedTarget) {
+		const character = defeatedTarget.getCharacter();
+		if (character.isDynamicSpawn()) return;
+		const enemy = defeatedTarget.getBattler();
+		const record = JABS_RespawnManager.createRecord(character, enemy);
+		if (record === null) return;
+		const eventId = character.eventId();
+		$gameSystem.setRespawnRecord($gameMap.mapId(), eventId, record);
 	}
 	/**
 	* Grants experience/gold/loot rewards to the battler that defeated the target.
@@ -23946,7 +24335,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.17.5";
+var PLUGIN_VERSION = "4.18.0";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
@@ -24230,6 +24619,30 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsGuardRange", { get: functi
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsGuardSkillId", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.GuardSkillId, true);
+} });
+/**
+* The JABS respawn declaration for this battler, as a `[METHOD, PARAM]` pair.
+* This defines how long after defeat this battler returns to the map.
+* An event comment on the placement may override this species-level habit.
+* @type {any[]|null}
+*/
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsRespawnData", { get: function() {
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.Respawn, true);
+} });
+/**
+* The JABS declaration that this battler never respawns once defeated.
+* This boolean makes the species finite for the rest of the playthrough.
+* @type {boolean|null}
+*/
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsNoRespawn", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.NoRespawn, true);
+} });
+/**
+* The JABS animation id played on this battler's event when it respawns.
+* @type {number|null}
+*/
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsRespawnAnimationId", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.RespawnAnimation, true);
 } });
 /**
 * The JABS alert duration for this battler.
@@ -30368,6 +30781,45 @@ Game_Enemy.prototype.ai = function() {
 	return battlerAi;
 };
 /**
+* Gets the enemy's respawn declaration from their notes, as a `[METHOD, PARAM]` pair.
+* This will be overwritten by values provided from an event.
+* Falls back to the world default from plugin parameters; when the world declares no default
+* method, this resolves to null and the battler is simply never tracked.
+* @returns {any[]|null}
+*/
+Game_Enemy.prototype.respawnData = function() {
+	const referenceData = this.databaseData();
+	const respawnData = referenceData.jabsRespawnData;
+	if (respawnData !== null) {
+		return respawnData;
+	}
+	if (J.ABS.Metadata.DefaultRespawnMethod === String.empty) return null;
+	return [J.ABS.Metadata.DefaultRespawnMethod, J.ABS.Metadata.DefaultRespawnParam];
+};
+/**
+* Gets whether or not this enemy is finite- defeated once, gone for the playthrough.
+* This will be overwritten by values provided from an event.
+* There is deliberately no world default for permanence; it is opt-in per species or placement.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.isNoRespawn = function() {
+	const referenceData = this.databaseData();
+	return referenceData.jabsNoRespawn ?? false;
+};
+/**
+* Gets the animation id to play on this enemy's event when it respawns.
+* This will be overwritten by values provided from an event.
+* @returns {number}
+*/
+Game_Enemy.prototype.respawnAnimationId = function() {
+	const referenceData = this.databaseData();
+	const respawnAnimationId = referenceData.jabsRespawnAnimationId;
+	if (respawnAnimationId !== null) {
+		return respawnAnimationId;
+	}
+	return J.ABS.Metadata.DefaultRespawnAnimationId;
+};
+/**
 * Gets the enemy's sight range from their notes.
 * This will be overwritten by values provided from an event.
 * @returns {number}
@@ -30573,7 +31025,27 @@ Game_Event.prototype.initMembers = function() {
 	* @type {number}
 	*/
 	this._j._abs._castedDirection = 0;
+	/**
+	* Whether or not this event was cloned onto the map at runtime rather than authored in the
+	* editor. Dynamically-spawned events take appended indices that evaporate on the next map
+	* setup, so respawn tracking must never record them.
+	* @type {boolean}
+	*/
+	this._j._abs._dynamicSpawn = false;
 	J.ABS.Aliased.Game_Event.get("initMembers").call(this);
+};
+/**
+* Flags this event as having been dynamically spawned onto the map at runtime.
+*/
+Game_Event.prototype.flagAsDynamicSpawn = function() {
+	this._j._abs._dynamicSpawn = true;
+};
+/**
+* Gets whether or not this event was dynamically spawned onto the map at runtime.
+* @returns {boolean}
+*/
+Game_Event.prototype.isDynamicSpawn = function() {
+	return this._j._abs._dynamicSpawn;
 };
 /**
 * Sets the initial direction being faced on this event's creation.
@@ -30835,6 +31307,48 @@ Game_Event.prototype.getSightRangeOverrides = function() {
 		sightRange = parseInt(regexResult[1]);
 	});
 	return sightRange;
+};
+/**
+* Parses out the respawn declaration from a list of event commands.
+* @returns {any[]|null} The found `[METHOD, PARAM]` pair, or null if not found.
+*/
+Game_Event.prototype.getRespawnOverrides = function() {
+	let respawnData = null;
+	this.getValidCommentCommands().forEach((command) => {
+		const [comment] = command.parameters;
+		const regexResult = J.ABS.RegExp.Respawn.exec(comment);
+		if (!regexResult) return;
+		respawnData = JsonMapper.parseObject(regexResult[1]);
+	});
+	return respawnData;
+};
+/**
+* Parses out the no-respawn permanence flag from a list of event commands.
+* @returns {boolean|null} True if this placement never respawns, or null if not found.
+*/
+Game_Event.prototype.getNoRespawnOverrides = function() {
+	let noRespawn = null;
+	this.getValidCommentCommands().forEach((command) => {
+		const [comment] = command.parameters;
+		if (J.ABS.RegExp.NoRespawn.test(comment)) {
+			noRespawn = true;
+		}
+	});
+	return noRespawn;
+};
+/**
+* Parses out the respawn animation id from a list of event commands.
+* @returns {number|null} The found animation id, or null if not found.
+*/
+Game_Event.prototype.getRespawnAnimationOverrides = function() {
+	let respawnAnimationId = null;
+	this.getValidCommentCommands().forEach((command) => {
+		const [comment] = command.parameters;
+		const regexResult = J.ABS.RegExp.RespawnAnimation.exec(comment);
+		if (!regexResult) return;
+		respawnAnimationId = parseInt(regexResult[1]);
+	});
+	return respawnAnimationId;
 };
 /**
 * Parses out the alerted sight boost from a list of event commands.
@@ -31916,6 +32430,96 @@ Game_Player.prototype.storeOnPickup = function(lootData) {
 Game_Player.prototype.removeLoot = function(lootEvent) {
 	lootEvent.setLootNeedsRemoving(true);
 	$jabsEngine.requestClearLoot = true;
+};
+
+//#endregion
+//#region src/plugins/abs/core/objects/Game_System.js
+/**
+* Extends {@link Game_System.initMembers}.<br/>
+* Also initializes the respawn registry for defeated battlers.
+*/
+J.ABS.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);
+Game_System.prototype.initMembers = function() {
+	J.ABS.Aliased.Game_System.get("initMembers").call(this);
+	this.initRespawnMembers();
+};
+/**
+* Initializes the respawn registry members.
+*/
+Game_System.prototype.initRespawnMembers = function() {
+	/**
+	* The shared root namespace for all of J's plugin data.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with JABS.
+	*/
+	this._j._abs ||= {};
+	/**
+	* The registry of all pending and permanent respawns, world-wide.
+	*
+	* This is world state rather than party state: a record means "this authored event on this map
+	* may not become a battler yet (or ever)". Keyed by map id, then by event id.
+	* @type {Map<number, Map<number, JABS_RespawnRecord>>}
+	*/
+	this._j._abs._respawns ||= new Map();
+};
+/**
+* Gets the whole respawn registry.
+* @returns {Map<number, Map<number, JABS_RespawnRecord>>}
+*/
+Game_System.prototype.respawnRegistry = function() {
+	return this._j._abs._respawns;
+};
+/**
+* Gets the respawn record for the given event on the given map, if one exists.
+* @param {number} mapId The id of the map the event lives on.
+* @param {number} eventId The id of the authored event.
+* @returns {JABS_RespawnRecord|null} The record, or null when nothing is tracked.
+*/
+Game_System.prototype.respawnRecord = function(mapId, eventId) {
+	const mapRecords = this.respawnRegistry().get(mapId);
+	if (!mapRecords) return null;
+	return mapRecords.get(eventId) ?? null;
+};
+/**
+* Registers a respawn record for the given event on the given map.
+* A newer record for the same event replaces the older one outright.
+* @param {number} mapId The id of the map the event lives on.
+* @param {number} eventId The id of the authored event.
+* @param {JABS_RespawnRecord} record The record to register.
+*/
+Game_System.prototype.setRespawnRecord = function(mapId, eventId, record) {
+	let mapRecords = this.respawnRegistry().get(mapId);
+	if (!mapRecords) {
+		mapRecords = new Map();
+		this.respawnRegistry().set(mapId, mapRecords);
+	}
+	mapRecords.set(eventId, record);
+};
+/**
+* Removes the respawn record for the given event on the given map, if one exists.
+* Emptied maps are dropped from the registry entirely so saves don't accumulate husks.
+* @param {number} mapId The id of the map the event lives on.
+* @param {number} eventId The id of the authored event.
+*/
+Game_System.prototype.clearRespawnRecord = function(mapId, eventId) {
+	const mapRecords = this.respawnRegistry().get(mapId);
+	if (!mapRecords) return;
+	mapRecords.delete(eventId);
+	if (mapRecords.size === 0) {
+		this.respawnRegistry().delete(mapId);
+	}
+};
+/**
+* Gets all respawn records currently tracked for the given map.
+* @param {number} mapId The id of the map to fetch records for.
+* @returns {[number, JABS_RespawnRecord][]} The event-id-to-record pairs; possibly empty.
+*/
+Game_System.prototype.respawnRecordsForMap = function(mapId) {
+	const mapRecords = this.respawnRegistry().get(mapId);
+	if (!mapRecords) return [];
+	return Array.from(mapRecords.entries());
 };
 
 //#endregion
