@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.18.0 ABS] Enables combat to be carried out on the map.
+ * [v4.19.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,21 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.19.0
+ *    Added the Force Respawn plugin command, which frees every pending respawn
+ *    record in the world at once regardless of the method each was scheduled
+ *    with. It is the counterpart to the respawn tags rather than a bypass of
+ *    them: a tag says how long a placement stays down if the player keeps
+ *    playing, and this says that something happened which moved the world on -
+ *    a night at an inn, a chapter break. Placements on the current map are
+ *    rebuilt immediately; every other map is freed and rebuilds on the next
+ *    visit. Permanence is honored unless the includePermanent argument
+ *    overrules it, since <noRespawn> usually marks a story beat rather than a
+ *    farmable placement.
+ *    The world-default respawn is now "seconds" at 120 rather than blank. A
+ *    world where the dead stay dead until the player power-cycles the map is a
+ *    world that asks the player to manage it; a blank method remains the
+ *    deliberate opt-out for projects that want no timers anywhere.
  * - 4.18.0
  *    Added respawn timers for defeated battlers. A defeated enemy may declare
  *    when it returns via the new <respawn:[METHOD, PARAM]> tag - resolved as
@@ -3145,14 +3160,14 @@
  * @type string
  * @text Default Respawn Method
  * @desc The world-default respawn method for defeated enemies. Leave blank for no respawn tracking at all.
- * @default
+ * @default seconds
  *
  * @param defaultRespawnParam
  * @parent enemyDefaultConfigs
  * @type string
  * @text Default Respawn Param
  * @desc The parameter fed to the world-default respawn method, such as the number of seconds.
- * @default
+ * @default 120
  *
  * @param defaultRespawnAnimationId
  * @parent enemyDefaultConfigs
@@ -3925,6 +3940,17 @@
  * @desc The animation to execute upon the newly spawned enemy.
  * By default, no animation will play.
  * @default 0
+ *
+ * @command forceRespawn
+ * @text Force Respawn
+ * @desc Frees every defeated battler in the world from its respawn timer at once, regardless of the method each was scheduled with.
+ * Use this for the beats that move the world on, such as sleeping at an inn.
+ * @arg includePermanent
+ * @type boolean
+ * @on Revive Permanent, Too
+ * @off Leave Permanent Dead
+ * @desc Whether placements tagged <noRespawn> are also forced back. Story-critical defeats usually should stay defeated.
+ * @default false
  */
 //=================================================================================================
 /*~struct~ElementalIconStruct:
@@ -4433,7 +4459,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.18.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.19.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -18905,6 +18931,33 @@ var JABS_Engine = class JABS_Engine {
 		});
 	}
 	/**
+	* Forces every battler in the world back from the dead, ignoring whatever they were waiting on.
+	*
+	* This is the deliberate counterpart to the respawn tags rather than a bypass of them: a tag says
+	* how long a placement stays down if the player simply keeps playing, and this says "something
+	* happened that moves the world on". Sleeping at an inn is the shape it was built for, which is
+	* also why it ignores the method a record was scheduled with- a night's rest means the same thing
+	* to a playtime timer as it does to a calendar appointment.
+	*
+	* The other maps in the world need nothing beyond a cleared record, because their events rebuild
+	* from `$dataMap` the next time the player walks in. The current map is already built, so its
+	* placements are rebuilt by hand here.
+	*
+	* One placement can decline: `respawnEnemy` refuses to materialize a battler underneath the
+	* player, and with its record cleared there is no later sweep to catch it. That placement returns
+	* on the next map entry, exactly as an untracked one would.
+	* @param {boolean} includePermanent Whether `<noRespawn>` placements are forced back as well.
+	*/
+	forceRespawns(includePermanent) {
+		const records = $gameSystem.respawnRecordsForMap($gameMap.mapId());
+		records.forEach((entry) => {
+			const [eventId, record] = entry;
+			if (record.isPermanent() && includePermanent === false) return;
+			this.respawnEnemy(eventId);
+		});
+		$gameSystem.clearAllRespawnRecords(includePermanent);
+	}
+	/**
 	* Respawns the battler belonging to the given authored event on the current map.
 	*
 	* A respawned battler is an existing event whose battler was destroyed, not a clone- so the
@@ -24335,7 +24388,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.18.0";
+var PLUGIN_VERSION = "4.19.0";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
@@ -24486,6 +24539,15 @@ PluginManager.registerCommand(J.ABS.Metadata.name, "Spawn Loot", (args) => {
 	if (parsedAnimationId) {
 		setTimeout(() => lastDropped.requestAnimation(parsedAnimationId), 50);
 	}
+});
+/**
+* Registers a plugin command for forcing every defeated battler in the world back onto the map.
+* Built for the "the world moved on" beat- a night at an inn, a chapter transition.
+*/
+PluginManager.registerCommand(J.ABS.Metadata.name, "forceRespawn", (args) => {
+	const { includePermanent } = args;
+	const parsedIncludePermanent = includePermanent === "true";
+	$jabsEngine.forceRespawns(parsedIncludePermanent);
 });
 
 //#endregion
@@ -32510,6 +32572,35 @@ Game_System.prototype.clearRespawnRecord = function(mapId, eventId) {
 	if (mapRecords.size === 0) {
 		this.respawnRegistry().delete(mapId);
 	}
+};
+/**
+* Clears respawn records across every map at once, freeing the battlers they were holding back.
+*
+* This is the world's reset lever- a night's sleep, a chapter break, whatever the project decides
+* means "the world has moved on". Clearing a record is the whole job for a map the player is not
+* standing on: its events are rebuilt from `$dataMap` on the next map load, and an untracked event
+* converts freely.
+*
+* Permanence is honored by default, because `<noRespawn>` is usually somebody saying "this defeat
+* was a story beat". Passing true overrules even that, which is what a debug reset wants.
+* @param {boolean} includePermanent Whether permanent records are cleared alongside pending ones.
+*/
+Game_System.prototype.clearAllRespawnRecords = function(includePermanent) {
+	if (includePermanent === true) {
+		this.respawnRegistry().clear();
+		return;
+	}
+	const clearable = [];
+	this.respawnRegistry().forEach((mapRecords, mapId) => {
+		mapRecords.forEach((record, eventId) => {
+			if (record.isPermanent()) return;
+			clearable.push([mapId, eventId]);
+		});
+	});
+	clearable.forEach((pair) => {
+		const [mapId, eventId] = pair;
+		this.clearRespawnRecord(mapId, eventId);
+	});
 };
 /**
 * Gets all respawn records currently tracked for the given map.
