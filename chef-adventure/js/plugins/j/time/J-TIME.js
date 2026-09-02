@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.2.0 TIME] A system for tracking time- real or artificial.
+ * @plugindesc [v1.2.1 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -201,6 +201,9 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    Fixed time choice conditionals not hiding branches inside called common
+ *    events.
  * - 1.2.0
  *    Added a day-of-week vocabulary to Time_Snapshot: DaysOfWeekName and
  *    DaysOfWeekId translate between names and ids (0-6 starting from Monday),
@@ -675,7 +678,7 @@ J.TIME = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.2.0");
+J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2538,8 +2541,7 @@ J.TIME.Aliased.Game_Interpreter.set("shouldHideChoiceBranch", Game_Interpreter.p
 Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandIndex) {
 	const defaultShow = J.TIME.Aliased.Game_Interpreter.get("shouldHideChoiceBranch").call(this, subChoiceCommandIndex);
 	if (defaultShow) return true;
-	const eventMetadata = $gameMap.event(this.eventId());
-	const currentPageCommands = eventMetadata ? eventMetadata.page().list : $dataCommonEvents.at(this.commonEventId()).list;
+	const currentPageCommands = this.list();
 	const subEventCommand = currentPageCommands.at(subChoiceCommandIndex);
 	if (!Game_Event.filterInvalidEventCommand(subEventCommand)) return false;
 	if (!Game_Event.filterCommentCommandsByChoiceTimeConditional(subEventCommand)) return false;
