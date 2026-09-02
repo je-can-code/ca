@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.7.2 BASE] The base class for all J plugins.
+ * [v3.8.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.8.0
+ *    Added Game_Event.commentNote, letting RPGManager read event comments.
+ *    Added Game_Interpreter.list, the commands actually being executed.
  * - 3.7.2
  *    parsePluginInt no longer pre-checks for a missing or blank value. Parsing one
  *    yields NaN, which the finite check below already turns into the fallback, so
@@ -1896,7 +1899,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.7.2";
+J.BASE.Metadata.Version = "3.8.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -11590,6 +11593,32 @@ Game_Event.prototype.getValidCommentCommands = function() {
 	return this.list().filter(Game_Event.filterInvalidEventCommand, this);
 };
 /**
+* Builds a note-shaped view of this event's comment commands.
+*
+* {@link RPGManager} parses a `note` string and nothing else- every getter it offers bottoms out on
+* splitting that string into lines- so an event able to present its comments as one inherits the
+* whole family at once: plural captures, numbers, sums, the `nullIfEmpty` opt-in. That is a great
+* deal more than {@link Game_Event.extractValueByRegex} beside it can offer, which reads a single
+* value and silently keeps the last one when a tag appears twice.
+*
+* **The event's own note box is deliberately not folded in.** That box is event-global rather than
+* per-page, so a tag written there would leak into every page of the event- and it is a single
+* cramped line in the editor besides, which is why comments carry this plugin's tags to begin with.
+*
+* A fresh object comes back on every call rather than a remembered one. RPGManager keys its note
+* cache weakly on whatever object it is handed and assumes that object's note never changes, which
+* is true of a database row and emphatically untrue of an event that can turn its page. Handing it
+* a throwaway keeps that assumption honest. A caller reading several tags at once should hold this
+* result across the whole parse rather than calling once per tag, which is what lets the cache
+* answer the second and later reads.
+* @returns {{note: string}} The comment lines, shaped the way RPGManager's getters expect.
+*/
+Game_Event.prototype.commentNote = function() {
+	const lines = this.getValidCommentCommands().map((command) => command.parameters.at(0));
+	const note = lines.join("\n");
+	return { note };
+};
+/**
 * Gets all valid-shaped comment event commands from a designated page.
 * @param {RPG_MapEventPage} page The event page to parse comments from.
 */
@@ -11787,6 +11816,17 @@ Game_Interpreter.prototype.branch = function() {
 */
 Game_Interpreter.prototype.indent = function() {
 	return this._indent;
+};
+/**
+* Gets the list of event commands this interpreter is currently executing.<br/>
+* This is the only trustworthy source for the surrounding commands of whatever is being executed right now. An
+* interpreter's list can originate from a map event page, a common event, or a troop page, and a child interpreter
+* inherits the event id of whoever spawned it- so re-deriving the list from {@link eventId} lands on the parent's
+* commands rather than the ones actually running.
+* @returns {RPG_EventListCommand[]} The list.
+*/
+Game_Interpreter.prototype.list = function() {
+	return this._list;
 };
 /**
 * Gets the index of the command being executed.

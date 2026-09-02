@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.2 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v2.0.3 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -140,6 +140,9 @@
  * This choice is only shown while objective 2 of that quest is completed.
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.3
+ *    Fixed quest choice conditionals not hiding branches inside called common
+ *    events. Dropped the dead commonEventId accessor.
  * - 2.0.2
  *    Routed every quest and objective warning and error through J-Base's new
  *    Diagnostics, so each names J-OMNI-Quests. Removed the console.log lines
@@ -2420,7 +2423,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "2.0.2");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "2.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3727,8 +3730,7 @@ J.OMNI.EXT.QUEST.Aliased.Game_Interpreter.set("shouldHideChoiceBranch", Game_Int
 Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandIndex) {
 	const defaultShow = J.OMNI.EXT.QUEST.Aliased.Game_Interpreter.get("shouldHideChoiceBranch").call(this, subChoiceCommandIndex);
 	if (defaultShow) return true;
-	const eventMetadata = $gameMap.event(this.eventId());
-	const currentPageCommands = eventMetadata ? eventMetadata.page().list : $dataCommonEvents.at(this.commonEventId()).list;
+	const currentPageCommands = this.list();
 	const subEventCommand = currentPageCommands.at(subChoiceCommandIndex);
 	if (!Game_Event.filterInvalidEventCommand(subEventCommand)) return false;
 	if (!Game_Event.filterCommentCommandsByChoiceQuestConditional(subEventCommand)) return false;
