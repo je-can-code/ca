@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.8.0 BASE] The base class for all J plugins.
+ * [v3.9.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.9.0
+ *    Added a plugin parameter for a common event to execute when a new game begins.
  * - 3.8.0
  *    Added Game_Event.commentNote, letting RPGManager read event comments.
  *    Added Game_Interpreter.list, the commands actually being executed.
@@ -376,6 +378,12 @@
  * @text Enemy Base TP Max
  * @desc The base TP for enemies is this amount. Any formulai add onto this.
  * @default 100
+ *
+ * @param newGameCommonEventId
+ * @type common_event
+ * @text New Game Common Event
+ * @desc A common event executed once when a new game begins, before the first map runs anything of its own. 0 disables it.
+ * @default 0
  *
  */
 
@@ -1899,7 +1907,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.8.0";
+J.BASE.Metadata.Version = "3.9.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -1918,6 +1926,19 @@ J.BASE.Metadata.BaseTpMaxEnemies = Number(J.BASE.PluginParameters["enemyBaseTp"]
 * the first boot after the plugin is updated rather than after someone opens the plugin manager.
 */
 J.BASE.Metadata.retainedSaveGenerations = Number(J.BASE.PluginParameters["retainedSaveGenerations"] ?? 3);
+/**
+* The common event executed once at the start of a new game, or 0 to execute nothing.
+*
+* Bootstrapping a new game from a map event means every map that can be started on needs its own copy
+* of that event, and a new test map silently starts without it- the failure mode is a playtest that
+* looks fine until something much later depends on setup that never ran. Reserving the event from
+* {@link DataManager.setupNewGame} instead makes it a property of starting a game rather than of
+* standing on a particular tile, so it runs exactly once no matter where the player begins.
+*
+* Coalesces the same way {@link J.BASE.Metadata.retainedSaveGenerations} does, so a plugins.js that
+* predates this parameter reads as "no startup event" instead of `NaN`.
+*/
+J.BASE.Metadata.newGameCommonEventId = Number(J.BASE.PluginParameters["newGameCommonEventId"] ?? 0);
 J.BASE.Metadata.ShowExternalFileLoadInfo = false;
 /**
 * The various traits captured here by id with a more meaningful descriptor.
@@ -8022,12 +8043,26 @@ DataManager.isArmor = function(unidentified) {
 };
 /**
 * Extends {@link #setupNewGame}.<br/>
-* Also clears the RPGManager note cache for a fresh session.
+* Also clears the RPGManager note cache for a fresh session, and reserves the configured startup
+* common event so a new game bootstraps itself regardless of which map it begins on.
 */
 J.BASE.Aliased.DataManager.set("setupNewGame", DataManager.setupNewGame);
 DataManager.setupNewGame = function() {
 	RPGManager.clearCache();
 	J.BASE.Aliased.DataManager.get("setupNewGame").call(this);
+	this.reserveNewGameCommonEvent();
+};
+/**
+* Reserves the configured startup common event for the first map of a new game to execute.
+*
+* The original logic above is what builds {@link $gameTemp}, so the reservation cannot be made any
+* earlier than this. {@link Game_Map.setupStartingEvent} collects it when the starting map loads,
+* which is why the event itself needs no trigger of its own- a reserved event runs on merit of
+* having been reserved.
+*/
+DataManager.reserveNewGameCommonEvent = function() {
+	if (J.BASE.Metadata.newGameCommonEventId === 0) return;
+	$gameTemp.reserveCommonEvent(J.BASE.Metadata.newGameCommonEventId);
 };
 /**
 * Extends {@link #extractSaveContents}.<br/>
