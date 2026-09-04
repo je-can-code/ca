@@ -59,6 +59,11 @@
       }
     }
   },
+  "loot": {
+    "magnetRadius": 2,
+    "magnetSpeed": 0.08,
+    "magnetAcceleration": 3.5
+  },
   "metrics": {
     "enemiesDefeated": 61,
     "destructiblesDestroyed": 62,

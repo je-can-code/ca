@@ -694,6 +694,29 @@
  * Where TEAM is the numeric id to assign to the battler.
  *
  * ============================================================================
+ * LOOT CONFIG:
+ * The same external file carries a `loot` block, also REQUIRED:
+ *  {
+ *    "loot": {
+ *      "magnetRadius": 2,
+ *      "magnetSpeed": 0.08,
+ *      "magnetAcceleration": 3.5
+ *    }
+ *  }
+ *
+ * `magnetRadius` is the baseline distance in tiles from which a battler draws
+ * loot drops toward themselves, before any <lootMagnetBuff:N> or
+ * <lootMagnetRate:N> the battler carries is applied.
+ *
+ * `magnetSpeed` is how fast a drop travels in tiles per frame at the very edge
+ * of that radius, and `magnetAcceleration` is how much faster it moves as it
+ * closes, so a drop snaps home rather than drifting the last half tile.
+ *
+ * Tune the radius against how the party actually fights: a value wide enough
+ * to reach a ranged kill collects loot the player never approached, which
+ * quietly removes the decision to go and get it.
+ *
+ * ============================================================================
  * CIRCUMSTANTIAL CONFIG OPTIONS:
  * A few more tags modify the base look or behavior of enemies. Add these
  * to the enemy (in the database or as an event comment override) to
@@ -987,6 +1010,16 @@
  *
  * Use this for skills that should feel guaranteed and inescapable, like
  * a debuff that snaps to the target even if they teleport mid-cast.
+ *
+ * NOTE ABOUT WHAT IS AND IS NOT AVOIDABLE:
+ * The placement is what cannot be dodged, not the aftermath. The hitbox
+ * drops onto wherever the target stands at the instant of firing, and then
+ * stays on that tile for the rest of the action's <duration:N>. A target
+ * that keeps moving cannot escape the drop, but can absolutely walk out
+ * of a lingering zone before it finishes ticking -- which is what makes
+ * this the right tag for telegraphed ground effects. Give the skill no
+ * <duration:N> and it resolves in a single burst instead, which is what
+ * you want for something that should simply always connect.
  *
  * NOTE: <directLock> and <direct> are mutually exclusive. If both are
  * present on a skill, <directLock> takes precedence.
@@ -1826,6 +1859,33 @@
  * Example:
  *  1.5x LINE/WALL width, radius and proximity unchanged:
  *    <thicknessRate:1.5>
+ *
+ * ----------------------------------------------------------------------------
+ * LOOT MAGNET BUFF (flat additive, loot pickup radius only):
+ * Adds N tiles to how far away the bearer draws loot drops toward themselves.
+ * The baseline it adds to is the `loot.magnetRadius` value in the external
+ * config file at `data/config.jabs.json`.
+ *
+ * Named "magnet" rather than "radius" so it cannot be mistaken for radiusBuff,
+ * which scales AoE splash. Only the party leader's radius is consulted, since
+ * only the player collects loot.
+ *    <lootMagnetBuff:N>
+ *  Where N is a signed decimal tile count.
+ *
+ * Example:
+ *  An accessory that inhales loot from well across the room:
+ *    <lootMagnetBuff:8>
+ *
+ * ----------------------------------------------------------------------------
+ * LOOT MAGNET RATE (multiplicative, loot pickup radius only):
+ * Adds (N - 1.0) to the rate accumulator for the loot magnet radius, applied
+ * after every lootMagnetBuff has been summed in.
+ *    <lootMagnetRate:N>
+ *  Where N is a non-negative decimal multiplier (1.0 = no change).
+ *
+ * Example:
+ *  1.5x loot pickup radius:
+ *    <lootMagnetRate:1.5>
  *
  * ============================================================================
  * STATE DAMAGE MULTIPLIERS:
@@ -3462,22 +3522,6 @@
  * @param miscConfigs
  * @text MISCELLANEOUS SETUP
  *
- * @param lootPickupDistance
- * @parent miscConfigs
- * @type number
- * @text Loot Pickup Distance
- * @desc The distance of which the player must be to collect loot on the ground.
- * @decimals 2
- * @default 1.50
- *
- * @param lootPickupDistance
- * @parent miscConfigs
- * @type number
- * @decimals 2
- * @text Loot Pickup Distance
- * @desc The distance of which the player must be to collect loot on the ground.
- * @default 1.50
- *
  * @param allyRubberbandAdjustment
  * @parent miscConfigs
  * @type number
@@ -4114,7 +4158,6 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 	* Maps loot pickup, ally rubberband, dash boost, and overlay visibility from plugin parameters.
 	*/
 	initializeMiscMovementMetadata() {
-		this.LootPickupRange = Number(this.parsedPluginParameters["lootPickupDistance"]);
 		this.AllyRubberbandAdjustment = Number(this.parsedPluginParameters["allyRubberbandAdjustment"]);
 		this.DashSpeedBoost = Number(this.parsedPluginParameters["dashSpeedBoost"]);
 		this.HitboxOverlaysInitiallyVisible = this.parsedPluginParameters["hitboxOverlaysInitiallyVisible"] === "true";
@@ -4439,7 +4482,8 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = (obj) => {
 * Loads external JABS configuration from the project filesystem.
 *
 * This is the entry point for JABS moving configuration out of notes and into a centralized JSON blob.
-* The root blob must be an object; team configuration is extracted from the {@code teams} property.
+* The root blob must be an object; team configuration is extracted from the {@code teams} property, and
+* loot configuration from the {@code loot} property.
 *
 * External configuration is required for team rules; missing or invalid configuration will throw.
 * @param {string=} configPath The project-relative path to the external config.
@@ -4454,6 +4498,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 	}
 	metadata.ExternalConfig = parsedConfig;
 	metadata.Teams = parsedConfig.teams;
+	metadata.Loot = parsedConfig.loot;
 	return parsedConfig;
 };
 /**
@@ -5707,6 +5752,42 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	ThisThicknessRate: /<thisThicknessRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	/**
+	* Flat tile addition to the bearer's loot magnet radius, before the rate multiplier.
+	* Signed decimal; negative values shrink the radius. Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <lootMagnetBuff:N>
+	*
+	* Example:
+	*  <lootMagnetBuff:8>
+	*
+	* Translation:
+	*  Adds 8 tiles flat to how far away this battler draws loot toward themselves.
+	* </pre>
+	* @type {RegExp}
+	*/
+	LootMagnetBuff: /<lootMagnetBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Multiplicative rate applied to the bearer's loot magnet radius, after the buff step.
+	* Base-1.0 delta model: each tag contributes (N - 1.0) to the accumulator.
+	* Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <lootMagnetRate:N>
+	*
+	* Example:
+	*  <lootMagnetRate:1.5>
+	*
+	* Translation:
+	*  This battler's loot magnet radius is 1.5x.
+	*  A second <lootMagnetRate:1.5> stacks to 2.0x (each contributes +0.5 to the accumulator).
+	* </pre>
+	* @type {RegExp}
+	*/
+	LootMagnetRate: /<lootMagnetRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
 	/**
 	* Passive/state/equip skill history damage bonus.
 	* Reads from getAllNotes(); applies to every attack by the bearer.
@@ -7345,7 +7426,7 @@ var JABS_ActionOptionsBuilder = class {
 /**
 * Options associated with a set of {@link JABS_Action}s.
 */
-var JABS_ActionOptions = class {
+var JABS_ActionOptions = class JABS_ActionOptions {
 	/**
 	* Whether or not the action is a retaliation of another battler.<br/>
 	* This is used to prevent recursive retaliations.
@@ -7484,6 +7565,16 @@ var JABS_ActionOptions = class {
 	*/
 	getRetaliationTarget() {
 		return this.#retaliationTarget;
+	}
+	/**
+	* Produces a copy of these options carrying the given location, with every other option
+	* preserved exactly.<br/>
+	* Options are immutable once built, so a location learned later replaces the whole object.
+	* @param {JABS_Location} location The location the copy should carry.
+	* @returns {JABS_ActionOptions}
+	*/
+	withLocation(location) {
+		return JABS_ActionOptions.Builder().setIsRetaliation(this.#isRetaliation).setCooldownKey(this.#cooldownKey).setLocation(location).setIsTerrainDamage(this.#terrainDamage).setSpawnOffset(this.#spawnOffsetX, this.#spawnOffsetY).setProjectileTravelAngleDegrees(this.#projectileTravelAngleDegrees).setRetaliationTarget(this.#retaliationTarget).build();
 	}
 	/**
 	* A factory that generates {@link JABS_ActionOptions} with all default values.
@@ -17751,7 +17842,39 @@ JABS_State.Builder = (target, stateId) => new JABS_StateBuilder(target, stateId)
 /**
 * An object that represents the binding of a `Game_Event` to an item/weapon/armor.
 */
-var JABS_LootDrop = class {
+var JABS_LootDrop = class JABS_LootDrop {
+	/**
+	* The lifecycle a loot drop moves through, in order.
+	*
+	* The distinction that matters is {@link WHIZZING}: a drop being drawn toward somebody has
+	* already been promised to them, so it stops aging out. Without that, loot could expire in
+	* mid-flight and vanish an item the player had visibly already earned.
+	*/
+	static States = {
+		/**
+		* Sitting on the ground, bobbing, aging toward expiration.
+		*/
+		Waiting: "waiting",
+		/**
+		* In flight toward whoever is drawing it in. Claimed, and no longer expiring.
+		*/
+		Whizzing: "whizzing",
+		/**
+		* Arrived and granted. Awaiting removal from the map.
+		*/
+		Collected: "collected"
+	};
+	/**
+	* The distance in tiles at which a drop counts as having arrived and can be absorbed.
+	*
+	* This is not a reach stat- the magnet radius is what decides how far loot is collected from.
+	* This is only the "close enough to land" threshold, kept small so a drop is visibly on top of
+	* its collector before disappearing.
+	* @returns {number}
+	*/
+	static arrivalDistance() {
+		return .5;
+	}
 	/**
 	* Sets the can expire.
 	* @param {boolean} newCanExpire The new canExpire.
@@ -17784,6 +17907,11 @@ var JABS_LootDrop = class {
 	* @type {RPG_EquipItem|RPG_Item|null}
 	*/
 	_lootObject = null;
+	/**
+	* Where this drop currently sits in its lifecycle.
+	* @type {string}
+	*/
+	_state = JABS_LootDrop.States.Waiting;
 	constructor(object) {
 		this.setLootObject(object);
 	}
@@ -17844,6 +17972,53 @@ var JABS_LootDrop = class {
 		this.setCanExpire(false);
 	}
 	/**
+	* Gets the current lifecycle state of this loot drop.
+	* @returns {string}
+	*/
+	state() {
+		return this._state;
+	}
+	/**
+	* Sets the current lifecycle state of this loot drop.
+	* @param {string} newState The new state, from {@link JABS_LootDrop.States}.
+	*/
+	setState(newState) {
+		this._state = newState;
+	}
+	/**
+	* Whether or not this drop is still sitting on the ground unclaimed.
+	* @returns {boolean}
+	*/
+	isWaiting() {
+		return this.state() === JABS_LootDrop.States.Waiting;
+	}
+	/**
+	* Whether or not this drop is currently in flight toward whoever claimed it.
+	* @returns {boolean}
+	*/
+	isWhizzing() {
+		return this.state() === JABS_LootDrop.States.Whizzing;
+	}
+	/**
+	* Whether or not this drop has arrived and been granted.
+	* @returns {boolean}
+	*/
+	isCollected() {
+		return this.state() === JABS_LootDrop.States.Collected;
+	}
+	/**
+	* Claims this drop for whoever is drawing it in, starting its flight.
+	*/
+	beginWhizzing() {
+		this.setState(JABS_LootDrop.States.Whizzing);
+	}
+	/**
+	* Marks this drop as arrived and granted, leaving only its removal outstanding.
+	*/
+	markCollected() {
+		this.setState(JABS_LootDrop.States.Collected);
+	}
+	/**
 	* Counts down the duration for this loot drop.
 	*/
 	countdownDuration() {
@@ -17856,6 +18031,7 @@ var JABS_LootDrop = class {
 	*/
 	canCountdownDuration() {
 		if (!this.canExpire()) return false;
+		if (!this.isWaiting()) return false;
 		if (this.duration() <= 0) return false;
 		return true;
 	}
@@ -19669,11 +19845,26 @@ var JABS_Engine = class JABS_Engine {
 	handleActionGeneration(caster, action, x, y) {
 		let actionEventData = null;
 		const shouldCreateEvent = !action.isDirectAction() || x !== null && y !== null;
+		if (action.isDirectAction() && x !== null && y !== null) {
+			this.anchorDirectActionToTile(action, x, y);
+		}
 		if (shouldCreateEvent) {
 			actionEventData = this.buildActionEventData(caster, action, x, y);
 			this.addJabsActionToMap(actionEventData, action);
 		}
 		this.addActionEvent(action, actionEventData);
+	}
+	/**
+	* Records the tile a direct action was generated at onto its own options, so the per-frame
+	* sprite sync leaves the hitbox there rather than body-anchoring it to the caster.
+	* @param {JABS_Action} action The direct action being anchored.
+	* @param {number} x The resolved `x` coordinate the action was generated at.
+	* @param {number} y The resolved `y` coordinate the action was generated at.
+	*/
+	anchorDirectActionToTile(action, x, y) {
+		const anchor = JABS_Location.Builder().setX(x).setY(y).build();
+		const anchoredOptions = action.getActionOptions().withLocation(anchor);
+		action.setActionOptions(anchoredOptions);
 	}
 	/**
 	* It generates a copy of an event from the "ActionMap".
@@ -29891,6 +30082,32 @@ Game_Battler.prototype.getThicknessRate = function() {
 	return rates.reduce((acc, rate) => acc + (Number(rate) - 1), 0);
 };
 /**
+* Gets the flat tile addition to this battler's loot magnet radius, before the rate is applied.
+* @returns {number}
+*/
+Game_Battler.prototype.getLootMagnetBuff = function() {
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.LootMagnetBuff);
+};
+/**
+* Gets the multiplicative rate applied to this battler's loot magnet radius after the buff step.
+* Accumulates as 1.0 + sum(each tag value - 1.0) so multiple tags stack additively.
+* @returns {number}
+*/
+Game_Battler.prototype.getLootMagnetRate = function() {
+	const rates = RPGManager.getStringsFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.LootMagnetRate);
+	return rates.reduce((acc, rate) => acc + (Number(rate) - 1), 1);
+};
+/**
+* Gets the distance in tiles from which this battler draws loot toward themselves.
+* @returns {number}
+*/
+Game_Battler.prototype.getLootMagnetRadius = function() {
+	const base = J.ABS.Metadata.Loot.magnetRadius;
+	const buff = this.getLootMagnetBuff();
+	const rate = this.getLootMagnetRate();
+	return Math.max(0, (base + buff) * rate);
+};
+/**
 * Checks all states to see if we have anything that grants parry ignore.
 * @returns {boolean}
 */
@@ -30262,6 +30479,21 @@ Game_Character.prototype.getLootNeedsRemoving = function() {
 */
 Game_Character.prototype.setLootNeedsRemoving = function(needsRemoving = true) {
 	this._j._abs._loot._needsRemoving = needsRemoving;
+};
+/**
+* Places this loot character at the given continuous map coordinates.
+*
+* Both coordinate pairs are written because vanilla treats a disagreement between them as "this
+* character is mid-step" and spends {@link Game_CharacterBase#updateMove} dragging the real pair
+* back toward the logical one- which would undo a magnet's pull every frame it applied it.
+* @param {number} x The continuous x coordinate to place this loot at.
+* @param {number} y The continuous y coordinate to place this loot at.
+*/
+Game_Character.prototype.setLootPosition = function(x, y) {
+	this.setRealX(x);
+	this.setRealY(y);
+	this.setX(x);
+	this.setY(y);
 };
 /**
 * Execute an animation of a provided id upon this character or event.
@@ -32390,11 +32622,12 @@ Game_Player.prototype.refresh = function() {
 	$jabsEngine.initializePlayer1();
 };
 /**
+* Extends {@link #update}.<br/>
 * Checks whether or not the player is picking up loot drops.
 */
-J.ABS.Aliased.Game_Player.set("updateMove", Game_Player.prototype.updateMove);
-Game_Player.prototype.updateMove = function() {
-	J.ABS.Aliased.Game_Player.get("updateMove").call(this);
+J.ABS.Aliased.Game_Player.set("update", Game_Player.prototype.update);
+Game_Player.prototype.update = function(sceneActive) {
+	J.ABS.Aliased.Game_Player.get("update").call(this, sceneActive);
 	this.checkForLoot();
 };
 /**
@@ -32403,9 +32636,65 @@ Game_Player.prototype.updateMove = function() {
 */
 Game_Player.prototype.checkForLoot = function() {
 	const lootDrops = $gameMap.getJabsLootDrops();
-	if (lootDrops.length) {
-		this.processLootCollection(lootDrops);
-	}
+	if (!lootDrops.length) return;
+	this.processLootMagnetism(lootDrops);
+	this.processLootCollection(lootDrops);
+};
+/**
+* Draws every nearby loot drop toward the player.
+* @param {Game_Event[]} lootDrops The list of all loot drops.
+*/
+Game_Player.prototype.processLootMagnetism = function(lootDrops) {
+	const radius = this.getLootMagnetRadius();
+	if (radius <= 0) return;
+	lootDrops.forEach((lootDrop) => this.magnetizeLoot(lootDrop, radius), this);
+};
+/**
+* Gets the distance in tiles from which the player draws loot toward themselves.
+* @returns {number}
+*/
+Game_Player.prototype.getLootMagnetRadius = function() {
+	return $jabsEngine.getPlayer1().getBattler().getLootMagnetRadius();
+};
+/**
+* Draws a single loot drop one frame's worth of distance toward the player.
+* @param {Game_Event} lootDrop The event representing the loot drop.
+* @param {number} radius The player's current loot magnet radius, in tiles.
+*/
+Game_Player.prototype.magnetizeLoot = function(lootDrop, radius) {
+	if (lootDrop.isErased()) return;
+	const jabsLootDrop = lootDrop.getJabsLoot();
+	if (jabsLootDrop.isCollected()) return;
+	const dx = $gameMap.deltaX(this.realX(), lootDrop.realX());
+	const dy = $gameMap.deltaY(this.realY(), lootDrop.realY());
+	const distance = Math.hypot(dx, dy);
+	if (distance > radius) return;
+	jabsLootDrop.beginWhizzing();
+	if (distance <= JABS_LootDrop.arrivalDistance()) return;
+	const [nextX, nextY] = this.resolveMagnetizedLootPosition(lootDrop, dx, dy, distance, radius);
+	lootDrop.setLootPosition(nextX, nextY);
+};
+/**
+* Resolves where a loot drop being drawn inward sits after one frame of travel.
+*
+* Speed rises as the gap closes rather than staying flat, so a drop visibly snaps home at the end
+* instead of drifting the last half tile. The curve is derived from the current distance rather
+* than accumulated onto the drop, which keeps the drop free of per-frame velocity state.
+* @param {Game_Event} lootDrop The event representing the loot drop.
+* @param {number} dx The x distance from the drop to the player, in tiles.
+* @param {number} dy The y distance from the drop to the player, in tiles.
+* @param {number} distance The straight-line gap between the two, in tiles.
+* @param {number} radius The player's current loot magnet radius, in tiles.
+* @returns {[number, number]} The `[x, y]` the drop should occupy next frame.
+*/
+Game_Player.prototype.resolveMagnetizedLootPosition = function(lootDrop, dx, dy, distance, radius) {
+	const closeness = 1 - distance / radius;
+	const { magnetSpeed, magnetAcceleration } = J.ABS.Metadata.Loot;
+	const speed = magnetSpeed * (1 + magnetAcceleration * closeness);
+	const step = Math.min(speed, distance);
+	const nextX = lootDrop.realX() + dx / distance * step;
+	const nextY = lootDrop.realY() + dy / distance * step;
+	return [nextX, nextY];
 };
 /**
 * Processes a collection of loot to determine what to do with it.
@@ -32457,8 +32746,10 @@ Game_Player.prototype.pickupLootCollection = function(lootCollected) {
 * @returns {boolean}
 */
 Game_Player.prototype.isTouchingLoot = function(lootDrop) {
-	const distance = $gameMap.distance(lootDrop._realX, lootDrop._realY, this.realX(), this.realY());
-	return distance <= J.ABS.Metadata.LootPickupRange;
+	const dx = $gameMap.deltaX(this.realX(), lootDrop.realX());
+	const dy = $gameMap.deltaY(this.realY(), lootDrop.realY());
+	const distance = Math.hypot(dx, dy);
+	return distance <= JABS_LootDrop.arrivalDistance();
 };
 /**
 * Collects the loot drop off the ground.
@@ -32490,6 +32781,7 @@ Game_Player.prototype.storeOnPickup = function(lootData) {
 * @param {Game_Event} lootEvent The loot to remove from the map.
 */
 Game_Player.prototype.removeLoot = function(lootEvent) {
+	lootEvent.getJabsLoot().markCollected();
 	lootEvent.setLootNeedsRemoving(true);
 	$jabsEngine.requestClearLoot = true;
 };
@@ -33849,7 +34141,7 @@ Sprite_Character.prototype.setupHpGauge = function() {
 	if (!this._j._abs._gauges._hpGauge) {
 		const sprite = new Sprite_MapHpGauge();
 		this._j._abs._gauges._hpGauge = sprite;
-		this.addChild(this._j._abs._gauges._hpGauge);
+		this.characterOverlay().addChild(this._j._abs._gauges._hpGauge);
 	}
 	this._j._abs._gauges._hpGauge.setupBattler(this.getBattler());
 	this._j._abs._gauges._hpGauge.activateGauge();
@@ -33877,7 +34169,7 @@ Sprite_Character.prototype.setupCastGauge = function() {
 	const x = -Math.round(sprite.bitmapWidth() / 2);
 	const y = -28;
 	sprite.move(x, y);
-	this.addChild(sprite);
+	this.characterOverlay().addChild(sprite);
 };
 /**
 * Updates the all gauges associated with this battler
@@ -33906,7 +34198,7 @@ Sprite_Character.prototype.setupAfflictionStrip = function() {
 	if (!this.afflictionStrip()) {
 		const strip = new Sprite_MapAfflictionStrip();
 		this.setAfflictionStrip(strip);
-		this.addChild(strip);
+		this.characterOverlay().addChild(strip);
 	}
 	this.afflictionStrip().setupBattler(this.getBattler());
 	this.repositionAfflictionStrip();
@@ -34076,10 +34368,11 @@ Sprite_Character.prototype.setupBattlerName = function() {
 		return;
 	}
 	this.setBattlerName(this.createBattlerNameSprite());
+	const overlay = this.characterOverlay();
 	if (this.battlerNameTierStripe()) {
-		this.addChild(this.battlerNameTierStripe());
+		overlay.addChild(this.battlerNameTierStripe());
 	}
-	this.addChild(this.battlerName());
+	overlay.addChild(this.battlerName());
 };
 /**
 * Creates the sprite that contains this battler's name.
@@ -34099,7 +34392,8 @@ Sprite_Character.prototype.createBattlerNameSprite = function() {
 		const outerH = stripeSprite.bitmap.height;
 		const GAP = 4;
 		const stripeY = this.computeMapTierStripeY(textSprite, outerH);
-		stripeSprite.move(-70 - GAP - outerW, stripeY);
+		const glyphX = textSprite.x + textSprite.padding();
+		stripeSprite.move(glyphX - GAP - outerW, stripeY);
 		this.setBattlerNameTierStripe(stripeSprite);
 	}
 	return textSprite;
@@ -34279,10 +34573,23 @@ Sprite_Character.prototype.setLootSprite = function(sprite) {
 Sprite_Character.prototype.createLootSprite = function() {
 	const iconIndex = this.getLootIcon();
 	const sprite = new Sprite_Icon(iconIndex);
-	const xOffset = J.BASE.Helpers.getRandomNumber(-30, 0);
-	const yOffset = J.BASE.Helpers.getRandomNumber(-90, -70);
+	const [xOffset, yOffset] = this.determineLootSpriteOffset();
 	sprite.move(xOffset, yOffset);
 	return sprite;
+};
+/**
+* Determines the offset a loot icon is drawn at, centering it on the tile the loot occupies
+* with a small random scatter.
+* @returns {[number, number]} The `[x, y]` offset for the icon sprite.
+*/
+Sprite_Character.prototype.determineLootSpriteOffset = function() {
+	const halfIconWidth = ImageManager.iconWidth / 2;
+	const halfIconHeight = ImageManager.iconHeight / 2;
+	const halfTileHeight = $gameMap.tileHeight() / 2;
+	const scatter = 4;
+	const x = -halfIconWidth + J.BASE.Helpers.getRandomNumber(-scatter, scatter);
+	const y = -halfTileHeight - halfIconHeight + J.BASE.Helpers.getRandomNumber(-scatter, scatter);
+	return [x, y];
 };
 /**
 * Gets the loot data associated with this sprite.

@@ -925,8 +925,7 @@ var JABS_TargetingManager = class JABS_TargetingManager {
 		const direction = battler.getCharacter().direction();
 		const location = JABS_Location.Builder().setX(x).setY(y).setDirection(direction).build();
 		actions.forEach((action) => {
-			const existing = action.getActionOptions();
-			const rebuilt = JABS_ActionOptions.Builder().setIsRetaliation(existing.isActionRetaliation()).setCooldownKey(existing.getCooldownKey()).setLocation(location).setIsTerrainDamage(existing.isTerrainDamage()).setSpawnOffset(existing.getSpawnOffsetX(), existing.getSpawnOffsetY()).setProjectileTravelAngleDegrees(existing.getProjectileTravelAngleDegrees()).setRetaliationTarget(existing.getRetaliationTarget()).build();
+			const rebuilt = action.getActionOptions().withLocation(location);
 			action.setActionOptions(rebuilt);
 		});
 		session.getOnCommit()(actions);

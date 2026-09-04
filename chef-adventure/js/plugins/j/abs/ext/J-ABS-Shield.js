@@ -1634,7 +1634,7 @@ Sprite_Character.prototype.setupShieldGauge = function() {
 	const x = -Math.round(sprite.bitmapWidth() / 2);
 	const y = 0;
 	sprite.move(x, y);
-	this.addChild(sprite);
+	this.characterOverlay().addChild(sprite);
 };
 /**
 * Extends {@link #updateGauges}.<br/>

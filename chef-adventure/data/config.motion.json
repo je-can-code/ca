@@ -21,5 +21,10 @@
   "death": {
     "defaultStyle": "swift",
     "durations": { "swift": 30, "moderate": 60, "slow": 120 }
+  },
+  "loot": {
+    "expiryWarnFrames": 300,
+    "expiryFadeFrames": 120,
+    "flicker": { "min": 0.2, "max": 1.0, "interval": 8 }
   }
 }

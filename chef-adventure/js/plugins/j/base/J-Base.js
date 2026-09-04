@@ -2288,12 +2288,16 @@ J.BASE.Aliased = {
 	Game_Temp: new Map(),
 	Game_Timer: new Map(),
 	Game_System: new Map(),
+	Graphics: new Map(),
 	Input: new Map(),
 	Scene_Base: new Map(),
 	Scene_Boot: new Map(),
 	Scene_Map: new Map(),
 	Scene_MenuBase: new Map(),
 	SoundManager: new Map(),
+	Sprite_Animation: new Map(),
+	Sprite_Character: new Map(),
+	Sprite_Damage: new Map(),
 	Window_Base: new Map(),
 	Window_Command: new Map(),
 	Window_Selectable: new Map()
@@ -3129,6 +3133,247 @@ J.BASE.Aliased.Bitmap.set("drawText", Bitmap.prototype.drawText);
 Bitmap.prototype.drawText = function(text, x, y, maxWidth, lineHeight, align) {
 	const resolvedAlign = validTextAlignments.includes(align) ? align : "left";
 	J.BASE.Aliased.Bitmap.get("drawText").call(this, text, x, y, maxWidth, lineHeight, resolvedAlign);
+};
+/**
+* Extends {@link Bitmap.initialize}.<br/>
+* Also establishes the scale at which this bitmap holds its pixels.
+*
+* Seeded before the original runs rather than after, because the original may build a canvas on the
+* way through and everything downstream of that reads dimensions back off this.
+* @param {number} [width] The width of the bitmap.
+* @param {number} [height] The height of the bitmap.
+*/
+J.BASE.Aliased.Bitmap.set("initialize", Bitmap.prototype.initialize);
+Bitmap.prototype.initialize = function(width, height) {
+	/**
+	* How many real pixels this bitmap holds for each logical pixel it reports.
+	* One for every bitmap in the game unless something deliberately raises it.
+	* @type {number}
+	*/
+	this._deviceScale = 1;
+	J.BASE.Aliased.Bitmap.get("initialize").call(this, width, height);
+};
+/**
+* How many real pixels this bitmap holds for each logical pixel it reports.
+* @returns {number} One unless this bitmap has been raised to the display's resolution.
+*/
+Bitmap.prototype.deviceScale = function() {
+	return this._deviceScale;
+};
+/**
+* Sets how many real pixels this bitmap holds per logical pixel.
+* @param {number} scale The scale.
+*/
+Bitmap.prototype.setDeviceScale = function(scale) {
+	this._deviceScale = scale;
+};
+/**
+* The width of the bitmap, in the logical pixels every caller draws with.
+*
+* Overridden rather than extended because the number this returns is the whole contract. The engine
+* frames a window's contents sprite with `setFrame(0, 0, bitmap.width, bitmap.height)`, and those
+* coordinates are texture space - so a bitmap holding more pixels than it occupies has to keep
+* reporting the smaller number or the frame runs off the end of its own texture.
+* @returns {number}
+*/
+Object.defineProperty(Bitmap.prototype, "width", {
+	get: function() {
+		const image = this._canvas || this._image;
+		if (!image) return 0;
+		return image.width / this.deviceScale();
+	},
+	configurable: true
+});
+/**
+* The height of the bitmap, in the logical pixels every caller draws with.
+* @returns {number}
+*/
+Object.defineProperty(Bitmap.prototype, "height", {
+	get: function() {
+		const image = this._canvas || this._image;
+		if (!image) return 0;
+		return image.height / this.deviceScale();
+	},
+	configurable: true
+});
+/**
+* Rebuilds this bitmap to hold more real pixels than the area it reports occupying.
+*
+* This is the whole trick behind crisp text in a window. The canvas grows to the display's real
+* pixel count, the texture is told that those pixels describe the original smaller area, and the
+* drawing context is scaled to match - so every existing `drawText(x, y, width)` in the codebase
+* keeps passing the same logical coordinates it always did and simply rasterizes into more pixels.
+* Measurement is unaffected because `measureText` ignores the context transform, which is what
+* keeps text wrapping and alignment identical to before.
+* @param {number} scale How many real pixels to hold per logical pixel.
+*/
+Bitmap.prototype.applyDeviceScale = function(scale) {
+	const logicalWidth = this.width;
+	const logicalHeight = this.height;
+	this.setDeviceScale(scale);
+	this.rescaleCanvas(logicalWidth, logicalHeight);
+};
+/**
+* Sizes this bitmap's canvas to hold its logical area at its device scale.
+*
+* Kept separate because resizing a canvas element resets everything about its drawing context - the
+* transform included - so this has to happen again after every resize rather than only once.
+* @param {number} logicalWidth The width this bitmap should report.
+* @param {number} logicalHeight The height this bitmap should report.
+*/
+Bitmap.prototype.rescaleCanvas = function(logicalWidth, logicalHeight) {
+	const scale = this.deviceScale();
+	const realWidth = logicalWidth * scale;
+	const realHeight = logicalHeight * scale;
+	this.canvas.width = realWidth;
+	this.canvas.height = realHeight;
+	this.baseTexture.setRealSize(realWidth, realHeight, scale);
+	this.context.setTransform(scale, 0, 0, scale, 0, 0);
+};
+/**
+* Extends {@link Bitmap.resize}.<br/>
+* Also restores the device scale the original just sized away.
+* @param {number} width The new logical width.
+* @param {number} height The new logical height.
+*/
+J.BASE.Aliased.Bitmap.set("resize", Bitmap.prototype.resize);
+Bitmap.prototype.resize = function(width, height) {
+	J.BASE.Aliased.Bitmap.get("resize").call(this, width, height);
+	if (this.deviceScale() === 1) return;
+	const clampedWidth = Math.max(width || 0, 1);
+	const clampedHeight = Math.max(height || 0, 1);
+	this.rescaleCanvas(clampedWidth, clampedHeight);
+};
+/**
+* Extends {@link Bitmap.getPixel}.<br/>
+* Also addresses the request in real pixels rather than logical ones.
+*
+* `getImageData` reads the canvas directly and ignores the context transform, so a caller's logical
+* coordinate would land at a fraction of where it meant on a bitmap holding more pixels than it
+* reports.
+* @param {number} x The x coordinate of the pixel, in logical pixels.
+* @param {number} y The y coordinate of the pixel, in logical pixels.
+* @returns {string} The colour, as a hex string.
+*/
+J.BASE.Aliased.Bitmap.set("getPixel", Bitmap.prototype.getPixel);
+Bitmap.prototype.getPixel = function(x, y) {
+	const scale = this.deviceScale();
+	return J.BASE.Aliased.Bitmap.get("getPixel").call(this, x * scale, y * scale);
+};
+/**
+* Extends {@link Bitmap.getAlphaPixel}.<br/>
+* Also addresses the request in real pixels rather than logical ones.
+* @param {number} x The x coordinate of the pixel, in logical pixels.
+* @param {number} y The y coordinate of the pixel, in logical pixels.
+* @returns {number} The alpha value.
+*/
+J.BASE.Aliased.Bitmap.set("getAlphaPixel", Bitmap.prototype.getAlphaPixel);
+Bitmap.prototype.getAlphaPixel = function(x, y) {
+	const scale = this.deviceScale();
+	return J.BASE.Aliased.Bitmap.get("getAlphaPixel").call(this, x * scale, y * scale);
+};
+
+//#endregion
+//#region src/plugins/_base/core/core/TextRasterMetrics.js
+/**
+* The pixel measurements for rasterizing a run of text onto a bitmap without the canvas mangling it.
+*
+* Drawing text in RMMZ is not a rendering problem, it is an arithmetic one, which is why the sums live
+* here rather than inside a sprite. There are three of them and they compound.
+*
+* The first is the squeeze. {@link Bitmap.drawText} forwards its `maxWidth` down to
+* `CanvasRenderingContext2D.fillText`, and the canvas treats that argument as a promise it must keep:
+* text wider than `maxWidth` is *condensed* to fit rather than clipped. Meanwhile a canvas element's
+* `width` is an integer attribute, so a bitmap sized from a fractional measurement silently truncates.
+* Size a bitmap to `measureTextWidth` and the number handed back is always a fraction under what the
+* text actually needs - so every string drawn that way is horizontally squashed, forever, by an amount
+* too small to name and too large to unsee.
+*
+* The second is the shaved outline. The outline is stroked along the glyph's own path, so half of its
+* width falls outside the letterform. A bitmap sized to the glyphs alone leaves nowhere for that half
+* to land, and the first and last character of every label lose their outline to the bitmap's edge.
+*
+* The third is the half-pixel. `drawText` centres by adding half the draw width to the origin, so an
+* odd width puts the entire run on a half-pixel boundary and the canvas antialiases each stem across
+* two columns instead of filling one.
+*
+* Every measurement below is in the **logical pixels** the rest of the codebase speaks in. How many
+* real pixels end up behind them is {@link Bitmap.applyDeviceScale}'s business and deliberately not
+* this class's: a bitmap that holds more pixels than it reports still reports these numbers, and the
+* moment two places in the codebase each decide for themselves what a pixel means, they disagree.
+*/
+var TextRasterMetrics = class {
+	/**
+	* The width of the outline stroked around each glyph.
+	*
+	* Scaled off the font size so the outline keeps the same visual weight against glyphs of any size,
+	* with a floor of two that keeps small text legible against a bright tile it happens to be
+	* standing on.
+	* @param {number} fontSize The font size.
+	* @returns {number}
+	*/
+	static outlineWidth(fontSize) {
+		return Math.max(2, Math.floor(fontSize / 6));
+	}
+	/**
+	* The transparent margin to leave on each side of the text, in device pixels.
+	*
+	* A stroke is centred on the path it follows, so only half of it falls outside the glyph and half
+	* this much would technically do. The full width is reserved instead because a round line join
+	* bulges past that half on a sharp corner, and a spare pixel of nothing costs nothing.
+	* @param {number} outlineWidth The width of the outline in device pixels.
+	* @returns {number}
+	*/
+	static padding(outlineWidth) {
+		return Math.ceil(outlineWidth);
+	}
+	/**
+	* The width of the area the text itself is drawn into, in device pixels.
+	*
+	* Rounded **up** so the value handed to `fillText` as `maxWidth` is never below what the glyphs
+	* need, which is what stops the canvas condensing them. Rounded up to an **even** number so that
+	* centred text - which lands on half of this value - still lands on a whole pixel.
+	* @param {number} measuredWidth The natural width of the text at its device font size.
+	* @returns {number}
+	*/
+	static textWidth(measuredWidth) {
+		return Math.ceil(measuredWidth / 2) * 2;
+	}
+	/**
+	* The full width of the bitmap, in device pixels.
+	* @param {number} textWidth The width of the text area.
+	* @param {number} padding The margin reserved on each side for the outline.
+	* @returns {number}
+	*/
+	static canvasWidth(textWidth, padding) {
+		return textWidth + padding * 2;
+	}
+	/**
+	* The full height of the bitmap.
+	*
+	* Three times the font size, which is generous, and deliberately so: the engine's own baseline sum
+	* places text well down inside the box, and a tall box costs a little texture memory where a short
+	* one costs clipped descenders on every glyph that has one.
+	* @param {number} fontSize The font size the text is drawn at.
+	* @returns {number}
+	*/
+	static canvasHeight(fontSize) {
+		return fontSize * 3;
+	}
+	/**
+	* Snaps a logical coordinate onto the device pixel grid.
+	*
+	* Rounding a logical coordinate to a whole number is not enough on a scaled display: at a scale of
+	* 1.5, the whole logical number 37 is device pixel 55.5, and the sprite is sampled between two
+	* columns exactly as if it had never been rounded at all. The grid that matters is the one made of
+	* real pixels, so the value is rounded on that grid and converted back.
+	* @param {number} value The coordinate in logical pixels.
+	* @param {number} scale How many device pixels sit behind each logical pixel.
+	* @returns {number}
+	*/
+	static snap(value, scale) {
+		return Math.round(value * scale) / scale;
+	}
 };
 
 //#endregion
@@ -8229,6 +8474,102 @@ Object.defineProperty(Graphics, "verticalPadding", { get: function() {
 Object.defineProperty(Graphics, "boxOrigin", { get: function() {
 	return [this.horizontalPadding, this.verticalPadding];
 } });
+/**
+* How many real pixels on the player's display sit behind each logical pixel the game draws with.
+*
+* Every coordinate and font size in this codebase is a *logical* pixel, and on a display running at
+* 100% that is also a real one. On anything else - a 4K panel at 150%, a laptop at 125%, which
+* between them is most machines - it is not, and anything rasterized at its logical size arrives on
+* screen stretched across a fractional number of real pixels. Text is where that shows up first,
+* because a glyph is the only thing in the game that could have been drawn at the larger size for
+* free had anyone thought to ask.
+*
+* The renderer's own resolution is the honest answer to the question, and reading it here rather
+* than reading {@link window.devicePixelRatio} directly means that everything measuring itself
+* against this scale stays correct no matter what the renderer is eventually configured to.
+* @returns {number} Always positive; `1` on an unscaled display.
+*/
+Object.defineProperty(Graphics, "deviceScale", { get: function() {
+	return this.app.renderer.resolution;
+} });
+/**
+* The number of real pixels per logical pixel that this display would like to be rendered at.
+*
+* Deliberately separate from {@link Graphics.deviceScale}: that one reports what the renderer is
+* *currently* doing and is the honest number for anything sizing itself against the framebuffer,
+* while this is the value the renderer is about to be configured with. During setup there is no
+* renderer to ask, which is the whole reason both exist.
+*
+* The ceiling is a memory decision rather than a visual one. Every bitmap that rasterizes itself at
+* this scale costs its own area multiplied by the square of it, and there is no display on which
+* the pixels past three are distinguishable from the ones beneath them.
+* @returns {number} Between 1 and 3.
+*/
+Graphics.desiredDeviceScale = function() {
+	const ratio = window.devicePixelRatio;
+	return Math.min(Math.max(ratio, 1), 3);
+};
+/**
+* Points the renderer at the display's real pixel grid.
+*
+* RMMZ builds its `PIXI.Application` with no `resolution` at all, so the framebuffer holds exactly
+* as many pixels as the game is logically wide and the browser stretches that across however many
+* the display actually has. On any display not running at 100% - a 4K panel at 150%, a laptop at
+* 125%, which between them is most machines - that is a permanent bilinear smear across every frame
+* of the game, and no amount of care taken further up can survive it.
+*
+* Resizing rather than assigning the canvas dimensions directly is deliberate: `resize` recomputes
+* the renderer's own screen rectangle alongside the backing store, and those two disagreeing is a
+* worse state than either of them being wrong. The canvas keeps whatever CSS size it was given, so
+* the game occupies exactly the same area of the window as before; there are simply more pixels
+* inside it.
+*/
+Graphics.applyDeviceResolution = function() {
+	if (!this.app) return;
+	const { renderer } = this.app;
+	renderer.resolution = this.desiredDeviceScale();
+	renderer.resize(this.width, this.height);
+};
+/**
+* Extends {@link Graphics._setupPixi}.<br/>
+* Also raises the resolution that filter passes render at.
+*
+* A filter draws into a texture of its own and that texture is then drawn into the framebuffer, so
+* a filter still running at a resolution of one flattens the entire scene back down and quietly
+* undoes everything else here. {@link Spriteset_Base.createBaseFilters} puts a colour filter over
+* the whole map unconditionally, which makes this not an edge case but every frame of the game.
+*
+* It belongs in this particular seam because a filter reads the setting in its own constructor:
+* anything constructed before this line keeps the old value for as long as it lives.
+*/
+J.BASE.Aliased.Graphics.set("_setupPixi", Graphics._setupPixi);
+Graphics._setupPixi = function() {
+	J.BASE.Aliased.Graphics.get("_setupPixi").call(this);
+	PIXI.settings.FILTER_RESOLUTION = this.desiredDeviceScale();
+};
+/**
+* Extends {@link Graphics._createPixiApp}.<br/>
+* Also raises the freshly-built renderer to the display's own resolution.
+*/
+J.BASE.Aliased.Graphics.set("_createPixiApp", Graphics._createPixiApp);
+Graphics._createPixiApp = function() {
+	J.BASE.Aliased.Graphics.get("_createPixiApp").call(this);
+	this.applyDeviceResolution();
+};
+/**
+* Extends {@link Graphics._updateAllElements}.<br/>
+* Also restores the renderer's resolution after the canvas is put back to logical pixels.
+*
+* `_updateCanvas` writes the logical width straight onto the canvas element, which throws the
+* device-resolution backing store away every time the window is resized, the stretch mode is
+* toggled, or the game screen changes size. Putting it back here is what stops a resized window
+* from silently going soft again for the rest of the session.
+*/
+J.BASE.Aliased.Graphics.set("_updateAllElements", Graphics._updateAllElements);
+Graphics._updateAllElements = function() {
+	J.BASE.Aliased.Graphics.get("_updateAllElements").call(this);
+	this.applyDeviceResolution();
+};
 
 //#endregion
 //#region src/plugins/_base/core/managers/InputDeviceTracker.js
@@ -13432,12 +13773,24 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 		* @type {boolean}
 		*/
 		this._j._disableManagedOpacity = false;
+		/**
+		* The transparent margin reserved on each side of the text for its outline.
+		* Established by {@link #configureBitmap} and consumed by {@link #renderText}.
+		* @type {number}
+		*/
+		this._j._padding = 0;
+		/**
+		* The width of the area the text is drawn into.
+		* This is the bitmap's width less the padding on both sides.
+		* @type {number}
+		*/
+		this._j._textWidth = 0;
 	}
 	/**
 	* Gets the j.
 	* @returns {{_testBitmap: Bitmap, _text: string, _color: string, _alignment: string,
 	* _italics: boolean, _bold: boolean, _fontFace: string, _fontSize: number, _minWidth: number,
-	* _disableManagedOpacity: boolean}} The j.
+	* _disableManagedOpacity: boolean, _padding: number, _textWidth: number}} The j.
 	*/
 	j() {
 		return this._j;
@@ -13446,60 +13799,81 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* Sets up the bitmap based on the desired text content.
 	*/
 	loadBitmap() {
-		if (this.bitmap) {
-			this.bitmap.clear();
-		}
-		this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
 		this.configureBitmap();
 	}
 	/**
-	* Configures the bitmap with the current settings and configuration.
+	* Builds this sprite's bitmap and configures it to draw text.
+	*
+	* Every measurement here is a logical pixel, exactly as it was before any of this cared about
+	* display resolution. The bitmap is then handed to {@link Bitmap.applyDeviceScale}, which is the
+	* one place in the codebase that knows how many real pixels sit behind a logical one - it grows
+	* the canvas and scales the drawing context so that everything below keeps speaking logically and
+	* simply rasterizes into more pixels.
+	*
+	* Doing it that way rather than measuring in device pixels here is not a style preference. A
+	* bitmap reports its logical size through `width` and `height`, and callers position things
+	* against those - the tier stripe beside a nameplate centres itself on the text's height. A sprite
+	* that sized its own bitmap in device pixels would have those callers reading a number half again
+	* too large, which is a misalignment nobody would think to trace back to a font.
 	*/
 	configureBitmap() {
-		this.bitmap.clear();
-		this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
+		const outlineWidth = TextRasterMetrics.outlineWidth(this.fontSize());
+		const padding = TextRasterMetrics.padding(outlineWidth);
+		const naturalWidth = this.measureTextWidth();
+		const textWidth = TextRasterMetrics.textWidth(Math.max(naturalWidth, this.minWidth()));
+		this.setPadding(padding);
+		this.setTextAreaWidth(textWidth);
+		const canvasWidth = TextRasterMetrics.canvasWidth(textWidth, padding);
+		const canvasHeight = TextRasterMetrics.canvasHeight(this.fontSize());
+		this.bitmap = new Bitmap(canvasWidth, canvasHeight);
+		this.bitmap.applyDeviceScale(Graphics.deviceScale);
 		this.bitmap.fontFace = this.fontFace();
 		this.bitmap.fontSize = this.fontSize();
 		this.bitmap.fontBold = this.isBold();
 		this.bitmap.fontItalic = this.isItalics();
 		this.bitmap.textColor = this.color();
 		this.bitmap.outlineColor = "#000000";
-		this.bitmap.outlineWidth = Math.max(2, Math.floor(this.fontSize() / 6));
+		this.bitmap.outlineWidth = outlineWidth;
 	}
 	/**
 	* Refresh the content of this sprite.
 	* This completely reloads the sprite's bitmap and redraws the text.
 	*/
 	refresh() {
-		if (!this.bitmap) {
-			this.loadBitmap();
-		} else {
-			this.configureBitmap();
-		}
+		this.configureBitmap();
 		this.renderText();
 	}
 	/**
-	* The width of this bitmap.
-	* Uses the bitmap measuring of text based on the current configuration.
+	* The natural width of this sprite's text at its current configuration.
+	*
+	* Measured against a scratch canvas rather than the real one because the real one does not exist
+	* yet at the point this is needed - its width is what this measurement decides.
+	* @returns {number}
+	*/
+	measureTextWidth() {
+		const testBitmap = this.j()._testBitmap;
+		testBitmap.fontFace = this.fontFace();
+		testBitmap.fontSize = this.fontSize();
+		testBitmap.fontItalic = this.isItalics();
+		testBitmap.fontBold = this.isBold();
+		return testBitmap.measureTextWidth(this.text());
+	}
+	/**
+	* The width this sprite occupies on screen.
+	*
+	* The bitmap behind it may hold considerably more pixels than this on a scaled display, and
+	* deliberately does not say so - this is the size a caller laying the sprite out reasons about.
 	* @returns {number}
 	*/
 	bitmapWidth() {
-		this.j()._testBitmap = new Bitmap(this.bitmap ? this.bitmap.width : 128, this.bitmapHeight());
-		this.j()._testBitmap.fontFace = this.fontFace();
-		this.j()._testBitmap.fontSize = this.fontSize();
-		this.j()._testBitmap.fontItalic = this.isItalics();
-		this.j()._testBitmap.fontBold = this.isBold();
-		const measured = this.j()._testBitmap.measureTextWidth(this.text());
-		const min = this.j()._minWidth;
-		return Math.max(measured, min);
+		return this.bitmap.width;
 	}
 	/**
-	* The height of this bitmap.
-	* This defaults to roughly 3 pixels per size of font.
+	* The height this sprite occupies on screen.
 	* @returns {number}
 	*/
 	bitmapHeight() {
-		return this.j()._fontSize * 3;
+		return this.bitmap.height;
 	}
 	/**
 	* The text currently assigned to this sprite.
@@ -13688,6 +14062,38 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 		return this;
 	}
 	/**
+	* The transparent margin reserved on each side of the text for its outline.
+	* @returns {number}
+	*/
+	padding() {
+		return this.j()._padding;
+	}
+	/**
+	* Sets the margin reserved on each side of the text for its outline.
+	* @param {number} padding The margin reserved on each side.
+	* @returns {this} Returns `this` for fluent-chaining.
+	*/
+	setPadding(padding) {
+		this.j()._padding = padding;
+		return this;
+	}
+	/**
+	* The width of the area the text is drawn into.
+	* @returns {number}
+	*/
+	textAreaWidth() {
+		return this.j()._textWidth;
+	}
+	/**
+	* Sets the width of the area the text is drawn into.
+	* @param {number} width The width of the text area.
+	* @returns {this} Returns `this` for fluent-chaining.
+	*/
+	setTextAreaWidth(width) {
+		this.j()._textWidth = width;
+		return this;
+	}
+	/**
 	* Flags this sprite to disable the managed opacity automation.
 	*/
 	selfManageOpacity() {
@@ -13710,8 +14116,109 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* Renders the text of this sprite.
 	*/
 	renderText() {
-		const drawWidth = this.bitmap ? this.bitmap.width : this.bitmapWidth();
-		this.bitmap.drawText(this.text(), 0, 0, drawWidth, this.bitmapHeight(), this.alignment());
+		const originX = this.padding();
+		const drawWidth = this.textAreaWidth();
+		this.bitmap.drawText(this.text(), originX, 0, drawWidth, this.bitmap.height, this.alignment());
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/sprites/Sprite_CharacterOverlay.js
+/**
+* The layer a character's interface furniture sits on, insulated from what the character is doing.
+*
+* A nameplate, an HP gauge, a floating label - these are captions *about* a character rather than
+* parts of it, and the moment they are added as children of the character's own sprite they inherit
+* everything that sprite does. That is invisible while a character stands still, and wrong the
+* instant one does not: a hit reaction squashes the nameplate along with the body, a spin attack
+* whirls the HP bar around with it, and a character scaled to twice its size gets its name magnified
+* from a raster drawn for half that, which is a blurrier name rather than a bigger one.
+*
+* So this layer cancels the parent's scale and rotation outright, and everything parented to it
+* lives in a space where the character is always its resting size and upright.
+*
+* The tempting refinement is to let *positions* keep inheriting the scale, so a caption drifts
+* outward to clear a body that has grown. Do not: captions are not independent of each other. A
+* nameplate at y 0 and its tier stripe at y 16 are one object drawn in two pieces, and scaling those
+* two offsets separately pulls them apart - at 1.5x the stripe lands eight pixels below where it
+* belongs, which reads as a misaligned badge rather than as anything to do with scale. Relative
+* layout has to survive, and the only way it survives is if nothing about the caption space stretches.
+*
+* **A caption that genuinely needs to clear a resized body measures that body itself.** J-Escriptions
+* does exactly this: it hangs off the character's height and multiplies that height by the
+* character's own scale. That keeps the knowledge where the requirement is, instead of applying a
+* blanket stretch to captions that never asked for one.
+*
+* The cancellation is exact for a uniform scale, and shears very slightly when a non-uniform squash
+* and a rotation animate at the same instant, because those two operations do not commute. That case
+* is a spinning character mid-squish, it lasts a few frames, and the alternative is rebuilding the
+* matrix by hand for a distortion nobody can see.
+*
+* Extending {@link Sprite} rather than a bare container is what keeps the furniture alive: RMMZ's
+* `Sprite.update` walks its children calling theirs, and a gauge that stops being updated stops
+* telling the truth about anyone's health.
+*/
+var Sprite_CharacterOverlay = class extends Sprite {
+	/**
+	* Overrides {@link Sprite.updateTransform}.<br/>
+	* Cancels the parent's scale and rotation, then lands the whole layer on a whole device pixel.
+	*
+	* This runs during the render walk rather than in an update hook, which matters: by the time PIXI
+	* asks a node for its transform, everything above it has already settled for the frame. An update
+	* hook would be reading whatever the parent's scale was *last* frame, and a caption that lags a
+	* squash by a frame is its own kind of wrong.
+	*
+	* The base class's own composition is spelled out here rather than delegated to, and the reason is
+	* ordering. `Container.updateTransform` composes this node against its parent and then immediately
+	* walks its children, so a correction applied *after* calling it would arrive a full frame too
+	* late for everything hanging off this layer - the children would already have inherited the
+	* uncorrected matrix. The snap has to sit between those two steps, which means owning both. The
+	* engine reaches for the same pattern in `Tilemap` and `Window` for the same reason.
+	*/
+	updateTransform() {
+		const parentScale = this.parent.scale;
+		this.scale.set(1 / parentScale.x, 1 / parentScale.y);
+		this.rotation = -this.parent.rotation;
+		this.setBoundsID();
+		this.transform.updateTransform(this.parent.transform);
+		this.snapToDevicePixels();
+		this.worldAlpha = this.alpha * this.parent.worldAlpha;
+		this.children.forEach((child) => {
+			if (child.visible) {
+				child.updateTransform();
+			}
+		});
+	}
+	/**
+	* Marks this layer's cached bounds as stale.
+	*
+	* `_boundsID` is PIXI's own bookkeeping rather than ours, and normally nothing here would touch
+	* it - the base class bumps it at the top of every transform composition so that anything asking
+	* for this node's bounds later recomputes them instead of trusting a cached rectangle. Composing
+	* the transform by hand means taking on that responsibility too, and dropping it would leave a
+	* stale rectangle behind for whatever eventually asks.
+	*/
+	setBoundsID() {
+		this._boundsID++;
+	}
+	/**
+	* Moves this layer's origin onto the nearest whole pixel of the player's display.
+	*
+	* A character's screen position is a whole *logical* pixel, which on a scaled display is not a
+	* whole real one: at 1.5x, every odd coordinate lands exactly halfway between two of them, and a
+	* glyph sampled across two columns is a grey ramp instead of an edge. Roughly half the characters
+	* on screen are on an odd coordinate at any moment, so this is not an edge case - it is the
+	* difference between captions that are reliably sharp and captions that are sharp about half the
+	* time, which reads as some enemies' names being mysteriously softer than their neighbours'.
+	*
+	* Only this layer's origin moves, by at most half a real pixel. Everything hanging off it keeps
+	* its exact relative layout, because they all compose against this one corrected matrix.
+	*/
+	snapToDevicePixels() {
+		const scale = Graphics.deviceScale;
+		const { worldTransform } = this.transform;
+		worldTransform.tx = TextRasterMetrics.snap(worldTransform.tx, scale);
+		worldTransform.ty = TextRasterMetrics.snap(worldTransform.ty, scale);
 	}
 };
 
@@ -13737,6 +14244,36 @@ Sprite_Character.prototype.isErased = function() {
 		return true;
 	}
 	return character.isErased();
+};
+/**
+* Extends {@link Sprite_Character.initMembers}.<br/>
+* Also builds the layer that this character's interface furniture will be drawn on.
+*/
+J.BASE.Aliased.Sprite_Character.set("initMembers", Sprite_Character.prototype.initMembers);
+Sprite_Character.prototype.initMembers = function() {
+	J.BASE.Aliased.Sprite_Character.get("initMembers").call(this);
+	/**
+	* The shared root namespace for all of J's plugin data.
+	*/
+	this._j ||= {};
+	/**
+	* The layer holding everything drawn *about* this character rather than as part of it.
+	* @type {Sprite_CharacterOverlay}
+	*/
+	this._j._characterOverlay = new Sprite_CharacterOverlay();
+	this.addChild(this._j._characterOverlay);
+};
+/**
+* The layer that this character's interface furniture is drawn on.
+*
+* Anything that describes a character rather than depicting it - a nameplate, a gauge, a floating
+* label - belongs here instead of on the character sprite directly. The layer cancels the
+* character's own scale and rotation, so a caption keeps its size and stays upright through
+* whatever the body beneath it is animating.
+* @returns {Sprite_CharacterOverlay}
+*/
+Sprite_Character.prototype.characterOverlay = function() {
+	return this._j._characterOverlay;
 };
 
 //#endregion
@@ -14142,6 +14679,21 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this.gauge()._label;
 	}
 	/**
+	* Extends {@link #gaugeX}.<br/>
+	* Reserves nothing to the left of the bar when there is no label to put there.
+	*
+	* Vanilla's answer is the label's measured width plus six pixels of gap, and it adds that gap
+	* whether or not a label exists - so an unlabelled gauge draws its bar six pixels narrower than
+	* its bitmap and pinned to the right of it. A map gauge is positioned by centring its bitmap on
+	* the character it belongs to, which means those six unused pixels put the visible bar three
+	* pixels right of the battler for its entire life. Invisible until the day the text got sharp.
+	* @returns {number}
+	*/
+	gaugeX() {
+		if (this.label() === String.empty) return 0;
+		return super.gaugeX();
+	}
+	/**
 	* Gets the icon index of the gauge.
 	* @returns {number}
 	*/
@@ -14344,6 +14896,99 @@ Sprite_Animation.prototype.animation = function() {
 Sprite_Animation.prototype.targets = function() {
 	return this._targets;
 };
+/**
+* Gets the size of the square this animation renders into, in logical pixels.
+* @returns {number} The viewport size.
+*/
+Sprite_Animation.prototype.viewportSize = function() {
+	return this._viewportSize;
+};
+/**
+* Gets whether or not this animation is being drawn flipped horizontally.
+* @returns {boolean} True when mirrored, false otherwise.
+*/
+Sprite_Animation.prototype.mirror = function() {
+	return this._mirror;
+};
+/**
+* Extends {@link Sprite_Animation.targetSpritePosition}.<br/>
+* Also converts the result out of stage coordinates and into framebuffer ones.
+*
+* Effekseer is handed a raw WebGL viewport rather than anything PIXI mediates, and `gl.viewport` is
+* addressed in framebuffer pixels. Vanilla mixes the two spaces without noticing, because at a
+* renderer resolution of one they are the same number: a screen-centred animation measures itself
+* off `renderer.view`, which is a framebuffer size, while a target-anchored one comes from a
+* sprite's `worldTransform`, which is the stage's logical space. Raise the resolution and the second
+* kind lands at two thirds of where it belongs, drifting further off the further from the origin its
+* target stands.
+*
+* The conversion belongs here rather than in `targetPosition` even though that is where the two
+* spaces meet, because `targetPosition` is a method other plugins reimplement - J-ABS replaces it
+* outright to skip destroyed targets, and any correction living there is simply gone. Every path to
+* a target's position runs through this method instead, so this is the seam that actually holds.
+* @param {Sprite} sprite The sprite whose position is being measured.
+* @returns {Point} The position, in framebuffer pixels.
+*/
+J.BASE.Aliased.Sprite_Animation.set("targetSpritePosition", Sprite_Animation.prototype.targetSpritePosition);
+Sprite_Animation.prototype.targetSpritePosition = function(sprite) {
+	const position = J.BASE.Aliased.Sprite_Animation.get("targetSpritePosition").call(this, sprite);
+	const scale = Graphics.deviceScale;
+	position.x *= scale;
+	position.y *= scale;
+	return position;
+};
+/**
+* Overrides {@link Sprite_Animation.setViewport}.<br/>
+* Sizes the animation's WebGL viewport in framebuffer pixels rather than logical ones.
+*
+* The viewport box vanilla computes is expressed entirely in the logical pixels an animation's
+* offsets are authored in, and is then handed to `gl.viewport`, which measures framebuffer pixels.
+* Every term has to be scaled rather than only some of them, which is why this replaces the
+* original outright instead of adjusting its result.
+* @param {PIXI.Renderer} renderer The renderer this animation is drawing through.
+*/
+Sprite_Animation.prototype.setViewport = function(renderer) {
+	const scale = Graphics.deviceScale;
+	const viewportWidth = this.viewportSize() * scale;
+	const viewportHeight = this.viewportSize() * scale;
+	const viewportX = this.animation().offsetX * scale - viewportWidth / 2;
+	const viewportY = this.animation().offsetY * scale - viewportHeight / 2;
+	const position = this.targetPosition(renderer);
+	renderer.gl.viewport(viewportX + position.x, viewportY + position.y, viewportWidth, viewportHeight);
+};
+/**
+* Overrides {@link Sprite_Animation.setProjectionMatrix}.<br/>
+* Keeps the perspective term measured in one space rather than two.
+*
+* The term divides the viewport size by the height of the renderer's view. The first of those is
+* logical and the second is a framebuffer size, so raising the resolution shrinks the ratio and
+* flattens every animation's perspective. Scaling the numerator restores the ratio the animation
+* was authored against, at any resolution.
+* @param {PIXI.Renderer} renderer The renderer this animation is drawing through.
+*/
+Sprite_Animation.prototype.setProjectionMatrix = function(renderer) {
+	const x = this.mirror() ? -1 : 1;
+	const y = -1;
+	const perspective = -(this.viewportSize() * Graphics.deviceScale / renderer.view.height);
+	Graphics.effekseer.setProjectionMatrix([
+		x,
+		0,
+		0,
+		0,
+		0,
+		y,
+		0,
+		0,
+		0,
+		0,
+		1,
+		perspective,
+		0,
+		0,
+		0,
+		1
+	]);
+};
 
 //#endregion
 //#region src/plugins/_base/core/sprites/Sprite_AnimationMV.js
@@ -14384,6 +15029,27 @@ Sprite_Damage.prototype.setDuration = function(newDuration) {
 */
 Sprite_Damage.prototype.flashColor = function() {
 	return this._flashColor;
+};
+/**
+* Extends {@link Sprite_Damage.createBitmap}.<br/>
+* Also raises the popup's drawing surface to the resolution of the display.
+*
+* A damage number is the text a player looks at more than any other in an action game, and it was
+* the last surface still being rasterized at logical size and magnified on its way to the screen -
+* so a crit landed with softer edges than the nameplate sitting directly above it.
+*
+* Every popup surface funnels through here, the icon's included, which is what makes this the whole
+* fix. The icon is unaffected in appearance: its source art is unscaled, so blitting it into a
+* scaled context magnifies it exactly as much as the screen was going to anyway.
+* @param {number} width The width of the popup surface.
+* @param {number} height The height of the popup surface.
+* @returns {Bitmap}
+*/
+J.BASE.Aliased.Sprite_Damage.set("createBitmap", Sprite_Damage.prototype.createBitmap);
+Sprite_Damage.prototype.createBitmap = function(width, height) {
+	const bitmap = J.BASE.Aliased.Sprite_Damage.get("createBitmap").call(this, width, height);
+	bitmap.applyDeviceScale(Graphics.deviceScale);
+	return bitmap;
 };
 
 //#endregion
@@ -15149,6 +15815,27 @@ Window_Base.prototype._computeGaugeInnerRect = function(rect, options) {
 */
 Window_Base.prototype.context = function() {
 	return this.contents.context;
+};
+/**
+* Extends {@link Window_Base.createContents}.<br/>
+* Also raises this window's drawing surfaces to the resolution of the display.
+*
+* Every glyph in a window is rasterized onto `contents` at the size the window believes it is,
+* which on a scaled display is smaller than the area it will actually occupy - so the text is drawn
+* short of the pixels it has and then magnified into them. Raising the surface here fixes that for
+* every window in the ecosystem at once, without a single caller changing: the drawing context is
+* scaled to match, so coordinates and measurements stay in the logical units they were written in.
+*
+* `contentsBack` is raised alongside it because the engine frames both sprites from their bitmaps'
+* reported dimensions, and the two disagreeing would misalign the backdrop against its text.
+*/
+J.BASE.Aliased.Window_Base.set("createContents", Window_Base.prototype.createContents);
+Window_Base.prototype.createContents = function() {
+	J.BASE.Aliased.Window_Base.get("createContents").call(this);
+	const scale = Graphics.deviceScale;
+	if (scale === 1) return;
+	this.contents.applyDeviceScale(scale);
+	this.contentsBack.applyDeviceScale(scale);
 };
 
 //#endregion

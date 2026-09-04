@@ -98,6 +98,34 @@
  *
  * Durations are in frames, at 60 frames per second. Changing them retunes how
  * every death in the game feels, without rebuilding anything.
+ *
+ * ----------------------------------------------------------------------------
+ * Loot expiry pacing lives in the same file, under `loot`:
+ *
+ *   "loot": {
+ *     "expiryWarnFrames": 300,
+ *     "expiryFadeFrames": 120,
+ *     "flicker": { "min": 0.2, "max": 1.0, "interval": 8 }
+ *   }
+ *
+ * A loot drop that is about to time out blinks for its last `expiryWarnFrames`,
+ * then additionally dissolves over its last `expiryFadeFrames`, reaching
+ * invisible on the frame it would have vanished anyway. The fade window sits
+ * inside the warning one, so the closing stretch both blinks and dims.
+ *
+ * The blink comes first on purpose. A slow dim is something the eye adapts to
+ * rather than notices, and it makes the drop hardest to see during exactly the
+ * window it most needs finding. A blink returns to full opacity between beats
+ * while being impossible to miss.
+ *
+ * `flicker` is the shape of that blink: the opacity range it swings between and
+ * how many frames pass between re-rolls. A lower `min` reads as a harder blink.
+ *
+ * Loot being drawn toward somebody is exempt: it has been claimed, it has
+ * stopped expiring, and anything already fading on it is put back.
+ *
+ * Collection is deliberately not animated. A collected drop arrives at the
+ * player and goes there, which is already a moment with a visible cause.
  * ============================================================================
  * CHANGELOG:
  * - 1.0.0
@@ -110,10 +138,10 @@
 /**
 * The metadata for J-Motion-ABS.
 *
-* Death pacing is read from the same external config J-Motion core uses, under its own `death`
-* section. Keeping it there rather than in plugin parameters means the speed at which everything in
-* the game dies is one file a designer can open, which is the sort of thing that gets retuned by
-* feel rather than by reasoning.
+* Death and loot pacing are read from the same external config J-Motion core uses, under their own
+* `death` and `loot` sections. Keeping them there rather than in plugin parameters means the speed
+* at which everything in the game dies or fades away is one file a designer can open, which is the
+* sort of thing that gets retuned by feel rather than by reasoning.
 */
 var J_MOTION_ABS_PluginMetadata = class J_MOTION_ABS_PluginMetadata extends PluginMetadata {
 	/**
@@ -142,19 +170,45 @@ var J_MOTION_ABS_PluginMetadata = class J_MOTION_ABS_PluginMetadata extends Plug
 		super(name, version);
 	}
 	/**
+	* The loot expiry pacing used when the config says nothing at all.
+	*
+	* Frames, and the same numbers the shipped config carries. `warnFrames` is when the drop starts
+	* blinking and `fadeFrames` is when it additionally starts dissolving, so the fade window sits
+	* inside the warning one rather than beside it.
+	* @type {Object}
+	*/
+	static FALLBACK_LOOT = {
+		warnFrames: 300,
+		fadeFrames: 120,
+		flicker: {
+			min: .2,
+			max: 1,
+			interval: 8
+		}
+	};
+	/**
 	* Extends {@link #postInitialize}.<br>
-	* Reads the death pacing out of the shared motion configuration.
+	* Reads the death and loot pacing out of the shared motion configuration.
 	*/
 	postInitialize() {
 		super.postInitialize();
-		this.initializeDeathMetadata();
+		const parsedConfiguration = this.loadMotionConfiguration();
+		this.initializeDeathMetadata(parsedConfiguration);
+		this.initializeLootMetadata(parsedConfiguration);
+	}
+	/**
+	* Reads the shared motion configuration off disk.
+	* @returns {Object} The parsed configuration root.
+	*/
+	loadMotionConfiguration() {
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Motion-ABS").configName("motion configuration").build();
+		return ExternalJsonConfigLoader.load(J_MOTION_ABS_PluginMetadata.CONFIG_PATH, options);
 	}
 	/**
 	* Reads how long each death style lasts, and which one everything gets by default.
+	* @param {Object} parsedConfiguration The parsed motion configuration root.
 	*/
-	initializeDeathMetadata() {
-		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Motion-ABS").configName("motion configuration").build();
-		const parsedConfiguration = ExternalJsonConfigLoader.load(J_MOTION_ABS_PluginMetadata.CONFIG_PATH, options);
+	initializeDeathMetadata(parsedConfiguration) {
 		const deathConfiguration = parsedConfiguration.death ?? {};
 		/**
 		* How many frames each death style holds the corpse open for.
@@ -169,6 +223,32 @@ var J_MOTION_ABS_PluginMetadata = class J_MOTION_ABS_PluginMetadata extends Plug
 		* @type {string}
 		*/
 		this.defaultDeathStyle = deathConfiguration.defaultStyle ?? "swift";
+	}
+	/**
+	* Reads how a loot drop announces that it is running out of time.
+	* @param {Object} parsedConfiguration The parsed motion configuration root.
+	*/
+	initializeLootMetadata(parsedConfiguration) {
+		const lootConfiguration = parsedConfiguration.loot ?? {};
+		const fallback = J_MOTION_ABS_PluginMetadata.FALLBACK_LOOT;
+		/**
+		* How many frames before a loot drop expires it begins blinking.
+		* @type {number}
+		*/
+		this.lootExpiryWarnFrames = lootConfiguration.expiryWarnFrames ?? fallback.warnFrames;
+		/**
+		* How many frames before a loot drop expires it additionally begins dissolving.
+		* @type {number}
+		*/
+		this.lootExpiryFadeFrames = lootConfiguration.expiryFadeFrames ?? fallback.fadeFrames;
+		/**
+		* The shape of the blink: the opacity range it swings between and how often it re-rolls.
+		* @type {{min: number, max: number, interval: number}}
+		*/
+		this.lootExpiryFlicker = {
+			...fallback.flicker,
+			...lootConfiguration.flicker
+		};
 	}
 	/**
 	* How long a death style runs for, in frames.
@@ -230,6 +310,7 @@ J.MOTION.EXT.ABS.Metadata = new J_MOTION_ABS_PluginMetadata("J-Motion-ABS", "1.0
 J.MOTION.EXT.ABS.Aliased = {};
 J.MOTION.EXT.ABS.Aliased.Game_Battler = new Map();
 J.MOTION.EXT.ABS.Aliased.JABS_Engine = new Map();
+J.MOTION.EXT.ABS.Aliased.Sprite_Character = new Map();
 /**
 * All regular expressions used by this plugin.
 */
@@ -677,6 +758,101 @@ var BattlerMotionCoordinator = class BattlerMotionCoordinator {
 };
 
 //#endregion
+//#region src/plugins/motion/ext/abs/managers/LootMotionCoordinator.js
+/**
+* Connects a loot drop's remaining lifetime with what its sprite is doing about it.
+*
+* A drop that times out is removed from the map the instant its duration hits zero. Nothing leads
+* into that, so from the player's side an item they were on their way to fetch is simply not there
+* any more, at a moment they had no way to anticipate.
+*
+* The warning is a blink first and a dissolve second, and the order matters. A slow dim is
+* something the eye adapts to rather than notices, and it also makes the drop progressively harder
+* to see during exactly the window it most needs finding. A blink keeps the drop at full opacity
+* half the time while being impossible to miss, which is why it is the conventional language for
+* a despawning pickup. The dissolve then joins it for the closing stretch to say the blinking is
+* nearly over.
+*
+* Collection is deliberately left alone. A collected drop arrives at the player and vanishes there,
+* which is already a moment with an author - adding a dissolve after it would soften a beat that
+* has earned being abrupt.
+*
+* `CharacterMotionComposer` and `MotionDeclaration` are reached as globals rather than imports:
+* they ship in the J-Motion bundle, and importing across that boundary would bundle a second copy
+* of each into this one.
+*/
+var LootMotionCoordinator = class LootMotionCoordinator {
+	/**
+	* The source key a loot drop's expiry blink is declared under.
+	* @type {string}
+	*/
+	static WARN_SOURCE_KEY = "loot:expiry-warn";
+	/**
+	* The source key a loot drop's expiry dissolve is declared under.
+	*
+	* Kept separate from the blink rather than declared alongside it, because a source replacing its
+	* own declarations tears down whatever it had running - so sharing one key would restart the
+	* blink at the moment the dissolve joined it.
+	* @type {string}
+	*/
+	static FADE_SOURCE_KEY = "loot:expiry-fade";
+	/**
+	* Keeps a loot sprite's expiry warning in step with how long the drop has left.
+	*
+	* Safe to call every frame. The composer treats a source re-declaring exactly what it already
+	* declared as a no-op, so each stage is started once and then left to run rather than being
+	* restarted into its opening frame over and over.
+	* @param {Sprite_Character} sprite The sprite of the loot drop being checked.
+	*/
+	static syncExpiryWarning(sprite) {
+		const character = sprite.character();
+		const lootDrop = character.getJabsLoot();
+		if (lootDrop.isWaiting() === false) {
+			LootMotionCoordinator.withdrawExpiryWarning(character);
+			return;
+		}
+		if (lootDrop.canExpire() === false) return;
+		const remaining = lootDrop.duration();
+		const metadata = J.MOTION.EXT.ABS.Metadata;
+		if (remaining > metadata.lootExpiryWarnFrames) return;
+		LootMotionCoordinator.declareExpiryFlicker(character, metadata.lootExpiryFlicker);
+		if (remaining > metadata.lootExpiryFadeFrames) return;
+		LootMotionCoordinator.declareExpiryFade(character, metadata.lootExpiryFadeFrames);
+	}
+	/**
+	* Starts a drop blinking to announce that it is running out of time.
+	* @param {Game_CharacterBase} character The loot character that should blink.
+	* @param {{min: number, max: number, interval: number}} flicker The shape of the blink.
+	*/
+	static declareExpiryFlicker(character, flicker) {
+		const { min, max, interval } = flicker;
+		const declaration = new MotionDeclaration("flicker", [
+			min,
+			max,
+			interval
+		], LootMotionCoordinator.WARN_SOURCE_KEY);
+		CharacterMotionComposer.declare(character, LootMotionCoordinator.WARN_SOURCE_KEY, [declaration]);
+	}
+	/**
+	* Starts a drop dissolving over the frames it has left.
+	* @param {Game_CharacterBase} character The loot character that should dissolve.
+	* @param {number} fadeFrames How many frames the dissolve spans.
+	*/
+	static declareExpiryFade(character, fadeFrames) {
+		const declaration = new MotionDeclaration("fade", [0, fadeFrames], LootMotionCoordinator.FADE_SOURCE_KEY);
+		CharacterMotionComposer.declare(character, LootMotionCoordinator.FADE_SOURCE_KEY, [declaration]);
+	}
+	/**
+	* Takes back everything the expiry warning had declared on a drop.
+	* @param {Game_CharacterBase} character The loot character that is no longer doomed.
+	*/
+	static withdrawExpiryWarning(character) {
+		CharacterMotionComposer.removeDeclarations(character, LootMotionCoordinator.WARN_SOURCE_KEY);
+		CharacterMotionComposer.removeDeclarations(character, LootMotionCoordinator.FADE_SOURCE_KEY);
+	}
+};
+
+//#endregion
 //#region src/plugins/motion/ext/abs/objects/Game_Battler.js
 /**
 * Extends {@link #addState}.<br/>
@@ -738,6 +914,26 @@ J.MOTION.EXT.ABS.Aliased.JABS_Engine.set("postPartyCycling", JABS_Engine.prototy
 JABS_Engine.prototype.postPartyCycling = function() {
 	J.MOTION.EXT.ABS.Aliased.JABS_Engine.get("postPartyCycling").call(this);
 	BattlerMotionCoordinator.refreshLeaderStateMotions();
+};
+
+//#endregion
+//#region src/plugins/motion/ext/abs/sprites/Sprite_Character.js
+/**
+* Extends {@link #handleLootDuration}.<br/>
+* Gives a loot drop a visible ending rather than letting it blink out.
+*
+* J-ABS's own duration handling is untouched: it still counts the drop down and still removes it
+* the moment it runs out. What changes is only that the closing stretch of that countdown is now
+* something the player can see, which is what makes a missed drop a thing that was lost rather
+* than a thing that was never there.
+*
+* Hooked here because this is already the per-frame heartbeat of a live loot drop, so nothing new
+* has to be polled and nothing in J-ABS had to learn what a motion is.
+*/
+J.MOTION.EXT.ABS.Aliased.Sprite_Character.set("handleLootDuration", Sprite_Character.prototype.handleLootDuration);
+Sprite_Character.prototype.handleLootDuration = function() {
+	J.MOTION.EXT.ABS.Aliased.Sprite_Character.get("handleLootDuration").call(this);
+	LootMotionCoordinator.syncExpiryWarning(this);
 };
 
 //#endregion

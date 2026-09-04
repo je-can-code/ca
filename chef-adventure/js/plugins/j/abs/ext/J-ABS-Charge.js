@@ -1696,7 +1696,7 @@ Sprite_Character.prototype.setupChargeGauge = function() {
 	sprite.activateGauge();
 	this.setChargeGauge(sprite);
 	sprite.move(-Math.round(sprite.bitmapWidth() / 2), -28);
-	this.addChild(sprite);
+	this.characterOverlay().addChild(sprite);
 };
 /**
 * Extends {@link #updateGauges}.<br/>

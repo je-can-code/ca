@@ -508,7 +508,8 @@ Sprite_Character.prototype.escriptionSignature = function(escriptions) {
 * @returns {number}
 */
 Sprite_Character.prototype.escriptionBaseY = function() {
-	return -(this.patternHeight() + 32);
+	const drawnHeight = this.patternHeight() * this.scale.y;
+	return -(drawnHeight + 32);
 };
 /**
 * How many text lines the given escriptions amount to.
@@ -576,7 +577,8 @@ Sprite_Character.prototype.refreshEscriptionSpritesIfNeeded = function() {
 	if (signature === this.escriptionKey()) return;
 	this.removeEscriptionSprites();
 	const sprites = escriptions.map((escription) => this.buildEscriptionSprite(escription));
-	sprites.forEach((sprite) => this.addChild(sprite));
+	const overlay = this.characterOverlay();
+	sprites.forEach((sprite) => overlay.addChild(sprite));
 	this.setEscriptionSprites(sprites);
 	this.setEscriptionKey(signature);
 };
@@ -604,7 +606,7 @@ Sprite_Character.prototype.buildEscriptionSprite = function(escription) {
 */
 Sprite_Character.prototype.buildEscriptionTextSprite = function(escription) {
 	const sprite = new Sprite_BaseText().setText(escription.content()).setFontSize(14).setAlignment(Sprite_BaseText.Alignments.Center).setColor("#ffffff");
-	sprite.x = -(sprite.width / 2);
+	sprite.x = TextRasterMetrics.snap(-(sprite.bitmapWidth() / 2), Graphics.deviceScale);
 	return sprite;
 };
 /**
@@ -622,7 +624,7 @@ Sprite_Character.prototype.buildEscriptionIconSprite = function(escription) {
 */
 Sprite_Character.prototype.removeEscriptionSprites = function() {
 	this.escriptionSprites().forEach((sprite) => {
-		this.removeChild(sprite);
+		this.characterOverlay().removeChild(sprite);
 		sprite.destroy();
 	});
 	this.setEscriptionSprites([]);
