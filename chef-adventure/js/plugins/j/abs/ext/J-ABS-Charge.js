@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 ABS-CHARGE] Enable skills to be charged to perform other skills.
+ * [v1.1.2 ABS-CHARGE] Enable skills to be charged to perform other skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -165,6 +165,9 @@
  * 1st tier charge skill as a result.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    The charge gauge now hangs off the character overlay, so it keeps its own size
+ *    and stays put through whatever the battler beneath it is animating.
  * - 1.1.1
  *    Adapted to the RPGManager array read signature.
  * - 1.1.0
@@ -365,7 +368,7 @@ J.ABS.EXT.CHARGE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.CHARGE.Metadata = new J_ChargePluginMetadata("J-ABS-Charge", "1.1.1");
+J.ABS.EXT.CHARGE.Metadata = new J_ChargePluginMetadata("J-ABS-Charge", "1.1.2");
 /**
 * A collection of all aliased methods for this plugin.
 */

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.19.0 ABS] Enables combat to be carried out on the map.
+ * [v4.20.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,14 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.20.0
+ *    Loot drops are now drawn toward a battler within their magnet radius, tunable
+ *    per battler with <lootMagnetBuff:N> and <lootMagnetRate:N> and configured in
+ *    data/config.jabs.json.
+ *    Added JABS_ActionOptions.withLocation, which copies an options set with only
+ *    its location replaced.
+ *    Nameplates, gauges and affliction strips now hang off the character overlay,
+ *    so they no longer squash, spin or blur along with a battler that is animating.
  * - 4.19.0
  *    Added the Force Respawn plugin command, which frees every pending respawn
  *    record in the world at once regardless of the method each was scheduled
@@ -4504,7 +4512,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.19.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.20.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -24579,7 +24587,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.19.0";
+var PLUGIN_VERSION = "4.20.0";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion

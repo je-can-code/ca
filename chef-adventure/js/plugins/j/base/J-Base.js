@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.9.0 BASE] The base class for all J plugins.
+ * [v3.10.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.10.0
+ *    The renderer now runs at the display's own resolution, and every text surface
+ *    rasterizes at it, so glyphs are drawn with the pixels the screen will show them
+ *    with rather than magnified into them.
+ *    Added Sprite_CharacterOverlay, the layer a character's captions belong on.
  * - 3.9.0
  *    Added a plugin parameter for a common event to execute when a new game begins.
  * - 3.8.0
@@ -1907,7 +1912,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.9.0";
+J.BASE.Metadata.Version = "3.10.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */

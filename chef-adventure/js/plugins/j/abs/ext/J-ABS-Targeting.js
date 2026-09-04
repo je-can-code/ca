@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 ABS-TARGETING] An extension for JABS that adds cursor-driven tactical targeting.
+ * [v1.0.1 ABS-TARGETING] An extension for JABS that adds cursor-driven tactical targeting.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -44,6 +44,10 @@
  * This skill will pause combat and prompt for a target before executing.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Relocating an action now copies its options through
+ *    JABS_ActionOptions.withLocation rather than rebuilding every field by hand,
+ *    so an option added later cannot be silently dropped on the way.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -132,7 +136,7 @@ J.ABS.EXT.TARGETING = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.TARGETING.Metadata = new JTargeting_PluginMetadata("J-ABS-Targeting", "1.0.0");
+J.ABS.EXT.TARGETING.Metadata = new JTargeting_PluginMetadata("J-ABS-Targeting", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

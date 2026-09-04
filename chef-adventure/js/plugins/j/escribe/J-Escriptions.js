@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 ESCRIBE] Enables "describing" the event with some text and/or an icon.
+ * @plugindesc [v1.1.1 ESCRIBE] Enables "describing" the event with some text and/or an icon.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -39,6 +39,9 @@
  * event is visible on the map.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Escriptions now hang off the character overlay and centre on whole pixels, so
+ *    they no longer stretch with an animating character or blur on half of them.
  * - 1.1.0
  *    Multiple <text> tags now render as multiple lines, rather than the last
  *    one silently winning. An icon rides above the whole block.
@@ -97,7 +100,7 @@ J.ESCRIBE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ESCRIBE.Metadata = new J_EscriptionsPluginMetadata("J-Escriptions", "1.1.0");
+J.ESCRIBE.Metadata = new J_EscriptionsPluginMetadata("J-Escriptions", "1.1.1");
 /**
 * All regular expressions used by this plugin.
 */
