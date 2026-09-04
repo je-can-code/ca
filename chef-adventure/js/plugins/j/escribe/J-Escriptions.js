@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 ESCRIBE] Enables "describing" the event with some text and/or an icon.
+ * @plugindesc [v1.1.1 ESCRIBE] Enables "describing" the event with some text and/or an icon.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -39,6 +39,9 @@
  * event is visible on the map.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Escriptions now hang off the character overlay and centre on whole pixels, so
+ *    they no longer stretch with an animating character or blur on half of them.
  * - 1.1.0
  *    Multiple <text> tags now render as multiple lines, rather than the last
  *    one silently winning. An icon rides above the whole block.
@@ -97,7 +100,7 @@ J.ESCRIBE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ESCRIBE.Metadata = new J_EscriptionsPluginMetadata("J-Escriptions", "1.1.0");
+J.ESCRIBE.Metadata = new J_EscriptionsPluginMetadata("J-Escriptions", "1.1.1");
 /**
 * All regular expressions used by this plugin.
 */
@@ -508,7 +511,8 @@ Sprite_Character.prototype.escriptionSignature = function(escriptions) {
 * @returns {number}
 */
 Sprite_Character.prototype.escriptionBaseY = function() {
-	return -(this.patternHeight() + 32);
+	const drawnHeight = this.patternHeight() * this.scale.y;
+	return -(drawnHeight + 32);
 };
 /**
 * How many text lines the given escriptions amount to.
@@ -576,7 +580,8 @@ Sprite_Character.prototype.refreshEscriptionSpritesIfNeeded = function() {
 	if (signature === this.escriptionKey()) return;
 	this.removeEscriptionSprites();
 	const sprites = escriptions.map((escription) => this.buildEscriptionSprite(escription));
-	sprites.forEach((sprite) => this.addChild(sprite));
+	const overlay = this.characterOverlay();
+	sprites.forEach((sprite) => overlay.addChild(sprite));
 	this.setEscriptionSprites(sprites);
 	this.setEscriptionKey(signature);
 };
@@ -604,7 +609,7 @@ Sprite_Character.prototype.buildEscriptionSprite = function(escription) {
 */
 Sprite_Character.prototype.buildEscriptionTextSprite = function(escription) {
 	const sprite = new Sprite_BaseText().setText(escription.content()).setFontSize(14).setAlignment(Sprite_BaseText.Alignments.Center).setColor("#ffffff");
-	sprite.x = -(sprite.width / 2);
+	sprite.x = TextRasterMetrics.snap(-(sprite.bitmapWidth() / 2), Graphics.deviceScale);
 	return sprite;
 };
 /**
@@ -622,7 +627,7 @@ Sprite_Character.prototype.buildEscriptionIconSprite = function(escription) {
 */
 Sprite_Character.prototype.removeEscriptionSprites = function() {
 	this.escriptionSprites().forEach((sprite) => {
-		this.removeChild(sprite);
+		this.characterOverlay().removeChild(sprite);
 		sprite.destroy();
 	});
 	this.setEscriptionSprites([]);

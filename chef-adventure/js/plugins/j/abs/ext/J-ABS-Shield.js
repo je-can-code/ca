@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.2 ABS-SHIELD] A JABS extension that provides state-based HP shields.
+ * [v1.1.3 ABS-SHIELD] A JABS extension that provides state-based HP shields.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -345,6 +345,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.3
+ *    The shield gauge now hangs off the character overlay, so it keeps its own size
+ *    and stays put through whatever the battler beneath it is animating.
  * - 1.1.2
  *    Routed the shield-formula error through J-Base's new Diagnostics, so it
  *    names J-ABS-Shield and shows the target, attacker and error as named keys
@@ -426,7 +429,7 @@ J.ABS.EXT.SHIELD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.1.2");
+J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.1.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1634,7 +1637,7 @@ Sprite_Character.prototype.setupShieldGauge = function() {
 	const x = -Math.round(sprite.bitmapWidth() / 2);
 	const y = 0;
 	sprite.move(x, y);
-	this.addChild(sprite);
+	this.characterOverlay().addChild(sprite);
 };
 /**
 * Extends {@link #updateGauges}.<br/>
