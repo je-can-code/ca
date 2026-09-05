@@ -32,25 +32,25 @@ towards Peter will escalate further and further.
 Upon Jerald and Rupert's return after slaying Wyatt in the Forest of Dreams, the protagonists hear the two arguing
 especially loudly; Vanderslop is fed up with Peter's insolence and so the quest chain is unlocked.
 
-### 1a) Tribute: `???`
+### 1a) Tribute: `richpoor-001`
 Vanderslop is absolutely livid with Peter's ignorance of his wealth. As a result, he demands tribute in the form of
 delicious food. Specifically, he demands a salad. Of course, Peter being a farmer, he has some materials, but what kind
 of salad can even be served to a fuckwad like Vanderslop? The `Wilted Wolftrap Salad`, naturally. Three of them.
 
-### 1b) Helping Hand: `???`
+### 1b) Helping Hand: `richpoor-002`
 With Vanderslop appeased for now, Peter recognizes your adventurer-like helpfulness, and has a humble request: his
 tunic that he wears when farming is totally now a `Dilapidated Tunic`, having lost its `Verte` shimmer. Please take his
 tunic and replenish its lost gloss and return with a `Verte Tunic` so he can farm in the harsh elements of Erocia once
 again safely.
 
-### 2a) Panegyric: `???`
+### 2a) Panegyric: `richpoor-003`
 Vanderslop is raging once again, unable to comprehend how Peter is not disappointed with himself for not being as
 wealthy as Vanderslop. He laments "if you're truly happy, then prove it by showing me the fruits of your labor".
 Despite the clearly flawed logic in Vanderslop's statements, it is up to Peter to yield the "fruits of his labor".
 He is a farmer though, and while he can provide you the produce to make it, it seems it is up to you to cook another
 dish for Vanderslop: specifically the `Seeing Jambalaya`. Again, three of them.
 
-### 2b) Friend in Need: `???`
+### 2b) Friend in Need: `richpoor-004`
 With Vanderslop sated once more, Peter can return to the original reason for which he came to Raevula in the first
 place: to get some replacement shoes. Working long hours on the farm have resulted in wearing his soles to the bone.
 His ask is simple: just some `Regular Shoes`- though coincidentally those are tier-5 shoes...
@@ -59,7 +59,7 @@ His ask is simple: just some `Regular Shoes`- though coincidentally those are ti
 normalcy, is quietly bearing multiple `Equip X` passives. The most defensively versatile man in Erocia wears
 anything he wants and uses it to farm potatoes. This is not a bug. This is the character.)
 
-### 3a) Out-Farmed: `???`
+### 3a) Out-Farmed: `richpoor-005`
 The tributes stop working, so Vanderslop can't buy Peter's LAND (it's not for sale) — so he does the pettiest
 possible thing money CAN do: he stands up a bigger, fancier, hired-labor farm operation right next door and
 floods the Raevula market to make Peter's humble plot irrelevant. Can't make the peasant sad? Buy a superior
@@ -72,7 +72,7 @@ Objectives:
 - CRAFT/FETCH: 1× top-tier centerpiece dish (TBD — newly learnable at this chapter's kitchen tier)
 - GO: deliver the banquet to Vanderslop's new operation
 
-### 3b) The Harvest: `???`
+### 3b) The Harvest: `richpoor-006`
 Peter's counter to being out-scaled is the only move he has and the only one that matters: not more crop, *better*
 crop — the best harvest of his life, delivered to the same market on the same day. He asks the duo for two days of
 honest farm labor. Two ex-gods, potato-digging. (Jerald — canonically **"The Potato Expert,"** whose profile is
@@ -85,7 +85,7 @@ Objectives:
 - FETCH: 20× potatoes via plot interactions on Peter's farm map
 - (Optional TIME spice: within two in-game days — the deadline made literal)
 
-### 4a) The Collapse: `???`
+### 4a) The Collapse: `richpoor-007`
 > Interlock (PROPOSED, not yet canon — depends on Frederick's chain, which the Maker hasn't reviewed):
 > **"turns the tap off"** = Vanderslop's wealth was never his; it was **Wyatt's** (his father, the dead mayor).
 > While Wyatt lived, the money flowed — the *tap* was open. In [Frederick's succession chain](../NW-raevula/page.md),
@@ -101,7 +101,7 @@ no inheritance? For one whole quest: nobody knows. He's just gone.
 Objectives:
 - (none — story/dialogue beat; the absence is the content)
 
-### 4b) His Keeper: `???`
+### 4b) His Keeper: `richpoor-008`
 It is PETER — of course it is Peter — who asks the duo to go check on him. The man Vanderslop spent the entire
 chain humiliating is the only person in Raevula who noticed he stopped eating. ("He demanded three salads a week.
 A man doesn't just stop demanding salads.") The duo finds Vanderslop wherever the Maker likes his rock-bottom:
@@ -111,7 +111,7 @@ Objectives:
 - GO: find Vanderslop (destination — rock-bottom venue TBD; the Red Baron's darkest corner is right there)
 - FETCH: 1× a hot meal to bring along (any cooked dish — the first food in the chain given, not demanded)
 
-### 5) The Fork: `???`
+### 5) The Fork: `richpoor-009`
 The conclusion, player-nudged through the dialogue of 4a/4b onward:
 
 Objectives (redemption path):
@@ -140,7 +140,7 @@ and zero idea he won anything, because he never thought he was competing.
   having met the only man in Erocia who already has what they're questing toward. Protagonist-grade capabilities,
   potato-farmer's life, completely at peace. They don't have the words for it yet. The ending does.
 
-### Coda) The Deed: `???`
+### Coda) The Deed: `richpoor-010`
 The vanity farm survives its owner's bankruptcy — and goes on the market (probate sale; Frederick the executor,
 if the succession interlock holds). And who on this continent is drowning in gold, given that every enemy drops
 it and almost nothing costs it? **The duo. The player buys the farm.**

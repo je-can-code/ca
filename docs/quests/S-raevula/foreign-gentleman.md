@@ -35,13 +35,13 @@ left before it happened.
 The chain only opens once the player has seen the Fallen Kingdom with their own eyes. Before that, Satoru is
 just flavor. After it, every line he says is a knife.
 
-### 1) Letters Home: `???`
+### 1) Letters Home: `satoru-001`
 Satoru learns the duo are travelers and asks the simplest favor in the game: carry a letter home for him. The
 player is holding a letter addressed to a place they know is graves. **Choice:** tell him now, or take the letter
 in silence. (The duo, characteristically, does not grasp the weight. The player does. That gap is the whole
 design — same trick as Gilbert's graves.)
 
-### 2) What Remains: `???`
+### 2) What Remains: `satoru-002`
 However quest 1 resolved, the truth arrives — from the player, or from the naren knight's investigation
 converging on the same silence. Satoru asks for one thing: escort him there, or bring him something back. What he
 does with what he learns — a memorial in Raevula, a decision to stay, something else — is **OPEN, the Maker's.**

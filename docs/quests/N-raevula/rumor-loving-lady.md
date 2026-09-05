@@ -22,7 +22,7 @@ channel of the Subterranean discovery doctrine (Silia is the personal channel).
 Rumors need material. Once the mayor is dead and the town is buzzing, Amy is in her element and will flag down
 the two strange adventurers everyone keeps talking about.
 
-### 1) Tell Me Everything: `???`
+### 1) Tell Me Everything: `amy-001`
 Amy trades in rumors, and the duo are walking rumor-generators. She wants an exclusive: something she doesn't
 already know, verified firsthand. Bring her proof of something from beyond the walls (e.g., a Stonefur hide —
 Yelena interlock — or a sketch of the basin depths). In exchange, she marks a couple of points of interest on the
@@ -32,7 +32,7 @@ player's map (a Suspicious Crack, a Durable Post spot).
 - Amy's idle dialogue begins tracking story progress with alarming accuracy.
 - One or two optional map secrets get marked.
 
-### 2) The Vacant Lot: `???`
+### 2) The Vacant Lot: `amy-002`
 The plot she stands beside is her white whale: WHY did the nature-lover abandon a perfectly good house? She wants
 the story from the source. Go ask the hippie in the Forest of Dreams and bring back the truth (the mayor's "evil
 vibes" — which, post-Wyatt, is retroactively excellent judgment).
@@ -41,7 +41,7 @@ vibes" — which, post-Wyatt, is retroactively excellent judgment).
 - When Treis's lab construction begins on the lot, Amy has EXTENSIVE feelings, live, per construction stage.
 - She starts treating the player as a peer, not a source.
 
-### 3) Whispers From Below: `???`
+### 3) Whispers From Below: `amy-003`
 > The Sloth vector — gossip channel. Gate: post-snakerope.
 
 Amy has been collecting a category of story she doesn't retell: miner stories. The deep shaft. The ones who went

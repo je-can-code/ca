@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.1 HUD-PARTY] A HUD frame that displays your party's data.
+ * [v1.4.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -43,6 +43,10 @@
  * for display.
  * ============================================================================
  * CHANGELOG:
+ * - 1.4.0
+ *    Player interference is now resolved by the shared resolver in J-HUD instead of
+ *    by this frame's own test against the player's screen position, which had this
+ *    frame's corner written into it.
  * - 1.3.1
  *    Fixed boot and load failures left behind by the quick menu pare-down:
  *    Scene_Map#createJabsAbsMenu still called the six create-window methods
@@ -103,7 +107,7 @@ J.HUD.EXT.PARTY = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudParty_PluginMetadata}
 */
-J.HUD.EXT.PARTY.Metadata = new JHudParty_PluginMetadata("J-HUD-PartyFrame", "1.3.1");
+J.HUD.EXT.PARTY.Metadata = new JHudParty_PluginMetadata("J-HUD-PartyFrame", "1.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -448,11 +452,7 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	*/
 	manageVisibility() {
 		this.handleMessageWindowInterference();
-		if (this.playerInterference()) {
-			this.handlePlayerInterference();
-		} else {
-			this.revertInterferenceOpacity();
-		}
+		this.alpha = HudInterferenceResolver.nextFrameAlpha(this);
 	}
 	/**
 	* Close and open the window based on whether or not the message window is up.
@@ -466,50 +466,6 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 		} else {
 			this.open();
 		}
-	}
-	/**
-	* Determines whether or not the player is in the way (or near it) of this window.
-	* @returns {boolean} True if the player is in the way, false otherwise.
-	*/
-	playerInterference() {
-		const playerX = $gamePlayer.screenX();
-		const playerY = $gamePlayer.screenY();
-		return playerX < this.width - 100 && playerY > this.y + 200;
-	}
-	/**
-	* Manages opacity for all sprites while the player is interfering with the visibility.
-	*/
-	handlePlayerInterference() {
-		this.hudSprites().forEach((sprite, _) => {
-			if (this.canHandleSpriteInterference(sprite) === false) return;
-			if (sprite.opacity > 64) {
-				sprite.opacity -= 15;
-			} else if (sprite.opacity < 64) {
-				sprite.opacity += 1;
-			}
-		}, this);
-	}
-	/**
-	* Reverts the opacity changes associated with the player getting in the way.
-	*/
-	revertInterferenceOpacity() {
-		this.hudSprites().forEach((sprite, _) => {
-			if (this.canHandleSpriteInterference(sprite) === false) return;
-			if (sprite.opacity < 255) {
-				sprite.opacity += 15;
-			} else if (sprite.opacity > 255) {
-				sprite.opacity = 255;
-			}
-		}, this);
-	}
-	/**
-	* Checks if the given sprite should be handled for interference.
-	* @param {Sprite_Face|Sprite_MapGauge|Sprite_ActorValue|Sprite_Icon|Sprite_BaseText} sprite The sprite driving this step.
-	* @returns {boolean}
-	*/
-	canHandleSpriteInterference(sprite) {
-		if (sprite.hasSelfManagedOpacity() === true) return false;
-		return true;
 	}
 	/**
 	* Draws the contents of the HUD.

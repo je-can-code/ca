@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 PASSIVE-AFFIX] Random passive affixes + tier presentation for JABS enemies.
+ * [v1.2.0 PASSIVE-AFFIX] Random passive affixes + tier presentation for JABS enemies.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -56,12 +56,33 @@
  * - Events (Comment commands on the pfage that spawns the enemy)
  *
  * POLICY / PRECEDENCE:
+ *  (0) If the "Random Affix Switch" parameter names a switch and that switch
+ *      is OFF, no random affix rolling occurs at all. Explicit affixes below
+ *      are unaffected by it.
  *  (1) If the event has an explicit `<passive:[...]>` list that contains any
  *      affix ids, then that list is applied and no random affix rolling
  *      occurs.
  *  (2) Otherwise, prefix and suffix are rolled independently by chance + pool.
  *  (3) Event comment overrides beat enemy note overrides, which beat the
  *      plugin defaults.
+ *
+ * ----------------------------------------------------------------------------
+ * GATING RANDOM AFFIXES BEHIND A SWITCH
+ * Have you ever wanted affixes to not exist yet? Perhaps the world is supposed
+ * to be ordinary until the story says otherwise, and an early rat wearing a
+ * suffix would give the whole thing away. Well now you can hold them back! Pick
+ * a switch in the "Random Affix Switch" plugin parameter, and no random affix
+ * rolls until that switch is ON.
+ *
+ * NOTES:
+ * - Leaving the parameter at 0 means no gate at all, which is how this plugin
+ *   behaved before the parameter existed. An unset switch changes nothing.
+ * - The gate covers ONLY the random pools. An affix written onto an event or
+ *   an enemy is a statement about that specific encounter, and those are
+ *   applied whether the switch is on or off.
+ * - The switch is read when a battler spawns. Enemies already standing on the
+ *   map when the switch flips keep whatever they rolled, so put the story
+ *   event somewhere the player leaves the map afterward.
  *
  * ----------------------------------------------------------------------------
  * BLOCKING RANDOM AFFIXES
@@ -246,6 +267,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Random affix rolling can be held behind a switch, so a world can stay ordinary
+ *    until the story says otherwise. Affixes written onto an event or an enemy are a
+ *    statement about that encounter and are applied regardless.
  * - 1.1.1
  *    The tier stripe colour resolver no longer tests for an empty string on top of
  *    testing the value itself. String.empty is falsy, so the first half of that
@@ -284,6 +309,13 @@
  * @text Default Suffix Affix Chance
  * @desc Percent chance to roll a random suffix affix when the slot is not blocked and no override applies.
  * @default 8
+ *
+ * @param rng-enabled-switch
+ * @parent parentConfigPassiveAffix
+ * @type switch
+ * @text Random Affix Switch
+ * @desc The switch that must be ON for random affixes to roll. Set to 0 to always roll. Authored affixes ignore this.
+ * @default 0
  */
 //endregion annotations
 
@@ -317,6 +349,18 @@ var JPassiveAffix_PluginMetadata = class extends PluginMetadata {
 		* @type {number}
 		*/
 		this.defaultSuffixChance = parseFloat(this.parsedPluginParameters["default-suffix-chance"]);
+		/**
+		* The switch that must be ON before random affixes will roll at all.
+		*
+		* Zero means no gate, which is both the default and the behavior every save had before this
+		* existed- a project that never picks a switch is never affected by this field.
+		*
+		* The gate deliberately covers only the random pools. An affix a designer wrote onto an event or
+		* an enemy row is a statement about that specific encounter, and holding those back until a story
+		* beat would silently unmake hand-authored fights.
+		* @type {number}
+		*/
+		this.rngEnabledSwitch = parseInt(this.parsedPluginParameters["rng-enabled-switch"]);
 	}
 	/**
 	* Initializes the state affix weight totals and maps.
@@ -409,7 +453,7 @@ J.PASSIVE.EXT.AFFIX = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.AFFIX.Metadata = new JPassiveAffix_PluginMetadata("J-Passive-Affix", "1.1.1");
+J.PASSIVE.EXT.AFFIX.Metadata = new JPassiveAffix_PluginMetadata("J-Passive-Affix", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -604,12 +648,28 @@ Object.defineProperty(RPG_State.prototype, "rewardMultipliers", { get() {
 //#endregion
 //#region src/plugins/passive/ext/affix/managers/JABS_AiManager.js
 /**
+* True when the game has reached the point where random affixes are allowed to roll.
+*
+* The switch is read at spawn time rather than cached, because the whole purpose of the gate is that
+* a story event flips it partway through a playthrough. A spawn that already happened keeps whatever
+* it rolled- affixes are decided once, when a battler is built from its event.
+*
+* A configured switch of zero means the project never opted into gating, so the answer is always yes.
+* @returns {boolean}
+*/
+JABS_AiManager.isPassiveAffixRngUnlocked = function() {
+	const gateSwitchId = J.PASSIVE.EXT.AFFIX.Metadata.rngEnabledSwitch;
+	if (gateSwitchId === 0) return true;
+	return $gameSwitches.value(gateSwitchId);
+};
+/**
 * True when prefix affix RNG is blocked for this spawn (enemy note or event comments).
 * @param {Game_Event} character Spawning map event.
 * @param {RPG_Enemy} enemyData Database enemy row.
 * @returns {boolean}
 */
 JABS_AiManager.shouldBlockPassivePrefixRng = function(character, enemyData) {
+	if (JABS_AiManager.isPassiveAffixRngUnlocked() === false) return true;
 	if (enemyData.noRngPassives) return true;
 	if (enemyData.noRngPrefixes) return true;
 	if (character.eventCommentsDisablePassiveAffixPrefixRng()) return true;
@@ -622,6 +682,7 @@ JABS_AiManager.shouldBlockPassivePrefixRng = function(character, enemyData) {
 * @returns {boolean}
 */
 JABS_AiManager.shouldBlockPassiveSuffixRng = function(character, enemyData) {
+	if (JABS_AiManager.isPassiveAffixRngUnlocked() === false) return true;
 	if (enemyData.noRngPassives) return true;
 	if (enemyData.noRngSuffixes) return true;
 	if (character.eventCommentsDisablePassiveAffixSuffixRng()) return true;
@@ -638,8 +699,7 @@ JABS_AiManager.postConvertMutate = function(battler, jabsBattler) {
 	J.PASSIVE.EXT.AFFIX.Aliased.JABS_AiManager.get("postConvertMutate").call(this, battler, jabsBattler);
 	const character = jabsBattler.getCharacter();
 	const passiveStateIds = character.getPassiveStateIds();
-	const hasExplicitPassives = passiveStateIds.length > 0;
-	const hasExplicitAffixes = hasExplicitPassives && passiveStateIds.some((id) => J.PASSIVE.EXT.AFFIX.Metadata.isAffixStateId(id));
+	const hasExplicitAffixes = passiveStateIds.some((id) => J.PASSIVE.EXT.AFFIX.Metadata.isAffixStateId(id));
 	if (hasExplicitAffixes) {
 		battler.addPassiveStateExternalSourceByStateIds(passiveStateIds);
 		return;

@@ -34,7 +34,7 @@
         "topFlavorText": "Proof that you completed the transdimensional beginner's tutorial."
       },
       "progression": {
-        "maxRank": 15,
+        "maxRank": 10,
         "rarity": 0,
         "baseCost": 0,
         "flatGrowthCost": 0,
@@ -48,60 +48,60 @@
       "panelParameters": [
         {
           "parameterKey": "mhp",
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 2.5,
+          "perRank": 10,
           "isFlat": true,
           "isCore": false
         },
         {
-          "parameterKey": "mhp",
+          "parameterKey": "mmp",
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "mtp",
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "atk",
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "def",
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "mat",
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "mdf",
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "agi",
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "luk",
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "exr",
           "perRank": 1,
           "isFlat": true,
           "isCore": false

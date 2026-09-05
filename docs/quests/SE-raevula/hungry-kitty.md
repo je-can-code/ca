@@ -15,16 +15,16 @@ allowed to make repeatedly.
 
 ## Quests
 
-### 1) Tribute (I): `???`
+### 1) Tribute (I): `mittens-001`
 Mittens is hungry. Mittens is always hungry. Feed the cat — but Mittens has STANDARDS, and standard kibble gets
 the inner-monologue review it deserves. Requires an actual cooked dish (Yelena/cooking interlock — the cooking
 system's most demanding critic weighs in).
 
-### 2) Tribute (II): `???`
+### 2) Tribute (II): `mittens-002`
 A better dish. The review is harsher, because now Mittens knows the player can do better. (The food chain system
 sees its highest-stakes deployment: a cat's opinion.)
 
-### 3) Tribute (III): `???`
+### 3) Tribute (III): `mittens-003`
 The finest dish the player can currently craft. Mittens eats the entire thing, sits, stares, and delivers the
 highest praise available to catkind: "You may continue to exist, shitbag." Reward: **Feline Favor** — a small
 LUK passive, and Mittens occasionally appears in Raevula sitting next to things worth noticing.

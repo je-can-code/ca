@@ -5,7 +5,7 @@
   "bgmVolume": 100,
   "bgsVolume": 100,
   "meVolume": 100,
-  "seVolume": 100,
+  "seVolume": 40,
   "jabsInputMappings": {
     "player1": {
       "Menu": [

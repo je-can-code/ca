@@ -41,7 +41,7 @@ announcement ("thanks to CERTAIN SOMEONES, I've had to update my stock") actuall
 question (where does the stock come from when everything outside the walls wants to eat everyone?), Gilbert
 deflects with a sales pitch, and the chain unlocks.
 
-### 1) Cart Trouble: `???`
+### 1) Cart Trouble: `gilbert-001`
 Gilbert's incoming shipment is "delayed." The delay is that it is inside the Pearlsalt Mines, because — as the
 player learns to their disbelief — his supply route runs THROUGH the mines. Nobody sane routes goods through a
 monster-infested mine. Gilbert insists it is the traditional route. Go into the mines (the half accessible from
@@ -51,7 +51,7 @@ chapter 1), find the crates, clear the hostiles around them, and bring the shipm
 - Gilbert's shop stock upgrades a tier (better pre-crafted goods).
 - The Believer and the Skeptic each get new dialogue about the incident, each MORE convinced of their position.
 
-### 2) The Route Less Traveled: `???`
+### 2) The Route Less Traveled: `gilbert-002`
 > Gated on the ukelele (`main-004`) — this quest lives in the tool-gated half of the mines.
 >
 > Implementation note: the mines used to be THE biggest dungeon in the game (~50 maps) before being truncated,
@@ -69,7 +69,7 @@ overpays noticeably, and does not explain anything.
 - Materials stock upgrades a tier; Gilbert's buyback rates improve permanently.
 - Gilbert's idle dialogue gains one new line that is slightly less salesman than usual.
 
-### 3) Where the Road Ends: `???`
+### 3) Where the Road Ends: `gilbert-003`
 > Gated on the torch tool (Treis chain interlock) — the path north requires it.
 
 The route continues north, toward the Desolate Graves — and that is exactly where it ends. The player follows the
@@ -92,7 +92,7 @@ The duo, for the record, does not get it. The player does. That's the design.
 - His restock announcement line never changes — "thanks to CERTAIN SOMEONES..." — but after this quest, the player
   knows what it means. Same words, new meaning. That's the whole trick.
 
-### 4) Nare Or Not: `???` (OPTIONAL — and note: Nare may become REAL — a small onsen area, tower in the
+### 4) Nare Or Not: `gilbert-004` (OPTIONAL — and note: Nare may become REAL — a small onsen area, tower in the
 background — see story-canon. The punchline below survives either way: even if Nare exists, Gilbert's trail
 still loops back to his own stall. Nare being real does not mean his stock comes from there. Both the Believer
 and the Skeptic get to be right.)

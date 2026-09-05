@@ -15,7 +15,7 @@ The first quest is a part of the main story. The player will come to the inn in 
 erocian slime so they can make the dish they desire, but before they are allowed to use her kitchen, she demands they
 go chop up some bearcats outside of Raevula.
 
-### 1) More Terror: `???`
+### 1) More Terror: `yelena-001`
 It turns out that the bearcats are at it again, and rather than thinning their population with further genocide, she
 considers alternative options. Apparently, there are fiercer and more menacing bearcat-like monsters- the "Stonefurs".
 They are the progenitors of the bearcats that terrorize the citizens of Raevula. She insists that the player should go
@@ -25,7 +25,7 @@ chop some of these up so she can string up their hides around the gates of Raevu
 As a result of completing this quest, some sort of visual indicator of "hides being strung up around the gates" should
 appear around Raevula.
 
-### 2) Bearcat Viscera: `???`
+### 2) Bearcat Viscera: `yelena-002`
 Yelena is thoroughly impressed by the player's prowess at eliminating such monsters and wants to see it in the flesh!
 The player thinks about it, and determines there is a spot way out in Fallen Kingdom where there were only a couple of
 the "Grimfangs" where the innkeeper could probably safely watch. So the player invites her to make her way to that
@@ -40,7 +40,7 @@ precisely because she's HONEST about the appetites the player pretends are quest
 "depth" is heritage, not tragedy: a warm one (see quest 5). Some links are just joy — and the flagship link
 being the joyful one keeps the town's grief from becoming a monoculture.
 
-### 3) Surf & Turf: `???`
+### 3) Surf & Turf: `yelena-003`
 > Gate: the torch (Seashell Shores access) — chapter 4. Zone doctrine: the Shores are Yelena's.
 
 The hides are strung, the bloodlust has a trophy wall, and now her OTHER appetite surfaces: she mentions, for the
@@ -53,7 +53,7 @@ is built around monster parts.
 - Kitchen tier up; a few sea-recipes enter the player's cookbook.
 - She starts sharpening things behind the counter during idle dialogue. Foreshadowing? Foreshadowing.
 
-### 4) The Matriarch: `???`
+### 4) The Matriarch: `yelena-004`
 The apex of the bearcat family tree: a named progenitor — the thing even Stonefurs are descended FROM (name and
 venue: Maker's call — deep Forest of Dreams and the Deluge Plains both plausible). Yelena has wanted this hunt
 her whole life. And this time she is not asking to watch.
@@ -88,7 +88,7 @@ has ever looted was a piece of her family's life coming home.
   grief (the no-buried-wound ruling holds): *wonder*. The family's work is still alive out there, and the duo
   keeps bringing it home. The lampshade gets its answer two chapters later.
 
-### 5) The Family Cookbook: `???`
+### 5) The Family Cookbook: `yelena-005`
 The capstone, and the warm truth: the bloodlust was never random. Her family were **hunter-cooks** — every
 recipe in the book is built around a specific beast, and the book was always meant to be worked by two: one who
 hunts, one who cooks. She's been both, alone, for years, and the book stalled at the recipes one person can't

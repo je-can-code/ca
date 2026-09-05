@@ -333,8 +333,8 @@
           "description": "It is pretty unlikely the \\Enemy[251] will willingly give you its flesh, so that means you get to take it by force.",
           "logs": {
             "inactive": "",
-            "active": "Chop up the \\Enemy[14] and carve off a chunk of its exomorpha!",
-            "completed": "The \\Armor[401] was acquired, fucking finally.",
+            "active": "Chop up the \\Enemy[251] and carve off a chunk of its exomorpha!",
+            "completed": "The \\Item[241] was acquired, fucking finally.",
             "failed": "",
             "missed": ""
           },
@@ -457,6 +457,46 @@
         },
         {
           "id": 2,
+          "type": "Quest",
+          "description": "A transdimensional rift, in a town that has never seen one. Both of them said out loud that they would go look.",
+          "logs": {
+            "inactive": "",
+            "active": "You agreed to check out the glowing hole in reality. It is not going to walk over here.",
+            "completed": "Whoever that was has apparently been waiting on you two for a very long time.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Step through the distortion in \\C[1]northeast Raevula\\C[0] and find out who is on the other side."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": [
+                "train-000"
+              ]
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 3,
           "type": "Indiscriminate",
           "description": "Any respectable town has an inn, and where there is an inn, there is probably a kitchen. Check it out!",
           "logs": {
@@ -586,7 +626,7 @@
         {
           "id": 2,
           "type": "Fetch",
-          "description": "Go make the \\item[151].",
+          "description": "Go make the \\item[518].",
           "logs": {
             "inactive": "",
             "active": "The kitchen is available to you! The pudding is finally within your grasp!",
@@ -607,7 +647,7 @@
             },
             "fetch": {
               "type": 0,
-              "id": 151,
+              "id": 518,
               "amount": 1
             },
             "slay": {
@@ -836,6 +876,82 @@
         {
           "id": 5,
           "type": "Indiscriminate",
+          "description": "Viskra repaid the ore with gossip: a metal person wanders the strange building beside the inn. \\N[2] is the only one who finds that remarkable.",
+          "logs": {
+            "inactive": "",
+            "active": "A robot. On this planet. \\N[2] would like someone to explain why that is not alarming.",
+            "completed": "Registered with the \\C[1]DIFFICULTY LORD\\C[0]. Nobody has explained what was actually signed.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Look into the out-of-place building beside \\C[6]The Comfy Bear\\C[0] on the way back to the mayor."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 6,
+          "type": "Indiscriminate",
+          "description": "Registering got the attention of something that does not use doors. You are going to meet it whether or not you agree.",
+          "logs": {
+            "inactive": "",
+            "active": "Whatever just dimmed the lights is not asking. Sit tight.",
+            "completed": "The \\C[6]Hunting Lord\\C[0] explained the anomalies, and what the machine in that facility actually is.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "There is nowhere to walk to. The meeting comes to you."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 7,
+          "type": "Indiscriminate",
           "description": "Go have a chat with the mayor- he is waiting in the entry hall of his mansion.",
           "logs": {
             "inactive": "",
@@ -872,7 +988,7 @@
           "isOptional": false
         },
         {
-          "id": 6,
+          "id": 8,
           "type": "Indiscriminate",
           "description": "You don't want to wait to see what the mayor has in store for you, so figure out how to escape the wing.",
           "logs": {
@@ -910,7 +1026,7 @@
           "isOptional": false
         },
         {
-          "id": 7,
+          "id": 9,
           "type": "Indiscriminate",
           "description": "It is unclear why there were mines directly beneath the mayor's mansion, but you should escape those, too.",
           "logs": {
@@ -948,7 +1064,7 @@
           "isOptional": false
         },
         {
-          "id": 8,
+          "id": 10,
           "type": "Indiscriminate",
           "description": "Going from one dungeon directly to another usually means there is something at the end... but what?",
           "logs": {
@@ -986,7 +1102,7 @@
           "isOptional": false
         },
         {
-          "id": 9,
+          "id": 11,
           "type": "Indiscriminate",
           "description": "What could a cabin be doing so deep in such a deadly forest? Only one way to find out...",
           "logs": {
@@ -1024,7 +1140,7 @@
           "isOptional": false
         },
         {
-          "id": 10,
+          "id": 12,
           "type": "Slay",
           "description": "Who would've guessed the mayor was hanging out in the basement of a busted up cabin? Take care of business.",
           "logs": {
@@ -2276,7 +2392,7 @@
         {
           "id": 5,
           "type": "Slay",
-          "description": "Defeat \\N[6]!",
+          "description": "Defeat \\Enemy[554]!",
           "logs": {
             "inactive": "",
             "active": "Self-preservation is important! Dying means gameover!",
@@ -2314,7 +2430,7 @@
         {
           "id": 6,
           "type": "Indiscriminate",
-          "description": "Discuss the situation with \\N[6].",
+          "description": "Discuss the situation with \\Enemy[554].",
           "logs": {
             "inactive": "",
             "active": "It is important to be able to discuss things in great detail.",
@@ -3500,7 +3616,7 @@
         {
           "id": 3,
           "type": "Slay",
-          "description": "Defeat \\enemy[66] and normalize nature once again!",
+          "description": "Defeat \\enemy[552] and normalize nature once again!",
           "logs": {
             "inactive": "",
             "active": "Well, chop it up and be done with this flooding business.",

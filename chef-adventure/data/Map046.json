@@ -7297,7 +7297,7 @@
               "code": 357,
               "indent": 0,
               "parameters": [
-                "j/omni/ext/J-Omni-Questopedia",
+                "j/omni/ext/J-OMNI-Quests",
                 "progress-quest",
                 "Progress Quest",
                 {
@@ -10721,7 +10721,7 @@
               "code": 357,
               "indent": 0,
               "parameters": [
-                "j/omni/ext/J-Omni-Questopedia",
+                "j/omni/ext/J-OMNI-Quests",
                 "unlock-quests",
                 "Unlock Quest(s)",
                 {
@@ -11665,7 +11665,7 @@
               "code": 357,
               "indent": 0,
               "parameters": [
-                "j/omni/ext/J-Omni-Questopedia",
+                "j/omni/ext/J-OMNI-Quests",
                 "progress-quest",
                 "Progress Quest",
                 {

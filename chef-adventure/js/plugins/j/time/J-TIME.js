@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.2.1 TIME] A system for tracking time- real or artificial.
+ * @plugindesc [v1.2.2 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -201,6 +201,10 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 1.2.2
+ *    Loading a save on a map tagged <noToneChange> keeps that map's tone. The tone
+ *    was resolved only on transfer, and a load is not a transfer, so the screen
+ *    reverted to the clock's ordinary tone until the player left and came back.
  * - 1.2.1
  *    Fixed time choice conditionals not hiding branches inside called common
  *    events.
@@ -678,7 +682,7 @@ J.TIME = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.2.1");
+J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.2.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2317,9 +2321,7 @@ DataManager.extractSaveContents = function(contents) {
 	if (!$gameTime) {
 		$gameTime = new Game_Time();
 		Diagnostics.info("J-TIME", "no clock existed in the loaded save file; creating one anew.");
-		return;
 	}
-	$gameTime.updateCurrentTone();
 };
 
 //#endregion
@@ -2887,8 +2889,8 @@ J.TIME.Aliased.Scene_Map.set("onMapLoaded", Scene_Map.prototype.onMapLoaded);
 Scene_Map.prototype.onMapLoaded = function() {
 	if (this.transfer()) {
 		this.handleTimeBlock();
-		$gameTime.updateCurrentTone();
 	}
+	$gameTime.updateCurrentTone();
 	J.TIME.Aliased.Scene_Map.get("onMapLoaded").call(this);
 };
 /**

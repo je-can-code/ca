@@ -40,7 +40,7 @@ Not everyone gets a happy ending. Nothing warns the player they're in a race.
 First-time Forgery brings him home. The shipped structure already carries: the refinement unlock once he senses
 your forged blueprints (CE105), and the "/24 blueprints forged" mastery gate for what follows.
 
-### 1) Master's Standard: `???`
+### 1) Master's Standard: `viktor-001`
 Supervised commissions — forge the set he assigns (3 pieces, tiered; exact blueprints TBD, drawn from the /24
 pool), delivered to his bench for critique. The critiques are loud, unsparing, and — the player may notice —
 never actually explain HOW to be better. Grading is not teaching. That gap is the whole chain.
@@ -48,7 +48,7 @@ never actually explain HOW to be better. Grading is not teaching. That gap is th
 #### After effects of "Master's Standard"
 - Blueprint scraps enter Metal Petal rotation; forge tier up.
 
-### 2) Say It Plain: `???`
+### 2) Say It Plain: `viktor-002`
 Viskra's latest piece sits on his bench awaiting review. Viktor grunts "8/10, handle's wrong" and goes back to
 work. The duo watches him draft actual feedback — and crumple it. Six times. The quest: ferry his botched
 attempts at communication (comic beats: a note that's just the word "GOOD", a diagram with no labels) until
@@ -59,7 +59,7 @@ weighting to her face — badly, then adequately, then genuinely. First real con
 - Viskra's stock improves (her doc, quest 2's review now comes WITH explanation).
 - Viktor's idle dialogue thaws by one degree.
 
-### 3) The Old Way: `???`
+### 3) The Old Way: `viktor-003`
 > This is the quest that saves her life. The game never says so.
 
 The duo has heard the named-weapon lore (his shipped speech — the soul, the price, "most of them long since
@@ -72,7 +72,7 @@ conversation-forcer?] and refuses to leave until the lesson is taught to the per
 - Viskra knows the price. Her finale changes shape (see her doc — "oh, at it again?").
 - The pub visits drop to almost never.
 
-### 4) The New Way: `???`
+### 4) The New Way: `viktor-004`
 The capstone, and the reform: if souls make steel great, and the price is unpayable — find the way to deepen a
 blade without anyone dying into it. With the duo fetching the components (late-zone exotics, list TBD), Viktor
 works out the first enhancement ever performed without a death. The man who paid half his soul invents the

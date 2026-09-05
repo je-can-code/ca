@@ -15,7 +15,7 @@ Tier: FLAVOR-plus. **Reward family: guarding** — the guard teaches guarding (p
 
 ## Quests
 
-### 1) Drills: `???`
+### 1) Drills: `cecil-001`
 Cecil, having watched two demigods stroll through town, swallows his pride and asks them to train him. The beat:
 a guard/parry-focused sparring minigame where the PLAYER demonstrates and Cecil learns. It goes badly, then less
 badly, then — once — genuinely well, and his face when he holds a parry against Jerald is the whole reward.
@@ -25,7 +25,7 @@ teacher.)
 #### After effects of "Drills"
 - Cecil's idle stance animation changes — he stands like someone who trained.
 
-### 2) The Patrol Route: `???`
+### 2) The Patrol Route: `cecil-002`
 > TIME plugin showcase — night content.
 
 He invites the duo on his actual patrol: the full circuit of Raevula, at night. Nothing attacks. That's not the

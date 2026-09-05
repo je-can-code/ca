@@ -18,7 +18,7 @@ mind sharp. The town reads her as mercenary. She's actually the most disciplined
 
 ### 0) Unlock Quest: `main-003` (alongside rich-and-poor's opening)
 
-### 1) Cost-Benefit: `???`
+### 1) Cost-Benefit: `iris-001`
 Iris hires the duo for oddly specific errands: price checks at Gilbert's stall (interlock), weight-verification
 of trade goods, one discreet appraisal. She pays exactly fair market rate, to the coin. The player is helping
 her build a ledger. She doesn't say what it's for. It's an exit fund.
@@ -28,7 +28,7 @@ her build a ledger. She doesn't say what it's for. It's an exit fund.
   chances)** for observed monsters. It's precisely her gift, taught: the duo doesn't get sharper eyes — they
   get her habit of *reading the probabilities*. (Real utility in the two economies this game actually runs on.)
 
-### 2) The Variables: `???`
+### 2) The Variables: `iris-002`
 > Interlock gate: the succession thread ([page.md](../NW-raevula/page.md)) — Vanderslop's estate destabilizes.
 
 The dead mayor's money stops flowing and Vanderslop's leverage evaporates — and with it, the "reasons." Her
@@ -56,7 +56,7 @@ is simply the only person on the continent whose gift is parsing signal out of t
 character, never gets wise, never knows they changed a life. The one-time narrator device belongs to her alone —
 do not reuse it for anyone else; parsing IS her superpower, and this box is its one perfect firing.)
 
-### 3) Recalculation: `???`
+### 3) Recalculation: `iris-003`
 She solves it — and the solve matters: **she chooses herself first.** Breaks the engagement on her own terms,
 settles the "reasons" with her own ledger, and only THEN — free, unowed, unpressured — walks over to Peter and
 his potatoes. Not rescued. Not won. Recalculated. (Whether Peter fumbles the moment adorably: yes.)

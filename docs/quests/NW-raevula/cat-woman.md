@@ -19,16 +19,16 @@ old job back, in the timeline that finally stuck. The comedy stays comedy. The p
 
 ## Quests
 
-### 1) Audition One: `???`
+### 1) Audition One: `nyancy-001`
 She demands a formal party audition. Her demonstrated skills: knocking valuable items off high surfaces,
 ignoring direct instructions, and landing on her feet from a height of one (1) fence. Verdict: no. Her takeaway:
 "So there's an opening."
 
-### 2) Audition Two: `???`
+### 2) Audition Two: `nyancy-002`
 She has trained. New skills: sitting in boxes regardless of box size, staring at a wall with enormous purpose,
 and a sixty-percent-accurate pounce. Verdict: no. Her takeaway: "I could feel you hesitate."
 
-### 3) The Final Audition: `???`
+### 3) The Final Audition: `nyancy-003`
 She performs an unbroken three-minute routine of actual, genuine grace — and then walks away mid-verdict because
 she lost interest, which is the most feline possible outcome. Reward: she teaches "Cat's Grace" (a small
 evasion/luck passive) out of magnanimity, since "you clearly need it more than me."

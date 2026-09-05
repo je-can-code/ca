@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.20.0 ABS] Enables combat to be carried out on the map.
+ * [v4.20.1 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,15 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.20.1
+ *    A respawn-pending battler is now erased when its placement is refused, so a
+ *    killed enemy no longer lingers on the map as an animating shell after a reload.
+ *    Forced displacement probes the tile it is standing on rather than the one it is
+ *    reaching for, so knockback and pull-forward stop at the correct tile.
+ *    A skill slot resolving to no skill returns nothing instead of throwing, which
+ *    could crash the HUD when a bitmap finished loading after a map transfer.
+ *    Removing a loot icon removes only that icon, and matches on the loot's uuid
+ *    rather than on the uuid method, which had destroyed an unrelated drop.
  * - 4.20.0
  *    Loot drops are now drawn toward a battler within their magnet radius, tunable
  *    per battler with <lootMagnetBuff:N> and <lootMagnetRate:N> and configured in
@@ -4512,7 +4521,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.20.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.20.1");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -9952,6 +9961,7 @@ var JABS_AiManager = class JABS_AiManager {
 	static convertEventToBattler(event) {
 		if (!this.canConvertEventToBattler(event)) {
 			event.setJabsBattlerUuid(String.empty);
+			this.eraseRespawningEvent(event);
 			return null;
 		}
 		const battler = new Game_Enemy(event.getBattlerId(), null, null);
@@ -9996,6 +10006,18 @@ var JABS_AiManager = class JABS_AiManager {
 		const record = $gameSystem.respawnRecord($gameMap.mapId(), event.eventId());
 		if (record === null) return false;
 		return !JABS_RespawnManager.isDue(record);
+	}
+	/**
+	* Erases an event that a respawn record is holding back, so the map is without it until it
+	* returns. The map rebuilds its events on every entry and on every load, so this is undone the
+	* moment the record comes due rather than being something the event carries around.
+	* @param {Game_Event} event The event that was refused conversion.
+	*/
+	static eraseRespawningEvent(event) {
+		if (!event.isJabsBattler()) return;
+		if (event.isErased()) return;
+		if (!this.isRespawnPending(event)) return;
+		event.erase();
 	}
 	/**
 	* Converts a collection of followers into allies if possible.
@@ -11966,11 +11988,12 @@ var JABS_SkillSlot = class {
 	* Supports retrieving combo skills via targetId.
 	* Supports skill extended data via J-Extend.
 	* @param {Game_Actor|null} user The user to get extended skill data for.
-	* @param {number|null} targetId The target id to get skill data for.
+	* @param {number|null} targetId The target id to get skill data for. Zero is the caller's
+	* "there is no skill" sentinel and yields null, same as an absent id.
 	* @returns {RPG_UsableItem|RPG_Skill|null}
 	*/
 	data(user = null, targetId = this.id) {
-		if (targetId === null) return null;
+		if (targetId === null || targetId === 0) return null;
 		if (this.isEmpty()) return null;
 		if (this.isItem()) {
 			return $dataItems[targetId];
@@ -19159,9 +19182,9 @@ var JABS_Engine = class JABS_Engine {
 		}
 		const { x, y } = staleEvent.event();
 		if ($gamePlayer.pos(x, y)) return;
+		$gameSystem.clearRespawnRecord(mapId, eventId);
 		const freshEvent = new Game_Event(mapId, eventId);
 		$gameMap.setEventByIndex(eventId, freshEvent);
-		$gameSystem.clearRespawnRecord(mapId, eventId);
 		$gameMap.refreshOneBattler(freshEvent);
 		freshEvent.flagBattlerForAdding();
 		this.requestBattlerRendering = true;
@@ -24587,7 +24610,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.20.0";
+var PLUGIN_VERSION = "4.20.1";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
@@ -30795,33 +30818,25 @@ Game_CharacterBase.prototype.isDodging = function() {
 Game_CharacterBase.prototype.walkInDirectionClamped = function(direction, distance) {
 	let realX = this.x;
 	let realY = this.y;
-	let canPass = true;
 	let stepsTaken = 0;
 	const stepsToWalk = Math.round(distance);
-	while (canPass && stepsTaken < stepsToWalk) {
+	while (stepsTaken < stepsToWalk) {
+		if (!this.canPass(realX, realY, direction)) break;
 		switch (direction) {
 			case J.ABS.Directions.UP:
 				realY--;
-				canPass = this.canPass(realX, realY, direction);
-				if (!canPass) realY++;
 				break;
 			case J.ABS.Directions.DOWN:
 				realY++;
-				canPass = this.canPass(realX, realY, direction);
-				if (!canPass) realY--;
 				break;
 			case J.ABS.Directions.LEFT:
 				realX--;
-				canPass = this.canPass(realX, realY, direction);
-				if (!canPass) realX++;
 				break;
 			case J.ABS.Directions.RIGHT:
 				realX++;
-				canPass = this.canPass(realX, realY, direction);
-				if (!canPass) realX--;
 				break;
 		}
-		if (canPass) stepsTaken++;
+		stepsTaken++;
 	}
 	return [realX - this.x, realY - this.y];
 };
@@ -34545,10 +34560,14 @@ Sprite_Character.prototype.handleLootSetup = function() {
 };
 /**
 * Whether or not we've drawn the child sprites that make up the loot.
+*
+* This asks the loot sprite itself rather than counting children, because the child list is no
+* longer ours alone- every character sprite is built with an overlay layer already attached, so a
+* count would answer "yes" for a drop whose icon has never been made.
 * @returns {boolean} True if we've already drawn the loot sprites, false otherwise.
 */
 Sprite_Character.prototype.hasLootDrawn = function() {
-	return this.children.length > 0;
+	return this.getLootSprite() !== null;
 };
 /**
 * Sets up this character's sprite for activities on the map.
@@ -34570,7 +34589,7 @@ Sprite_Character.prototype.getLootSprite = function() {
 };
 /**
 * Sets the loot sprite associated with this character.
-* @param {Sprite_Icon} sprite The icon sprite for this loot.
+* @param {Sprite_Icon|null} sprite The icon sprite for this loot, or null once it has been removed.
 */
 Sprite_Character.prototype.setLootSprite = function(sprite) {
 	this._j._abs._loot._sprite = sprite;
@@ -34627,12 +34646,17 @@ Sprite_Character.prototype.performLootDurationCountdown = function() {
 	this.getLootData().countdownDuration();
 };
 /**
-* Deletes all child loot sprites from the screen.
+* Removes this character's loot icon from the screen.
+*
+* Only the icon goes. The character's other children- the overlay layer chief among them- belong to
+* whoever attached them, and clearing the whole list would take those down with it. `removeChild` is
+* used rather than editing the array directly so PIXI's own parent bookkeeping stays honest.
 */
 Sprite_Character.prototype.deleteLootSprite = function() {
-	if (this.children.length > 0) {
-		this.children.splice(0, this.children.length);
-	}
+	const lootSprite = this.getLootSprite();
+	if (lootSprite === null) return;
+	this.removeChild(lootSprite);
+	this.setLootSprite(null);
 };
 /**
 * Gets whether or not this sprite is actually just some loot to be gathered.
@@ -35179,18 +35203,14 @@ Spriteset_Map.prototype.removeLootSprite = function(lootEvent) {
 		return true;
 	});
 	if (spriteIndex === -1) {
-		const targetLoot = lootEvent.getJabsLoot();
-		const targetUuid = targetLoot ? targetLoot.uuid : null;
-		if (targetUuid) {
-			spriteIndex = this.characterSprites().findIndex((sprite) => {
-				const character = sprite.character();
-				if (!character) return false;
-				if (!character.isJabsLoot()) return false;
-				const loot = character.getJabsLoot();
-				if (!loot) return false;
-				return loot.uuid === targetUuid;
-			});
-		}
+		const targetUuid = lootEvent.getJabsLoot().uuid();
+		spriteIndex = this.characterSprites().findIndex((sprite) => {
+			const character = sprite.character();
+			if (!character) return false;
+			if (!character.isJabsLoot()) return false;
+			const loot = character.getJabsLoot();
+			return loot.uuid() === targetUuid;
+		});
 	}
 	if (spriteIndex !== -1) {
 		const sprite = this.characterSprites()[spriteIndex];

@@ -19,14 +19,14 @@ and the game's Nanako: a kid processing a loss she doesn't have words for, growi
 In chapter 4 she finally lets the duo in — not because she trusts them, but because they're the only people in
 town who go where she can't.
 
-### 1) The Fort: `???`
+### 1) The Fort: `silia-001`
 Inside, the house is... kept. Tidy. A place at the table set. She wants help gathering "supplies dad likes" —
 miner's rations, lamp oil, pearl salt. The duo assumes it's a game. The player slowly realizes it isn't.
 
 #### After effects of "The Fort"
 - Silia's exterior dialogue softens by one single degree. One.
 
-### 2) Deep Delivery: `???`
+### 2) Deep Delivery: `silia-002`
 > Gate: snakerope (the deep entrances). This is a Subterranean breadcrumb — door, never contents.
 
 She asks the duo to deliver her father's lamp to "where he's working — the deep part." Adventurers can go where

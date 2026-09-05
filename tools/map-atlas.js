@@ -12,6 +12,7 @@
  *   bun tools/map-atlas.js gates <rootMapId>
  *   bun tools/map-atlas.js oneways [rootMapId]
  *   bun tools/map-atlas.js plan <mapId>
+ *   bun tools/map-atlas.js event <mapId> [eventId]
  *
  * See docs/maps/atlas.md for what each subcommand is for and how to read its output.
  */
@@ -779,9 +780,175 @@ const commandPlan = async mapId =>
   });
 };
 
+/**
+ * The event command codes worth narrating, and how to say each one.
+ *
+ * Anything absent is printed as its bare numeric code rather than dropped, because a command nobody
+ * has taught this tool about is exactly the one worth noticing in an unfamiliar event.
+ * @type {Object<number, {label: string, detail: (parameters: any[]) => string}>}
+ */
+const COMMAND_READERS = {
+  101: { label: 'text', detail: p => `speaker: ${p[4] || '(none)'}` },
+  401: { label: '  |', detail: p => p[0] },
+  102: { label: 'choices', detail: p => JSON.stringify(p[0]) },
+  402: { label: 'when', detail: p => p[1] },
+  103: { label: 'input-number', detail: p => `var ${p[0]}, ${p[1]} digits` },
+  108: { label: 'comment', detail: p => p[0] },
+  408: { label: 'comment', detail: p => p[0] },
+  111: { label: 'if', detail: p => describeCondition(p) },
+  411: { label: 'else', detail: () => '' },
+  412: { label: 'end-if', detail: () => '' },
+  117: { label: 'common-event', detail: p => `CE${p[0]}` },
+  121: { label: 'switch', detail: p => `${p[0] === p[1] ? p[0] : `${p[0]}-${p[1]}`} = ${p[2] === 0 ? 'ON' : 'OFF'}` },
+  122: { label: 'variable', detail: p => `var ${p[0] === p[1] ? p[0] : `${p[0]}-${p[1]}`}` },
+  123: { label: 'self-switch', detail: p => `${p[0]} = ${p[1] === 0 ? 'ON' : 'OFF'}` },
+  126: { label: 'gain-item', detail: p => `item ${p[0]} x${p[3]}` },
+  127: { label: 'gain-weapon', detail: p => `weapon ${p[0]} x${p[3]}` },
+  128: { label: 'gain-armor', detail: p => `armor ${p[0]} x${p[3]}` },
+  201: { label: 'transfer', detail: p => `-> Map${p[1]} (${p[2]},${p[3]})` },
+  205: { label: 'move-route', detail: () => '' },
+  212: { label: 'animation', detail: p => `id ${p[1]}` },
+  213: { label: 'balloon', detail: p => `id ${p[1]}` },
+  230: { label: 'wait', detail: p => `${p[0]} frames` },
+  355: { label: 'script', detail: p => p[0] },
+  655: { label: '  |', detail: p => p[0] },
+  357: { label: 'PLUGIN', detail: p => `${p[1]} ${JSON.stringify(p[3])}` },
+  657: { label: '  |', detail: p => p[0] },
+};
+
+/**
+ * Renders a conditional branch's parameters as something a person can read.
+ *
+ * Only the branch kinds this project actually uses are spelled out; the rest fall back to the raw
+ * parameters, which is still more useful than pretending the branch is not there.
+ * @param {any[]} parameters The conditional branch's parameters.
+ * @returns {string}
+ */
+const describeCondition = parameters =>
+{
+  const [ kind ] = parameters;
+
+  // switch is by far the most common gate in this project's events.
+  if (kind === 0) return `switch ${parameters[1]} is ${parameters[2] === 0 ? 'ON' : 'OFF'}`;
+
+  // variable comparisons against a constant.
+  if (kind === 1) return `var ${parameters[1]} compared to ${parameters[3]}`;
+
+  // self-switches gate the per-event progression pages.
+  if (kind === 2) return `self-switch ${parameters[1]} is ${parameters[2] === 0 ? 'ON' : 'OFF'}`;
+
+  // script conditions carry their own explanation.
+  if (kind === 12) return `script: ${parameters[1]}`;
+
+  return JSON.stringify(parameters);
+};
+
+/**
+ * Describes the conditions under which one page of an event becomes the active page.
+ * @param {object} conditions The page's conditions object.
+ * @returns {string}
+ */
+const describePageConditions = conditions =>
+{
+  const gates = [];
+
+  if (conditions.switch1Valid) gates.push(`switch ${conditions.switch1Id}`);
+  if (conditions.switch2Valid) gates.push(`switch ${conditions.switch2Id}`);
+  if (conditions.variableValid) gates.push(`var ${conditions.variableId} >= ${conditions.variableValue}`);
+  if (conditions.selfSwitchValid) gates.push(`self-switch ${conditions.selfSwitchCh}`);
+  if (conditions.itemValid) gates.push(`holding item ${conditions.itemId}`);
+  if (conditions.actorValid) gates.push(`actor ${conditions.actorId} in party`);
+
+  return gates.length ? gates.join(' AND ') : 'no conditions';
+};
+
+/**
+ * How RPG Maker names each page trigger, indexed by the trigger's own value.
+ * @type {string[]}
+ */
+const TRIGGER_NAMES = [ 'action button', 'player touch', 'event touch', 'autorun', 'parallel' ];
+
+/**
+ * Prints one page of an event: what makes it the active page, and everything it then does.
+ * @param {object} page The event page to narrate.
+ * @param {number} pageIndex The page's index within the event.
+ */
+const printPage = (page, pageIndex) =>
+{
+  const trigger = TRIGGER_NAMES[page.trigger] ?? `trigger ${page.trigger}`;
+  console.log(`\n  --- page ${pageIndex} [${describePageConditions(page.conditions)}] on ${trigger} ---`);
+
+  page.list.forEach(command =>
+  {
+    // an empty command is the terminator RPG Maker appends to every list and branch.
+    if (command.code === 0) return;
+
+    const reader = COMMAND_READERS[command.code];
+    const indent = '  '.repeat(command.indent + 1);
+
+    // an unknown code still gets a line, because silence would hide it.
+    if (!reader)
+    {
+      console.log(`${indent}[${command.code}]`);
+      return;
+    }
+
+    const detail = reader.detail(command.parameters);
+    console.log(`${indent}${reader.label}${detail ? ` ${detail}` : ''}`);
+  });
+};
+
+/**
+ * Prints every page of one event, or a one-line summary of every event on the map.
+ *
+ * This is the companion to `plan`: that answers "what does this room look like and who is standing in
+ * it", and this answers "what does that one actually do when you walk up to it".
+ * @param {number} mapId The map to inspect.
+ * @param {number} eventId The event to narrate, or NaN to list them all.
+ */
+const commandEvent = async (mapId, eventId) =>
+{
+  const map = await loadMap(mapId);
+
+  if (!map)
+  {
+    console.log(`Map${mapId} does not exist.`);
+    return;
+  }
+
+  const events = map.events.filter(event => event);
+  console.log(`Map${String(mapId).padStart(3, '0')} — ${nameOf(mapId)}  [${events.length} events]`);
+
+  // with no event named, a summary is more useful than dumping every page on the map.
+  if (Number.isNaN(eventId))
+  {
+    events.forEach(event =>
+    {
+      const pages = event.pages
+        .map((page, index) => `p${index}[${describePageConditions(page.conditions)}]`)
+        .join(' ');
+      console.log(`  #${String(event.id).padStart(3)} (${event.x},${event.y}) ${event.name}\n        ${pages}`);
+    });
+
+    console.log(`\nname an event id to read its pages: bun tools/map-atlas.js event ${mapId} <eventId>`);
+    return;
+  }
+
+  const event = map.events[eventId];
+
+  if (!event)
+  {
+    console.log(`  no event #${eventId} on this map.`);
+    return;
+  }
+
+  console.log(`\n#${event.id} "${event.name}" at (${event.x},${event.y}), ${event.pages.length} pages`);
+  event.pages.forEach(printPage);
+};
+
 //endregion subcommands
 
-const [ command, argument ] = Bun.argv.slice(2);
+const [ command, argument, secondArgument ] = Bun.argv.slice(2);
 const target = Number(argument);
 
 switch (command)
@@ -804,7 +971,11 @@ switch (command)
   case 'plan':
     await commandPlan(target);
     break;
+  case 'event':
+    await commandEvent(target, Number(secondArgument));
+    break;
   default:
     console.log('usage: bun tools/map-atlas.js <dungeons|atlas|links|gates|oneways|plan> [mapId]');
+    console.log('       bun tools/map-atlas.js event <mapId> [eventId]');
     console.log('see docs/maps/atlas.md for what each subcommand answers.');
 }

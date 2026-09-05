@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 CMS] A redesign of the main menu.
+ * [v1.2.1 CMS] A redesign of the main menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -29,6 +29,9 @@
  * redesign of the native main menu.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    Resource amounts in the status list are rounded before being drawn. The gauge
+ *    still fills from the exact value, so only the label changed.
  * - 1.2.0
  *    The menu gold strip is now a currency strip: CurrencyDefinition describes
  *    a currency, registerCoreCurrencies declares gold, and Window_Currencies
@@ -196,7 +199,7 @@ J.CMS = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS.Metadata = new J_CmsMain_PluginMetadata("J-CMS", "1.2.0");
+J.CMS.Metadata = new J_CmsMain_PluginMetadata("J-CMS", "1.2.1");
 /**
 * The plugin umbrella that governs all extensions of this plugin.
 */
@@ -502,6 +505,11 @@ var MenuStatusCatalog = class MenuStatusCatalog {
 	* A resource with no capacity reads as empty rather than as a division by zero. That is a real
 	* state rather than a defensive one- an actor with no magic at all has an mmp of zero, and the row
 	* still has to render something.
+	*
+	* The displayed amount is rounded because JABS regen and slip both apply fractional amounts every
+	* tick- that is how a sub-1 regen rate accumulates instead of truncating to nothing- so a battler
+	* genuinely holds 264.5999999999998 hp and would print it. The gauge keeps the exact value; only
+	* the number a player reads is rounded.
 	* @param {string} key Which resource this is, being one of 'hp', 'mp', or 'tp'.
 	* @param {string} label The abbreviation the database names this resource with.
 	* @param {number} current How much of the resource the actor currently holds.
@@ -512,7 +520,7 @@ var MenuStatusCatalog = class MenuStatusCatalog {
 		return {
 			key,
 			label,
-			current,
+			current: Math.round(current),
 			max,
 			rate: max === 0 ? 0 : current / max
 		};

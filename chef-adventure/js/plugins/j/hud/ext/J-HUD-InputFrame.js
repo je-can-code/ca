@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 HUD-INPUT] A HUD frame that displays your leader's buttons data.
+ * [v1.3.0 HUD-INPUT] A HUD frame that displays your leader's buttons data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -34,6 +34,10 @@
  * slot/cooldown/cost data for display.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Player interference is now resolved by the shared resolver in J-HUD instead of
+ *    by this frame's own test against the player's screen position, which had this
+ *    frame's corner written into it.
  * - 1.2.0
  *    Cooldown overlay icon: a configurable icon renders over skill slots that
  *    are currently on cooldown, making unavailability obvious at a glance.
@@ -107,7 +111,7 @@ J.HUD.EXT.INPUT = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudInput_PluginMetadata}
 */
-J.HUD.EXT.INPUT.Metadata = new JHudInput_PluginMetadata("J-HUD-InputFrame", "1.2.0");
+J.HUD.EXT.INPUT.Metadata = new JHudInput_PluginMetadata("J-HUD-InputFrame", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1847,11 +1851,7 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	*/
 	manageVisibility() {
 		this.handleMessageWindowInterference();
-		if (this.playerInterference()) {
-			this.handlePlayerInterference();
-		} else {
-			this.revertInterferenceOpacity();
-		}
+		this.alpha = HudInterferenceResolver.nextFrameAlpha(this);
 	}
 	/**
 	* Close and open the window based on whether or not the message window is up.
@@ -1865,35 +1865,6 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 		} else {
 			this.open();
 		}
-	}
-	/**
-	* Determines whether or not the player is in the way (or near it) of this window.
-	* @returns {boolean} True if the player is in the way, false otherwise.
-	*/
-	playerInterference() {
-		const playerX = $gamePlayer.screenX();
-		const playerY = $gamePlayer.screenY();
-		return playerX < this.width + 100 && playerY < this.height + 100;
-	}
-	/**
-	* Manages opacity for all sprites while the player is interfering with the visibility.
-	*/
-	handlePlayerInterference() {
-		this.j()._spriteCache.forEach((sprite, _) => {
-			if (sprite.opacity > 64) {
-				sprite.opacity -= 15;
-			} else if (sprite.opacity < 64) sprite.opacity += 1;
-		});
-	}
-	/**
-	* Reverts the opacity changes associated with the player getting in the way.
-	*/
-	revertInterferenceOpacity() {
-		this.j()._spriteCache.forEach((sprite, _) => {
-			if (sprite.opacity < 255) {
-				sprite.opacity += 15;
-			} else if (sprite.opacity > 255) sprite.opacity = 255;
-		});
 	}
 	/**
 	* Advances the flip animator when active; requests refresh while animating.
