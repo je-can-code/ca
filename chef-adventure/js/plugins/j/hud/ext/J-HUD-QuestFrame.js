@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 HUD-QUEST] A HUD frame that displays quest objective information.
+ * [v1.1.0 HUD-QUEST] A HUD frame that displays quest objective information.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -32,6 +32,10 @@
  * This plugin has no notetags of its own.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Player interference is now resolved by the shared resolver in J-HUD instead of
+ *    by this frame's own test against the player's screen position, which had this
+ *    frame's corner written into it.
  * - 1.0.1
  *    Wrote real help docs; the help text was still boilerplate placeholder.
  *    Removed leftover unused scaffold plugin params/command/regex.
@@ -89,7 +93,7 @@ J.HUD.EXT.QUEST ||= {};
 * The metadata associated with this plugin.
 * @type {J_HUD_Quest_PluginMetadata}
 */
-J.HUD.EXT.QUEST.Metadata = new J_HUD_Quest_PluginMetadata("J-HUD-QuestFrame", "1.0.1");
+J.HUD.EXT.QUEST.Metadata = new J_HUD_Quest_PluginMetadata("J-HUD-QuestFrame", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -226,34 +230,7 @@ var Window_QuestFrame = class extends Window_Base {
 	* Manages the visibility while the player is potentially interfering with it.
 	*/
 	updateVisibility() {
-		if (this.playerInterference()) {
-			this.handlePlayerInterference();
-		} else {
-			this.handleNonInterferenceOpacity();
-		}
-	}
-	/**
-	* Determines whether or not the player is in the way (or near it) of this window.
-	* @returns {boolean} True if the player is in the way, false otherwise.
-	*/
-	playerInterference() {
-		const playerX = $gamePlayer.screenX();
-		const playerY = $gamePlayer.screenY();
-		return playerX < this.width && playerY < this.height;
-	}
-	/**
-	* Manages opacity for the window while the player is interfering with the visibility.
-	*/
-	handlePlayerInterference() {
-		if (this.contentsOpacity > 64) {
-			this.contentsOpacity -= 15;
-		} else if (this.contentsOpacity < 64) this.contentsOpacity += 1;
-	}
-	/**
-	* Reverts the opacity changes associated with the player getting in the way.
-	*/
-	handleNonInterferenceOpacity() {
-		this.contentsOpacity = 255;
+		this.alpha = HudInterferenceResolver.nextFrameAlpha(this);
 	}
 	/**
 	* Draws the quests currently tracked in the window as an element of the HUD.

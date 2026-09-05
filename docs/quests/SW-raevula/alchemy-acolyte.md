@@ -22,7 +22,7 @@ chain, scoped smaller).
 ### 0) Unlock Quest: Leo's rescue (`main-004`)
 The Withered Thorn's chain opens once its backroom alchemist is home.
 
-### 1) The Catalog: `???`
+### 1) The Catalog: `alice-001`
 Alice wants the shop's reagent catalog rebuilt to her standards. The fetch list deliberately tours optional
 zones (zone doctrine: chains advertise the continent) — a reagent from the cliffs, one from the forest depths,
 one from wherever the player dares.
@@ -30,7 +30,7 @@ one from wherever the player dares.
 #### After effects of "The Catalog"
 - Withered Thorn stock tier up; rare catalysts rotate in.
 
-### 2) The Hood: `???`
+### 2) The Hood: `alice-002`
 Trust beat. Content depends entirely on which buried-truth option the Maker picks — or the option (c) version:
 the duo finally just asks; she says "no"; Rupert, of all people, respects it completely; the friendship is the
 reveal. Reward: a unique catalyst ("Acolyte's Favor") and her first unhooded... no. Her first *laugh*. Hood stays.

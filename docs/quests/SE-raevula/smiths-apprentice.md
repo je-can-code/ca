@@ -24,7 +24,7 @@ masterwork of the new way. Depends entirely on whether the old man learned to ta
 
 ### 0) Unlock Quest: `side-001` + early Viktor engagement
 
-### 1) Her Own Mark: `???`
+### 1) Her Own Mark: `viskra-001`
 Her first original, branded piece — forged WITH the duo. They source her materials (fetch list TBD — modest,
 mid-tier) and work the forge alongside her. Her maker's mark goes on steel for the first time. She will not
 stop grinning about it for two quests.
@@ -32,7 +32,7 @@ stop grinning about it for two quests.
 #### After effects of "Her Own Mark"
 - Metal Petal stocks her first piece.
 
-### 2) Validation: `???`
+### 2) Validation: `viskra-002`
 She presents the piece to Viktor. He commends it — and critiques it: "obviously good work, but look at this
 handle? The weight is all wrong. 8/10." (If Viktor's "Say It Plain" is done, the critique arrives WITH an
 actual explanation — and the difference matters more than any player will realize at the time.) Stock upgrades
@@ -41,7 +41,7 @@ regardless: 8/10 from the master is 8/10.
 #### After effects of "Validation"
 - Metal Petal stock tier up (her line, revision 2).
 
-### 3) Something Missing: `???`
+### 3) Something Missing: `viskra-003`
 She takes the feedback — overhearing, cross-referencing, grinding. New materials run (fetch list TBD — better,
 farther), new forging session, new piece, new review. Viktor, weighing it: "oh, this feels much lighter in
 hand... but something is missing from the blade. The soul."
@@ -54,7 +54,7 @@ And she does what she does with every problem the shop has ever had: she researc
 - Stock tier up again (her line, revision 3 — genuinely excellent now).
 - Her idle dialogue gains one line about "old smithing texts." Nobody thinks anything of it.
 
-### 4) The Soul of the Craft: `???`
+### 4) The Soul of the Craft: `viskra-004`
 > THE RACE RESOLVES HERE. Rite ingredients: late-game exotics (list TBD — tablet + components, gathered across
 > ch4 zones). Available in the same window as Viktor's remaining quests. Order decides which scene plays.
 

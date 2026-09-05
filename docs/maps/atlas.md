@@ -25,8 +25,13 @@ JSON, and if the atlas says something is true, the data said it first.
 | `gates <rootId>` | Which tool gates exist, and **which doors each one actually separates** |
 | `oneways [rootId]` | Where are the points of no return — one-way transfers and scripted player jumps |
 | `plan <mapId>` | What does this single room look like — walls, floor, and every event on it |
+| `event <mapId> [eventId]` | What does that event actually *do* — page gates, triggers, dialogue, quest calls |
 
 `oneways` with no id sweeps the whole project.
+
+`plan` and `event` are companions: `plan` answers "what does this room look like and who is standing
+in it", `event` answers "what happens when you walk up to that one". With no event id, `event` lists
+every event on the map with its page gates, which is usually enough to find the one you want.
 
 ---
 
@@ -100,3 +105,7 @@ rather than the report would make every exit look like a one-way.
 - Region ids and terrain tags are not read yet.
 - `atlas` room placement is a best effort. Rooms whose doors all point the same way get fanned
   sideways, and links between rooms that land far apart are listed rather than drawn.
+- `event` narrates the command codes this project actually uses and prints anything else as a bare
+  `[code]`. That is deliberate — an unrecognised command is exactly the one worth noticing, and
+  silently dropping it would make an event look simpler than it is. Teach it a new code by adding a
+  reader to `COMMAND_READERS`.

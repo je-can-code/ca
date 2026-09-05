@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 HUD-TARGET] A HUD frame that displays your battle target.
+ * [v1.2.0 HUD-TARGET] A HUD frame that displays your battle target.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -383,6 +383,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    The target frame fades while the player is standing on top of it, through the
+ *    shared resolver in J-HUD. This rides on top of the inactivity fade rather than
+ *    competing with it - that one owns opacity, this one owns alpha.
  * - 1.1.0
  *    Target frame now renders the shared dual-row state affliction
  *    presenter from J-HUD core, wired via a new patch file.
@@ -566,7 +570,7 @@ J.HUD.EXT.TARGET = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudTarget_PluginMetadata}
 */
-J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "1.1.0");
+J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2200,6 +2204,7 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 	update() {
 		super.update();
 		this.updateTarget();
+		this.alpha = HudInterferenceResolver.nextFrameAlpha(this);
 	}
 	/**
 	* Updates the target of this window as-necessary.

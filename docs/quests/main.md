@@ -9,6 +9,12 @@
 > it lists every undefined detail per chain (missing DB rows, Maker's calls, invented numbers) so
 > nothing surprises you mid-eventing.
 
+> Every quest heading in the docs below now carries its real key (2026-09-04); the `???` placeholders
+> are gone. Names line up 1:1 with `config.quest.json` — 62 quests, 62 headings, nothing orphaned in
+> either direction. **What remains for the whole `folk` category is events**: no map event anywhere
+> issues `progress-quest` for any folk key yet, so the chains exist on paper and in the questopedia
+> but nothing in the world advances them.
+
 
 
 ## NE Raevula

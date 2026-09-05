@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 HUD-DPS] A J-HUD extension that displays each battle member's damage output.
+ * [v1.1.0 HUD-DPS] A J-HUD extension that displays each battle member's damage output.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -47,6 +47,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    The readout fades while the player is standing on top of it, through the shared
+ *    resolver in J-HUD.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -187,7 +190,7 @@ J.HUD.EXT.DPS ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.HUD.EXT.DPS.Metadata = new JDpsHud_PluginMetadata("J-HUD-Dps", "1.0.0");
+J.HUD.EXT.DPS.Metadata = new JDpsHud_PluginMetadata("J-HUD-Dps", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -261,6 +264,7 @@ var Window_DpsFrame = class Window_DpsFrame extends Window_Base {
 	update() {
 		super.update();
 		this.refresh();
+		this.alpha = HudInterferenceResolver.nextFrameAlpha(this);
 	}
 	/**
 	* Refreshes the window contents, hiding the frame when the HUD is not being shown.

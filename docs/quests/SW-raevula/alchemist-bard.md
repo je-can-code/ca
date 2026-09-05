@@ -28,12 +28,12 @@ the toothpick ledge). Each page traded for formulae. This doc anchors the existi
 is in the master's handwriting, and Leo's commentary while decoding them quietly builds the portrait of the man
 who left him behind.
 
-### 2) The Note in the Attic: `???`
+### 2) The Note in the Attic: `leo-001`
 The player has read it (Map035). Leo hasn't — not in years, not since it stopped hurting enough to avoid. Sit
 with him while he reads it again. What he takes from it before Nimbus: "he went somewhere I couldn't follow."
 He's wrong about how, and the game knows it.
 
-### 3) The Student: `???`
+### 3) The Student: `leo-002`
 > Gate: post-Nimbus (Pride defeated).
 
 The news reaches Raevula. The master didn't leave for a grander world — he *became* the grandest thing he could

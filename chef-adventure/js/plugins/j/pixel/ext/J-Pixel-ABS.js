@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.8 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
+ * [v1.1.0 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -90,6 +90,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Forced displacement - knockback, pull-forward, gap-close - is now clamped by the
+ *    same collision predicate the character's own movement obeys. J-ABS clamps it on
+ *    the tile grid, which under pixel movement reads a tile the body is not standing
+ *    in, and could park a battler inside terrain that then refused every way out.
  * - 1.0.8
  *    Corrected PLUGIN_NAME from J-ABS-Pixelistics to J-Pixel-ABS, matching the
  *    name the ship has always been built and shipped under. The old spelling
@@ -270,7 +275,7 @@ J.PIXEL.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-Pixel-ABS", "1.0.8");
+J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-Pixel-ABS", "1.1.0");
 /**
 * A collection of regex patterns for this plugin.
 */
@@ -551,6 +556,42 @@ Game_CharacterBase.prototype.hasCustomPixelHitbox = function() {
 */
 Game_CharacterBase.prototype.getPixelAbsBattlerAabbModel = function() {
 	return null;
+};
+/**
+* Overwrites {@link Game_CharacterBase.walkInDirectionClamped}.<br/>
+* Re-decides forced displacement- knockback, pull-forward, gap-close- in the pixel movement
+* model rather than the tile one.
+*
+* J-ABS clamps that displacement with `canPass`, which asks a tile-grid question: round the
+* coordinates to a tile, then read that tile's direction bits. Neither half of that survives
+* pixel movement. A character's `x`/`y` are fractional, and its body is an AABB hung off the
+* collision pivot, so the rounded tile is routinely not the tile the body occupies- exactly the
+* disagreement {@link Game_CharacterBase#occupiedTileY} exists to settle. A body straddling two
+* columns is never asked about the second one at all. Both gaps fail the same direction: the walk
+* approves a landing the physics would have refused, `jump` applies it without validating
+* anything, and the character comes to rest inside terrain that then denies every way back out.
+*
+* `canPassStraight` is the same predicate the character's own movement obeys every frame, so
+* routing the walk through it means forced displacement can only ever come to rest somewhere
+* walking could have reached.
+* @param {number} direction The numpad compass direction to walk in (2/4/6/8).
+* @param {number} distance The maximum number of tiles to travel.
+* @returns {[number, number]} The actual [dx, dy] reached, in whole tiles.
+*/
+Game_CharacterBase.prototype.walkInDirectionClamped = function(direction, distance) {
+	const stepsToWalk = Math.round(distance);
+	let stepsTaken = 0;
+	while (stepsTaken < stepsToWalk) {
+		if (this.canPassStraight(direction, stepsTaken + 1) === false) break;
+		stepsTaken++;
+	}
+	switch (direction) {
+		case J.PIXEL.Directions.UP: return [0, -stepsTaken];
+		case J.PIXEL.Directions.DOWN: return [0, stepsTaken];
+		case J.PIXEL.Directions.LEFT: return [-stepsTaken, 0];
+		case J.PIXEL.Directions.RIGHT: return [stepsTaken, 0];
+	}
+	return [0, 0];
 };
 
 //#endregion

@@ -23,7 +23,7 @@ While Treis is not the questgiver of this quest, nor really involved in it a who
 the kingdom while the player spelunks about the ruins and provides healing and bombs should you need respite. After the
 quest is completed, she will finally become available for taking personal quests back in the Comfy Bear Inn of Raevula.
 
-### 1) A Foundation: `???`
+### 1) A Foundation: `treis-001`
 Since Treis is still rather stuck on the planet while the player and team fuck around with whatever they are doing, she
 wants a place to study. In order to do that, you'll need to fetch some foundational minerals for building a new house
 where that nature lover used to reside.
@@ -32,7 +32,7 @@ where that nature lover used to reside.
 There are different kinds of ore that can be used to fulfill this quest, and depending on the choice will determine the
 look of the ground that will get laid out for her new lab.
 
-### 2) Structural Integrity: `???`
+### 2) Structural Integrity: `treis-002`
 While it isn't clear how bringing a pile of ore allowed Treis to magically lay out foundation, she is now demanding you
 fetch her some lumber. It can only be assumed that her next goal is to actually construct a building with it.
 
@@ -40,7 +40,7 @@ fetch her some lumber. It can only be assumed that her next goal is to actually 
 There are different kinds of lumber that can be used to fulfill this quest, and depending on the choice will determine
 the look of the building itself that will define the lab. Additionally, the building will be accessible to the player.
 
-### 3) A Technical Suite: `???`
+### 3) A Technical Suite: `treis-003`
 Sure enough, as if overnight, the building was built! Her next ask is to have the player bring her some ores and other
 crafting materials to rebuild her toolset. Logically one would assume she is having the smith or someone do this for
 her, but... knowing her, it is better not to ask.

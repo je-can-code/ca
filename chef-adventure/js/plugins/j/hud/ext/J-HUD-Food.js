@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 HUD-FOOD] A J-HUD extension that displays the current food chain status on screen.
+ * [v1.1.0 HUD-FOOD] A J-HUD extension that displays the current food chain status on screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -25,6 +25,9 @@
  * Those responsibilities belong to J-ABS-Food.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    The food frame fades while the player is standing on top of it, through the
+ *    shared resolver in J-HUD.
  * - 1.0.2
  *    Corrected PLUGIN_NAME from J-HUD-FOOD to J-HUD-Food, matching the name the
  *    ship has always been built and shipped under.
@@ -160,7 +163,7 @@ J.HUD.EXT.FOOD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.HUD.EXT.FOOD.Metadata = new JFoodHud_PluginMetadata("J-HUD-Food", "1.0.2");
+J.HUD.EXT.FOOD.Metadata = new JFoodHud_PluginMetadata("J-HUD-Food", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -304,6 +307,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	update() {
 		super.update();
 		this.refresh();
+		this.alpha = HudInterferenceResolver.nextFrameAlpha(this);
 	}
 	/**
 	* Refreshes the window contents. Hides the frame when no food chain is running.

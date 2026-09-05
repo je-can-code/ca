@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 EXTEND-ABS] J-ABS integration for J-Extend.
+ * [v1.0.1 EXTEND-ABS] J-ABS integration for J-Extend.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -22,6 +22,10 @@
  * between J-Extend and J-ABS's AI skill-selection logic.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    The AI now recognizes an extension skill by asking whether it is one, rather
+ *    than by inspecting its declared types. A skill given a type but no id list was
+ *    invisible to the old test, so enemies kept selecting skills they cannot cast.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -46,23 +50,12 @@ J.EXTEND.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.EXTEND.EXT.ABS.Metadata = new JExtendAbs_PluginMetadata("J-Extend-ABS", "1.0.0");
+J.EXTEND.EXT.ABS.Metadata = new JExtendAbs_PluginMetadata("J-Extend-ABS", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.EXTEND.EXT.ABS.Aliased = {};
 J.EXTEND.EXT.ABS.Aliased.JABS_Battler = new Map();
-
-//#endregion
-//#region src/plugins/extend/ext/abs/database/RPG_Skill.js
-/**
-* Whether or not this skill is a skill-extension skill (bears an {@code <extend:[IDs]>} tag).
-* Extension skills are excluded from the JABS AI skill pool.
-* @type {boolean}
-*/
-Object.defineProperty(RPG_Skill.prototype, "isSkillExtender", { get: function() {
-	return J.EXTEND.RegExp.Extend.test(this.note);
-} });
 
 //#endregion
 //#region src/plugins/extend/ext/abs/managers/JABS_Battler.js
@@ -74,7 +67,7 @@ J.EXTEND.EXT.ABS.Aliased.JABS_Battler.set("aiSkillFilter", JABS_Battler.prototyp
 JABS_Battler.prototype.aiSkillFilter = function(skill) {
 	const isValid = J.EXTEND.EXT.ABS.Aliased.JABS_Battler.get("aiSkillFilter").call(this, skill);
 	if (isValid === false) return false;
-	if (skill.isSkillExtender === true) return false;
+	if (skill.isExtension === true) return false;
 	return true;
 };
 

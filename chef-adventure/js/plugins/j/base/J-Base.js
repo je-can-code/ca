@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.10.0 BASE] The base class for all J plugins.
+ * [v3.10.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.10.1
+ *    Bitmap carries a device scale of 1 on the prototype. The engine builds bitmaps
+ *    while its own scripts are still parsing, before any plugin can alias initialize,
+ *    and such a bitmap answered undefined - which divides into NaN rather than
+ *    throwing, and renders a sprite that reports itself visible while drawing nowhere.
  * - 3.10.0
  *    The renderer now runs at the display's own resolution, and every text surface
  *    rasterizes at it, so glyphs are drawn with the pixels the screen will show them
@@ -1912,7 +1917,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.10.0";
+J.BASE.Metadata.Version = "3.10.1";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -3139,6 +3144,26 @@ Bitmap.prototype.drawText = function(text, x, y, maxWidth, lineHeight, align) {
 	const resolvedAlign = validTextAlignments.includes(align) ? align : "left";
 	J.BASE.Aliased.Bitmap.get("drawText").call(this, text, x, y, maxWidth, lineHeight, resolvedAlign);
 };
+/**
+* The scale every bitmap holds unless it is deliberately raised to the display's resolution.
+*
+* This lives on the prototype rather than only in `initialize`, and the reason is load order. The
+* engine builds bitmaps while its own scripts are still parsing - `ImageManager._emptyBitmap` is a
+* `new Bitmap(1, 1)` evaluated at the top level of `rmmz_managers.js`, long before any plugin has
+* had the chance to alias anything. Such a bitmap never runs the `initialize` below, so it would
+* carry no `_deviceScale` at all, and the `width` getter divides by whatever that answers.
+*
+* Undefined is the worst possible answer to divide by, because the result is `NaN` rather than a
+* throw: `patternWidth` hands it to `setFrame`, the engine's `_refresh` derives `pivot` from the
+* frame, and a sprite with a `NaN` pivot composes to a `NaN` world matrix. It then reports itself
+* visible, opaque and correctly scaled while rendering nowhere at all - which is a genuinely
+* horrible thing to debug, and was exactly the bug that produced this line.
+*
+* A prototype default is what makes that state unreachable. Every bitmap answers 1 from the moment
+* it exists, and {@link Bitmap.setDeviceScale} shadows it per instance for the ones that grow.
+* @type {number}
+*/
+Bitmap.prototype._deviceScale = 1;
 /**
 * Extends {@link Bitmap.initialize}.<br/>
 * Also establishes the scale at which this bitmap holds its pixels.

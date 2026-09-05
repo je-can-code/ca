@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.0 HUD] Provides core functionality for this HUD system.
+ * [v2.3.0 HUD] Provides core functionality for this HUD system.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -75,6 +75,12 @@
  * plugin-command driven.
  * ============================================================================
  * CHANGELOG:
+ * - 2.3.0
+ *    Added HudInterferenceResolver, which decides how far a frame fades while the
+ *    player is standing on top of it. The geometry belongs to the family rather than
+ *    to any one frame: each used to carry its own inequality against the player's
+ *    screen position, which encoded that frame's corner and went quietly wrong the
+ *    moment somebody moved it.
  * - 2.2.0
  *    Routed the _hud namespace into its own save section, so HUD state lands
  *    in systems/hud.json rather than inside the system blob.
@@ -161,7 +167,7 @@ J.HUD.EXT = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHud_PluginMetadata}
 */
-J.HUD.Metadata = new JHud_PluginMetadata("J-HUD", "2.2.0");
+J.HUD.Metadata = new JHud_PluginMetadata("J-HUD", "2.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -695,6 +701,144 @@ J.HUD.Aliased.DataManager.set("setupNewGame", DataManager.setupNewGame);
 DataManager.setupNewGame = function() {
 	J.HUD.Aliased.DataManager.get("setupNewGame").call(this);
 	$hudManager.setup();
+};
+
+//#endregion
+//#region src/plugins/hud/core/services/HudInterferenceResolver.js
+/**
+* Resolves how much a HUD frame should dim while the player is standing on top of it.
+*
+* The geometry belongs to the family rather than to any one frame: a single axis-aligned overlap
+* between a frame's box and the player's, shared by every frame and correct wherever a frame sits.
+* A frame that measures interference with its own inequality against {@link Game_Player#screenX}
+* and {@link Game_Player#screenY} encodes its current corner into that test, and is silently wrong
+* from the moment somebody moves it- which is exactly the sort of change a layout invites.
+*/
+var HudInterferenceResolver = class HudInterferenceResolver {
+	/**
+	* Pixels of slack added around a frame before the player counts as interfering.
+	*
+	* The player's box is approximated from tile size, but character sprites are routinely taller
+	* and wider than one tile, so an exact overlap would begin dimming only once the sprite was
+	* already well into the frame. The margin buys back that difference and starts the fade a beat
+	* before the collision reads as one.
+	* @type {number}
+	*/
+	static Margin = 24;
+	/**
+	* The alpha a frame settles at while the player is interfering with it.
+	*
+	* Low enough to read the map through, high enough that the frame is still legible- the player
+	* is not being asked to give up the information, only to stop having it painted over them.
+	* @type {number}
+	*/
+	static DimmedAlpha = .25;
+	/**
+	* The alpha a frame settles at when nothing is in the way of it.
+	* @type {number}
+	*/
+	static FullAlpha = 1;
+	/**
+	* How much alpha a frame travels per update toward whichever of the two settled values applies.
+	*
+	* Roughly a quarter-second from clear to dimmed at 60fps, which is slow enough to read as a
+	* deliberate fade rather than a flicker when the player skirts the edge of a frame.
+	* @type {number}
+	*/
+	static AlphaStep = .06;
+	/**
+	* The player's approximate screen-space box.
+	*
+	* {@link Game_CharacterBase#screenX} reports the horizontal center of the character and
+	* {@link Game_CharacterBase#screenY} reports its feet, so the box is built outward from the
+	* center and upward from the bottom rather than down-right from an origin.
+	* @returns {{left: number, top: number, right: number, bottom: number}}
+	*/
+	static playerBounds() {
+		const tileWidth = $gameMap.tileWidth();
+		const tileHeight = $gameMap.tileHeight();
+		const centerX = $gamePlayer.screenX();
+		const feetY = $gamePlayer.screenY();
+		const halfWidth = tileWidth / 2;
+		return {
+			left: centerX - halfWidth,
+			top: feetY - tileHeight,
+			right: centerX + halfWidth,
+			bottom: feetY
+		};
+	}
+	/**
+	* A frame's screen-space box, inflated by {@link HudInterferenceResolver.Margin}.
+	* @param {Window_Base} frame The HUD frame being measured.
+	* @returns {{left: number, top: number, right: number, bottom: number}}
+	*/
+	static frameBounds(frame) {
+		const margin = HudInterferenceResolver.Margin;
+		return {
+			left: frame.x - margin,
+			top: frame.y - margin,
+			right: frame.x + frame.width + margin,
+			bottom: frame.y + frame.height + margin
+		};
+	}
+	/**
+	* Whether two axis-aligned boxes share any area.
+	*
+	* Edges that merely touch do not count as overlapping- a frame whose border grazes the player's
+	* bounding box is not actually obscuring anything, and treating that as interference makes a
+	* frame flicker as the player walks alongside it.
+	* @param {{left: number, top: number, right: number, bottom: number}} first The first box.
+	* @param {{left: number, top: number, right: number, bottom: number}} second The second box.
+	* @returns {boolean}
+	*/
+	static overlaps(first, second) {
+		if (first.right <= second.left) return false;
+		if (first.left >= second.right) return false;
+		if (first.bottom <= second.top) return false;
+		if (first.top >= second.bottom) return false;
+		return true;
+	}
+	/**
+	* Whether the player is currently standing within the given frame bounds.
+	* @param {{left: number, top: number, right: number, bottom: number}} bounds The inflated frame box.
+	* @returns {boolean}
+	*/
+	static isPlayerInterfering(bounds) {
+		const player = HudInterferenceResolver.playerBounds();
+		return HudInterferenceResolver.overlaps(bounds, player);
+	}
+	/**
+	* The next alpha along the path from where a frame is to where it should settle.
+	*
+	* Snapping once the remaining distance is within a single step is what keeps a frame from
+	* oscillating around its destination forever.
+	* @param {number} currentAlpha The frame's alpha as of this update.
+	* @param {number} targetAlpha The alpha the frame is traveling toward.
+	* @returns {number}
+	*/
+	static steppedAlpha(currentAlpha, targetAlpha) {
+		const distance = targetAlpha - currentAlpha;
+		if (Math.abs(distance) <= HudInterferenceResolver.AlphaStep) return targetAlpha;
+		const direction = distance > 0 ? 1 : -1;
+		return currentAlpha + HudInterferenceResolver.AlphaStep * direction;
+	}
+	/**
+	* The alpha a HUD frame should be rendered at on this update.
+	*
+	* This is deliberately a multiplier applied to the whole window rather than a write to the
+	* opacity of its contents or sprites. Several frames animate their own opacity already- the
+	* target frame fades on an inactivity timer, the boss frame on a reveal- and an absolute write
+	* would spend every update fighting them. A multiplier layers cleanly on top of whatever a
+	* frame is already doing to itself, and it leaves a deliberately hidden sprite hidden.
+	* @param {Window_Base} frame The HUD frame being resolved.
+	* @returns {number}
+	*/
+	static nextFrameAlpha(frame) {
+		const bounds = HudInterferenceResolver.frameBounds(frame);
+		const interfering = HudInterferenceResolver.isPlayerInterfering(bounds);
+		const targetAlpha = interfering ? HudInterferenceResolver.DimmedAlpha : HudInterferenceResolver.FullAlpha;
+		return HudInterferenceResolver.steppedAlpha(frame.alpha, targetAlpha);
+	}
 };
 
 //#endregion

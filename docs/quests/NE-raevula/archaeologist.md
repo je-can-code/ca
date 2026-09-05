@@ -14,14 +14,14 @@ the most fascinating travelers.
 This quest chain is available from the moment the protagonists arrive in Raevula. They only need enter the Save Shrine
 and save, and when they try to leave, they will be intercepted by Cerak.
 
-### 1) Are you aliens? `???`
+### 1) Are you aliens? `cerak-001`
 Watching you leave the Save Shrine, obviously having successfully interacted with the save sigil, the protagonists are
 intercepted by Cerak. He can't comprehend how you were able to interact with the sigil- he spent hours trying to no
 avail. He wants you to prove it by parsing three sigils that surround Raevula (which unlock nodes for the player).
 
 Reward: generalist SDPs — one per parsed sigil.
 
-### 2) The Dig: `???`
+### 2) The Dig: `cerak-002`
 Sigil-parsing proves the duo CAN read the things; now Cerak needs older stones to read. His research points to the
 Crystalline Ravine — the oldest surviving structure anyone knows of (older than it has any right to be). He
 relocates to a dig camp there (zone doctrine: the Ravine is his). Escort/assist the dig; deep in the ravine, the
@@ -32,7 +32,7 @@ underneath everything.
 - Cerak splits his time between the Save Shrine and the Ravine camp (schedule/TIME flavor).
 - A Ravine map secret or two gets marked by his survey work.
 
-### 3) The Four Great Stones: `???`
+### 3) The Four Great Stones: `cerak-003`
 > Gate: the torch (Desolate Graves access). Chapter 4.
 
 The ravine script points north — to the Desolate Graves, where four great monuments stand that no living person

@@ -19,19 +19,19 @@ it — and given the author's romantic history, the roster has earned exactly on
 
 ## Quests
 
-### 1) Training Montage: `???`
+### 1) Training Montage: `silverkayla-001`
 Silver asks the two visibly godlike strangers for coaching. It goes catastrophically. He improves from level 4
 to level 6 and celebrates like it's a world title. Kayla watches from the porch with the specific smile of
 someone holding a beautiful secret.
 
-### 2) The Night Shift: `???`
+### 2) The Night Shift: `silverkayla-002`
 > Night content (TIME).
 
 The player, out at night, catches Kayla mid-grind — soloing bearcats with terrifying efficiency. The scene plays;
 she doesn't apologize; she explains (see Buried truth) and asks the duo to keep it. **Choice:** keep her secret
 (the only correct answer, but the game lets Jerald *almost* ruin it first).
 
-### 3) Level 44: `???`
+### 3) Level 44: `silverkayla-003`
 Silver hits it. The adventure is ON: a trip to a view he's always wanted to show her (destination to taste —
 Lakeside? the cliffs?). The duo's final job: shadow the trip unseen and quietly make sure nothing interrupts it.
 Two demigods spend an afternoon secretly bodyguarding a picnic. Nothing goes wrong. That's the point.
