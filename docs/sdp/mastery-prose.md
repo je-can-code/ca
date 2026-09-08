@@ -42,6 +42,11 @@ the prose with nothing quantitative to say.
 
   If a label reads badly in prose, fix the **label**, not the sentence. It is one place, and every
   screen improves with it.
+- **`{N.key}` names a parameter without its value.** `{N.mdf}` renders "Resist" alone, tinted as a
+  stat. It exists for the sentence that states one magnitude across several parameters: "Node Points,
+  Aptitude and Experience {p.sdpMultiplier}" says the number once rather than stamping it after each
+  of three nouns. The name still comes from the catalog, so it carries the same drift protection the
+  uppercase form does.
 - **A gate phrase is the whole condition.** `{s.gate}` already reads "below 20% Life", so
   "Below {s.gate} Life" says it twice.
 - **Name a state with `\state[ID]`**, so it renders with its icon. Watch for names that are also
