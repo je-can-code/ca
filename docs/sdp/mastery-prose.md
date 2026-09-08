@@ -29,10 +29,19 @@ the prose with nothing quantitative to say.
   A gate takes the colour of whatever its phrase turned out to be, so "3 tiles" reads as a measure
   while "below 20% Life" reads as a stat. A tag naming a registered parameter (`lst`, `cdr`) is a
   stat too, so lifesteal and regeneration are not painted differently in the same sentence.
-- **An uppercase namespace names the parameter.** `{P.def}` renders "Endurance +12%" with the name
-  inside the tint; `{p.def}` renders "+12%" alone. Use the uppercase form when the noun you would
-  write is simply the parameter's name, and the lowercase form when friendlier wording reads better
-  ("damage taken" beats "Phys Dmg Rate").
+- **An uppercase namespace names the parameter, and it is the default.** `{P.def}` renders
+  "Endurance +12%" with the name inside the tint; `{p.def}` renders "+12%" alone.
+  **Prefer the uppercase form for every parameter**, including the plugin-owned ones whose label comes
+  from the parameter catalog rather than a trait (`{P.lst}` -> "Lifesteal +15%").
+
+  An authored noun is a hardcoded claim about the mechanic, and it drifts silently. If
+  `reptile-dargin` stopped reducing damage taken and started increasing damage dealt, a template
+  reading "damage taken {p.pdr}" would render "damage taken +10%": grammatical, correctly coloured,
+  and wrong, with nothing to notice it. The named form takes its noun from the same data as its value,
+  so the two cannot disagree, and a parameter that disappears fails closed instead of lying.
+
+  If a label reads badly in prose, fix the **label**, not the sentence. It is one place, and every
+  screen improves with it.
 - **A gate phrase is the whole condition.** `{s.gate}` already reads "below 20% Life", so
   "Below {s.gate} Life" says it twice.
 - **Name a state with `\state[ID]`**, so it renders with its icon. Watch for names that are also

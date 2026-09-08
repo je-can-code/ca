@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v4.4.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v4.5.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -366,6 +366,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.5.0
+ *    A named mastery token can name any parameter, reading a plugin-owned one's
+ *    label from the parameter catalog when no trait encodes it.
  * - 4.4.0
  *    Mastery values are tinted by what they are rather than which namespace wrote
  *    them, so a distance and a percentage never share an ink. An uppercase token
@@ -2943,9 +2946,15 @@ var MasteryProseResolver = class MasteryProseResolver {
 	*/
 	static #withParameterName(value, parameterKey) {
 		const mapping = ParameterTraitMap.forKey(parameterKey);
-		if (mapping === null) return null;
-		const label = MasteryProseResolver.#parameterLabel(mapping);
-		return `${label} ${value}`;
+		if (mapping !== null) {
+			const traitLabel = MasteryProseResolver.#parameterLabel(mapping);
+			return `${traitLabel} ${value}`;
+		}
+		if (ParameterRegistry.has(parameterKey)) {
+			const definition = ParameterRegistry.get(parameterKey);
+			return `${definition.label()} ${value}`;
+		}
+		return null;
 	}
 	/**
 	* The display name of a parameter, read from whichever catalogue its trait code belongs to.
@@ -3866,7 +3875,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.4.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.5.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

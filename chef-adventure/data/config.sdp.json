@@ -25803,9 +25803,9 @@
       "iconIndex": 48,
       "description": "Undead family, Skeleton subgroup.",
       "prose": {
-        "beginning": "Bones do not flinch.|Every {s.perStack} of Life you are missing feeds {d.atk} Power and Force.",
-        "middle": "Graveborn fury sharpens as you fail:|{d.atk} Power and Force for every {s.perStack} of Life gone.",
-        "end": "Deathless.|{d.atk} Power and Force per {s.perStack} of missing Life, and everything that hits you does half of what it meant to."
+        "beginning": "Bones do not flinch.|Every {s.perStack} of Life you are missing feeds {D.atk} and {D.mat}.",
+        "middle": "Graveborn fury sharpens as you fail:|{D.atk} and {D.mat} for every {s.perStack} of Life gone.",
+        "end": "Deathless.|{D.atk} and {D.mat} per {s.perStack} of missing Life, and everything that hits you does half of what it meant to."
       }
     },
     {
@@ -25816,7 +25816,7 @@
       "prose": {
         "beginning": "The hollow armor plates over what it cannot heal:|{P.def}, {P.mhp}.",
         "middle": "A brittle bastion still turns a blade.|{P.def} and {P.grd}, paid for with {P.mhp}.",
-        "end": "A paper fortress: {P.def} against {P.mhp}.|{P.grd}, Crit Block {p.ctr}, and crits land {v.critReduction} softer."
+        "end": "A paper fortress: {P.def} against {P.mhp}.|{P.grd}, {P.ctr}, and crits land {v.critReduction} softer."
       }
     },
     {
@@ -25836,9 +25836,9 @@
       "iconIndex": 49,
       "description": "Reptile family, Dargin subgroup.",
       "prose": {
-        "beginning": "A dragon's heart only wakes when the end is close.|While {s.gate}, damage taken {p.pdr}.",
-        "middle": "Dragonheart stirring, and stirring sooner:|while {s.gate}, {p.pdr} to every blow and {p.elementRate} off every element.",
-        "end": "Dragonheart aflame.|While {s.gate} you take {p.pdr}, shrug {p.elementRate} off the elements, and nothing lesser can touch you at all."
+        "beginning": "A dragon's heart only wakes when the end is close.|While {s.gate}, {P.pdr}.",
+        "middle": "Dragonheart stirring, and stirring sooner:|while {s.gate}, {P.pdr} to every blow and {p.elementRate} off every element.",
+        "end": "Dragonheart aflame.|While {s.gate}: {P.pdr}, shrug {p.elementRate} off the elements, and nothing lesser can touch you at all."
       }
     },
     {
@@ -25848,7 +25848,7 @@
       "description": "Reptile family, Draconite subgroup.",
       "prose": {
         "beginning": "Hold still and the scales set like stone.|Stand {s.gate} without moving for {P.def}.",
-        "middle": "Stone mantle. {s.gate} of stillness and Endurance climbs {p.def}.|The longer you plant, the less anything moves you.",
+        "middle": "Stone mantle. {s.gate} of stillness and {P.def} climbs.|The longer you plant, the less anything moves you.",
         "end": "A granite bastion.|{s.gate} unmoving buys {P.def} and {P.grd}; blows simply stop arriving anywhere."
       }
     },
@@ -25881,7 +25881,7 @@
       "description": "Aquatic family, Kappa subgroup.",
       "prose": {
         "beginning": "A kappa's luck rubs off.|Enemies part with {v.dropMultiplier} more than they meant to.",
-        "middle": "Fortune favors you twice: {v.dropMultiplier} more loot,|and {p.eva} Grace to walk away with it.",
+        "middle": "Fortune favors you twice: {v.dropMultiplier} more loot,|and {P.eva} to walk away with it.",
         "end": "A trickster's gambit.|Drop rate, Grace and Luck each climb by {v.evaBuffPlus}, and keep climbing every level you earn."
       }
     },
@@ -25891,9 +25891,9 @@
       "iconIndex": 50,
       "description": "Aquatic family, Polliwog subgroup.",
       "prose": {
-        "beginning": "Root yourself and the power gathers:|a stack every {s.interval} standing still, {d.mat} Force each, gone the moment you move.",
-        "middle": "A rooted tempest, {s.stacks} layers deep at {d.mat} Force apiece,|but one step still costs you everything.",
-        "end": "Rooted cataclysm.|{s.stacks} stacks at {d.mat} Force each, and at last you can move without losing it all: a step costs one stack, no more."
+        "beginning": "Root yourself and the power gathers:|a stack every {s.interval} standing still, {D.mat} each, gone the moment you move.",
+        "middle": "A rooted tempest, {s.stacks} layers deep at {D.mat} apiece,|but one step still costs you everything.",
+        "end": "Rooted cataclysm.|{s.stacks} stacks at {D.mat} each, and at last you can move without losing it all: a step costs one stack, no more."
       }
     },
     {
@@ -25924,9 +25924,9 @@
       "iconIndex": 50,
       "description": "Aquatic family, Cephalopod subgroup.",
       "prose": {
-        "beginning": "Wounded, you vanish into ink:|{s.duration} at {d.pdr} damage taken.",
-        "middle": "A murky pall, {s.duration} long and {d.pdr} deep.|They lose you exactly when it matters.",
-        "end": "The abyssal veil answers any harm at all: {s.duration} at {d.pdr},|and even in clear water you take {p.pdr} less."
+        "beginning": "Wounded, you vanish into ink:|{s.duration} at {D.pdr}.",
+        "middle": "A murky pall, {s.duration} long and {D.pdr}.|They lose you exactly when it matters.",
+        "end": "The abyssal veil answers any harm at all: {s.duration} at {D.pdr},|and even in clear water you keep {P.pdr}."
       }
     },
     {
@@ -25981,7 +25981,7 @@
       "prose": {
         "beginning": "You are an obstacle now.|Anything near you slows by {d.speedBoost}, and keeps slowing while it stays.",
         "middle": "A living bulwark: {s.stacks} layers of mire,|each stealing {d.speedBoost} of speed and fouling their casting.",
-        "end": "Immovable bulk.|The mire never stops deepening: {d.speedBoost} slower with every stack, and every stack opens them {d.pdr} wider."
+        "end": "Immovable bulk.|The mire never stops deepening: {d.speedBoost} slower with every stack, and every stack opens them {D.pdr} wider."
       }
     },
     {
@@ -26002,7 +26002,7 @@
       "description": "Plant family, Fungus subgroup.",
       "prose": {
         "beginning": "Instinct sharpens in the waiting.|With every skill ready, {P.cri}.",
-        "middle": "A primal surge.|{P.cri} while nothing is spent, though the coiling costs you {p.atk} Power to hold.",
+        "middle": "A primal surge.|{P.cri} while nothing is spent, though the coiling costs you {P.atk} to hold.",
         "end": "Primal apex.|Nothing spent, everything ready: {P.cri}, {P.atk}, and every basic attack lands {v.bonusHitsBasic} more times."
       }
     },
@@ -26013,7 +26013,7 @@
       "description": "Plant family, Dryad subgroup.",
       "prose": {
         "beginning": "The grove answers a healthy wood.|While every ally near you is {s.gate}, {P.mat}.",
-        "middle": "Nature's ire: {p.mat} Force and {p.mdf} Resist,|for as long as nobody around you is bleeding badly.",
+        "middle": "Nature's ire: {P.mat} and {P.mdf},|for as long as nobody around you is bleeding badly.",
         "end": "Nature's judgment asks less and gives more.|Allies need only be {s.gate} for {P.mat} and {P.mdf}."
       }
     },
@@ -26023,9 +26023,9 @@
       "iconIndex": 52,
       "description": "Plant family, Treant subgroup.",
       "prose": {
-        "beginning": "Bark thickens where nothing disturbs it.|{s.gate} untouched and physical blows land {p.pdr} softer.",
-        "middle": "Tempered ironbark, and quicker to set:|{s.gate} clear buys {p.pdr} against physical harm and {P.def}.",
-        "end": "Ancient ironbark.|Barely {s.gate} between blows and the wood closes over: physical damage {p.pdr}, {P.def}."
+        "beginning": "Bark thickens where nothing disturbs it.|{s.gate} untouched and physical blows land {P.pdr} softer.",
+        "middle": "Tempered ironbark, and quicker to set:|{s.gate} clear buys {P.pdr} against physical harm and {P.def}.",
+        "end": "Ancient ironbark.|Barely {s.gate} between blows and the wood closes over: physical damage {P.pdr}, {P.def}."
       }
     },
     {
@@ -26058,7 +26058,7 @@
       "prose": {
         "beginning": "Bats do not hunt alone.|With an ally inside {s.gate}, {P.hit}.",
         "middle": "A chittering frenzy carries {s.gate} now:|{P.hit} and {P.eva} for as long as someone flies with you.",
-        "end": "A wingbeat chorus reaches {s.gate}.|{P.hit}, {P.eva}, and everything you do costs {p.tcr} less."
+        "end": "A wingbeat chorus reaches {s.gate}.|{P.hit}, {P.eva}, and {P.tcr}."
       }
     },
     {
@@ -26068,8 +26068,8 @@
       "description": "Beast family, Beaker subgroup.",
       "prose": {
         "beginning": "Harm sends you skyward:|{s.duration} of {d.speedBoost} movement, once every {s.interval}.",
-        "middle": "A rising gust, now every {s.interval}:|{d.speedBoost} faster and {d.eva} harder to touch while it lasts.",
-        "end": "Gale force.|Every {s.interval}, {s.duration} of {d.speedBoost} movement, {d.eva} Grace, and everything that swings at you answers to itself."
+        "middle": "A rising gust, now every {s.interval}:|{d.speedBoost} faster and {D.eva} harder to touch while it lasts.",
+        "end": "Gale force.|Every {s.interval}, {s.duration} of {d.speedBoost} movement, {D.eva}, and everything that swings at you answers to itself."
       }
     },
     {
@@ -26079,7 +26079,7 @@
       "description": "Beast family, Rat subgroup.",
       "prose": {
         "beginning": "Rats hoard together.|Keep an ally {s.gate} and everything you learn sticks {v.aptMultiplier} better.",
-        "middle": "A nest egg travels: the bond holds out to {s.gate} now,|paying Aptitude {v.aptMultiplier} and Experience {p.exr}.",
+        "middle": "A nest egg travels: the bond holds out to {s.gate} now,|paying Aptitude {v.aptMultiplier} and {P.exr}.",
         "end": "Compound interest.|Even {s.gate} apart the share still counts: points, Aptitude and Experience all at {v.aptMultiplier}."
       }
     },
@@ -26091,7 +26091,7 @@
       "prose": {
         "beginning": "The pack looks to you.|Every {s.interval}, allies within {s.radius} take {D.def}.",
         "middle": "An alpha's howl carries {s.radius},|bringing {D.def} to everyone who hears it.",
-        "end": "Pack sovereignty.|{D.def} to all within {s.radius}, and your own guard becomes theirs: Resist rises by {d.mdf}."
+        "end": "Pack sovereignty.|{D.def} to all within {s.radius}, and your own guard becomes theirs: Resist rises by {D.mdf}."
       }
     },
     {
@@ -26111,9 +26111,9 @@
       "iconIndex": 54,
       "description": "Insect family, Crawler subgroup.",
       "prose": {
-        "beginning": "The network feeds on company.|Every enemy near you is worth {v.lst} Lifesteal.",
-        "middle": "A spire synapse: {v.lst} Lifesteal and {p.hrg} regeneration for each one that crowds you.",
-        "end": "Spire dominion. Every body around you gives {v.lst} Lifesteal, {p.hrg} regeneration, and {v.critReduction} off the crits they land.|Being surrounded is the point."
+        "beginning": "The network feeds on company.|Every enemy near you is worth {P.lst}.",
+        "middle": "A spire synapse: {P.lst} and {P.hrg} for each one that crowds you.",
+        "end": "Spire dominion. Every body around you gives {P.lst}, {P.hrg}, and {v.critReduction} off the crits they land.|Being surrounded is the point."
       }
     },
     {
@@ -26155,9 +26155,9 @@
       "iconIndex": 55,
       "description": "Humanoid family, Minotaur subgroup.",
       "prose": {
-        "beginning": "Keep moving and it builds: {d.atk} Power a step, {s.stacks} deep,|and the next skill you throw spends all of it.",
-        "middle": "Gathering thunder, {s.stacks} steps' worth at {d.atk} apiece.|Run further, hit once, hit enormously.",
-        "end": "Stampede.|There is no ceiling worth naming: {d.atk} Power per step, and every step you have ever taken goes into the swing."
+        "beginning": "Keep moving and it builds: {D.atk} a step, {s.stacks} deep,|and the next skill you throw spends all of it.",
+        "middle": "Gathering thunder, {s.stacks} steps' worth at {D.atk} apiece.|Run further, hit once, hit enormously.",
+        "end": "Stampede.|There is no ceiling worth naming: {D.atk} per step, and every step you have ever taken goes into the swing."
       }
     },
     {
@@ -26166,7 +26166,7 @@
       "iconIndex": 55,
       "description": "Humanoid family, Orc subgroup.",
       "prose": {
-        "beginning": "A warchief does not wait.|Every cooldown you carry runs {v.cdr} shorter.",
+        "beginning": "A warchief does not wait.|Every cooldown you carry runs shorter: {P.cdr}.",
         "middle": "",
         "end": ""
       }
@@ -26178,7 +26178,7 @@
       "description": "Humanoid family, Bandit subgroup.",
       "prose": {
         "beginning": "Fight dirty.|{s.chance} of your hits leave them clawing at their eyes.",
-        "middle": "A dirty trick every time: {s.chance} to \\state[18],|and {p.eva} Grace while they swing at nothing.",
+        "middle": "A dirty trick every time: {s.chance} to \\state[18],|and {P.eva} while they swing at nothing.",
         "end": "A blinding gambit.|Everything you hit goes blind, and every dodge you make leaves them wide open to something far worse."
       }
     },
@@ -26199,7 +26199,7 @@
       "iconIndex": 55,
       "description": "Humanoid family, Kobold subgroup.",
       "prose": {
-        "beginning": "A field medic wastes nothing.|Everything you consume works {p.pha} harder.",
+        "beginning": "A field medic wastes nothing.|Everything you consume works {P.pha} harder.",
         "middle": "Trail rations keep: {s.foodTypes} last longer on you,|and the keeping shows in {s.statList} across the board.",
         "end": "A battlefield banquet.|Every food lingers, every stat it feeds climbs, and Metabolize no longer costs you the meal."
       }
@@ -26210,9 +26210,9 @@
       "iconIndex": 56,
       "description": "Construct family, Titan subgroup.",
       "prose": {
-        "beginning": "Nothing sticks to a titan.|Every affliction you carry is worth {p.atk} Power and Force.",
-        "middle": "A relentless march: each curse on you gives {p.atk} Power and Force,|and {p.pdr} off everything they throw.",
-        "end": "Juggernaut. Every affliction feeds you {p.atk} Power and Force, {p.pdr} of protection, and {v.lst} Lifesteal.|Let them pile on."
+        "beginning": "Nothing sticks to a titan.|Every affliction you carry is worth {P.atk} and {P.mat}.",
+        "middle": "A relentless march: each curse on you gives {P.atk} and {P.mat},|and {P.pdr} off everything they throw.",
+        "end": "Juggernaut. Every affliction feeds you {P.atk} and {P.mat}, {P.pdr}, and {P.lst}.|Let them pile on."
       }
     },
     {
