@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v4.2.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v4.3.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -366,6 +366,13 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.3.0
+ *    Mastery descriptions tint their live values by kind and honour an authored line
+ *    break, so a description turns over at a clause a person chose rather than
+ *    wherever the pixels ran out.
+ * - 4.2.1
+ *    Mastery description wrapping measures with textSizeEx, matching the drawTextEx
+ *    that paints it, so escape codes are not counted as characters.
  * - 4.2.0
  *    Mastery descriptions wrap across the two lines the header reserves instead of
  *    running off its right edge, and the reach token carries its own unit the way
@@ -2817,6 +2824,38 @@ var MasteryProseResolver = class MasteryProseResolver {
 	*/
 	static FramesPerSecond = 60;
 	/**
+	* The palette index each kind of resolved value is tinted with.
+	*
+	* A description is mostly authored words with a few live numbers threaded through it, and the eye
+	* needs to find those numbers without reading the sentence twice. Three colours rather than a dozen:
+	* a stat, a measure of time or distance, and everything else that is a quantity.
+	* @type {Object<string, number>}
+	*/
+	static ValueColors = {
+		stat: 1,
+		measure: 6,
+		quantity: 3,
+		list: 2
+	};
+	/**
+	* Which colour each structural field takes.
+	* @type {Object<string, string>}
+	*/
+	static StructuralColorKinds = {
+		gate: "stat",
+		interval: "measure",
+		duration: "measure",
+		window: "measure",
+		radius: "measure",
+		chance: "quantity",
+		stacks: "quantity",
+		count: "quantity",
+		perStack: "quantity",
+		payload: "quantity",
+		foodTypes: "list",
+		statList: "list"
+	};
+	/**
 	* The tags whose named argument carries a cadence, in the order they are tried.
 	* @type {[ string, number ][]}
 	*/
@@ -2852,7 +2891,7 @@ var MasteryProseResolver = class MasteryProseResolver {
 				resolvable = false;
 				return whole;
 			}
-			return value;
+			return MasteryProseResolver.#tint(value, namespace, name);
 		});
 		if (resolvable === false) return String.empty;
 		return rendered;
@@ -2866,6 +2905,27 @@ var MasteryProseResolver = class MasteryProseResolver {
 	*/
 	static canResolve(template, masterySkillId) {
 		return MasteryProseResolver.resolve(template, masterySkillId) !== String.empty;
+	}
+	/**
+	* Wraps a resolved value in the colour its kind is read in.
+	* @param {string} value The resolved value.
+	* @param {string} namespace One of p, d, s or v.
+	* @param {string} name The parameter key, structural field, or tag name.
+	* @returns {string}
+	*/
+	static #tint(value, namespace, name) {
+		const kind = namespace === "s" ? MasteryProseResolver.StructuralColorKinds[name] : MasteryProseResolver.#valueColorKind(namespace);
+		const colorIndex = MasteryProseResolver.ValueColors[kind];
+		return `\\C[${colorIndex}]${value}\\C[0]`;
+	}
+	/**
+	* The colour kind a non-structural namespace reads in.
+	* @param {string} namespace One of p, d or v.
+	* @returns {string}
+	*/
+	static #valueColorKind(namespace) {
+		if (namespace === "v") return "quantity";
+		return "stat";
 	}
 	/**
 	* Resolves a single token, or answers null when this resolver cannot.
@@ -3737,7 +3797,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.2.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -5317,6 +5377,29 @@ var Window_SdpHeader = class extends Window_Base {
 		this.resetFontSettings();
 	}
 	/**
+	* Splits a resolved description into the lines it will be drawn as.
+	*
+	* The break is authored, not calculated: a pipe in the template marks where the sentence should
+	* turn over, because a person picks a clause and a measurement picks whatever word the pixels ran
+	* out on. Wrapping is the safety net beneath that, for a line whose live values came out longer
+	* than whoever wrote it expected.
+	*
+	* Measured with textSizeEx rather than textWidth because the line is painted with drawTextEx: the
+	* former processes escape codes and answers the width that will actually appear, while the latter
+	* measures the raw string and counts the codes themselves as characters.
+	* @param {string} resolved The description, tokens already filled in.
+	* @returns {string[]}
+	*/
+	proseLines(resolved) {
+		const measure = (text) => this.textSizeEx(text).width;
+		const authored = resolved.split("|").map((segment) => segment.trim()).filter((segment) => segment !== String.empty);
+		const budget = this.proseLineCount();
+		const everySegmentFits = authored.every((segment) => measure(segment) <= this.innerWidth);
+		if (authored.length <= budget && everySegmentFits) return authored;
+		const rejoined = authored.join(" ");
+		return TextWrapper.wrapToLines(rejoined, this.innerWidth, budget, measure);
+	}
+	/**
 	* How many lines the header reserves for the description beneath the identity row.
 	* @returns {number}
 	*/
@@ -5339,8 +5422,7 @@ var Window_SdpHeader = class extends Window_Base {
 		const resolved = MasteryProseResolver.resolve(template, mastery.masterySkillId);
 		if (resolved === String.empty) return;
 		this.resetFontSettings();
-		const measure = (text) => this.textWidth(text);
-		const lines = TextWrapper.wrapToLines(resolved, this.innerWidth, this.proseLineCount(), measure);
+		const lines = this.proseLines(resolved);
 		lines.forEach((line, index) => {
 			const y = this.lineHeight() * (index + 1);
 			this.drawTextEx(line, 0, y, this.innerWidth);

@@ -18,6 +18,20 @@
 Skipping layer 1 makes a conditional mechanic read as an unconditional one. Skipping layer 3 leaves
 the prose with nothing quantitative to say.
 
+## Authoring conventions
+
+- **A pipe marks the line break.** `line one|line two` is honoured exactly as written when both lines
+  fit; wrapping is only the safety net beneath it, for a line whose live values came out longer than
+  expected. The break belongs at a clause a person chose, not wherever the pixel count ran out.
+- **Tokens are tinted by the resolver, not by the template.** Never write a colour code around a token;
+  it already wears one. Stats and gates read `\C[1]`, measures of time and distance `\C[6]`,
+  quantities `\C[3]`, and lists `\C[2]`.
+- **Name a state with `\state[ID]`**, so it renders with its icon. Watch for names that are also
+  mastery names: `aquatic-frog`'s "Rooted cataclysm" is the mastery, not state 5.
+- **Never repeat a noun the token supplies.** `{s.payload}` already reads "10% of the shield broken",
+  so "bursts for {s.payload} of what it was holding" says it twice. Same for `{s.radius}`, which
+  carries its own "tiles".
+
 ## Budget
 
 **Two lines**, at the width of the SDP header window. No overflow handling; the constraint lives in
