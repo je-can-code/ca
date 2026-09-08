@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v4.5.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v4.6.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -366,6 +366,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.6.0
+ *    A name-only mastery token names a parameter without its value, so one stated
+ *    magnitude can cover several stats. Clearing the panel detail windows hands them
+ *    an empty array rather than null, which is what threw when maxed panels were hidden.
  * - 4.5.0
  *    A named mastery token can name any parameter, reading a plugin-owned one's
  *    label from the parameter catalog when no trait encodes it.
@@ -2842,7 +2846,7 @@ var MasteryProseResolver = class MasteryProseResolver {
 	* </pre>
 	* @type {RegExp}
 	*/
-	static TokenPattern = /\{([psdvPD])\.([a-zA-Z]+)(?:\[(\d+)])?}/g;
+	static TokenPattern = /\{([psdvPDN])\.([a-zA-Z]+)(?:\[(\d+)])?}/g;
 	/**
 	* How many frames make a second, for rendering cadences the player can feel.
 	* @type {number}
@@ -2911,6 +2915,14 @@ var MasteryProseResolver = class MasteryProseResolver {
 		const payload = MasteryPayloadLocator.locate(state, skill);
 		let resolvable = true;
 		const rendered = template.replace(MasteryProseResolver.TokenPattern, (whole, namespace, name, selector) => {
+			if (namespace === "N") {
+				const onlyName = MasteryProseResolver.#parameterName(name);
+				if (onlyName === null) {
+					resolvable = false;
+					return whole;
+				}
+				return MasteryProseResolver.#tint(onlyName, "p", name, skill);
+			}
 			const named = namespace === namespace.toUpperCase();
 			const lowered = namespace.toLowerCase();
 			const value = MasteryProseResolver.#resolveToken(state, skill, payload, lowered, name, selector);
@@ -2945,14 +2957,21 @@ var MasteryProseResolver = class MasteryProseResolver {
 	* @returns {string|null} Null when nothing names this key, so the caller can fail closed.
 	*/
 	static #withParameterName(value, parameterKey) {
+		const name = MasteryProseResolver.#parameterName(parameterKey);
+		if (name === null) return null;
+		return `${name} ${value}`;
+	}
+	/**
+	* The display name of a parameter, from whichever catalogue claims it.
+	* @param {string} parameterKey The parameter key being named.
+	* @returns {string|null} Null when neither catalogue names it, so the caller can fail closed.
+	*/
+	static #parameterName(parameterKey) {
 		const mapping = ParameterTraitMap.forKey(parameterKey);
-		if (mapping !== null) {
-			const traitLabel = MasteryProseResolver.#parameterLabel(mapping);
-			return `${traitLabel} ${value}`;
-		}
+		if (mapping !== null) return MasteryProseResolver.#parameterLabel(mapping);
 		if (ParameterRegistry.has(parameterKey)) {
 			const definition = ParameterRegistry.get(parameterKey);
-			return `${definition.label()} ${value}`;
+			return definition.label();
 		}
 		return null;
 	}
@@ -3875,7 +3894,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.5.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.6.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -5449,7 +5468,7 @@ var Window_SdpHeader = class extends Window_Base {
 		this.resetFontSettings();
 		const tintedSubgroup = this.colorizeText(14, subgroupName);
 		const skillName = `\\Skill[${mastery.masterySkillId}]`;
-		const tierNote = this.colorizeText(8, `Tier ${mastery.subgroupTier} · Rank MAX`);
+		const tierNote = this.colorizeText(8, `Tier ${mastery.subgroupTier}`);
 		const identityLine = `${tintedSubgroup} · ${skillName} ${tierNote}`;
 		this.drawTextEx(identityLine, 0, 0, this.innerWidth);
 		this.resetFontSettings();
@@ -5681,7 +5700,6 @@ var Window_SdpRewardList = class extends Window_Command {
 	*/
 	buildCommands() {
 		const commands = [];
-		if (!this.panelRewards) return commands;
 		if (this.panelRewards.length === 0) {
 			const command = new WindowCommandBuilder("No rewards.").setSymbol("no-rewards").setEnabled(false).setColorIndex(8).build();
 			commands.push(command);
@@ -6617,7 +6635,9 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		const contentArea = this.contentAreaRect();
 		const headerRect = this.sdpHeaderRectangle();
 		const width = Math.round(contentArea.width * this.sdpCenterColumnRatio());
-		return new Rectangle(headerRect.x, headerRect.y + headerRect.height, width, contentArea.height - headerRect.height);
+		const top = headerRect.y + headerRect.height;
+		const bottom = contentArea.y + contentArea.height;
+		return new Rectangle(headerRect.x, top, width, bottom - top);
 	}
 	/**
 	* Gets the currently tracked parameter list window.
@@ -7180,10 +7200,10 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		this.getSdpHeaderWindow().setPanel(null);
 		this.getSdpHeaderWindow().refresh();
 		const parameterListWindow = this.getSdpParameterListWindow();
-		parameterListWindow.setParameters(null);
+		parameterListWindow.setParameters([]);
 		parameterListWindow.refresh();
 		const rewardListWindow = this.getSdpRewardListWindow();
-		rewardListWindow.setRewards(null);
+		rewardListWindow.setRewards([]);
 		rewardListWindow.refresh();
 		this.getSdpHelpWindow().setText(String.empty);
 	}

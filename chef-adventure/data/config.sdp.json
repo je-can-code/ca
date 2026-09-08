@@ -25882,7 +25882,7 @@
       "prose": {
         "beginning": "A kappa's luck rubs off.|Enemies part with {v.dropMultiplier} more than they meant to.",
         "middle": "Fortune favors you twice: {v.dropMultiplier} more loot,|and {P.eva} to walk away with it.",
-        "end": "A trickster's gambit.|Drop rate, Grace and Luck each climb by {v.evaBuffPlus}, and keep climbing every level you earn."
+        "end": "A trickster's gambit.|{N.dor}, {N.eva} and {N.luk} each climb by {v.evaBuffPlus}, and keep climbing every level you earn."
       }
     },
     {
@@ -26045,9 +26045,9 @@
       "iconIndex": 53,
       "description": "Beast family, Bearcat subgroup.",
       "prose": {
-        "beginning": "Muscle and magic start to rhyme:|Force rises by {v.matBuffPlus} of your Power.",
-        "middle": "A void chord runs through every swing.|Force takes {v.matBuffPlus} of your Power, and {s.chance} of your blows leave \\state[14] behind.",
-        "end": "Void harmonics.|Power feeds Force and Force feeds Power, each carrying {v.matBuffPlus} of the other, and {s.chance} of what you touch is unmade."
+        "beginning": "Muscle and magic start to rhyme:|{N.mat} rises by {v.matBuffPlus}.",
+        "middle": "A void chord runs through every swing.|{N.mat} takes {v.matBuffPlus}, and {s.chance} of your blows leave \\state[14] behind.",
+        "end": "Void harmonics.|{N.atk} feeds {N.mat} and back again, each carrying the other in full, and {s.chance} of what you touch is unmade."
       }
     },
     {
@@ -26079,8 +26079,8 @@
       "description": "Beast family, Rat subgroup.",
       "prose": {
         "beginning": "Rats hoard together.|Keep an ally {s.gate} and everything you learn sticks {v.aptMultiplier} better.",
-        "middle": "A nest egg travels: the bond holds out to {s.gate} now,|paying Aptitude {v.aptMultiplier} and {P.exr}.",
-        "end": "Compound interest.|Even {s.gate} apart the share still counts: points, Aptitude and Experience all at {v.aptMultiplier}."
+        "middle": "A nest egg travels: the bond holds out to {s.gate} now,|paying {N.apr} {v.aptMultiplier} and {P.exr}.",
+        "end": "Compound interest.|Even {s.gate} apart the share still counts: {N.sdr}, {N.apr} and {N.exr} all at {v.aptMultiplier}."
       }
     },
     {
@@ -26091,7 +26091,7 @@
       "prose": {
         "beginning": "The pack looks to you.|Every {s.interval}, allies within {s.radius} take {D.def}.",
         "middle": "An alpha's howl carries {s.radius},|bringing {D.def} to everyone who hears it.",
-        "end": "Pack sovereignty.|{D.def} to all within {s.radius}, and your own guard becomes theirs: Resist rises by {D.mdf}."
+        "end": "Pack sovereignty.|{D.def} to all within {s.radius}, and your own guard becomes theirs: {D.mdf}."
       }
     },
     {
