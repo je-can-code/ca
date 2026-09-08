@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v4.3.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v4.4.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -366,6 +366,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.4.0
+ *    Mastery values are tinted by what they are rather than which namespace wrote
+ *    them, so a distance and a percentage never share an ink. An uppercase token
+ *    namespace names its parameter alongside its value.
  * - 4.3.0
  *    Mastery descriptions tint their live values by kind and honour an authored line
  *    break, so a description turns over at a clause a person chose rather than
@@ -2519,6 +2523,24 @@ var MasteryGatePhrase = class MasteryGatePhrase {
 		return null;
 	}
 	/**
+	* Which kind of value the gate's phrase turns out to be.
+	*
+	* A gate is not one kind of thing: "below 20% Life" is a threshold on a stat, while "3 seconds" and
+	* "6 tiles" are measures. Tinting every gate the same colour would put a distance and a percentage
+	* in the same ink, which is exactly the confusion the colours exist to prevent.
+	* @param {RPG_Skill} skill The mastery's wrapper skill.
+	* @returns {string} Either measure or stat.
+	*/
+	static colorKindFor(skill) {
+		const match = skill.note.match(/<passiveSourceRule:[ ]?\[([^\]]*)]>/i);
+		if (!match) return "stat";
+		const [kind] = match[1].split(",").map((argument) => argument.trim());
+		if (MasteryGatePhrase.ElapsedKinds.includes(kind)) return "measure";
+		if (MasteryGatePhrase.WithinKinds.includes(kind)) return "measure";
+		if (kind === "alliesNearby") return "measure";
+		return "stat";
+	}
+	/**
 	* Phrases a resource threshold, e.g. "below 20% Life".
 	* @param {string} kind The gate kind, whose prefix names the resource.
 	* @param {string} param The threshold percentage.
@@ -2817,7 +2839,7 @@ var MasteryProseResolver = class MasteryProseResolver {
 	* </pre>
 	* @type {RegExp}
 	*/
-	static TokenPattern = /\{([psdv])\.([a-zA-Z]+)(?:\[(\d+)])?}/g;
+	static TokenPattern = /\{([psdvPD])\.([a-zA-Z]+)(?:\[(\d+)])?}/g;
 	/**
 	* How many frames make a second, for rendering cadences the player can feel.
 	* @type {number}
@@ -2886,12 +2908,19 @@ var MasteryProseResolver = class MasteryProseResolver {
 		const payload = MasteryPayloadLocator.locate(state, skill);
 		let resolvable = true;
 		const rendered = template.replace(MasteryProseResolver.TokenPattern, (whole, namespace, name, selector) => {
-			const value = MasteryProseResolver.#resolveToken(state, skill, payload, namespace, name, selector);
+			const named = namespace === namespace.toUpperCase();
+			const lowered = namespace.toLowerCase();
+			const value = MasteryProseResolver.#resolveToken(state, skill, payload, lowered, name, selector);
 			if (value === null) {
 				resolvable = false;
 				return whole;
 			}
-			return MasteryProseResolver.#tint(value, namespace, name);
+			const labelled = named ? MasteryProseResolver.#withParameterName(value, name) : value;
+			if (labelled === null) {
+				resolvable = false;
+				return whole;
+			}
+			return MasteryProseResolver.#tint(labelled, lowered, name, skill);
 		});
 		if (resolvable === false) return String.empty;
 		return rendered;
@@ -2907,25 +2936,65 @@ var MasteryProseResolver = class MasteryProseResolver {
 		return MasteryProseResolver.resolve(template, masterySkillId) !== String.empty;
 	}
 	/**
+	* Prefixes a resolved value with the display name of the parameter it belongs to.
+	* @param {string} value The resolved value.
+	* @param {string} parameterKey The parameter key being named.
+	* @returns {string|null} Null when nothing names this key, so the caller can fail closed.
+	*/
+	static #withParameterName(value, parameterKey) {
+		const mapping = ParameterTraitMap.forKey(parameterKey);
+		if (mapping === null) return null;
+		const label = MasteryProseResolver.#parameterLabel(mapping);
+		return `${label} ${value}`;
+	}
+	/**
+	* The display name of a parameter, read from whichever catalogue its trait code belongs to.
+	* @param {{code: number, dataId: number}} mapping The trait encoding the parameter.
+	* @returns {string}
+	*/
+	static #parameterLabel(mapping) {
+		if (mapping.code === ParameterTraitMap.BaseParameterCode) return TextManager.param(mapping.dataId);
+		if (mapping.code === ParameterTraitMap.ExParameterCode) return TextManager.xparam(mapping.dataId);
+		return TextManager.sparam(mapping.dataId);
+	}
+	/**
 	* Wraps a resolved value in the colour its kind is read in.
 	* @param {string} value The resolved value.
 	* @param {string} namespace One of p, d, s or v.
 	* @param {string} name The parameter key, structural field, or tag name.
 	* @returns {string}
 	*/
-	static #tint(value, namespace, name) {
-		const kind = namespace === "s" ? MasteryProseResolver.StructuralColorKinds[name] : MasteryProseResolver.#valueColorKind(namespace);
+	static #tint(value, namespace, name, skill) {
+		const kind = namespace === "s" ? MasteryProseResolver.#structuralColorKind(name, skill) : MasteryProseResolver.#valueColorKind(namespace, name);
 		const colorIndex = MasteryProseResolver.ValueColors[kind];
 		return `\\C[${colorIndex}]${value}\\C[0]`;
 	}
 	/**
-	* The colour kind a non-structural namespace reads in.
-	* @param {string} namespace One of p, d or v.
+	* The colour kind a structural field reads in.
+	* @param {string} field The structural field name.
+	* @param {RPG_Skill} skill The wrapper skill, which decides what a gate turned out to be.
 	* @returns {string}
 	*/
-	static #valueColorKind(namespace) {
-		if (namespace === "v") return "quantity";
-		return "stat";
+	static #structuralColorKind(field, skill) {
+		if (field === "gate") return MasteryGatePhrase.colorKindFor(skill);
+		return MasteryProseResolver.StructuralColorKinds[field];
+	}
+	/**
+	* The colour kind a non-structural namespace reads in.
+	*
+	* A tag naming a parameter is a stat however it was written: lifesteal arrives as its own tag and
+	* regeneration arrives as a trait, and a description quoting both in one breath should not paint
+	* them differently. Anything the parameter catalogs do not claim is an effect magnitude.
+	* @param {string} namespace One of p, d or v.
+	* @param {string} name The parameter key or tag name.
+	* @returns {string}
+	*/
+	static #valueColorKind(namespace, name) {
+		if (namespace !== "v") return "stat";
+		const base = name.replace(/Buff(Plus|Rate)$/, String.empty);
+		if (ParameterTraitMap.hasKey(base)) return "stat";
+		if (ParameterRegistry.has(base)) return "stat";
+		return "quantity";
 	}
 	/**
 	* Resolves a single token, or answers null when this resolver cannot.
@@ -3797,7 +3866,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.3.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

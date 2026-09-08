@@ -23,9 +23,18 @@ the prose with nothing quantitative to say.
 - **A pipe marks the line break.** `line one|line two` is honoured exactly as written when both lines
   fit; wrapping is only the safety net beneath it, for a line whose live values came out longer than
   expected. The break belongs at a clause a person chose, not wherever the pixel count ran out.
-- **Tokens are tinted by the resolver, not by the template.** Never write a colour code around a token;
-  it already wears one. Stats and gates read `\C[1]`, measures of time and distance `\C[6]`,
-  quantities `\C[3]`, and lists `\C[2]`.
+- **Tokens are tinted by the resolver, not by the template.** Never write a colour code around a
+  token; it already wears one. The colour follows **what the value is**, not which namespace wrote it:
+  stats `\C[1]`, measures of time and distance `\C[6]`, quantities `\C[3]`, lists `\C[2]`.
+  A gate takes the colour of whatever its phrase turned out to be, so "3 tiles" reads as a measure
+  while "below 20% Life" reads as a stat. A tag naming a registered parameter (`lst`, `cdr`) is a
+  stat too, so lifesteal and regeneration are not painted differently in the same sentence.
+- **An uppercase namespace names the parameter.** `{P.def}` renders "Endurance +12%" with the name
+  inside the tint; `{p.def}` renders "+12%" alone. Use the uppercase form when the noun you would
+  write is simply the parameter's name, and the lowercase form when friendlier wording reads better
+  ("damage taken" beats "Phys Dmg Rate").
+- **A gate phrase is the whole condition.** `{s.gate}` already reads "below 20% Life", so
+  "Below {s.gate} Life" says it twice.
 - **Name a state with `\state[ID]`**, so it renders with its icon. Watch for names that are also
   mastery names: `aquatic-frog`'s "Rooted cataclysm" is the mastery, not state 5.
 - **Never repeat a noun the token supplies.** `{s.payload}` already reads "10% of the shield broken",
