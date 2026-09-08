@@ -25959,7 +25959,7 @@
       "prose": {
         "beginning": "Flesh knits and something else fills the gap: {v.onSelfHpHealMp} of any healing you take returns as Magi.",
         "middle": "Mana weave. {v.onSelfHpHealMp} of your healing becomes Magi, yours and every ally's within {s.radius}.",
-        "end": "Arcane transfusion: any healing at all, of any kind, pays {v.onSelfHpHealMp} back as Magi to everyone within {s.radius}."
+        "end": "Arcane transfusion: any healing at all, of any kind, pays {v.onSelfAnyHealMp} back as Magi to everyone within {s.radius}."
       }
     },
     {
@@ -26091,7 +26091,7 @@
       "prose": {
         "beginning": "The pack looks to you. Every {s.interval}, allies within {s.radius} take Endurance {d.def}.",
         "middle": "An alpha's howl carries {s.radius}, bringing Endurance {d.def} to everyone who hears it.",
-        "end": "Pack sovereignty. Endurance {d.def} to all within {s.radius}, and your own guard becomes theirs: Resist rises by {d.mdf} of what you carry."
+        "end": "Pack sovereignty. Endurance {d.def} to all within {s.radius}, and your own guard becomes theirs: Resist rises by {d.mdf}."
       }
     },
     {
@@ -26188,8 +26188,8 @@
       "iconIndex": 55,
       "description": "Humanoid family, Cyclops subgroup.",
       "prose": {
-        "beginning": "A thick skull has its uses. Roots hold you {p.stateRate} less, until they stop holding you at all.",
-        "middle": "Stone temper: nothing roots you, and what would disable you slips {p.stateRate} of the time.",
+        "beginning": "A thick skull has its uses. Roots find less and less purchase on you, until they stop holding you at all.",
+        "middle": "Stone temper: nothing roots you, and what would disable you slips off more often than it lands.",
         "end": "An adamant mind. Neither root nor disabling touches you, and half of what would move you simply doesn't."
       }
     },

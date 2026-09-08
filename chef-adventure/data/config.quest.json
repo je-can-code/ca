@@ -5834,7 +5834,7 @@
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Acquire three \\item[515] for the tribute."
+              "hint": "Acquire three \\item[607] for the tribute."
             },
             "destination": {
               "mapId": -1,
@@ -5845,7 +5845,7 @@
             },
             "fetch": {
               "type": 0,
-              "id": 515,
+              "id": 607,
               "amount": 3
             },
             "slay": {
@@ -6346,7 +6346,7 @@
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Prepare three \\item[515] for the banquet."
+              "hint": "Prepare three \\item[607] for the banquet."
             },
             "destination": {
               "mapId": -1,
@@ -6357,7 +6357,7 @@
             },
             "fetch": {
               "type": 0,
-              "id": 515,
+              "id": 607,
               "amount": 3
             },
             "slay": {
@@ -6637,7 +6637,7 @@
             },
             "fetch": {
               "type": 0,
-              "id": 311,
+              "id": 316,
               "amount": 20
             },
             "slay": {

@@ -219,21 +219,19 @@ var Sprite_BaseSkillSlot = class extends Sprite_BaseText {
 		return this.skillSlot().data(this.targetBattler(), this.skillId());
 	}
 	/**
-	* Gets the effective skill (or item) id for this slot, accounting for active skill transforms
-	* and any queued combo follow-up.
+	* Gets the effective skill (or item) id for this slot, accounting for active transforms and any
+	* queued combo follow-up.
 	*
 	* Resolution order:
-	*  1. Item slots return the raw item id unchanged — transforms do not apply to items.
-	*  2. When a combo follow-up is queued, its id is returned directly; combo chains are
+	*  1. When a combo follow-up is queued, its id is returned directly; combo chains are
 	*     sourced from the resolved (transformed) starter skill and are not re-transformed.
-	*  3. Otherwise the slot's base skill id is passed through the transform resolver so the
-	*     HUD displays the skill that will actually fire, not the raw equipped id.
+	*  2. Otherwise the slot's key is passed through the battler's transform resolver so the HUD
+	*     displays what will actually fire, not the raw equipped id. Item slots go through it too:
+	*     a slot transform can claim an item slot outright, and the resolver hands back the stored
+	*     item id untouched whenever nothing has.
 	* @returns {number}
 	*/
 	skillId() {
-		if (this.skillSlot().isItem()) {
-			return this.skillSlot().id;
-		}
 		const cooldownData = this.cooldownData();
 		if (cooldownData && cooldownData.comboNextActionId > 0) {
 			return cooldownData.comboNextActionId;

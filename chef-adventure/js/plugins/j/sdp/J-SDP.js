@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v4.0.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v4.1.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -366,6 +366,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.1.0
+ *    Mastery descriptions now resolve in full. The prose resolver reads parameters
+ *    from traits or buff tags, follows a mastery to the payload it delivers, phrases
+ *    gates and damage formulas, and consults a tag-shape table rather than guessing
+ *    which argument holds a magnitude. All 48 authored subgroups render every tier.
  * - 4.0.0
  *    The SDP header now names the mastery a panel grants and describes what it does,
  *    read from a new per-act prose block on each subgroup in config.sdp.json.
@@ -2284,6 +2289,490 @@ var PanelTracking = class {
 };
 
 //#endregion
+//#region src/plugins/sdp/core/managers/MasteryFormulaPhrase.js
+/**
+* Renders a damage or healing formula as the phrase a player reads.
+*
+* A payload's numbers live in its formula, and the formula is written for the engine rather than for a
+* reader: {@code (b.mhp * 0.02) + (a.mdf * 2)} is exact and says nothing. This class turns it into
+* "2% of their Max Life plus 2x your Resist", so the description quotes the real number without an
+* author having to copy it by hand into a sentence that will drift the next time it is tuned.
+*/
+var MasteryFormulaPhrase = class MasteryFormulaPhrase {
+	/**
+	* The reading of each formula subject.
+	* @type {Object<string, string>}
+	*/
+	static Subjects = {
+		a: "your",
+		b: "their"
+	};
+	/**
+	* The reading of each parameter shorthand a formula can name.
+	* @type {Object<string, string>}
+	*/
+	static Parameters = {
+		mhp: "Max Life",
+		mmp: "Max Magi",
+		mtp: "Max Tech",
+		hp: "current Life",
+		mp: "current Magi",
+		tp: "current Tech",
+		atk: "Power",
+		def: "Endurance",
+		mat: "Force",
+		mdf: "Resist",
+		agi: "Speed",
+		luk: "Luck",
+		sar: "Shield Amp",
+		level: "level",
+		missinghp: "missing Life",
+		missingmp: "missing Magi",
+		missingtp: "missing Tech"
+	};
+	/**
+	* The reading of each method call a formula can make.
+	* @type {Object<string, string>}
+	*/
+	static MethodCalls = { getMasteryCount: "mastery count" };
+	/**
+	* The reading of each bare context variable a formula can name.
+	* @type {Object<string, string>}
+	*/
+	static ContextVariables = {
+		d: "the damage taken",
+		m: "the Magi damage taken",
+		t: "the Tech damage taken",
+		s: "the shield broken",
+		p: "your proficiency"
+	};
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* The phrase describing the given formula.
+	* @param {string} formula The raw damage or heal formula.
+	* @returns {string|null} Null when the formula uses something this class cannot read aloud.
+	*/
+	static phraseFor(formula) {
+		const demitigated = formula.replace(/\*?\s*\(\s*100\s*\/\s*\(\s*100\s*\+\s*[ab]\.[a-z]+\s*\)\s*\)/gi, "");
+		const withMissing = demitigated.replace(/\(\s*([ab])\.m(hp|mp|tp)\s*-\s*[ab]\.(hp|mp|tp)\s*\)/gi, (whole, subject, pool) => `${subject}.missing${pool}`);
+		if (/\)\s*\*/.test(withMissing.replace(/\(\s*\)/g, "@@"))) return null;
+		const marked = withMissing.replace(/\(\s*\)/g, "@@");
+		const stripped = marked.replace(/[()]/g, " ");
+		const pieces = stripped.split(/\s*([+-])\s*/).map((piece) => piece.trim()).filter((piece) => piece !== String.empty);
+		if (pieces.length === 0) return null;
+		const phrases = [];
+		for (const piece of pieces) {
+			if (piece === "+") {
+				phrases.push("plus");
+				continue;
+			}
+			if (piece === "-") {
+				phrases.push("less");
+				continue;
+			}
+			const termPhrase = MasteryFormulaPhrase.#phraseTerm(piece);
+			if (termPhrase === null) return null;
+			phrases.push(termPhrase);
+		}
+		return phrases.join(" ");
+	}
+	/**
+	* The phrase describing one multiplicative term.
+	* @param {string} term A single term, such as {@code a.mat*3} or {@code d * 0.5}.
+	* @returns {string|null}
+	*/
+	static #phraseTerm(term) {
+		const methodMatch = term.match(/^([ab])\.([a-zA-Z]+)@@\s*(?:\*\s*([\d.]+))?$/);
+		if (methodMatch) {
+			const [, methodSubject, methodName, methodMultiplier] = methodMatch;
+			const noun = MasteryFormulaPhrase.MethodCalls[methodName];
+			if (!noun) return null;
+			const scale = methodMultiplier === undefined ? 1 : Number(methodMultiplier);
+			return `${MasteryFormulaPhrase.#magnitude(scale)} ${MasteryFormulaPhrase.Subjects[methodSubject]} ${noun}`.trim();
+		}
+		const match = term.match(/^([abv]?)\.?([a-z]+)\s*(?:\*\s*([\d.]+))?$/i);
+		if (!match) return null;
+		const [, subjectKey, name, rawMultiplier] = match;
+		const multiplier = rawMultiplier === undefined ? 1 : Number(rawMultiplier);
+		if (subjectKey === String.empty && MasteryFormulaPhrase.ContextVariables[name]) {
+			const noun = MasteryFormulaPhrase.ContextVariables[name];
+			return `${MasteryFormulaPhrase.#magnitude(multiplier)} ${noun}`.trim();
+		}
+		const subject = MasteryFormulaPhrase.Subjects[subjectKey];
+		const parameter = MasteryFormulaPhrase.Parameters[name];
+		if (!subject || !parameter) return null;
+		return `${MasteryFormulaPhrase.#magnitude(multiplier)} ${subject} ${parameter}`.trim();
+	}
+	/**
+	* Renders a multiplier the way a player would say it.
+	*
+	* Fractions read better as a percentage of the thing, and whole multiples read better as a multiple
+	* of it, which is the difference between "5% of their Max Life" and "3x your Force".
+	* @param {number} multiplier The coefficient on the term.
+	* @returns {string}
+	*/
+	static #magnitude(multiplier) {
+		if (multiplier < 1) {
+			const percent = Math.round(multiplier * 1e3) / 10;
+			return `${percent}% of`;
+		}
+		if (multiplier === 1) return String.empty;
+		return `${multiplier}x`;
+	}
+};
+
+//#endregion
+//#region src/plugins/sdp/core/managers/MasteryGatePhrase.js
+/**
+* Turns a mastery's {@code passiveSourceRule} into the phrase a player reads.
+*
+* 110 of the mastery wrapper skills gate their passive on a condition, and the gate is frequently the
+* whole identity of the strip rather than a footnote: draconite is not "endurance up", it is "stand
+* still for three seconds and endurance goes up". Prose that omits the gate describes a different
+* mastery, so this class exists to say the condition in words rather than leaving it to the author to
+* hardcode a number that will move.
+*/
+var MasteryGatePhrase = class MasteryGatePhrase {
+	/**
+	* How many frames make a second, for rendering durations the player can feel.
+	* @type {number}
+	*/
+	static FramesPerSecond = 60;
+	/**
+	* Gate kinds phrased as a resource threshold, mapped to the word describing the direction.
+	* @type {Object<string, string>}
+	*/
+	static ThresholdKinds = {
+		hpAbove: "above",
+		hpBelow: "below",
+		mpAbove: "above",
+		mpBelow: "below",
+		tpAbove: "above",
+		tpBelow: "below"
+	};
+	/**
+	* Gate kinds phrased as an elapsed time since something last happened.
+	* @type {string[]}
+	*/
+	static ElapsedKinds = [
+		"sinceLastMoved",
+		"sinceLastHit",
+		"sinceLastAttacked"
+	];
+	/**
+	* Gate kinds phrased as a recent event within a window.
+	* @type {string[]}
+	*/
+	static WithinKinds = [
+		"movedWithin",
+		"hitWithin",
+		"attackedWithin"
+	];
+	/**
+	* The resource each threshold kind reads, keyed by its prefix.
+	* @type {Object<string, string>}
+	*/
+	static ResourceNames = {
+		hp: "Life",
+		mp: "Magi",
+		tp: "Tech"
+	};
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* The phrase describing the gate on the given wrapper skill.
+	* @param {RPG_Skill} skill The mastery's wrapper skill.
+	* @returns {string|null} Null when the skill carries no gate, or one this class cannot phrase.
+	*/
+	static phraseFor(skill) {
+		const match = skill.note.match(/<passiveSourceRule:[ ]?\[([^\]]*)]>/i);
+		if (!match) return null;
+		const args = match[1].split(",").map((arg) => arg.trim());
+		const [kind, param, scope] = args;
+		if (kind === "allOffCooldown") return "every skill ready";
+		if (MasteryGatePhrase.ThresholdKinds[kind]) return MasteryGatePhrase.#thresholdPhrase(kind, param);
+		if (MasteryGatePhrase.ElapsedKinds.includes(kind)) return MasteryGatePhrase.#secondsPhrase(param);
+		if (MasteryGatePhrase.WithinKinds.includes(kind)) return MasteryGatePhrase.#secondsPhrase(param);
+		if (kind === "alliesNearby") return MasteryGatePhrase.#nearbyPhrase(scope);
+		return null;
+	}
+	/**
+	* Phrases a resource threshold, e.g. "below 20% Life".
+	* @param {string} kind The gate kind, whose prefix names the resource.
+	* @param {string} param The threshold percentage.
+	* @returns {string}
+	*/
+	static #thresholdPhrase(kind, param) {
+		const direction = MasteryGatePhrase.ThresholdKinds[kind];
+		const resource = MasteryGatePhrase.ResourceNames[kind.slice(0, 2)];
+		return `${direction} ${param}% ${resource}`;
+	}
+	/**
+	* Phrases a frame count as seconds, e.g. "3 seconds".
+	* @param {string} frames The frame count.
+	* @returns {string}
+	*/
+	static #secondsPhrase(frames) {
+		const seconds = Number(frames) / MasteryGatePhrase.FramesPerSecond;
+		const rounded = Math.round(seconds * 100) / 100;
+		return `${rounded} seconds`;
+	}
+	/**
+	* Phrases an ally proximity gate, e.g. "6 tiles".
+	*
+	* Only the distance is spoken. The count is always one in a two-person party, so saying it would add
+	* a number the player can do nothing with.
+	* @param {string|undefined} scope The tile radius, when the gate names one.
+	* @returns {string}
+	*/
+	static #nearbyPhrase(scope) {
+		if (scope === undefined) return "nearby";
+		return `${scope} tiles`;
+	}
+};
+
+//#endregion
+//#region src/plugins/sdp/core/managers/MasteryPayloadLocator.js
+/**
+* Finds the database row a mastery actually delivers.
+*
+* Most masteries do not carry their numbers themselves. They carry a tag naming a second row - a ward
+* state, an aura skill, a venom - and that row holds the values a player cares about. Prose describing
+* the mastery therefore has to follow one hop before it can quote anything, and this locator is that
+* hop, kept apart from the resolver so the list of delivery tags has one home.
+*/
+var MasteryPayloadLocator = class MasteryPayloadLocator {
+	/**
+	* The tags that name a state as their payload, paired with the argument holding its id.
+	* @type {[ string, number ][]}
+	*/
+	static StateDeliveryTags = [
+		["autoApplyState", 0],
+		["autoApplyStateOnNearby", 0],
+		["onCritApply", 0],
+		["passiveStateCount", 0],
+		["autoInflictState", 0],
+		["removeStateOnMove", 0]
+	];
+	/**
+	* The tags that name a skill as their payload, paired with the argument holding its id.
+	* @type {[ string, number ][]}
+	*/
+	static SkillDeliveryTags = [
+		["autoExecuteSkill", 0],
+		["retaliate", 0],
+		["shieldBreak", 0]
+	];
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* The row this mastery delivers, or the mastery's own state when it delivers nothing.
+	*
+	* Falling back to the state rather than to null is deliberate: a mastery that holds its own numbers
+	* is the same shape to a caller as one that delegates them, so the caller never branches on which.
+	* @param {RPG_State} state The mastery state.
+	* @param {RPG_Skill} skill The wrapper skill, which carries some delivery tags itself.
+	* @returns {RPG_State|RPG_Skill}
+	*/
+	static locate(state, skill) {
+		const fromState = MasteryPayloadLocator.#firstDelivery(state);
+		if (fromState !== null) return MasteryPayloadLocator.#throughEffects(fromState);
+		const fromSkill = MasteryPayloadLocator.#firstDelivery(skill);
+		if (fromSkill !== null) return MasteryPayloadLocator.#throughEffects(fromSkill);
+		return state;
+	}
+	/**
+	* Follows a delivery skill to the state it exists to apply.
+	*
+	* An aura skill is frequently a vehicle rather than a payload: it deals no damage and its whole job
+	* is the add-state effect it carries, which is where the numbers a player cares about actually live.
+	* A skill that does something itself is left alone.
+	* @param {RPG_State|RPG_Skill} payload The row the delivery tags named.
+	* @returns {RPG_State|RPG_Skill}
+	*/
+	/**
+	* The row the delivery tags named, before following it through to what it applies.
+	*
+	* An aura's reach lives on the skill that projects it while its numbers live on the state it
+	* applies, so a caller asking about distance wants this and a caller asking about magnitude wants
+	* {@link #locate}.
+	* @param {RPG_State} state The mastery state.
+	* @param {RPG_Skill} skill The wrapper skill.
+	* @returns {RPG_State|RPG_Skill}
+	*/
+	static locateVehicle(state, skill) {
+		const fromState = MasteryPayloadLocator.#firstDelivery(state);
+		if (fromState !== null) return fromState;
+		const fromSkill = MasteryPayloadLocator.#firstDelivery(skill);
+		if (fromSkill !== null) return fromSkill;
+		return state;
+	}
+	static #throughEffects(payload) {
+		if (payload.isSkill() === false) return payload;
+		if (!payload.effects) return payload;
+		const dealsDamage = payload.damage && payload.damage.formula && payload.damage.formula !== "0";
+		if (dealsDamage) return payload;
+		const addState = payload.effects.find((effect) => effect.code === 21);
+		if (addState === undefined) return payload;
+		const applied = $dataStates[addState.dataId];
+		if (!applied) return payload;
+		return applied;
+	}
+	/**
+	* The first payload named by any delivery tag on the given row.
+	* @param {RPG_Base} dataRow The row whose notes are searched.
+	* @returns {RPG_State|RPG_Skill|null}
+	*/
+	static #firstDelivery(dataRow) {
+		const stateId = MasteryPayloadLocator.#firstIdFrom(dataRow, MasteryPayloadLocator.StateDeliveryTags);
+		if (stateId > 0 && $dataStates[stateId]) return $dataStates[stateId];
+		const skillId = MasteryPayloadLocator.#firstIdFrom(dataRow, MasteryPayloadLocator.SkillDeliveryTags);
+		if (skillId > 0 && $dataSkills[skillId]) return $dataSkills[skillId];
+		return null;
+	}
+	/**
+	* The id named by the first of the given tags present on the row.
+	* @param {RPG_Base} dataRow The row whose notes are searched.
+	* @param {[ string, number ][]} deliveryTags The tags to try, in order.
+	* @returns {number} Zero when none of them are present.
+	*/
+	static #firstIdFrom(dataRow, deliveryTags) {
+		for (const [tagName, argumentIndex] of deliveryTags) {
+			const pattern = new RegExp(`<${tagName}:[ ]?\\[([^\\]]*)]>`, "i");
+			const match = dataRow.note.match(pattern);
+			if (!match) continue;
+			const args = match[1].split(",").map((arg) => arg.trim());
+			const parsed = Number(args[argumentIndex]);
+			if (Number.isNaN(parsed)) continue;
+			return parsed;
+		}
+		return 0;
+	}
+};
+
+//#endregion
+//#region src/plugins/sdp/core/managers/MasteryTagShapes.js
+/**
+* Says which argument of a notetag carries which meaning.
+*
+* Reading a tag's grammar is generic, but reading its *shape* is not: {@code onSelfHpHealMp:[50, 3]}
+* puts the magnitude first and the reach second, while {@code boostElement:[8, 50]} does the reverse.
+* Without this table a resolver has to guess, and guessing prints a plausible wrong number rather than
+* failing - the one outcome the prose system is built to avoid.
+*
+* This is an extension point rather than a private detail. A plugin introducing a tag whose shape is
+* not obvious registers it from its own tree - {@code MasteryTagShapes.Shapes.myTag = { magnitude: 1 }}
+* - the same way trait formatters are added to {@link RPG_Trait.NameFormatters}. A tag with no entry
+* falls back to "the last numeric argument", which is right for the many tags carrying a single value.
+* @type {Object<string, {magnitude?: number, radius?: number, interval?: number, chance?: number,
+* window?: number, count?: number, perStack?: number}>}
+*/
+var MasteryTagShapes = class MasteryTagShapes {
+	/**
+	* The known tag shapes, keyed by tag name.
+	* @type {Object<string, object>}
+	*/
+	static Shapes = {
+		skillHistoryBonus: {
+			magnitude: 2,
+			window: 1
+		},
+		autoApplyState: { interval: 2 },
+		autoApplyStateOnNearby: {
+			interval: 3,
+			radius: 4
+		},
+		autoExecuteSkill: {
+			interval: 3,
+			radius: 4
+		},
+		onSelfHpHealHp: {
+			magnitude: 0,
+			radius: 1
+		},
+		onSelfHpHealMp: {
+			magnitude: 0,
+			radius: 1
+		},
+		onSelfMpHealMp: {
+			magnitude: 0,
+			radius: 1
+		},
+		onSelfAnyHealMp: {
+			magnitude: 0,
+			radius: 1
+		},
+		onSelfTpHealTp: {
+			magnitude: 0,
+			radius: 1
+		},
+		onAllyHpHealHp: {
+			magnitude: 0,
+			radius: 1
+		},
+		onAllyMpHealMp: {
+			magnitude: 0,
+			radius: 1
+		},
+		onAllyTpHealTp: {
+			magnitude: 0,
+			radius: 1
+		},
+		spread: {
+			magnitude: 0,
+			chance: 0,
+			radius: 1
+		},
+		pierceElement: { magnitude: 1 },
+		boostElement: { magnitude: 1 },
+		retaliate: { chance: 1 },
+		onCritApply: { chance: 1 },
+		onEvadeApplySelf: { chance: 1 },
+		bonusDamageIfState: { magnitude: 1 },
+		bonusDamageIfStateType: { magnitude: 1 },
+		passiveStateCount: { perStack: 2 },
+		purgeStates: { count: 2 },
+		spreadTick: { interval: 0 }
+	};
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* The argument index carrying the given meaning for the given tag.
+	* @param {string} tagName The tag being read.
+	* @param {string} meaning One of magnitude, radius, interval, chance, window, count or perStack.
+	* @returns {number|null} Null when this tag declares no index for that meaning.
+	*/
+	static indexOf(tagName, meaning) {
+		const shape = MasteryTagShapes.Shapes[tagName];
+		if (!shape) return null;
+		const index = shape[meaning];
+		if (index === undefined) return null;
+		return index;
+	}
+};
+
+//#endregion
 //#region src/plugins/sdp/core/managers/MasteryProseResolver.js
 /**
 * Fills the tokens in a subgroup's mastery prose from live database values.
@@ -2319,6 +2808,20 @@ var MasteryProseResolver = class MasteryProseResolver {
 	*/
 	static TokenPattern = /\{([psdv])\.([a-zA-Z]+)(?:\[(\d+)])?}/g;
 	/**
+	* How many frames make a second, for rendering cadences the player can feel.
+	* @type {number}
+	*/
+	static FramesPerSecond = 60;
+	/**
+	* The tags whose named argument carries a cadence, in the order they are tried.
+	* @type {[ string, number ][]}
+	*/
+	static CadenceTags = [
+		["autoExecuteSkill", 3],
+		["autoApplyStateOnNearby", 3],
+		["autoApplyState", 2]
+	];
+	/**
 	* The constructor is not designed to be called.
 	* This is a static class.
 	*/
@@ -2334,10 +2837,13 @@ var MasteryProseResolver = class MasteryProseResolver {
 	static resolve(template, masterySkillId) {
 		if (template === String.empty) return String.empty;
 		const state = $dataStates[masterySkillId];
+		const skill = $dataSkills[masterySkillId];
 		if (!state) return String.empty;
+		if (!skill) return String.empty;
+		const payload = MasteryPayloadLocator.locate(state, skill);
 		let resolvable = true;
 		const rendered = template.replace(MasteryProseResolver.TokenPattern, (whole, namespace, name, selector) => {
-			const value = MasteryProseResolver.#resolveToken(state, namespace, name, selector);
+			const value = MasteryProseResolver.#resolveToken(state, skill, payload, namespace, name, selector);
 			if (value === null) {
 				resolvable = false;
 				return whole;
@@ -2358,44 +2864,352 @@ var MasteryProseResolver = class MasteryProseResolver {
 		return MasteryProseResolver.resolve(template, masterySkillId) !== String.empty;
 	}
 	/**
-	* Resolves a single token, or answers null when this resolver does not yet know how.
+	* Resolves a single token, or answers null when this resolver cannot.
 	*
 	* Null rather than a sentinel: an empty string is a legitimate resolved value for some tags, so the
 	* "I cannot do this" answer has to be distinguishable from "this resolved to nothing".
 	* @param {RPG_State} state The mastery state carrying the tags.
+	* @param {RPG_Skill} skill The wrapper skill carrying the gate.
+	* @param {RPG_State|RPG_Skill} payload The row this mastery delivers.
 	* @param {string} namespace One of p, d, s or v.
 	* @param {string} name The parameter key, structural field, or tag name.
 	* @param {string|undefined} selector The bracketed selector, when the token carried one.
 	* @returns {string|null}
 	*/
-	static #resolveToken(state, namespace, name, selector) {
+	static #resolveToken(state, skill, payload, namespace, name, selector) {
 		if (namespace === "v") return MasteryProseResolver.#resolveTagValue(state, name, selector);
+		if (namespace === "p") return MasteryProseResolver.#resolveParameter(state, name);
+		if (namespace === "d") return MasteryProseResolver.#resolveParameter(payload, name);
+		return MasteryProseResolver.#resolveStructural(state, skill, payload, name);
+	}
+	/**
+	* Reads a parameter's delta off a row, whether a trait or a notetag carries it.
+	*
+	* Both are tried because the ecosystem stores the same idea both ways: endurance arrives as a trait,
+	* crit block arrives as a tag, and prose should not have to know which.
+	* @param {RPG_Base} dataRow The row the value is read from.
+	* @param {string} parameterKey The parameter key, or a tag name on that row.
+	* @returns {string|null}
+	*/
+	static #resolveParameter(dataRow, parameterKey) {
+		const fromBuffTag = MasteryProseResolver.#resolveBuffTag(dataRow, parameterKey);
+		if (fromBuffTag !== null) return fromBuffTag;
+		const fromPlainTag = MasteryProseResolver.#resolveTagValue(dataRow, parameterKey, undefined);
+		if (fromPlainTag !== null) return fromPlainTag;
+		const fromFamily = MasteryProseResolver.#resolveTraitFamily(dataRow, parameterKey);
+		if (fromFamily !== null) return fromFamily;
+		return MasteryProseResolver.#resolveTrait(dataRow, parameterKey);
+	}
+	/**
+	* Reads a parameter from its `<keyBuffPlus>` or `<keyBuffRate>` notetag.
+	* @param {RPG_Base} dataRow The row the value is read from.
+	* @param {string} parameterKey The parameter key.
+	* @returns {string|null}
+	*/
+	static #resolveBuffTag(dataRow, parameterKey) {
+		const suffixes = ["BuffRate", "BuffPlus"];
+		for (const suffix of suffixes) {
+			const resolved = MasteryProseResolver.#resolveTagValue(dataRow, `${parameterKey}${suffix}`, undefined);
+			if (resolved === null) continue;
+			const isBareNumber = /^[+-]?[\d.]+%$/.test(resolved);
+			if (suffix === "BuffPlus" && isBareNumber) return resolved.slice(0, -1);
+			return resolved;
+		}
 		return null;
 	}
 	/**
-	* Reads a named tag's value off the mastery state.
+	* Reads a parameter from the trait that encodes it.
+	* @param {RPG_Base} dataRow The row the value is read from.
+	* @param {string} parameterKey The parameter key.
+	* @returns {string|null}
+	*/
+	static #resolveTrait(dataRow, parameterKey) {
+		if (dataRow.isState() === false) return null;
+		const mapping = ParameterTraitMap.forKey(parameterKey);
+		if (mapping === null) return null;
+		const found = dataRow.traits.find((trait) => trait.code === mapping.code && trait.dataId === mapping.dataId);
+		if (found === undefined) return null;
+		const asTrait = RPG_Trait.fromValues(found.code, found.dataId, found.value);
+		return asTrait.textValue();
+	}
+	/**
+	* Reads the shared magnitude of a whole family of traits.
+	*
+	* Element and state resistances arrive as a run of traits that share one value - dargin weakens six
+	* elements by the same third - so the prose says the magnitude once and names the family in its own
+	* words. A family whose members disagree is refused rather than averaged.
+	* @param {RPG_Base} dataRow The row the value is read from.
+	* @param {string} parameterKey Either elementRate or stateRate.
+	* @returns {string|null}
+	*/
+	static #resolveTraitFamily(dataRow, parameterKey) {
+		const familyCodes = {
+			elementRate: 11,
+			stateRate: 13
+		};
+		const code = familyCodes[parameterKey];
+		if (code === undefined) return null;
+		if (dataRow.isState() === false) return null;
+		const members = dataRow.traits.filter((trait) => trait.code === code);
+		if (members.length === 0) return null;
+		const [first] = members;
+		const uniform = members.every((trait) => trait.value === first.value);
+		if (uniform === false) return null;
+		const asTrait = RPG_Trait.fromValues(first.code, first.dataId, first.value);
+		return asTrait.textValue();
+	}
+	/**
+	* Resolves one of the derived structural fields.
 	* @param {RPG_State} state The mastery state carrying the tags.
+	* @param {RPG_Skill} skill The wrapper skill carrying the gate.
+	* @param {RPG_State|RPG_Skill} payload The row this mastery delivers.
+	* @param {string} field The structural field name.
+	* @returns {string|null}
+	*/
+	static #resolveStructural(state, skill, payload, field) {
+		switch (field) {
+			case "gate": return MasteryGatePhrase.phraseFor(skill);
+			case "interval": return MasteryProseResolver.#resolveInterval(state);
+			case "duration": return MasteryProseResolver.#resolveFrameTag(payload, "stateDuration");
+			case "window": return MasteryProseResolver.#resolveWindow(state, skill);
+			case "radius": return MasteryProseResolver.#resolveRadius(state, skill, payload);
+			case "stacks": return MasteryProseResolver.#resolveCount(payload, "stackMax");
+			case "chance": return MasteryProseResolver.#resolveChance(state);
+			case "count": return MasteryProseResolver.#resolveShapedCount(state, skill);
+			case "perStack": return MasteryProseResolver.#resolvePerStack(state, skill);
+			case "payload": return MasteryProseResolver.#resolvePayloadFormula(payload);
+			case "foodTypes": return MasteryProseResolver.#resolveExtendedTypes(state);
+			case "statList": return MasteryProseResolver.#resolveStatList(state);
+			default: return null;
+		}
+	}
+	/**
+	* The cadence a mastery fires on, rendered in seconds.
+	* @param {RPG_State} state The mastery state carrying the tags.
+	* @returns {string|null}
+	*/
+	static #resolveInterval(state) {
+		const declared = MasteryProseResolver.#shapedArgument(state, "interval");
+		if (declared !== null) return MasteryProseResolver.#secondsText(Number(declared));
+		return null;
+	}
+	/**
+	* The lookback window a mastery measures against, rendered in seconds.
+	* @param {RPG_State} state The mastery state carrying the tags.
+	* @param {RPG_Skill} skill The wrapper skill, whose gate can also carry a window.
+	* @returns {string|null}
+	*/
+	static #resolveWindow(state, skill) {
+		const historyArgs = MasteryProseResolver.#firstTagArgs(state, "skillHistoryBonus");
+		if (historyArgs !== null) return `${historyArgs[1]} seconds`;
+		return MasteryGatePhrase.phraseFor(skill);
+	}
+	/**
+	* The reach of the payload, in tiles.
+	* @param {RPG_State|RPG_Skill} payload The row this mastery delivers.
+	* @returns {string|null}
+	*/
+	static #resolveRadius(state, skill, payload) {
+		const declared = MasteryProseResolver.#shapedArgument(state, "radius");
+		if (declared !== null) return declared;
+		const names = ["radius", "proximity"];
+		const sources = [payload, MasteryPayloadLocator.locateVehicle(state, skill)];
+		for (const source of sources) {
+			for (const name of names) {
+				const value = MasteryProseResolver.#numberTag(source, name);
+				if (value !== null) return `${value}`;
+			}
+		}
+		return null;
+	}
+	/**
+	* The argument the shape table names for a meaning, across every tag on the row that declares one.
+	* @param {RPG_Base} dataRow The row carrying the tags.
+	* @param {string} meaning The meaning being looked up.
+	* @returns {string|null}
+	*/
+	static #shapedArgument(dataRow, meaning) {
+		const mayFallBack = meaning === "interval";
+		for (const tagName of Object.keys(MasteryTagShapes.Shapes)) {
+			const index = MasteryTagShapes.indexOf(tagName, meaning);
+			if (index === null) continue;
+			const args = MasteryProseResolver.#firstTagArgs(dataRow, tagName);
+			if (args === null) continue;
+			const value = mayFallBack ? MasteryProseResolver.#argumentOrLast(args, index) : MasteryProseResolver.#exactArgument(args, index);
+			if (value === null) continue;
+			return `${value}`;
+		}
+		return null;
+	}
+	/**
+	* The chance a mastery's effect lands, as a percentage.
+	* @param {RPG_State} state The mastery state carrying the tags.
+	* @returns {string|null}
+	*/
+	static #resolveChance(state) {
+		const declared = MasteryProseResolver.#shapedArgument(state, "chance");
+		if (declared !== null) return `${declared}%`;
+		if (state.isState() === false) return null;
+		const onHit = state.traits.find((trait) => trait.code === 32);
+		if (onHit === undefined) return null;
+		return `${Math.round(onHit.value * 100)}%`;
+	}
+	/**
+	* The share of a resource each stack of a scaler is worth.
+	* @param {RPG_Skill} skill The wrapper skill carrying the scaler.
+	* @returns {string|null}
+	*/
+	static #resolvePerStack(state, skill) {
+		const fromState = MasteryProseResolver.#shapedArgument(state, "perStack");
+		if (fromState !== null) return `${fromState}%`;
+		const fromSkill = MasteryProseResolver.#shapedArgument(skill, "perStack");
+		if (fromSkill !== null) return `${fromSkill}%`;
+		return null;
+	}
+	/**
+	* The food groups this tier extends, listed as a reader would say them.
+	* @param {RPG_State} state The mastery state carrying the tags.
+	* @returns {string|null}
+	*/
+	static #resolveExtendedTypes(state) {
+		const matches = MasteryProseResolver.#matchingTags(state, "extendType");
+		if (matches.length === 0) return null;
+		const names = matches.map((args) => args[0].replace(/^food-/, ""));
+		return MasteryProseResolver.#listText(names);
+	}
+	/**
+	* The parameters this tier's traits raise, named rather than numbered.
+	* @param {RPG_State} state The mastery state carrying the traits.
+	* @returns {string|null}
+	*/
+	static #resolveStatList(state) {
+		if (state.isState() === false) return null;
+		const raised = state.traits.filter((trait) => trait.code === ParameterTraitMap.BaseParameterCode && trait.value > 1);
+		if (raised.length === 0) return null;
+		const names = raised.map((trait) => TextManager.param(trait.dataId));
+		return MasteryProseResolver.#listText(names);
+	}
+	/**
+	* Joins names the way a sentence would, with an "and" before the last.
+	* @param {string[]} names The names being listed.
+	* @returns {string}
+	*/
+	static #listText(names) {
+		if (names.length === 1) return names[0];
+		const leading = names.slice(0, -1).join(", ");
+		return `${leading} and ${names.at(-1)}`;
+	}
+	/**
+	* The payload's damage or heal formula, phrased for a reader.
+	* @param {RPG_State|RPG_Skill} payload The row this mastery delivers.
+	* @returns {string|null}
+	*/
+	static #resolvePayloadFormula(payload) {
+		const shieldFormula = MasteryProseResolver.#bracketFormula(payload, "shield");
+		if (shieldFormula !== null) return shieldFormula;
+		const hpFormula = MasteryProseResolver.#bracketFormula(payload, "hpFormula");
+		if (hpFormula !== null) return hpFormula;
+		if (!payload.damage) return null;
+		if (!payload.damage.formula) return null;
+		return MasteryFormulaPhrase.phraseFor(payload.damage.formula);
+	}
+	/**
+	* A bracketed formula tag, phrased for a reader.
+	* @param {RPG_Base} dataRow The row the formula is read from.
+	* @param {string} tagName The tag holding the formula.
+	* @returns {string|null}
+	*/
+	static #bracketFormula(dataRow, tagName) {
+		const args = MasteryProseResolver.#firstTagArgs(dataRow, tagName);
+		if (args === null) return null;
+		return MasteryFormulaPhrase.phraseFor(args.join(","));
+	}
+	/**
+	* Reads a named tag's value off a row.
+	* @param {RPG_Base} dataRow The row carrying the tags.
 	* @param {string} tagName The tag whose value is wanted.
 	* @param {string|undefined} selector The first argument to match on, when the tag repeats.
 	* @returns {string|null}
 	*/
-	static #resolveTagValue(state, tagName, selector) {
-		const matches = MasteryProseResolver.#matchingTags(state, tagName);
+	static #resolveTagValue(dataRow, tagName, selector) {
+		const matches = MasteryProseResolver.#matchingTags(dataRow, tagName);
 		if (matches.length === 0) return null;
 		const chosen = MasteryProseResolver.#chooseMatch(matches, selector);
 		if (chosen === null) return null;
+		const declared = MasteryTagShapes.indexOf(tagName, "magnitude");
+		if (declared !== null && selector === undefined) return MasteryProseResolver.#formatArgument(chosen[declared]);
 		return MasteryProseResolver.#formatValue(chosen);
 	}
 	/**
-	* Every occurrence of the named tag on the state, each as its raw argument list.
-	* @param {RPG_State} state The mastery state carrying the tags.
+	* A whole-number tag's value.
+	* @param {RPG_Base} dataRow The row carrying the tag.
+	* @param {string} tagName The tag whose value is wanted.
+	* @returns {number|null}
+	*/
+	static #numberTag(dataRow, tagName) {
+		const args = MasteryProseResolver.#firstTagArgs(dataRow, tagName);
+		if (args === null) return null;
+		const parsed = Number(args[0]);
+		if (Number.isNaN(parsed)) return null;
+		return parsed;
+	}
+	/**
+	* A frame-count tag, rendered in seconds.
+	* @param {RPG_Base} dataRow The row carrying the tag.
+	* @param {string} tagName The tag whose value is wanted.
+	* @returns {string|null}
+	*/
+	static #resolveFrameTag(dataRow, tagName) {
+		const frames = MasteryProseResolver.#numberTag(dataRow, tagName);
+		if (frames === null) return null;
+		return MasteryProseResolver.#secondsText(frames);
+	}
+	/**
+	* A bare count tag, with no unit attached.
+	* @param {RPG_Base} dataRow The row carrying the tag.
+	* @param {string} tagName The tag whose value is wanted.
+	* @returns {string|null}
+	*/
+	static #resolveCount(dataRow, tagName) {
+		const count = MasteryProseResolver.#numberTag(dataRow, tagName);
+		if (count === null) return null;
+		return `${count}`;
+	}
+	/**
+	* A count read through the shape table, falling back to a bare single-value tag.
+	* @param {RPG_Base} dataRow The row carrying the tags.
+	* @param {string} meaning The meaning being looked up.
+	* @returns {string|null}
+	*/
+	static #resolveShapedCount(state, skill) {
+		const fromState = MasteryProseResolver.#shapedArgument(state, "count");
+		if (fromState !== null) return fromState;
+		const fromSkill = MasteryProseResolver.#shapedArgument(skill, "count");
+		if (fromSkill !== null) return fromSkill;
+		return MasteryProseResolver.#resolveCount(state, "spreadPerTick");
+	}
+	/**
+	* The argument list of the first occurrence of a tag.
+	* @param {RPG_Base} dataRow The row carrying the tags.
+	* @param {string} tagName The tag whose arguments are wanted.
+	* @returns {string[]|null}
+	*/
+	static #firstTagArgs(dataRow, tagName) {
+		const matches = MasteryProseResolver.#matchingTags(dataRow, tagName);
+		if (matches.length === 0) return null;
+		return matches[0];
+	}
+	/**
+	* Every occurrence of the named tag on the row, each as its raw argument list.
+	* @param {RPG_Base} dataRow The row carrying the tags.
 	* @param {string} tagName The tag whose occurrences are wanted.
 	* @returns {string[][]}
 	*/
-	static #matchingTags(state, tagName) {
-		const pattern = new RegExp(`<${tagName}:[ ]?(\\[[^\\]]*]|[^>]*)>`, "gi");
+	static #matchingTags(dataRow, tagName) {
+		const kebab = tagName.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+		const pattern = new RegExp(`<(?:${tagName}|${kebab}):[ ]?(\\[[^\\]]*]|[^>]*)>`, "gi");
 		const found = [];
-		for (const match of state.note.matchAll(pattern)) {
+		for (const match of dataRow.note.matchAll(pattern)) {
 			const stripped = match[1].replace(/^\[/, "").replace(/]$/, "");
 			const args = stripped.split(",").map((arg) => arg.trim());
 			found.push(args);
@@ -2413,12 +3227,20 @@ var MasteryProseResolver = class MasteryProseResolver {
 	*/
 	static #chooseMatch(matches, selector) {
 		if (selector === undefined) {
-			if (matches.length !== 1) return null;
-			return matches[0];
+			const [first] = matches;
+			if (matches.length === 1) return first;
+			const last = (args) => MasteryProseResolver.#lastNumeric(args);
+			const uniform = matches.every((args) => last(args) === last(first));
+			if (uniform) return first;
+			return null;
 		}
-		const selected = matches.find((args) => args[0] === selector);
-		if (selected === undefined) return null;
-		return selected;
+		const byIdentity = matches.find((args) => args[0] === selector);
+		if (byIdentity !== undefined) return byIdentity;
+		if (matches.length !== 1) return null;
+		const [only] = matches;
+		const index = Number(selector);
+		if (index >= only.length) return null;
+		return [only[index]];
 	}
 	/**
 	* Formats a chosen tag's arguments as the value half of a sentence.
@@ -2429,11 +3251,78 @@ var MasteryProseResolver = class MasteryProseResolver {
 	* @returns {string}
 	*/
 	static #formatValue(args) {
-		const magnitude = args.at(-1);
-		const numeric = Number(magnitude);
-		if (Number.isNaN(numeric)) return magnitude;
-		const sign = numeric >= 0 ? "+" : String.empty;
+		const magnitude = MasteryProseResolver.#lastNumeric(args);
+		if (magnitude === null) {
+			const joined = args.join(",");
+			return MasteryFormulaPhrase.phraseFor(joined);
+		}
+		const sign = Number(magnitude) >= 0 ? "+" : String.empty;
 		return `${sign}${magnitude}%`;
+	}
+	/**
+	* Formats one already-chosen argument as the value half of a sentence.
+	* @param {string} argument The argument holding the magnitude.
+	* @returns {string|null}
+	*/
+	static #formatArgument(argument) {
+		if (argument === undefined) return null;
+		if (Number.isNaN(Number(argument))) return MasteryFormulaPhrase.phraseFor(argument);
+		const sign = Number(argument) >= 0 ? "+" : String.empty;
+		return `${sign}${argument}%`;
+	}
+	/**
+	* The declared argument, when it is present and numeric.
+	* @param {string[]} args The tag's argument list.
+	* @param {number} index The index the shape table declared.
+	* @returns {string|null}
+	*/
+	static #exactArgument(args, index) {
+		const declared = args[index];
+		if (declared === undefined) return null;
+		if (Number.isNaN(Number(declared))) return null;
+		return declared;
+	}
+	/**
+	* The declared argument, or the last numeric one when the tag was written in a shorter form.
+	*
+	* Several tags have two legal shapes: {@code autoExecuteSkill:[ID, time, FRAMES]} carries its
+	* cadence third, while {@code autoExecuteSkill:[ID, KIND, MIN, FRAMES, TILES]} carries it fourth.
+	* One declared index cannot serve both, and the value being sought is the last number in either.
+	* @param {string[]} args The tag's argument list.
+	* @param {number} index The index the shape table declared.
+	* @returns {string|null}
+	*/
+	static #argumentOrLast(args, index) {
+		const declared = args[index];
+		if (declared !== undefined && !Number.isNaN(Number(declared))) return declared;
+		return MasteryProseResolver.#lastNumeric(args);
+	}
+	/**
+	* The last argument that is actually a number.
+	*
+	* Trailing mode words are common - {@code [0, 6, 4, unique]} ends in how to count, not how much -
+	* so the magnitude is the last numeric argument rather than simply the last one.
+	* @param {string[]} args The chosen occurrence's argument list.
+	* @returns {string|null}
+	*/
+	static #lastNumeric(args) {
+		for (let index = args.length - 1; index >= 0; index--) {
+			const candidate = args[index];
+			if (candidate === String.empty) continue;
+			if (Number.isNaN(Number(candidate))) continue;
+			return candidate;
+		}
+		return null;
+	}
+	/**
+	* Renders a frame count as the seconds a player would feel.
+	* @param {number} frames The frame count.
+	* @returns {string}
+	*/
+	static #secondsText(frames) {
+		const seconds = frames / MasteryProseResolver.FramesPerSecond;
+		const rounded = Math.round(seconds * 100) / 100;
+		return `${rounded} seconds`;
 	}
 };
 
@@ -2844,7 +3733,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.0.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

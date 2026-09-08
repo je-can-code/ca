@@ -1534,9 +1534,14 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 //#endregion
 //#region src/plugins/omni/ext/monster/scenes/Scene_Monsterpedia.js
 /**
-* A scene for interacting with the Monsterpedia.
+* A scene for perusing the monsters the player has perceived.
+*
+* Built on the facet skeleton rather than laid out from scratch, so it shares the control legend and
+* the bounded region every other menu in the ecosystem draws inside. The left column lists every
+* monster that can be observed; the right side details whichever one is highlighted. There is
+* nothing to confirm here, only to read.
 */
-var Scene_Monsterpedia = class extends Scene_MenuBase {
+var Scene_Monsterpedia = class extends Scene_MenuFacetBase {
 	/**
 	* Constructor.
 	*/
@@ -1577,47 +1582,22 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		$dataEnemies.forEach(forEacher, this);
 	}
 	/**
-	* Initialize the window and all properties required by the scene.
-	*/
-	initialize() {
-		super.initialize();
-		this.initMembers();
-	}
-	/**
 	* Extends {@link #initMembers}.<br/>
-	* Also initializes all properties for our omnipedia.
+	* Also initializes the monsterpedia's own members.
 	*/
 	initMembers() {
 		super.initMembers();
-		this.initCoreMembers();
-		this.initPrimaryMembers();
-	}
-	/**
-	* The core properties of this scene are the root namespace definitions for this plugin.
-	*/
-	initCoreMembers() {
-		/**
-		* The shared root namespace for all of J's plugin data.
-		*/
-		this._j ||= {};
 		/**
 		* A grouping of all properties associated with the omnipedia.
 		*/
 		this._j._omni = {};
-	}
-	/**
-	* The primary properties of the scene are the initial properties associated with
-	* the main list containing all pedias unlocked by the player along with some subtext of
-	* what the pedia entails.
-	*/
-	initPrimaryMembers() {
 		/**
 		* A grouping of all properties associated with the monsterpedia.
-		* The monsterpedia is a subcategory of the omnipedia..
+		* The monsterpedia is a subcategory of the omnipedia.
 		*/
 		this._j._omni._monster = {};
 		/**
-		* The window that shows the list of percieved monsters.
+		* The window that shows the list of perceived monsters.
 		* @type {Window_MonsterpediaList}
 		*/
 		this._j._omni._monster._pediaList = null;
@@ -1626,37 +1606,21 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		* @type {Window_MonsterpediaDetail}
 		*/
 		this._j._omni._monster._pediaDetail = null;
-		/**
-		* The window that shows the teriary information of a perceived monster.
-		* @type {Window_MonsterpediaList}
-		*/
-		this._j._omni._monster._pediaHelp = null;
 	}
 	/**
-	* Initialize all resources required for this scene.
+	* Extends {@link #create}.<br/>
+	* Also creates this scene's own windows.
 	*/
 	create() {
 		super.create();
-		this.createDisplayObjects();
-	}
-	/**
-	* Creates the display objects for this scene.
-	*/
-	createDisplayObjects() {
-		this.createAllWindows();
-	}
-	/**
-	* Creates all monsterpedia windows.
-	*/
-	createAllWindows() {
 		this.createMonsterpediaListWindow();
 		this.createMonsterpediaDetailWindow();
-		const listWindow = this.getMonsterpediaListWindow();
-		listWindow.onIndexChange();
+		this.onMonsterpediaIndexChange();
+		this.getMonsterpediaListWindow().activate();
 	}
 	/**
 	* Overwrites {@link Scene_MenuBase.prototype.createBackground}.<br/>
-	* Changes the filter to a different type from {@link PIXI.filters}.
+	* Keeps the map faintly visible behind the pedia.
 	*/
 	createBackground() {
 		this.setBackgroundFilter(new PIXI.filters.AlphaFilter(.1));
@@ -1664,6 +1628,41 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		this.backgroundSprite().bitmap = SceneManager.backgroundBitmap();
 		this.backgroundSprite().filters = [this.backgroundFilter()];
 		this.addChild(this.backgroundSprite());
+	}
+	/**
+	* Overrides {@link #hasHelpWindow}.<br/>
+	* The detail pane is this scene's help; a strip across the top would only repeat it.
+	* @returns {boolean}
+	*/
+	hasHelpWindow() {
+		return false;
+	}
+	/**
+	* The rectangle for the monster list, filling the left column of the region.
+	* @returns {Rectangle}
+	*/
+	monsterpediaListRectangle() {
+		const facetArea = this.facetAreaRect();
+		return new Rectangle(facetArea.x, facetArea.y, this.commandColumnWidth(), facetArea.height);
+	}
+	/**
+	* The rectangle for the detail pane, filling the region beside the list.
+	* @returns {Rectangle}
+	*/
+	monsterpediaDetailRectangle() {
+		const facetArea = this.facetAreaRect();
+		const x = facetArea.x + this.commandColumnWidth();
+		const width = facetArea.x + facetArea.width - x;
+		return new Rectangle(x, facetArea.y, width, facetArea.height);
+	}
+	/**
+	* Implements {@link #controlLegendEntries}.<br/>
+	* There is nothing here that leaves no mark on screen: moving the cursor is self-evident and
+	* cancel is named by what it lands on, so the legend has nothing to teach.
+	* @returns {{semantic: (string|string[]), label: string}[]}
+	*/
+	controlLegendEntries() {
+		return [];
 	}
 	/**
 	* Creates the list of monsters the player has perceived.
@@ -1675,7 +1674,7 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 	}
 	/**
 	* Sets up and defines the monsterpedia listing window.
-	* @returns {Window_OmnipediaList}
+	* @returns {Window_MonsterpediaList}
 	*/
 	buildMonsterpediaListWindow() {
 		const rectangle = this.monsterpediaListRectangle();
@@ -1685,16 +1684,6 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		return window;
 	}
 	/**
-	* Gets the rectangle associated with the monsterpedia list command window.
-	* @returns {Rectangle}
-	*/
-	monsterpediaListRectangle() {
-		const [x, y] = Graphics.boxOrigin;
-		const width = 400;
-		const height = Graphics.boxHeight - Graphics.verticalPadding * 2;
-		return new Rectangle(x, y, width, height);
-	}
-	/**
 	* Gets the currently tracked monsterpedia list window.
 	* @returns {Window_MonsterpediaList}
 	*/
@@ -1702,7 +1691,7 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		return this._j._omni._monster._pediaList;
 	}
 	/**
-	* Set the currently tracked monsterpedia list window to the given window.
+	* Sets the currently tracked monsterpedia list window to the given window.
 	* @param {Window_MonsterpediaList} listWindow The monsterpedia list window to track.
 	*/
 	setMonsterpediaListWindow(listWindow) {
@@ -1723,20 +1712,7 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 	*/
 	buildMonsterpediaDetailWindow() {
 		const rectangle = this.monsterpediaDetailRectangle();
-		const window = new Window_MonsterpediaDetail(rectangle);
-		return window;
-	}
-	/**
-	* Gets the rectangle associated with the monsterpedia detail command window.
-	* @returns {Rectangle}
-	*/
-	monsterpediaDetailRectangle() {
-		const listWindow = this.getMonsterpediaListWindow();
-		const x = listWindow.x + listWindow.width;
-		const y = Graphics.verticalPadding;
-		const width = Graphics.boxWidth - listWindow.width - Graphics.horizontalPadding * 2;
-		const height = Graphics.boxHeight - Graphics.verticalPadding * 2;
-		return new Rectangle(x, y, width, height);
+		return new Window_MonsterpediaDetail(rectangle);
 	}
 	/**
 	* Gets the currently tracked monsterpedia detail window.
@@ -1746,30 +1722,14 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		return this._j._omni._monster._pediaDetail;
 	}
 	/**
-	* Set the currently tracked monsterpedia detail window to the given window.
+	* Sets the currently tracked monsterpedia detail window to the given window.
 	* @param {Window_MonsterpediaDetail} detailWindow The monsterpedia detail window to track.
 	*/
 	setMonsterpediaDetailWindow(detailWindow) {
 		this._j._omni._monster._pediaDetail = detailWindow;
 	}
 	/**
-	* Opens the monsterpedia detail window.
-	*/
-	openMonsterpediaDetailWindow() {
-		const window = this.getMonsterpediaDetailWindow();
-		window.open();
-		window.show();
-	}
-	/**
-	* Closes the monsterpedia detail window.
-	*/
-	closeMonsterpediaDetailWindow() {
-		const window = this.getMonsterpediaDetailWindow();
-		window.close();
-		window.hide();
-	}
-	/**
-	* Synchronize the detail window with the list window of the monsterpedia.
+	* Synchronizes the detail pane with the highlighted monster.
 	*/
 	onMonsterpediaIndexChange() {
 		const listWindow = this.getMonsterpediaListWindow();
@@ -1779,7 +1739,7 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		detailWindow.refresh();
 	}
 	/**
-	* Close the monsterpedia and return to the main omnipedia.
+	* Closes the monsterpedia and returns to the omnipedia.
 	*/
 	onCancelMonsterpedia() {
 		SceneManager.pop();
