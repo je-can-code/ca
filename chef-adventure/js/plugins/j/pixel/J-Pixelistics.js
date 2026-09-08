@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
+ * [v1.2.0 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -46,6 +46,10 @@
  * entirely plugin-parameter driven.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Subcell passability is decided by PIXEL_CollisionManager.PassagePredicates and
+ *    tile merging by SingleTileMerges, so a plugin adding a collision code teaches
+ *    passability about it from its own tree instead of editing the manager.
  * - 1.1.0
  *    Routed the _pixel namespace into its own save section, so pixel movement
  *    state lands in systems/pixel.json rather than inside the system blob.
@@ -213,7 +217,7 @@ J.PIXEL.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.1.0");
+J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -475,6 +479,26 @@ var PIXEL_CollisionManager = class {
 		}
 	}
 	/**
+	* Folds the four blocked-edge booleans into the single number that identifies their combination.
+	*
+	* Sixteen combinations exist and eleven of them name a tile shape, which is a lookup rather than
+	* a decision tree once the four booleans stop being four separate questions.
+	* @param {boolean} blockUp Whether the up edge is blocked.
+	* @param {boolean} blockDown Whether the down edge is blocked.
+	* @param {boolean} blockLeft Whether the left edge is blocked.
+	* @param {boolean} blockRight Whether the right edge is blocked.
+	* @returns {number} The UDLR bitmask.
+	*/
+	static toEdgeMask(blockUp, blockDown, blockLeft, blockRight) {
+		const { Up, Down, Left, Right } = this.EdgeBits;
+		let mask = 0;
+		if (blockUp) mask |= Up;
+		if (blockDown) mask |= Down;
+		if (blockLeft) mask |= Left;
+		if (blockRight) mask |= Right;
+		return mask;
+	}
+	/**
 	* Merges directional edge blocks into a single code when only one subcell is used.
 	* @param {boolean} blockUp Whether the up edge is blocked.
 	* @param {boolean} blockDown Whether the down edge is blocked.
@@ -483,40 +507,8 @@ var PIXEL_CollisionManager = class {
 	* @returns {number} The representative collision code.
 	*/
 	static _mergeSingleTile(blockUp, blockDown, blockLeft, blockRight) {
-		if (blockUp && blockDown && blockLeft && blockRight) {
-			return this.Codes.Solid;
-		}
-		if (blockUp && blockDown && !blockLeft && !blockRight) {
-			return this.Codes.VerticalLine;
-		}
-		if (blockLeft && blockRight && !blockUp && !blockDown) {
-			return this.Codes.HorizontalLine;
-		}
-		if (blockUp && !blockDown && !blockLeft && !blockRight) {
-			return this.Codes.EdgeUp;
-		}
-		if (blockDown && !blockUp && !blockLeft && !blockRight) {
-			return this.Codes.EdgeDown;
-		}
-		if (blockLeft && !blockRight && !blockUp && !blockDown) {
-			return this.Codes.EdgeLeft;
-		}
-		if (blockRight && !blockLeft && !blockUp && !blockDown) {
-			return this.Codes.EdgeRight;
-		}
-		if (blockUp && blockLeft && !blockRight && !blockDown) {
-			return this.Codes.CornerTopLeft;
-		}
-		if (blockUp && blockRight && !blockLeft && !blockDown) {
-			return this.Codes.CornerTopRight;
-		}
-		if (blockDown && blockLeft && !blockRight && !blockUp) {
-			return this.Codes.CornerBottomLeft;
-		}
-		if (blockDown && blockRight && !blockLeft && !blockUp) {
-			return this.Codes.CornerBottomRight;
-		}
-		return this.Codes.Open;
+		const mask = this.toEdgeMask(blockUp, blockDown, blockLeft, blockRight);
+		return this.SingleTileMerges[mask] ?? this.Codes.Open;
 	}
 	/**
 	* Determines if a fractional subcell allows movement in a given direction.
@@ -535,40 +527,9 @@ var PIXEL_CollisionManager = class {
 			return false;
 		}
 		const code = this.table()[this._index(sx, sy)] || this.Codes.Open;
-		if (code === this.Codes.Open) {
-			return true;
-		}
-		if (code === this.Codes.Solid) {
-			return false;
-		}
-		if (code === this.Codes.VerticalLine) {
-			if (d === J.PIXEL.Directions.UP || d === J.PIXEL.Directions.DOWN) {
-				return false;
-			}
-			return true;
-		}
-		if (code === this.Codes.HorizontalLine) {
-			if (d === J.PIXEL.Directions.LEFT || d === J.PIXEL.Directions.RIGHT) {
-				return false;
-			}
-			return true;
-		}
-		if (code === this.Codes.EdgeLeft) {
-			return d !== J.PIXEL.Directions.LEFT;
-		}
-		if (code === this.Codes.EdgeRight) {
-			return d !== J.PIXEL.Directions.RIGHT;
-		}
-		if (code === this.Codes.EdgeDown) {
-			return d !== J.PIXEL.Directions.DOWN;
-		}
-		if (code === this.Codes.EdgeUp) {
-			return d !== J.PIXEL.Directions.UP;
-		}
-		if (code === this.Codes.CornerBottomLeft || code === this.Codes.CornerBottomRight || code === this.Codes.CornerTopLeft || code === this.Codes.CornerTopRight) {
-			return false;
-		}
-		return true;
+		const predicate = this.PassagePredicates[code];
+		if (predicate === undefined) return true;
+		return predicate(d);
 	}
 };
 /**
@@ -588,6 +549,67 @@ PIXEL_CollisionManager.Codes = {
 	CornerBottomRight: 13,
 	CornerTopLeft: 17,
 	CornerTopRight: 19
+};
+/**
+* The bit each blocked edge contributes to a tile's edge mask.
+*
+* Attached beside {@link PIXEL_CollisionManager.Codes} rather than declared in the class body,
+* because {@link PIXEL_CollisionManager.SingleTileMerges} below reads the codes and a static field
+* inside the class would be evaluated before either table exists.
+* @type {{Up: number, Down: number, Left: number, Right: number}}
+*/
+PIXEL_CollisionManager.EdgeBits = {
+	Up: 8,
+	Down: 4,
+	Left: 2,
+	Right: 1
+};
+/**
+* The collision code each combination of blocked edges merges into, keyed by edge mask.
+*
+* Eleven of the sixteen combinations name a shape. The five absent ones are the empty mask and the
+* four holding exactly three blocked edges, which no tile shape draws; those fall through to open.
+*
+* A plugin introducing a collision code of its own registers the mask that produces it here, rather
+* than this manager growing a branch per shape somebody else invented.
+* @type {Object<number, number>}
+*/
+PIXEL_CollisionManager.SingleTileMerges = {
+	15: PIXEL_CollisionManager.Codes.Solid,
+	12: PIXEL_CollisionManager.Codes.VerticalLine,
+	3: PIXEL_CollisionManager.Codes.HorizontalLine,
+	8: PIXEL_CollisionManager.Codes.EdgeUp,
+	4: PIXEL_CollisionManager.Codes.EdgeDown,
+	2: PIXEL_CollisionManager.Codes.EdgeLeft,
+	1: PIXEL_CollisionManager.Codes.EdgeRight,
+	10: PIXEL_CollisionManager.Codes.CornerTopLeft,
+	9: PIXEL_CollisionManager.Codes.CornerTopRight,
+	6: PIXEL_CollisionManager.Codes.CornerBottomLeft,
+	5: PIXEL_CollisionManager.Codes.CornerBottomRight
+};
+/**
+* The predicates deciding whether a subcell may be entered, keyed by collision code.
+*
+* A predicate receives the entering direction and answers whether the move is allowed. Splitting
+* the decision this way is what lets a plugin add a collision code and teach passability about it
+* from its own tree, instead of every new shape needing another branch in
+* {@link PIXEL_CollisionManager.isPositionPassable}. A code with no predicate is treated as
+* passable there.
+* @type {Object<number, function(number): boolean>}
+*/
+PIXEL_CollisionManager.PassagePredicates = {
+	[PIXEL_CollisionManager.Codes.Open]: () => true,
+	[PIXEL_CollisionManager.Codes.Solid]: () => false,
+	[PIXEL_CollisionManager.Codes.VerticalLine]: (direction) => direction !== J.PIXEL.Directions.UP && direction !== J.PIXEL.Directions.DOWN,
+	[PIXEL_CollisionManager.Codes.HorizontalLine]: (direction) => direction !== J.PIXEL.Directions.LEFT && direction !== J.PIXEL.Directions.RIGHT,
+	[PIXEL_CollisionManager.Codes.EdgeLeft]: (direction) => direction !== J.PIXEL.Directions.LEFT,
+	[PIXEL_CollisionManager.Codes.EdgeRight]: (direction) => direction !== J.PIXEL.Directions.RIGHT,
+	[PIXEL_CollisionManager.Codes.EdgeDown]: (direction) => direction !== J.PIXEL.Directions.DOWN,
+	[PIXEL_CollisionManager.Codes.EdgeUp]: (direction) => direction !== J.PIXEL.Directions.UP,
+	[PIXEL_CollisionManager.Codes.CornerTopLeft]: () => false,
+	[PIXEL_CollisionManager.Codes.CornerTopRight]: () => false,
+	[PIXEL_CollisionManager.Codes.CornerBottomLeft]: () => false,
+	[PIXEL_CollisionManager.Codes.CornerBottomRight]: () => false
 };
 /**
 * Global collision-lattice shift (in tiles) applied on the X axis inside the indexer.

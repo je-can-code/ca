@@ -61,7 +61,7 @@
 | 36 | Humanoid | Minotaur | `humanoid-minotaur` | `BUL_*` | 1451–1460 | ✅ Verified — momentum payloads **1091–1100** |
 | 37 | Humanoid | Orc | `humanoid-orc` | `ORC_*` | 1461–1470 | ✅ Verified — CDR: +3/7/10/12/15/17/20/22/25/30% |
 | 38 | Humanoid | Bandit | `humanoid-bandit` | `THF_*` | 1471–1480 | ✅ Verified — Pocket Sand: stacking blind (state 18) 10/20/30/50/60/70/80/90/100/100% proc; tiers 4–10 add 5/10/15/20/25/30/50% EVA |
-| 39 | Humanoid | Cyclops | `humanoid-cyclops` | `WLK_*` | 1481–1490 | ✅ Verified — rooted resist→immunity (1–3); disarmed resist→immunity (4–9); knockback resist +50% (10) |
+| 39 | Humanoid | Cyclops | `humanoid-cyclops` | `WLK_*` | 1481–1490 | ✅ Verified — rooted resist→immunity (1–3); Disabled resist→immunity (4–9); knockback resist +50% (10) |
 | 40 | Humanoid | Kobold | `humanoid-kobold` | `CLN_*` | 1491–1500 | ✅ Verified |
 | 41 | Construct | Titan | `construct-titan` | `GOL_*` | 1501–1510 | ✅ Verified — `negativeStateCount` stacks ATK/MAT (×1.1→×3.0); PDR/MDR/FDR reduction (0.98→0.90); capstone `<lst:10>` per stack |
 | 42 | Construct | Hazard | `construct-hazard` | `HAZ_*` | 1511–1520 | ✅ Verified — `radiusRate` 1.05→1.50; `thicknessRate` 1.25→1.50 (tiers 4+); capstone adds `radiusBuff:0.5` + `thicknessBuff:0.5` |

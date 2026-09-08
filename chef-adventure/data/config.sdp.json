@@ -6,8 +6,7 @@
         "name": "==TRAINER PANELS==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -30,8 +29,7 @@
         "name": "Novice Trainer",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "As proof that you completed the Trainer Lord's exercises, you were gifted this.|This panel is very versatile, granting many useful parameters for anyone.",
-        "topFlavorText": "Proof that you completed the transdimensional beginner's tutorial."
+        "description": "As proof that you completed the Trainer Lord's exercises, you were gifted this.|This panel is very versatile, granting many useful parameters for anyone."
       },
       "progression": {
         "maxRank": 10,
@@ -115,8 +113,7 @@
         "name": "Veteran Trainer",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "As proof that you completed the Trainer Lord's exercises, you were gifted this.|This panel is very offensive, granting many parameters geared towards dispatching foes quickly.",
-        "topFlavorText": "Proof that you completed the transdimensional intermediate's tutorial."
+        "description": "As proof that you completed the Trainer Lord's exercises, you were gifted this.|This panel is very offensive, granting many parameters geared towards dispatching foes quickly."
       },
       "progression": {
         "maxRank": 15,
@@ -188,8 +185,7 @@
         "name": "==GHOSTY==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -212,8 +208,7 @@
         "name": "Ghosty Presence",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "Even the ever-iconic ghosty has things you can learn.|Just lean in and listen real good, they whisper dark things and touch your butt.",
-        "topFlavorText": "Slaying Ghostys is required in this game. Good job."
+        "description": "Even the ever-iconic ghosty has things you can learn.|Just lean in and listen real good, they whisper dark things and touch your butt."
       },
       "progression": {
         "maxRank": 10,
@@ -255,8 +250,7 @@
         "name": "Foreboding Mists",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "This one tried to be menacing, but just dying your sheet red doesn't really count.",
-        "topFlavorText": "Red Ghostys are just as bad as others."
+        "description": "This one tried to be menacing, but just dying your sheet red doesn't really count."
       },
       "progression": {
         "maxRank": 10,
@@ -298,8 +292,7 @@
         "name": "Tortuous Threestep",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "No one suspected that this ultra-evil entity known as \\enemy[103] would drop a node.|Good thing you were ready for it.",
-        "topFlavorText": "The menacing spirit hisses at you even in node form."
+        "description": "No one suspected that this ultra-evil entity known as \\enemy[103] would drop a node.|Good thing you were ready for it."
       },
       "progression": {
         "maxRank": 10,
@@ -353,8 +346,7 @@
         "name": "Spooky Aura",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "The spooky is an ancient earthen spirit that was laid to rest centuries ago.|Here you are, disturbing its beauty rest like some kind of jackass- seriously, why?!",
-        "topFlavorText": "When the going gets tough, the ghosty levels up to a spooky."
+        "description": "The spooky is an ancient earthen spirit that was laid to rest centuries ago.|Here you are, disturbing its beauty rest like some kind of jackass- seriously, why?!"
       },
       "progression": {
         "maxRank": 10,
@@ -402,8 +394,7 @@
         "name": "===TBD GHO-5",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -457,8 +448,7 @@
         "name": "===TBD GHO-6",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -506,8 +496,7 @@
         "name": "===TBD GHO-7",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -561,8 +550,7 @@
         "name": "===TBD GHO-8",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -610,8 +598,7 @@
         "name": "===TBD GHO-9",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -671,8 +658,7 @@
         "name": "===TBD GHO-10",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -738,8 +724,7 @@
         "name": "==REBORN==",
         "iconIndex": -1,
         "unlockedByDefault": false,
-        "description": "The best panel ever, hands down. You only need to acquire it somehow!",
-        "topFlavorText": "Get this panel, you will not regret it."
+        "description": "The best panel ever, hands down. You only need to acquire it somehow!"
       },
       "progression": {
         "maxRank": 10,
@@ -762,8 +747,7 @@
         "name": "Otherworldly Dark",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "Sometimes, the dead end up reaching back and touching you in ways you don't like-|Like murderously.",
-        "topFlavorText": ""
+        "description": "Sometimes, the dead end up reaching back and touching you in ways you don't like-|Like murderously."
       },
       "progression": {
         "maxRank": 10,
@@ -811,8 +795,7 @@
         "name": "Shade of Night",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "When gloom overtakes us, just embrace it, really.|Nothing wrong with a little evil to balance good or whatever.",
-        "topFlavorText": "The touch of death is cold as ice."
+        "description": "When gloom overtakes us, just embrace it, really.|Nothing wrong with a little evil to balance good or whatever."
       },
       "progression": {
         "maxRank": 10,
@@ -860,8 +843,7 @@
         "name": "Vero Noctu",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "They say that for all light there is darkness, but this darkness is counterbalanced by the night.",
-        "topFlavorText": "The darkness always falls- but not in the good way."
+        "description": "They say that for all light there is darkness, but this darkness is counterbalanced by the night."
       },
       "progression": {
         "maxRank": 10,
@@ -909,8 +891,7 @@
         "name": "===TBD REB-4",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -964,8 +945,7 @@
         "name": "===TBD REB-5",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1013,8 +993,7 @@
         "name": "===TBD REB-6",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1068,8 +1047,7 @@
         "name": "===TBD REB-7",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1123,8 +1101,7 @@
         "name": "===TBD REB-8",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1172,8 +1149,7 @@
         "name": "===TBD REB-9",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1227,8 +1203,7 @@
         "name": "===TBD REB-10",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -1288,8 +1263,7 @@
         "name": "==WISPS==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -1312,8 +1286,7 @@
         "name": "Flame's Caress",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "When the flames caress you, the power swells within.|It might be something else swelling, though.",
-        "topFlavorText": "Learn the skill \\Skill[214] when this node is maxed."
+        "description": "When the flames caress you, the power swells within.|It might be something else swelling, though."
       },
       "progression": {
         "maxRank": 10,
@@ -1355,8 +1328,7 @@
         "name": "Fiery Shuffle",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "Wisps that perpetually explode are a nuisance to society- and also drop pretty aggressive nodes.",
-        "topFlavorText": ""
+        "description": "Wisps that perpetually explode are a nuisance to society- and also drop pretty aggressive nodes."
       },
       "progression": {
         "maxRank": 10,
@@ -1398,8 +1370,7 @@
         "name": "Yokai Blaze",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "Killing the already-dead is an impressive feat.|Not like you cared or could even tell since it was taking fiery swings at ya like a douchebag.",
-        "topFlavorText": "The wrathful blaze of a dead dead thing is scary."
+        "description": "Killing the already-dead is an impressive feat.|Not like you cared or could even tell since it was taking fiery swings at ya like a douchebag."
       },
       "progression": {
         "maxRank": 10,
@@ -1453,8 +1424,7 @@
         "name": "===TBD WIL-4",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1502,8 +1472,7 @@
         "name": "===TBD WIL-5",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1551,8 +1520,7 @@
         "name": "===TBD WIL-6",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1600,8 +1568,7 @@
         "name": "===TBD WIL-7",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1655,8 +1622,7 @@
         "name": "===TBD WIL-8",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1704,8 +1670,7 @@
         "name": "===TBD WIL-9",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1765,8 +1730,7 @@
         "name": "===TBD WIL-10",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -1832,8 +1796,7 @@
         "name": "==BONES==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -1856,8 +1819,7 @@
         "name": "Boney Situation",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "The skeleton is an age-old RPG enemy- often frail and wimpy.|These skeletors live up to that expectation in spades.",
-        "topFlavorText": "Learn the skill \"Backstep\" when this panel is maxed."
+        "description": "The skeleton is an age-old RPG enemy- often frail and wimpy.|These skeletors live up to that expectation in spades."
       },
       "progression": {
         "maxRank": 10,
@@ -1899,8 +1861,7 @@
         "name": "Spinal Control",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "When the opportunity to smash up skeletons comes about, one must accept.|Smashing up skeledoggos is no exception to this hardfast rule.",
-        "topFlavorText": "The benefits of the dead should be weighed carefully."
+        "description": "When the opportunity to smash up skeletons comes about, one must accept.|Smashing up skeledoggos is no exception to this hardfast rule."
       },
       "progression": {
         "maxRank": 10,
@@ -1942,8 +1903,7 @@
         "name": "===TBD BON-3",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -1991,8 +1951,7 @@
         "name": "===TBD BON-4",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2046,8 +2005,7 @@
         "name": "===TBD BON-5",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2107,8 +2065,7 @@
         "name": "===TBD BON-6",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2156,8 +2113,7 @@
         "name": "===TBD BON-7",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2217,8 +2173,7 @@
         "name": "===TBD BON-8",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2266,8 +2221,7 @@
         "name": "===TBD BON-9",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2327,8 +2281,7 @@
         "name": "===TBD BON-10",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -2394,8 +2347,7 @@
         "name": "==ARMORS==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -2418,8 +2370,7 @@
         "name": "Don Armor",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "When spooky enemies don armor, they become a little different.",
-        "topFlavorText": "Even floaty armor has a point."
+        "description": "When spooky enemies don armor, they become a little different."
       },
       "progression": {
         "maxRank": 10,
@@ -2461,8 +2412,7 @@
         "name": "Plate Menace",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "Sentient armor whose soul plunges deeper into despair, a truly scary fiend|that you felled all on your lonesome.",
-        "topFlavorText": "Paper-thin vitals, iron-thick attitude."
+        "description": "Sentient armor whose soul plunges deeper into despair, a truly scary fiend|that you felled all on your lonesome."
       },
       "progression": {
         "maxRank": 10,
@@ -2510,8 +2460,7 @@
         "name": "===TBD ARM-3",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2553,8 +2502,7 @@
         "name": "===TBD ARM-4",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2608,8 +2556,7 @@
         "name": "===TBD ARM-5",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2657,8 +2604,7 @@
         "name": "===TBD ARM-6",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2706,8 +2652,7 @@
         "name": "===TBD ARM-7",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2755,8 +2700,7 @@
         "name": "===TBD ARM-8",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2810,8 +2754,7 @@
         "name": "===TBD ARM-9",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -2865,8 +2808,7 @@
         "name": "===TBD ARM-10",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -2926,8 +2868,7 @@
         "name": "==SNAKE==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -2950,8 +2891,7 @@
         "name": "Princely Flourish",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": "Regally speaking, one should verily be theoretically flourishing preposterously nonstop.|Indubitibly\ud83e\uddd0.",
-        "topFlavorText": "Be mindful of the poison, because poison fuckin' hurts and there are no antidotes."
+        "description": "Regally speaking, one should verily be theoretically flourishing preposterously nonstop.|Indubitibly\ud83e\uddd0."
       },
       "progression": {
         "maxRank": 10,
@@ -2999,8 +2939,7 @@
         "name": "Vice Fangs",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": "The golden viper bears the deadliest poison in all of Erocia.|Claiming its crown- its incisors- was ruthless, but a \\_real\\_ power move.",
-        "topFlavorText": "A viper's fangs are sharp as ... things that are very sharp."
+        "description": "The golden viper bears the deadliest poison in all of Erocia.|Claiming its crown- its incisors- was ruthless, but a \\_real\\_ power move."
       },
       "progression": {
         "maxRank": 10,
@@ -3048,8 +2987,7 @@
         "name": "Gasp King",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": "Deadly snakes that do deadly things should be made ded faster than they ded you.",
-        "topFlavorText": "You dedded this snake so gud."
+        "description": "Deadly snakes that do deadly things should be made ded faster than they ded you."
       },
       "progression": {
         "maxRank": 10,
@@ -3097,8 +3035,7 @@
         "name": "===TBD SNK-4",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3146,8 +3083,7 @@
         "name": "===TBD SNK-5",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3195,8 +3131,7 @@
         "name": "===TBD SNK-6",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3244,8 +3179,7 @@
         "name": "===TBD SNK-7",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3293,8 +3227,7 @@
         "name": "===TBD SNK-8",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3342,8 +3275,7 @@
         "name": "===TBD SNK-9",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3391,8 +3323,7 @@
         "name": "===TBD SNK-10",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -3452,8 +3383,7 @@
         "name": "==DRAGON==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -3476,8 +3406,7 @@
         "name": "Dragonic Sacrifice",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "The dargins of Erocia can vary wildly in shape, size, color, and elemental affinity.|The Lesser Dargins are known for their petite stature, but they are still formidible.",
-        "topFlavorText": ""
+        "description": "The dargins of Erocia can vary wildly in shape, size, color, and elemental affinity.|The Lesser Dargins are known for their petite stature, but they are still formidible."
       },
       "progression": {
         "maxRank": 10,
@@ -3519,8 +3448,7 @@
         "name": "Arctica Chillius",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "The dargins of Erocia can vary wildly in shape, size, color, and elemental affinity.|The Chilly Wyverns are known for being careful and calculating.",
-        "topFlavorText": "Something something witty something."
+        "description": "The dargins of Erocia can vary wildly in shape, size, color, and elemental affinity.|The Chilly Wyverns are known for being careful and calculating."
       },
       "progression": {
         "maxRank": 10,
@@ -3568,8 +3496,7 @@
         "name": "===TBD DRG-3",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3611,8 +3538,7 @@
         "name": "===TBD DRG-4",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3660,8 +3586,7 @@
         "name": "===TBD DRG-5",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3709,8 +3634,7 @@
         "name": "===TBD DRG-6",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3764,8 +3688,7 @@
         "name": "===TBD DRG-7",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3819,8 +3742,7 @@
         "name": "===TBD DRG-8",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3874,8 +3796,7 @@
         "name": "===TBD DRG-9",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -3929,8 +3850,7 @@
         "name": "===TBD DRG-10",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -3990,8 +3910,7 @@
         "name": "==DRACONIAN==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -4014,8 +3933,7 @@
         "name": "===TBD DCO-1",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4057,8 +3975,7 @@
         "name": "===TBD DCO-2",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4100,8 +4017,7 @@
         "name": "===TBD DCO-3",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4143,8 +4059,7 @@
         "name": "===TBD DCO-4",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4192,8 +4107,7 @@
         "name": "===TBD DCO-5",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4253,8 +4167,7 @@
         "name": "===TBD DCO-6",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4308,8 +4221,7 @@
         "name": "===TBD DCO-7",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4363,8 +4275,7 @@
         "name": "===TBD DCO-8",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4412,8 +4323,7 @@
         "name": "===TBD DCO-9",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4461,8 +4371,7 @@
         "name": "===TBD DCO-10",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -4522,8 +4431,7 @@
         "name": "==LAMIA==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -4546,8 +4454,7 @@
         "name": "Lamian Revelry",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "Watching them pulse and writhe as they wound up that massive laser|\nwas a tempting and alluring thing to behold.",
-        "topFlavorText": ""
+        "description": "Watching them pulse and writhe as they wound up that massive laser|\nwas a tempting and alluring thing to behold."
       },
       "progression": {
         "maxRank": 10,
@@ -4589,8 +4496,7 @@
         "name": "===TBD LAM-2",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4632,8 +4538,7 @@
         "name": "===TBD LAM-3",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4681,8 +4586,7 @@
         "name": "===TBD LAM-4",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4730,8 +4634,7 @@
         "name": "===TBD LAM-5",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4779,8 +4682,7 @@
         "name": "===TBD LAM-6",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4828,8 +4730,7 @@
         "name": "===TBD LAM-7",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4877,8 +4778,7 @@
         "name": "===TBD LAM-8",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4926,8 +4826,7 @@
         "name": "===TBD LAM-9",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -4981,8 +4880,7 @@
         "name": "===TBD LAM-10",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -5036,8 +4934,7 @@
         "name": "==SALAMANDER==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -5060,8 +4957,7 @@
         "name": "===TBD SAL-1",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5103,8 +4999,7 @@
         "name": "===TBD SAL-2",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5146,8 +5041,7 @@
         "name": "===TBD SAL-3",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5189,8 +5083,7 @@
         "name": "===TBD SAL-4",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5238,8 +5131,7 @@
         "name": "===TBD SAL-5",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5281,8 +5173,7 @@
         "name": "===TBD SAL-6",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5330,8 +5221,7 @@
         "name": "===TBD SAL-7",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5373,8 +5263,7 @@
         "name": "===TBD SAL-8",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5422,8 +5311,7 @@
         "name": "===TBD SAL-9",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5471,8 +5359,7 @@
         "name": "===TBD SAL-10",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -5526,8 +5413,7 @@
         "name": "==KAPPA==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -5550,8 +5436,7 @@
         "name": "Impish Insight",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "The insight of the kappa is literally dripping with moisture.|Incase you're not sure what that means, neither am I.",
-        "topFlavorText": ""
+        "description": "The insight of the kappa is literally dripping with moisture.|Incase you're not sure what that means, neither am I."
       },
       "progression": {
         "maxRank": 10,
@@ -5587,8 +5472,7 @@
         "name": "Captain of the Kaps",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "Once in a literal blue moon- not the metaphorical one- the captain of kappas emerge to feast.|They eat a lot of things, but what they eat isn't as important as this sweet sweet node.",
-        "topFlavorText": "Even kappas have a captain, apparently."
+        "description": "Once in a literal blue moon- not the metaphorical one- the captain of kappas emerge to feast.|They eat a lot of things, but what they eat isn't as important as this sweet sweet node."
       },
       "progression": {
         "maxRank": 10,
@@ -5630,8 +5514,7 @@
         "name": "River Runs Deep",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "In some regions, kappa have come together in a sort of community and begun showing more civilized behavior.|This particular kappa appears to communicate with some sort of higher deity... I wonder if we'll meet them later?",
-        "topFlavorText": "Learn the skill \"Energy Beam\" when this panel is maxed."
+        "description": "In some regions, kappa have come together in a sort of community and begun showing more civilized behavior.|This particular kappa appears to communicate with some sort of higher deity... I wonder if we'll meet them later?"
       },
       "progression": {
         "maxRank": 10,
@@ -5673,8 +5556,7 @@
         "name": "Kappan Dirty Tricks",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "Not all kappas are magical and worship their deities.|Some are guards for said shamans, and they really like playing dirty.",
-        "topFlavorText": "When you're just a shark-man, you sometimes need a dirty trick or two to win."
+        "description": "Not all kappas are magical and worship their deities.|Some are guards for said shamans, and they really like playing dirty."
       },
       "progression": {
         "maxRank": 10,
@@ -5722,8 +5604,7 @@
         "name": "===TBD KAP-5",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5771,8 +5652,7 @@
         "name": "===TBD KAP-6",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5820,8 +5700,7 @@
         "name": "===TBD KAP-7",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5875,8 +5754,7 @@
         "name": "===TBD KAP-8",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5930,8 +5808,7 @@
         "name": "===TBD KAP-9",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -5985,8 +5862,7 @@
         "name": "===TBD KAP-10",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -6046,8 +5922,7 @@
         "name": "==FROG==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -6070,8 +5945,7 @@
         "name": "Bounding Joy",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "Cave frogs do hippity hop and lickity spit as annoyingly as you would expect.",
-        "topFlavorText": ""
+        "description": "Cave frogs do hippity hop and lickity spit as annoyingly as you would expect."
       },
       "progression": {
         "maxRank": 10,
@@ -6113,8 +5987,7 @@
         "name": "Ribbit Burps",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "When reaching the frogs is harder, they seem to somehow become more annoying and will teach you the same.",
-        "topFlavorText": ""
+        "description": "When reaching the frogs is harder, they seem to somehow become more annoying and will teach you the same."
       },
       "progression": {
         "maxRank": 10,
@@ -6156,8 +6029,7 @@
         "name": "===TBD FRG-3",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6205,8 +6077,7 @@
         "name": "===TBD FRG-4",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6254,8 +6125,7 @@
         "name": "===TBD FRG-5",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6303,8 +6173,7 @@
         "name": "===TBD FRG-6",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6352,8 +6221,7 @@
         "name": "===TBD FRG-7",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6401,8 +6269,7 @@
         "name": "===TBD FRG-8",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6450,8 +6317,7 @@
         "name": "===TBD FRG-9",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6505,8 +6371,7 @@
         "name": "===TBD FRG-10",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -6572,8 +6437,7 @@
         "name": "==CRAB==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -6596,8 +6460,7 @@
         "name": "Crabtastical Crunchiness",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "The crabs of Volcanis are no joke, what with them constantly trying to keep you rooted in-place.|It is unclear how they exist in such a hot area without just being cooked by the ambient temperature.",
-        "topFlavorText": "Combo crabs are the worst- not even good enough for eating."
+        "description": "The crabs of Volcanis are no joke, what with them constantly trying to keep you rooted in-place.|It is unclear how they exist in such a hot area without just being cooked by the ambient temperature."
       },
       "progression": {
         "maxRank": 10,
@@ -6633,8 +6496,7 @@
         "name": "===TBD CRB-2",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6670,8 +6532,7 @@
         "name": "===TBD CRB-3",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6713,8 +6574,7 @@
         "name": "===TBD CRB-4",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6762,8 +6622,7 @@
         "name": "===TBD CRB-5",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6811,8 +6670,7 @@
         "name": "===TBD CRB-6",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6860,8 +6718,7 @@
         "name": "===TBD CRB-7",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6903,8 +6760,7 @@
         "name": "===TBD CRB-8",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -6964,8 +6820,7 @@
         "name": "===TBD CRB-9",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7013,8 +6868,7 @@
         "name": "===TBD CRB-10",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -7074,8 +6928,7 @@
         "name": "==FISH==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -7098,8 +6951,7 @@
         "name": "===TBD FSH-1",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7141,8 +6993,7 @@
         "name": "===TBD FSH-2",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7190,8 +7041,7 @@
         "name": "===TBD FSH-3",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7239,8 +7089,7 @@
         "name": "===TBD FSH-4",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7288,8 +7137,7 @@
         "name": "===TBD FSH-5",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7343,8 +7191,7 @@
         "name": "===TBD FSH-6",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7392,8 +7239,7 @@
         "name": "===TBD FSH-7",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7447,8 +7293,7 @@
         "name": "===TBD FSH-8",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7490,8 +7335,7 @@
         "name": "===TBD FSH-9",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7545,8 +7389,7 @@
         "name": "===TBD FSH-10",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -7612,8 +7455,7 @@
         "name": "==CEPHALOPOD==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -7636,8 +7478,7 @@
         "name": "===TBD CPH-1",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7679,8 +7520,7 @@
         "name": "===TBD CPH-2",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7722,8 +7562,7 @@
         "name": "===TBD CPH-3",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7771,8 +7610,7 @@
         "name": "===TBD CPH-4",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7814,8 +7652,7 @@
         "name": "===TBD CPH-5",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7869,8 +7706,7 @@
         "name": "===TBD CPH-6",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7918,8 +7754,7 @@
         "name": "===TBD CPH-7",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -7973,8 +7808,7 @@
         "name": "===TBD CPH-8",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -8022,8 +7856,7 @@
         "name": "===TBD CPH-9",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -8077,8 +7910,7 @@
         "name": "===TBD CPH-10",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -8138,8 +7970,7 @@
         "name": "==SLIME==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -8162,8 +7993,7 @@
         "name": "Slimestep",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "A slime in the depths of some no-name cave in Erocia wielded great four-step moves.|Learn from the master and step on your enemies how they like it.",
-        "topFlavorText": "\"Slimes just aren't as strong as they used to be.\" --Rupert"
+        "description": "A slime in the depths of some no-name cave in Erocia wielded great four-step moves.|Learn from the master and step on your enemies how they like it."
       },
       "progression": {
         "maxRank": 10,
@@ -8199,8 +8029,7 @@
         "name": "Goo Tango",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "The wilds around Raevula are home to the slimes bearing this node.|Like ghostys, these desert-themed slimes should be eradicated without mercy.",
-        "topFlavorText": "You can still hear their exotic throbbing while you gaze at the node."
+        "description": "The wilds around Raevula are home to the slimes bearing this node.|Like ghostys, these desert-themed slimes should be eradicated without mercy."
       },
       "progression": {
         "maxRank": 10,
@@ -8248,8 +8077,7 @@
         "name": "The Jigglejest",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "TODO",
-        "topFlavorText": "TODO"
+        "description": "TODO"
       },
       "progression": {
         "maxRank": 10,
@@ -8291,8 +8119,7 @@
         "name": "Romping Dessert",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "A slime literally in a dark ass basin apparently had this node.|This slime doesn't appear much different from normal slimes, but \\skill[230] sure does hurt.",
-        "topFlavorText": "Liquifaction is a state of being, according to slimes."
+        "description": "A slime literally in a dark ass basin apparently had this node.|This slime doesn't appear much different from normal slimes, but \\skill[230] sure does hurt."
       },
       "progression": {
         "maxRank": 10,
@@ -8340,8 +8167,7 @@
         "name": "Temporal Tapdance",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "While some slimes just absorb your essence through material breakdown,|others are more inclined to melt your face off from another dimension.",
-        "topFlavorText": "Why do all slimes want to absorb you???"
+        "description": "While some slimes just absorb your essence through material breakdown,|others are more inclined to melt your face off from another dimension."
       },
       "progression": {
         "maxRank": 10,
@@ -8389,8 +8215,7 @@
         "name": "===TBD SLI-6",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -8438,8 +8263,7 @@
         "name": "===TBD SLI-7",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -8487,8 +8311,7 @@
         "name": "===TBD SLI-8",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -8536,8 +8359,7 @@
         "name": "===TBD SLI-9",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -8579,8 +8401,7 @@
         "name": "===TBD SLI-10",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -8634,8 +8455,7 @@
         "name": "==TENTACLED==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -8658,8 +8478,7 @@
         "name": "Mostly-Seeing Eyes",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "It was a stretch to call this a slime, but then you see its tentacles.|Known for gorging on bearcats during the winter, apparently.",
-        "topFlavorText": "Learn the skill \"Brainfog\" when this panel is maxed."
+        "description": "It was a stretch to call this a slime, but then you see its tentacles.|Known for gorging on bearcats during the winter, apparently."
       },
       "progression": {
         "maxRank": 10,
@@ -8701,8 +8520,7 @@
         "name": "Impenetrable Gazes",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "This variant of roper has seen so much moisture that even its blobby ropes splash about when cracked.|Bondage not included.",
-        "topFlavorText": "Whippy ropes galore."
+        "description": "This variant of roper has seen so much moisture that even its blobby ropes splash about when cracked.|Bondage not included."
       },
       "progression": {
         "maxRank": 10,
@@ -8750,8 +8568,7 @@
         "name": "===TBD TNT-3",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -8805,8 +8622,7 @@
         "name": "===TBD TNT-4",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -8860,8 +8676,7 @@
         "name": "===TBD TNT-5",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -8909,8 +8724,7 @@
         "name": "===TBD TNT-6",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -8964,8 +8778,7 @@
         "name": "===TBD TNT-7",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9019,8 +8832,7 @@
         "name": "===TBD TNT-8",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9068,8 +8880,7 @@
         "name": "===TBD TNT-9",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9123,8 +8934,7 @@
         "name": "===TBD TNT-10",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -9184,8 +8994,7 @@
         "name": "==JEL==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -9208,8 +9017,7 @@
         "name": "Flowing Fluids",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": "May the fluids flow and... not ebb, that would be weird. Especially from a Jelli.|Don't do that.",
-        "topFlavorText": "The jelly's luminance has been extinguished. \ud83d\udc94"
+        "description": "May the fluids flow and... not ebb, that would be weird. Especially from a Jelli.|Don't do that."
       },
       "progression": {
         "maxRank": 10,
@@ -9251,8 +9059,7 @@
         "name": "Jelicious Jaunt",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": "The corpse of this thing has some rather jiggly elements that remind you of a certain other jiggly asset...\r\n",
-        "topFlavorText": "What a massive fucking jelli carrying around this node."
+        "description": "The corpse of this thing has some rather jiggly elements that remind you of a certain other jiggly asset...\r\n"
       },
       "progression": {
         "maxRank": 10,
@@ -9294,8 +9101,7 @@
         "name": "===TBD JEL-3",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9337,8 +9143,7 @@
         "name": "===TBD JEL-4",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9392,8 +9197,7 @@
         "name": "===TBD JEL-5",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9447,8 +9251,7 @@
         "name": "===TBD JEL-6",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9496,8 +9299,7 @@
         "name": "===TBD JEL-7",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9551,8 +9353,7 @@
         "name": "===TBD JEL-8",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9600,8 +9401,7 @@
         "name": "===TBD JEL-9",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9655,8 +9455,7 @@
         "name": "===TBD JEL-10",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -9716,8 +9515,7 @@
         "name": "==AERIAL==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -9740,8 +9538,7 @@
         "name": "Soak 'n' Spray",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "Apparently, this planet has somehow managed to evolve water bats.|We aren't talking about bats that like water, we're talking bats MADE OF WATER.",
-        "topFlavorText": "Bats that are made of water are just as stupid as those that aren't."
+        "description": "Apparently, this planet has somehow managed to evolve water bats.|We aren't talking about bats that like water, we're talking bats MADE OF WATER."
       },
       "progression": {
         "maxRank": 10,
@@ -9783,8 +9580,7 @@
         "name": "Mystic Gooping",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "TODO (magi-goobat)",
-        "topFlavorText": "TODO"
+        "description": "TODO (magi-goobat)"
       },
       "progression": {
         "maxRank": 10,
@@ -9826,8 +9622,7 @@
         "name": "===TBD AER-3",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9875,8 +9670,7 @@
         "name": "===TBD AER-4",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9924,8 +9718,7 @@
         "name": "===TBD AER-5",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -9967,8 +9760,7 @@
         "name": "===TBD AER-6",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10022,8 +9814,7 @@
         "name": "===TBD AER-7",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10065,8 +9856,7 @@
         "name": "===TBD AER-8",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10120,8 +9910,7 @@
         "name": "===TBD AER-9",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10169,8 +9958,7 @@
         "name": "===TBD AER-10",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -10230,8 +10018,7 @@
         "name": "==CUBE==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -10254,8 +10041,7 @@
         "name": "===TBD CUB-1",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10291,8 +10077,7 @@
         "name": "===TBD CUB-2",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10334,8 +10119,7 @@
         "name": "===TBD CUB-3",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10383,8 +10167,7 @@
         "name": "===TBD CUB-4",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10438,8 +10221,7 @@
         "name": "===TBD CUB-5",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10487,8 +10269,7 @@
         "name": "===TBD CUB-6",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10542,8 +10323,7 @@
         "name": "===TBD CUB-7",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10591,8 +10371,7 @@
         "name": "===TBD CUB-8",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10646,8 +10425,7 @@
         "name": "===TBD CUB-9",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10701,8 +10479,7 @@
         "name": "===TBD CUB-10",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -10762,8 +10539,7 @@
         "name": "==TRAP==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -10786,8 +10562,7 @@
         "name": "Tentacular Touch",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "Sometimes you just need to reach out and slap a lot of people at once.",
-        "topFlavorText": "Whip it good."
+        "description": "Sometimes you just need to reach out and slap a lot of people at once."
       },
       "progression": {
         "maxRank": 10,
@@ -10829,8 +10604,7 @@
         "name": "Bloody Embrace",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "The poison of the bloodtrap is extremely dangerous.|Even a few drops can weaken the body enough to be devourable by the trap.",
-        "topFlavorText": "Learn the skill \"Sap\" when this panel is maxed."
+        "description": "The poison of the bloodtrap is extremely dangerous.|Even a few drops can weaken the body enough to be devourable by the trap."
       },
       "progression": {
         "maxRank": 10,
@@ -10872,8 +10646,7 @@
         "name": "===TBD TRP-3",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10927,8 +10700,7 @@
         "name": "===TBD TRP-4",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -10976,8 +10748,7 @@
         "name": "===TBD TRP-5",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11031,8 +10802,7 @@
         "name": "===TBD TRP-6",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11086,8 +10856,7 @@
         "name": "===TBD TRP-7",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11141,8 +10910,7 @@
         "name": "===TBD TRP-8",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11196,8 +10964,7 @@
         "name": "===TBD TRP-9",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11251,8 +11018,7 @@
         "name": "===TBD TRP-10",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -11318,8 +11084,7 @@
         "name": "==FUNGUS==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -11342,8 +11107,7 @@
         "name": "Pissed Off Sprout",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": "The rage of a sprout (such as a Fungrowth) should never be underestimated.|Never forget.",
-        "topFlavorText": "Learn the skill \"Rage Growth\" when this panel is maxed."
+        "description": "The rage of a sprout (such as a Fungrowth) should never be underestimated.|Never forget."
       },
       "progression": {
         "maxRank": 10,
@@ -11391,8 +11155,7 @@
         "name": "Spiritual Shrooming",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": "Fungrowths that have ceased to exist actually don't cease to exist in this realm,\nthey just respawn as ghosty versions and are much more menacing.",
-        "topFlavorText": "Learn their trademark skill upon maxing this panel."
+        "description": "Fungrowths that have ceased to exist actually don't cease to exist in this realm,\nthey just respawn as ghosty versions and are much more menacing."
       },
       "progression": {
         "maxRank": 10,
@@ -11434,8 +11197,7 @@
         "name": "===TBD FUN-3",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11483,8 +11245,7 @@
         "name": "===TBD FUN-4",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11532,8 +11293,7 @@
         "name": "===TBD FUN-5",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11587,8 +11347,7 @@
         "name": "===TBD FUN-6",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11636,8 +11395,7 @@
         "name": "===TBD FUN-7",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11691,8 +11449,7 @@
         "name": "===TBD FUN-8",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11734,8 +11491,7 @@
         "name": "===TBD FUN-9",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -11789,8 +11545,7 @@
         "name": "===TBD FUN-10",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -11850,8 +11605,7 @@
         "name": "==FAE==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -11874,8 +11628,7 @@
         "name": "Scorn of Fae",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "Fae's have always been the kings of being able to piss you off by throwing rocks at you.|But soon, you too will be able to piss people off by throwing rocks at them!",
-        "topFlavorText": "Learn this enemy's trademark skill upon mastering the node."
+        "description": "Fae's have always been the kings of being able to piss you off by throwing rocks at you.|But soon, you too will be able to piss people off by throwing rocks at them!"
       },
       "progression": {
         "maxRank": 10,
@@ -11917,8 +11670,7 @@
         "name": "Regius Terra",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "TODO",
-        "topFlavorText": "TODO"
+        "description": "TODO"
       },
       "progression": {
         "maxRank": 10,
@@ -11960,8 +11712,7 @@
         "name": "Unseelie Court",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "When the unseelie chaos can be encapsulated, it can eventually be converted into a battery to fuel your stats ala this node!",
-        "topFlavorText": "Learn this enemy's trademark skill upon mastering the node."
+        "description": "When the unseelie chaos can be encapsulated, it can eventually be converted into a battery to fuel your stats ala this node!"
       },
       "progression": {
         "maxRank": 10,
@@ -12009,8 +11760,7 @@
         "name": "===TBD FAE-4",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12064,8 +11814,7 @@
         "name": "===TBD FAE-5",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12113,8 +11862,7 @@
         "name": "===TBD FAE-6",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12168,8 +11916,7 @@
         "name": "===TBD FAE-7",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12217,8 +11964,7 @@
         "name": "===TBD FAE-8",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12278,8 +12024,7 @@
         "name": "===TBD FAE-9",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12333,8 +12078,7 @@
         "name": "===TBD FAE-10",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -12406,8 +12150,7 @@
         "name": "==TREANT==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -12430,8 +12173,7 @@
         "name": "===TBD TRE-1",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12473,8 +12215,7 @@
         "name": "===TBD TRE-2",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12516,8 +12257,7 @@
         "name": "===TBD TRE-3",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12571,8 +12311,7 @@
         "name": "===TBD TRE-4",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12614,8 +12353,7 @@
         "name": "===TBD TRE-5",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12669,8 +12407,7 @@
         "name": "===TBD TRE-6",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12712,8 +12449,7 @@
         "name": "===TBD TRE-7",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12767,8 +12503,7 @@
         "name": "===TBD TRE-8",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12816,8 +12551,7 @@
         "name": "===TBD TRE-9",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -12871,8 +12605,7 @@
         "name": "===TBD TRE-10",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -12938,8 +12671,7 @@
         "name": "==FLOWER==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -12962,8 +12694,7 @@
         "name": "===TBD FLW-1",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13011,8 +12742,7 @@
         "name": "===TBD FLW-2",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13054,8 +12784,7 @@
         "name": "===TBD FLW-3",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13103,8 +12832,7 @@
         "name": "===TBD FLW-4",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13152,8 +12880,7 @@
         "name": "===TBD FLW-5",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13201,8 +12928,7 @@
         "name": "===TBD FLW-6",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13256,8 +12982,7 @@
         "name": "===TBD FLW-7",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13305,8 +13030,7 @@
         "name": "===TBD FLW-8",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13354,8 +13078,7 @@
         "name": "===TBD FLW-9",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13403,8 +13126,7 @@
         "name": "===TBD FLW-10",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -13464,8 +13186,7 @@
         "name": "==HYBRID==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -13488,8 +13209,7 @@
         "name": "Bearfisting It",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": "Why put a glove on it when you can just bearfist it instead?|Bearfisting is an ancient technique passed down from grizzly to grizzly.",
-        "topFlavorText": "Learn the skill \"Heavy Blow\" when this panel is maxed."
+        "description": "Why put a glove on it when you can just bearfist it instead?|Bearfisting is an ancient technique passed down from grizzly to grizzly."
       },
       "progression": {
         "maxRank": 10,
@@ -13537,8 +13257,7 @@
         "name": "Stone's Secret",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": "The panel derived from centuries of breeding. Not selective or anything, just regular ol' breeding.|Probably started with a goal in mind, but ya know, bear urges happened.",
-        "topFlavorText": "It was rather difficult finding this panel on the bear considering it had fur made of stone."
+        "description": "The panel derived from centuries of breeding. Not selective or anything, just regular ol' breeding.|Probably started with a goal in mind, but ya know, bear urges happened."
       },
       "progression": {
         "maxRank": 10,
@@ -13580,8 +13299,7 @@
         "name": "Descend into Darkness",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": "A void-consumed bear proved difficult to defeat considering its vast amount of life, but at least|you managed to pry this node from its dead bear mitts.",
-        "topFlavorText": "The deepest desires of a bear apparently have always been to descend into darkness."
+        "description": "A void-consumed bear proved difficult to defeat considering its vast amount of life, but at least|you managed to pry this node from its dead bear mitts."
       },
       "progression": {
         "maxRank": 10,
@@ -13629,8 +13347,7 @@
         "name": "Voidal Rendering",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": "TODO",
-        "topFlavorText": "TODO"
+        "description": "TODO"
       },
       "progression": {
         "maxRank": 10,
@@ -13678,8 +13395,7 @@
         "name": "===TBD HBR-5",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13733,8 +13449,7 @@
         "name": "===TBD HBR-6",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13782,8 +13497,7 @@
         "name": "===TBD HBR-7",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13837,8 +13551,7 @@
         "name": "===TBD HBR-8",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13898,8 +13611,7 @@
         "name": "===TBD HBR-9",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -13953,8 +13665,7 @@
         "name": "===TBD HBR-10",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -14014,8 +13725,7 @@
         "name": "==WINGER==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -14038,8 +13748,7 @@
         "name": "Skies of the Cave",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "Bats are vicious and obnoxious creatures|They are renowned far and wide for slaying young would-be protagonists.",
-        "topFlavorText": "You truly can never chop up enough bats. You're doing the cave a favor."
+        "description": "Bats are vicious and obnoxious creatures|They are renowned far and wide for slaying young would-be protagonists."
       },
       "progression": {
         "maxRank": 10,
@@ -14081,8 +13790,7 @@
         "name": "Crimson Gaze",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "An ever-iconic eyeball with wings. They can be found all across the universe for some reason.|This one however, appears to be wrapped in flames, which makes it rather annoying to get close to.",
-        "topFlavorText": "Learn the skill \\Skill[248] when this panel is maxed."
+        "description": "An ever-iconic eyeball with wings. They can be found all across the universe for some reason.|This one however, appears to be wrapped in flames, which makes it rather annoying to get close to."
       },
       "progression": {
         "maxRank": 10,
@@ -14130,8 +13838,7 @@
         "name": "Call from the Dark",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "TODO",
-        "topFlavorText": "TODO"
+        "description": "TODO"
       },
       "progression": {
         "maxRank": 10,
@@ -14173,8 +13880,7 @@
         "name": "Answer from the Dark",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "TODO",
-        "topFlavorText": "TODO"
+        "description": "TODO"
       },
       "progression": {
         "maxRank": 10,
@@ -14222,8 +13928,7 @@
         "name": "===TBD WNG-5",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14277,8 +13982,7 @@
         "name": "===TBD WNG-6",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14326,8 +14030,7 @@
         "name": "===TBD WNG-7",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14381,8 +14084,7 @@
         "name": "===TBD WNG-8",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14442,8 +14144,7 @@
         "name": "===TBD WNG-9",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14497,8 +14198,7 @@
         "name": "===TBD WNG-10",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -14558,8 +14258,7 @@
         "name": "==BEAK==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -14582,8 +14281,7 @@
         "name": "Crazy Beak",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "TODO",
-        "topFlavorText": "TODO"
+        "description": "TODO"
       },
       "progression": {
         "maxRank": 10,
@@ -14619,8 +14317,7 @@
         "name": "===TBD BEK-2",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14668,8 +14365,7 @@
         "name": "===TBD BEK-3",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14711,8 +14407,7 @@
         "name": "===TBD BEK-4",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14760,8 +14455,7 @@
         "name": "===TBD BEK-5",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14815,8 +14509,7 @@
         "name": "===TBD BEK-6",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14864,8 +14557,7 @@
         "name": "===TBD BEK-7",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14919,8 +14611,7 @@
         "name": "===TBD BEK-8",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -14974,8 +14665,7 @@
         "name": "===TBD BEK-9",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15035,8 +14725,7 @@
         "name": "===TBD BEK-10",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -15108,8 +14797,7 @@
         "name": "==RODENTS==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -15132,8 +14820,7 @@
         "name": "Resourceful Ratactics",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": "Rats manage to thrive in nearly all environments, including flooded rivers.|Channel your inner rat and get resourceful.",
-        "topFlavorText": "Learn the skill \"Tumble\" when this panel is maxed."
+        "description": "Rats manage to thrive in nearly all environments, including flooded rivers.|Channel your inner rat and get resourceful."
       },
       "progression": {
         "maxRank": 10,
@@ -15175,8 +14862,7 @@
         "name": "===TBD ROD-2",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15218,8 +14904,7 @@
         "name": "===TBD ROD-3",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15261,8 +14946,7 @@
         "name": "===TBD ROD-4",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15304,8 +14988,7 @@
         "name": "===TBD ROD-5",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15347,8 +15030,7 @@
         "name": "===TBD ROD-6",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15390,8 +15072,7 @@
         "name": "===TBD ROD-7",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15433,8 +15114,7 @@
         "name": "===TBD ROD-8",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15476,8 +15156,7 @@
         "name": "===TBD ROD-9",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15519,8 +15198,7 @@
         "name": "===TBD ROD-10",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -15562,8 +15240,7 @@
         "name": "==QUADRAPED==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -15586,8 +15263,7 @@
         "name": "===TBD QUA-1",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15629,8 +15305,7 @@
         "name": "===TBD QUA-2",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15678,8 +15353,7 @@
         "name": "===TBD QUA-3",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15721,8 +15395,7 @@
         "name": "===TBD QUA-4",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15770,8 +15443,7 @@
         "name": "===TBD QUA-5",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15825,8 +15497,7 @@
         "name": "===TBD QUA-6",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15874,8 +15545,7 @@
         "name": "===TBD QUA-7",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15929,8 +15599,7 @@
         "name": "===TBD QUA-8",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -15984,8 +15653,7 @@
         "name": "===TBD QUA-9",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -16045,8 +15713,7 @@
         "name": "===TBD QUA-10",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -16118,8 +15785,7 @@
         "name": "==STINGER==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -16142,8 +15808,7 @@
         "name": "Sting like a Bee",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "The lessons learned by all of the slain needlers in the land.|Slaying these pests not only make you feel better, but also help \"the people\".",
-        "topFlavorText": ""
+        "description": "The lessons learned by all of the slain needlers in the land.|Slaying these pests not only make you feel better, but also help \"the people\"."
       },
       "progression": {
         "maxRank": 10,
@@ -16185,8 +15850,7 @@
         "name": "Pressure Points",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "These appear to be just off-colored Needlers, but they are exponentially more vicious!|The speed of these things is insane, and now yours can be, too.",
-        "topFlavorText": ""
+        "description": "These appear to be just off-colored Needlers, but they are exponentially more vicious!|The speed of these things is insane, and now yours can be, too."
       },
       "progression": {
         "maxRank": 10,
@@ -16234,8 +15898,7 @@
         "name": "Drillsation",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "Much much more than your average bumblebee, this ruthless stinger has evolved in the harshest of wildernesses to execute even mighty megataurs in a single blow.\nCrits truly are deadly and piss everyone off.",
-        "topFlavorText": ""
+        "description": "Much much more than your average bumblebee, this ruthless stinger has evolved in the harshest of wildernesses to execute even mighty megataurs in a single blow.\nCrits truly are deadly and piss everyone off."
       },
       "progression": {
         "maxRank": 10,
@@ -16271,8 +15934,7 @@
         "name": "===TBD STG-4",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -16320,8 +15982,7 @@
         "name": "===TBD STG-5",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -16369,8 +16030,7 @@
         "name": "===TBD STG-6",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -16418,8 +16078,7 @@
         "name": "===TBD STG-7",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -16473,8 +16132,7 @@
         "name": "===TBD STG-8",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -16522,8 +16180,7 @@
         "name": "===TBD STG-9",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -16577,8 +16234,7 @@
         "name": "===TBD STG-10",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -16644,8 +16300,7 @@
         "name": "==WORMS==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -16668,8 +16323,7 @@
         "name": "Burrow Burr",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "An ancient panel with a burr still in it.|Who knows what we'll be able to do with it.",
-        "topFlavorText": "Learn the skill \"Void Spiral\" when this panel is maxed."
+        "description": "An ancient panel with a burr still in it.|Who knows what we'll be able to do with it."
       },
       "progression": {
         "maxRank": 10,
@@ -16711,8 +16365,7 @@
         "name": "Living Volcano",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "While the burrowing worms are scary, worms that burrow through lava are even more frightening.|Their \\Skill[425] is nothing to shake a stick at, so shove that stick down their throat and spare yourself the burns.",
-        "topFlavorText": "Why did worms have to become immune to magma and be so aggressive?"
+        "description": "While the burrowing worms are scary, worms that burrow through lava are even more frightening.|Their \\Skill[425] is nothing to shake a stick at, so shove that stick down their throat and spare yourself the burns."
       },
       "progression": {
         "maxRank": 10,
@@ -16760,8 +16413,7 @@
         "name": "Wriggle Dansu",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "In the far off mountains there is a legend that worms dance. No one knows why, but it is wildly entertaining to watch.\nWatch it once and you'll be addicted to doing it yourself for all eternity.",
-        "topFlavorText": "Why can't worms of Erocia just be regular poop-loving soil-burrowing worms?"
+        "description": "In the far off mountains there is a legend that worms dance. No one knows why, but it is wildly entertaining to watch.\nWatch it once and you'll be addicted to doing it yourself for all eternity."
       },
       "progression": {
         "maxRank": 10,
@@ -16803,8 +16455,7 @@
         "name": "===TBD WRM-4",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -16852,8 +16503,7 @@
         "name": "===TBD WRM-5",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -16907,8 +16557,7 @@
         "name": "===TBD WRM-6",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -16956,8 +16605,7 @@
         "name": "===TBD WRM-7",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17011,8 +16659,7 @@
         "name": "===TBD WRM-8",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17066,8 +16713,7 @@
         "name": "===TBD WRM-9",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17127,8 +16773,7 @@
         "name": "===TBD WRM-10",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -17194,8 +16839,7 @@
         "name": "==HIVEMIND==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -17218,8 +16862,7 @@
         "name": "===TBD HIV-1",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17261,8 +16904,7 @@
         "name": "===TBD HIV-2",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17310,8 +16952,7 @@
         "name": "===TBD HIV-3",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17353,8 +16994,7 @@
         "name": "===TBD HIV-4",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17402,8 +17042,7 @@
         "name": "===TBD HIV-5",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17457,8 +17096,7 @@
         "name": "===TBD HIV-6",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17506,8 +17144,7 @@
         "name": "===TBD HIV-7",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17561,8 +17198,7 @@
         "name": "===TBD HIV-8",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17616,8 +17252,7 @@
         "name": "===TBD HIV-9",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17677,8 +17312,7 @@
         "name": "===TBD HIV-10",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -17750,8 +17384,7 @@
         "name": "==JUMPER==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -17774,8 +17407,7 @@
         "name": "===TBD JMP-1",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17817,8 +17449,7 @@
         "name": "===TBD JMP-2",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17866,8 +17497,7 @@
         "name": "===TBD JMP-3",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17909,8 +17539,7 @@
         "name": "===TBD JMP-4",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -17958,8 +17587,7 @@
         "name": "===TBD JMP-5",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18013,8 +17641,7 @@
         "name": "===TBD JMP-6",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18062,8 +17689,7 @@
         "name": "===TBD JMP-7",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18117,8 +17743,7 @@
         "name": "===TBD JMP-8",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18172,8 +17797,7 @@
         "name": "===TBD JMP-9",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18233,8 +17857,7 @@
         "name": "===TBD JMP-10",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -18306,8 +17929,7 @@
         "name": "==PARASITE==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -18330,8 +17952,7 @@
         "name": "===TBD PAR-1",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18367,8 +17988,7 @@
         "name": "===TBD PAR-2",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18410,8 +18030,7 @@
         "name": "===TBD PAR-3",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18453,8 +18072,7 @@
         "name": "===TBD PAR-4",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18496,8 +18114,7 @@
         "name": "===TBD PAR-5",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18563,8 +18180,7 @@
         "name": "===TBD PAR-6",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18606,8 +18222,7 @@
         "name": "===TBD PAR-7",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18667,8 +18282,7 @@
         "name": "===TBD PAR-8",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18716,8 +18330,7 @@
         "name": "===TBD PAR-9",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -18783,8 +18396,7 @@
         "name": "===TBD PAR-10",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -18856,8 +18468,7 @@
         "name": "==BULL==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -18880,8 +18491,7 @@
         "name": "Bullheaded",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": "Being bullheaded isn't always a bad thing.|He grew to be big and strong from a little cow before you slayed him!",
-        "topFlavorText": "Be strong and tenacious like the bull. Or pretend at least."
+        "description": "Being bullheaded isn't always a bad thing.|He grew to be big and strong from a little cow before you slayed him!"
       },
       "progression": {
         "maxRank": 10,
@@ -18923,8 +18533,7 @@
         "name": "Ironfist of Iron",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": "The terror of the megataurs are known far and wide.|Deleting them would save hundreds of lives per year.",
-        "topFlavorText": "The one with the iron fist of iron will rule."
+        "description": "The terror of the megataurs are known far and wide.|Deleting them would save hundreds of lives per year."
       },
       "progression": {
         "maxRank": 10,
@@ -18972,8 +18581,7 @@
         "name": "===TBD BUL-3",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19015,8 +18623,7 @@
         "name": "===TBD BUL-4",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19064,8 +18671,7 @@
         "name": "===TBD BUL-5",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19119,8 +18725,7 @@
         "name": "===TBD BUL-6",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19168,8 +18773,7 @@
         "name": "===TBD BUL-7",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19223,8 +18827,7 @@
         "name": "===TBD BUL-8",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19278,8 +18881,7 @@
         "name": "===TBD BUL-9",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19339,8 +18941,7 @@
         "name": "===TBD BUL-10",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -19406,8 +19007,7 @@
         "name": "==ORC==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -19430,8 +19030,7 @@
         "name": "Orcan Obediance",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "The most scrubby and pathetic orc.|It mines and mines and mines. Fortunately it has tireless stamina.",
-        "topFlavorText": "Abuse the excessive endurance in the name of grinding."
+        "description": "The most scrubby and pathetic orc.|It mines and mines and mines. Fortunately it has tireless stamina."
       },
       "progression": {
         "maxRank": 10,
@@ -19473,8 +19072,7 @@
         "name": "Orcan Brutality",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "TODO",
-        "topFlavorText": "TODO"
+        "description": "TODO"
       },
       "progression": {
         "maxRank": 10,
@@ -19516,8 +19114,7 @@
         "name": "Orcan Stormcalling",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "Upper eschelons of orcs are oft heavily intuned with nature, allowing manipulation of the elements.|Thunder is deadly to manipulate, so why not learn it yourself?",
-        "topFlavorText": "Learn \\Skill[247] when this panel is maxed."
+        "description": "Upper eschelons of orcs are oft heavily intuned with nature, allowing manipulation of the elements.|Thunder is deadly to manipulate, so why not learn it yourself?"
       },
       "progression": {
         "maxRank": 10,
@@ -19559,8 +19156,7 @@
         "name": "Orcan Management",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "TODO",
-        "topFlavorText": "TODO"
+        "description": "TODO"
       },
       "progression": {
         "maxRank": 10,
@@ -19608,8 +19204,7 @@
         "name": "Orcan Mountaineering",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "Orcs that are capable of countering are mean douchebags deserving of getting kicked in the face-\nhopefully that was precisely what you did to acquire this node.",
-        "topFlavorText": "A deadly orc in the mountains that was very deadly and deadly and also kinda chonky."
+        "description": "Orcs that are capable of countering are mean douchebags deserving of getting kicked in the face-\nhopefully that was precisely what you did to acquire this node."
       },
       "progression": {
         "maxRank": 10,
@@ -19663,8 +19258,7 @@
         "name": "===TBD ORC-6",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19718,8 +19312,7 @@
         "name": "===TBD ORC-7",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19773,8 +19366,7 @@
         "name": "===TBD ORC-8",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19828,8 +19420,7 @@
         "name": "===TBD ORC-9",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -19889,8 +19480,7 @@
         "name": "===TBD ORC-10",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -19950,8 +19540,7 @@
         "name": "==THIEF==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -19974,8 +19563,7 @@
         "name": "Thief's Code",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "The thief's code describes all sorts of various rules.|They are really more like guidelines, though.",
-        "topFlavorText": "Learn the skill \"Shockwave\" when this panel is maxed."
+        "description": "The thief's code describes all sorts of various rules.|They are really more like guidelines, though."
       },
       "progression": {
         "maxRank": 10,
@@ -20017,8 +19605,7 @@
         "name": "Outlaw's Shortcuts",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "In the north eastern reaches of Erocia, disaster appears to have struck.|Bandits leveled up their game and transcended to outlaws, making your life that much harder.",
-        "topFlavorText": "Even bandits need to step up their game from time to time."
+        "description": "In the north eastern reaches of Erocia, disaster appears to have struck.|Bandits leveled up their game and transcended to outlaws, making your life that much harder."
       },
       "progression": {
         "maxRank": 10,
@@ -20066,8 +19653,7 @@
         "name": "Dark Alley Deals",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "TODO",
-        "topFlavorText": "TODO"
+        "description": "TODO"
       },
       "progression": {
         "maxRank": 10,
@@ -20109,8 +19695,7 @@
         "name": "===TBD THF-4",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20158,8 +19743,7 @@
         "name": "===TBD THF-5",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20213,8 +19797,7 @@
         "name": "===TBD THF-6",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20262,8 +19845,7 @@
         "name": "===TBD THF-7",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20317,8 +19899,7 @@
         "name": "===TBD THF-8",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20372,8 +19953,7 @@
         "name": "===TBD THF-9",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20433,8 +20013,7 @@
         "name": "===TBD THF-10",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -20500,8 +20079,7 @@
         "name": "==WALKER==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -20524,8 +20102,7 @@
         "name": "===TBD WLK-1",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20561,8 +20138,7 @@
         "name": "===TBD WLK-2",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20604,8 +20180,7 @@
         "name": "===TBD WLK-3",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20647,8 +20222,7 @@
         "name": "===TBD WLK-4",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20696,8 +20270,7 @@
         "name": "===TBD WLK-5",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20751,8 +20324,7 @@
         "name": "===TBD WLK-6",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20794,8 +20366,7 @@
         "name": "===TBD WLK-7",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20849,8 +20420,7 @@
         "name": "===TBD WLK-8",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20904,8 +20474,7 @@
         "name": "===TBD WLK-9",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -20965,8 +20534,7 @@
         "name": "===TBD WLK-10",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -21038,8 +20606,7 @@
         "name": "==CLAN==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -21062,8 +20629,7 @@
         "name": "===TBD CLN-1",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21105,8 +20671,7 @@
         "name": "===TBD CLN-2",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21154,8 +20719,7 @@
         "name": "===TBD CLN-3",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21197,8 +20761,7 @@
         "name": "===TBD CLN-4",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21246,8 +20809,7 @@
         "name": "===TBD CLN-5",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21301,8 +20863,7 @@
         "name": "===TBD CLN-6",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21350,8 +20911,7 @@
         "name": "===TBD CLN-7",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21405,8 +20965,7 @@
         "name": "===TBD CLN-8",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21460,8 +21019,7 @@
         "name": "===TBD CLN-9",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21521,8 +21079,7 @@
         "name": "===TBD CLN-10",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -21600,8 +21157,7 @@
         "name": "==GOLEM==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -21624,8 +21180,7 @@
         "name": "Titan's Girth",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "Titans are a mighty race, surpassed only by folks who have guns, because guns obviously.|You really can just end a lot of life if you get good at shooting shit.",
-        "topFlavorText": "A mighty foe drops a mighty panel."
+        "description": "Titans are a mighty race, surpassed only by folks who have guns, because guns obviously.|You really can just end a lot of life if you get good at shooting shit."
       },
       "progression": {
         "maxRank": 10,
@@ -21661,8 +21216,7 @@
         "name": "===TBD GOL-2",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21704,8 +21258,7 @@
         "name": "===TBD GOL-3",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21741,8 +21294,7 @@
         "name": "===TBD GOL-4",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21784,8 +21336,7 @@
         "name": "===TBD GOL-5",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21839,8 +21390,7 @@
         "name": "===TBD GOL-6",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21882,8 +21432,7 @@
         "name": "===TBD GOL-7",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21925,8 +21474,7 @@
         "name": "===TBD GOL-8",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -21968,8 +21516,7 @@
         "name": "===TBD GOL-9",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22017,8 +21564,7 @@
         "name": "===TBD GOL-10",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -22072,8 +21618,7 @@
         "name": "==HAZARD==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -22096,8 +21641,7 @@
         "name": "Rampaging Ignition",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "Its not blond babes shooting guns everywhere, but it does teach you how to respond with fire for anything.",
-        "topFlavorText": ""
+        "description": "Its not blond babes shooting guns everywhere, but it does teach you how to respond with fire for anything."
       },
       "progression": {
         "maxRank": 10,
@@ -22133,8 +21677,7 @@
         "name": "Splashback in Style",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "It isn't clear why anyone would embrace splashback except as revenge, which is perfectly acceptable here.",
-        "topFlavorText": ""
+        "description": "It isn't clear why anyone would embrace splashback except as revenge, which is perfectly acceptable here."
       },
       "progression": {
         "maxRank": 10,
@@ -22182,8 +21725,7 @@
         "name": "Electric Boogyman",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "Shocking revelations are found everywhere, including places that enable you to shock back.",
-        "topFlavorText": ""
+        "description": "Shocking revelations are found everywhere, including places that enable you to shock back."
       },
       "progression": {
         "maxRank": 10,
@@ -22225,8 +21767,7 @@
         "name": "===TBD HAZ-4",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22268,8 +21809,7 @@
         "name": "===TBD HAZ-5",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22323,8 +21863,7 @@
         "name": "===TBD HAZ-6",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22372,8 +21911,7 @@
         "name": "===TBD HAZ-7",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22427,8 +21965,7 @@
         "name": "===TBD HAZ-8",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22482,8 +22019,7 @@
         "name": "===TBD HAZ-9",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22537,8 +22073,7 @@
         "name": "===TBD HAZ-10",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -22604,8 +22139,7 @@
         "name": "==ROBOT==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -22628,8 +22162,7 @@
         "name": "===TBD RBT-1",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22665,8 +22198,7 @@
         "name": "===TBD RBT-2",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22708,8 +22240,7 @@
         "name": "===TBD RBT-3",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22751,8 +22282,7 @@
         "name": "===TBD RBT-4",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22788,8 +22318,7 @@
         "name": "===TBD RBT-5",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22837,8 +22366,7 @@
         "name": "===TBD RBT-6",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22880,8 +22408,7 @@
         "name": "===TBD RBT-7",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22935,8 +22462,7 @@
         "name": "===TBD RBT-8",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -22984,8 +22510,7 @@
         "name": "===TBD RBT-9",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23027,8 +22552,7 @@
         "name": "===TBD RBT-10",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -23082,8 +22606,7 @@
         "name": "==HOMONCULUS==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -23106,8 +22629,7 @@
         "name": "===TBD HOM-1",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23149,8 +22671,7 @@
         "name": "===TBD HOM-2",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23192,8 +22713,7 @@
         "name": "===TBD HOM-3",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23235,8 +22755,7 @@
         "name": "===TBD HOM-4",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23278,8 +22797,7 @@
         "name": "===TBD HOM-5",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23327,8 +22845,7 @@
         "name": "===TBD HOM-6",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23370,8 +22887,7 @@
         "name": "===TBD HOM-7",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23419,8 +22935,7 @@
         "name": "===TBD HOM-8",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23462,8 +22977,7 @@
         "name": "===TBD HOM-9",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23511,8 +23025,7 @@
         "name": "===TBD HOM-10",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -23566,8 +23079,7 @@
         "name": "==RUNE-BOUND==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -23590,8 +23102,7 @@
         "name": "===TBD RUN-1",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23627,8 +23138,7 @@
         "name": "===TBD RUN-2",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23664,8 +23174,7 @@
         "name": "===TBD RUN-3",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23707,8 +23216,7 @@
         "name": "===TBD RUN-4",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23750,8 +23258,7 @@
         "name": "===TBD RUN-5",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23799,8 +23306,7 @@
         "name": "===TBD RUN-6",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23842,8 +23348,7 @@
         "name": "===TBD RUN-7",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23891,8 +23396,7 @@
         "name": "===TBD RUN-8",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23934,8 +23438,7 @@
         "name": "===TBD RUN-9",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -23989,8 +23492,7 @@
         "name": "===TBD RUN-10",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -24044,8 +23546,7 @@
         "name": "==ELEMENTALS==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -24068,8 +23569,7 @@
         "name": "===TBD ELE-1",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24111,8 +23611,7 @@
         "name": "===TBD ELE-2",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24160,8 +23659,7 @@
         "name": "===TBD ELE-3",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24209,8 +23707,7 @@
         "name": "===TBD ELE-4",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24264,8 +23761,7 @@
         "name": "===TBD ELE-5",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24319,8 +23815,7 @@
         "name": "===TBD ELE-6",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24374,8 +23869,7 @@
         "name": "===TBD ELE-7",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24435,8 +23929,7 @@
         "name": "===TBD ELE-8",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24496,8 +23989,7 @@
         "name": "===TBD ELE-9",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24551,8 +24043,7 @@
         "name": "===TBD ELE-10",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -24618,8 +24109,7 @@
         "name": "==ASPECT==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -24642,8 +24132,7 @@
         "name": "===TBD ASP-1",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24679,8 +24168,7 @@
         "name": "===TBD ASP-2",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24728,8 +24216,7 @@
         "name": "===TBD ASP-3",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24771,8 +24258,7 @@
         "name": "===TBD ASP-4",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24814,8 +24300,7 @@
         "name": "===TBD ASP-5",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24869,8 +24354,7 @@
         "name": "===TBD ASP-6",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24918,8 +24402,7 @@
         "name": "===TBD ASP-7",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -24967,8 +24450,7 @@
         "name": "===TBD ASP-8",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25016,8 +24498,7 @@
         "name": "===TBD ASP-9",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25077,8 +24558,7 @@
         "name": "===TBD ASP-10",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -25138,8 +24618,7 @@
         "name": "==SOVEREIGN==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -25162,8 +24641,7 @@
         "name": "===TBD SOV-1",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25205,8 +24683,7 @@
         "name": "===TBD SOV-2",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25254,8 +24731,7 @@
         "name": "===TBD SOV-3",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25303,8 +24779,7 @@
         "name": "===TBD SOV-4",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25352,8 +24827,7 @@
         "name": "===TBD SOV-5",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25401,8 +24875,7 @@
         "name": "===TBD SOV-6",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25456,8 +24929,7 @@
         "name": "===TBD SOV-7",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25505,8 +24977,7 @@
         "name": "===TBD SOV-8",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25560,8 +25031,7 @@
         "name": "===TBD SOV-9",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 10,
@@ -25615,8 +25085,7 @@
         "name": "===TBD SOV-10",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -25676,8 +25145,7 @@
         "name": "==SINS==",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 1,
@@ -25700,8 +25168,7 @@
         "name": "Glutton's Dogma",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "The dogma of the Glutton is held above all else: \"thou must satiate thine hunger\".",
-        "topFlavorText": "This node radiates with a strange energy..."
+        "description": "The dogma of the Glutton is held above all else: \"thou must satiate thine hunger\"."
       },
       "progression": {
         "maxRank": 20,
@@ -25761,8 +25228,7 @@
         "name": "Wrath's Dogma",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "The dogma of Wrath is held above all else: \"thou must satiate thine revenge\".",
-        "topFlavorText": "This node radiates with a strange energy..."
+        "description": "The dogma of Wrath is held above all else: \"thou must satiate thine revenge\"."
       },
       "progression": {
         "maxRank": 20,
@@ -25822,8 +25288,7 @@
         "name": "===TBD SIN-3",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -25883,8 +25348,7 @@
         "name": "===TBD SIN-4",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -25944,8 +25408,7 @@
         "name": "===TBD SIN-5",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -26005,8 +25468,7 @@
         "name": "===TBD SIN-6",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -26066,8 +25528,7 @@
         "name": "===TBD SIN-7",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -26127,8 +25588,7 @@
         "name": "===TBD SIN-8",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -26188,8 +25648,7 @@
         "name": "===TBD SIN-9",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -26249,8 +25708,7 @@
         "name": "===TBD SIN-10",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": "",
-        "topFlavorText": ""
+        "description": ""
       },
       "progression": {
         "maxRank": 20,
@@ -26310,301 +25768,551 @@
       "name": "Undead - Ghosty",
       "key": "undead-ghosty",
       "iconIndex": 48,
-      "description": "Undead family, Ghosty subgroup."
+      "description": "Undead family, Ghosty subgroup.",
+      "prose": {
+        "beginning": "Every trick you pull lingers. {v.skillHistoryBonus} damage for each unique skill in the last {s.window}.",
+        "middle": "The dead remember longer than the living: {v.skillHistoryBonus} per unique skill, now recalled across {s.window}.",
+        "end": "Nothing you do is forgotten. {v.skillHistoryBonus} per unique skill over {s.window}, and your strikes leave Emptiness behind."
+      }
     },
     {
       "name": "Undead - Reborn",
       "key": "undead-reborn",
       "iconIndex": 48,
-      "description": "Undead family, Reborn subgroup."
+      "description": "Undead family, Reborn subgroup.",
+      "prose": {
+        "beginning": "Death did not finish the job. Every {s.interval}, a ward gathers worth {d.shield}.",
+        "middle": "The pale wall thickens: a ward worth {d.shield} every {s.interval}, pooling up to {d.shieldCap}.",
+        "end": "Wraithwall eternal. Every {s.interval}, {d.shield} of ward, three layers deep, and it holds where flesh would fold."
+      }
     },
     {
       "name": "Undead - Wisp",
       "key": "undead-wisp",
       "iconIndex": 48,
-      "description": "Undead family, Wisp subgroup."
+      "description": "Undead family, Wisp subgroup.",
+      "prose": {
+        "beginning": "You burn at the edges. Every {s.interval}, anything close enough takes {s.payload} fire, and hurting you only stokes it.",
+        "middle": "The mantle spreads to {s.radius} tiles and bites for {s.payload}, still answering every wound with flame.",
+        "end": "A scorched halo. {s.payload} to everything within {s.radius}, pulsing faster the more of them there are, and every hit you take answers instantly."
+      }
     },
     {
       "name": "Undead - Skeleton",
       "key": "undead-skeleton",
       "iconIndex": 48,
-      "description": "Undead family, Skeleton subgroup."
+      "description": "Undead family, Skeleton subgroup.",
+      "prose": {
+        "beginning": "Bones do not flinch. Every {s.perStack} of Life you are missing feeds {d.atk} Power and Force.",
+        "middle": "Graveborn fury sharpens as you fail: {d.atk} Power and Force for every {s.perStack} of Life gone.",
+        "end": "Deathless. {d.atk} Power and Force per {s.perStack} of missing Life, and everything that hits you does half of what it meant to."
+      }
     },
     {
       "name": "Undead - Armor",
       "key": "undead-armor",
       "iconIndex": 48,
-      "description": "Undead family, Armor subgroup."
+      "description": "Undead family, Armor subgroup.",
+      "prose": {
+        "beginning": "The hollow armor plates over what it cannot heal: Endurance {p.def}, Max Life {p.mhp}.",
+        "middle": "A brittle bastion still turns a blade. Endurance {p.def} and Parry {p.grd}, paid for with Max Life {p.mhp}.",
+        "end": "A paper fortress: Endurance {p.def} against Max Life {p.mhp}. Parry {p.grd}, Crit Block {p.ctr}, and crits land {v.critReduction} softer."
+      }
     },
     {
       "name": "Reptile - Cobra",
       "key": "reptile-snake",
       "iconIndex": 49,
-      "description": "Reptile family, Cobra subgroup."
+      "description": "Reptile family, Cobra subgroup.",
+      "prose": {
+        "beginning": "Your crits carry poison: {s.chance} to sink venom worth {d.hpFormula} a tick, and every fang after that keeps it alive longer.",
+        "middle": "Nothing survives the second bite. Venom pools {s.stacks} deep, each layer draining {d.hpFormula}.",
+        "end": "A deluge. Venom takes {d.hpFormula} every tick and only ever gets worse the longer you keep landing crits."
+      }
     },
     {
       "name": "Reptile - Dargin",
       "key": "reptile-dargin",
       "iconIndex": 49,
-      "description": "Reptile family, Dargin subgroup."
+      "description": "Reptile family, Dargin subgroup.",
+      "prose": {
+        "beginning": "A dragon's heart only wakes when the end is close. Below {s.gate} Life, damage taken {p.pdr}.",
+        "middle": "Dragonheart stirring, and stirring sooner: below {s.gate} Life, {p.pdr} to every blow and {p.elementRate} off every element.",
+        "end": "Dragonheart aflame. Below {s.gate} Life you take {p.pdr}, shrug {p.elementRate} off the elements, and nothing lesser can touch you at all."
+      }
     },
     {
       "name": "Reptile - Draconite",
       "key": "reptile-draconite",
       "iconIndex": 49,
-      "description": "Reptile family, Draconite subgroup."
+      "description": "Reptile family, Draconite subgroup.",
+      "prose": {
+        "beginning": "Hold still and the scales set like stone. Stand {s.gate} without moving for Endurance {p.def}.",
+        "middle": "Stone mantle. {s.gate} of stillness and Endurance climbs {p.def}. The longer you plant, the less anything moves you.",
+        "end": "A granite bastion. {s.gate} unmoving buys Endurance {p.def} and Parry {p.grd}; blows simply stop arriving anywhere."
+      }
     },
     {
       "name": "Reptile - Lamia",
       "key": "reptile-lamia",
       "iconIndex": 49,
-      "description": "Reptile family, Lamia subgroup."
+      "description": "Reptile family, Lamia subgroup.",
+      "prose": {
+        "beginning": "Patience sharpens the beam: {v.castTimeDamageBonus} damage for every second you hold the cast.",
+        "middle": "Converging light. {v.castTimeDamageBonus} per second charged, and the charge itself comes {v.castSpeedRate} quicker.",
+        "end": "Everything collapses to a point. {v.castTimeDamageBonus} damage per second held, at {v.castSpeedRate} the charge rate."
+      }
     },
     {
       "name": "Reptile - Salamander",
       "key": "reptile-salamander",
       "iconIndex": 49,
-      "description": "Reptile family, Salamander subgroup."
+      "description": "Reptile family, Salamander subgroup.",
+      "prose": {
+        "beginning": "Something primal runs under the skin. Energy and Void strike {v.boostElement[8]} harder.",
+        "middle": "Attunement spreads outward: Energy and Void at {v.boostElement[8]}, and the four base elements answer to you too at {v.boostElement[4]}.",
+        "end": "A primal conduit. Every element in the world bends: nothing you throw lands at less than {v.boostElement[4]}, and Energy and Void hit for {v.boostElement[8]}."
+      }
     },
     {
       "name": "Aquatic - Kappa",
       "key": "aquatic-kappa",
       "iconIndex": 50,
-      "description": "Aquatic family, Kappa subgroup."
+      "description": "Aquatic family, Kappa subgroup.",
+      "prose": {
+        "beginning": "A kappa's luck rubs off. Enemies part with {v.dropMultiplier} more than they meant to.",
+        "middle": "Fortune favors you twice: {v.dropMultiplier} more loot, and {p.eva} Grace to walk away with it.",
+        "end": "A trickster's gambit. Drop rate, Grace and Luck each climb by {v.evaBuffPlus}, and keep climbing every level you earn."
+      }
     },
     {
       "name": "Aquatic - Polliwog",
       "key": "aquatic-frog",
       "iconIndex": 50,
-      "description": "Aquatic family, Polliwog subgroup."
+      "description": "Aquatic family, Polliwog subgroup.",
+      "prose": {
+        "beginning": "Root yourself and the power gathers: a stack every {s.interval} standing still, {d.mat} Force each, gone the moment you move.",
+        "middle": "A rooted tempest, {s.stacks} layers deep at {d.mat} Force apiece, but one step still costs you everything.",
+        "end": "Rooted cataclysm. {s.stacks} stacks at {d.mat} Force each, and at last you can move without losing it all: a step costs one stack, no more."
+      }
     },
     {
       "name": "Aquatic - Crab",
       "key": "aquatic-crab",
       "iconIndex": 50,
-      "description": "Aquatic family, Crab subgroup."
+      "description": "Aquatic family, Crab subgroup.",
+      "prose": {
+        "beginning": "The shell answers for you. Every physical blow returns {s.payload} of what it dealt.",
+        "middle": "An iron rebuke: {s.payload} of every hit thrown straight back, and nothing can parry it.",
+        "end": "Shellbreaker's retort returns {s.payload}, and it lands before they have finished swinging."
+      }
     },
     {
       "name": "Aquatic - Fish",
       "key": "aquatic-fish",
       "iconIndex": 50,
-      "description": "Aquatic family, Fish subgroup."
+      "description": "Aquatic family, Fish subgroup.",
+      "prose": {
+        "beginning": "Too slippery to pin down. For {s.gate} after anything hits you, move {v.speedBoost} faster.",
+        "middle": "A swift current carries you {s.gate} clear of whatever landed, at {v.speedBoost} speed.",
+        "end": "Slipstream. {s.gate} of {v.speedBoost} movement after every hit taken, and the opening you make is sharper for it."
+      }
     },
     {
       "name": "Aquatic - Cephalopod",
       "key": "aquatic-cephalopod",
       "iconIndex": 50,
-      "description": "Aquatic family, Cephalopod subgroup."
+      "description": "Aquatic family, Cephalopod subgroup.",
+      "prose": {
+        "beginning": "Wounded, you vanish into ink: {s.duration} at {d.pdr} damage taken.",
+        "middle": "A murky pall, {s.duration} long and {d.pdr} deep. They lose you exactly when it matters.",
+        "end": "The abyssal veil answers any harm at all: {s.duration} at {d.pdr}, and even in clear water you take {p.pdr} less."
+      }
     },
     {
       "name": "Slime - Puddle",
       "key": "slime-puddle",
       "iconIndex": 51,
-      "description": "Slime family, Puddle subgroup."
+      "description": "Slime family, Puddle subgroup.",
+      "prose": {
+        "beginning": "Wounds teach the slime what hit it: {s.duration} of {d.elementRate} against the elements.",
+        "middle": "Reactive gel, {s.stacks} layers thick and {s.duration} long. The more they burn you, the less it works.",
+        "end": "Elemental osmosis. {s.stacks} coats of {d.elementRate}, and now nothing elemental is unfamiliar: every element in the world, blunted."
+      }
     },
     {
       "name": "Slime - Roper",
       "key": "slime-roper",
       "iconIndex": 51,
-      "description": "Slime family, Roper subgroup."
+      "description": "Slime family, Roper subgroup.",
+      "prose": {
+        "beginning": "Misery is an opening. {v.perDebuffBuff} more damage for every affliction already on them.",
+        "middle": "An eldritch tempest feeds itself: {v.perDebuffBuff} per affliction, and every strike adds another.",
+        "end": "Eldritch maelstrom. {v.perDebuffBuff} per affliction, and each blow heaps five more on. The wound teaches the next one where to land."
+      }
     },
     {
       "name": "Slime - Jelly",
       "key": "slime-jelly",
       "iconIndex": 51,
-      "description": "Slime family, Jelly subgroup."
+      "description": "Slime family, Jelly subgroup.",
+      "prose": {
+        "beginning": "Flesh knits and something else fills the gap: {v.onSelfHpHealMp} of any healing you take returns as Magi.",
+        "middle": "Mana weave. {v.onSelfHpHealMp} of your healing becomes Magi, yours and every ally's within {s.radius}.",
+        "end": "Arcane transfusion: any healing at all, of any kind, pays {v.onSelfHpHealMp} back as Magi to everyone within {s.radius}."
+      }
     },
     {
       "name": "Slime - Aerial",
       "key": "slime-aerial",
       "iconIndex": 51,
-      "description": "Slime family, Aerial subgroup."
+      "description": "Slime family, Aerial subgroup.",
+      "prose": {
+        "beginning": "Something restorative drifts off you. Every {s.interval}, allies nearby mend for {s.payload}.",
+        "middle": "A miasma of life, {s.radius} tiles wide, mending {s.payload} every {s.interval}.",
+        "end": "Spore bloom. {s.payload} to everyone within {s.radius} every {s.interval}, and you knit yourself back together whether anyone notices or not."
+      }
     },
     {
       "name": "Slime - Cube",
       "key": "slime-cube",
       "iconIndex": 51,
-      "description": "Slime family, Cube subgroup."
+      "description": "Slime family, Cube subgroup.",
+      "prose": {
+        "beginning": "You are an obstacle now. Anything near you slows by {d.speedBoost}, and keeps slowing while it stays.",
+        "middle": "A living bulwark: {s.stacks} layers of mire, each stealing {d.speedBoost} of speed and fouling their casting.",
+        "end": "Immovable bulk. The mire never stops deepening: {d.speedBoost} slower with every stack, and every stack opens them {d.pdr} wider."
+      }
     },
     {
       "name": "Plant - Trap",
       "key": "plant-trap",
       "iconIndex": 52,
-      "description": "Plant family, Trap subgroup."
+      "description": "Plant family, Trap subgroup.",
+      "prose": {
+        "beginning": "What you inflict takes root. Every affliction you land lingers {v.stateDurationPerc} longer.",
+        "middle": "A thorned curse holds twice as long: {v.stateDurationPerc} added to everything you put on them.",
+        "end": "Stranglethorn. Afflictions last {v.stateDurationPerc} longer, and anything already Rooted takes {v.bonusDamageIfState} from you."
+      }
     },
     {
       "name": "Plant - Fungus",
       "key": "plant-fungus",
       "iconIndex": 52,
-      "description": "Plant family, Fungus subgroup."
+      "description": "Plant family, Fungus subgroup.",
+      "prose": {
+        "beginning": "Instinct sharpens in the waiting. With every skill ready, Crit Rate {p.cri}.",
+        "middle": "A primal surge. Crit Rate {p.cri} while nothing is spent, though the coiling costs you {p.atk} Power to hold.",
+        "end": "Primal apex. Nothing spent, everything ready: Crit Rate {p.cri}, Power {p.atk}, and every basic attack lands {v.bonusHitsBasic} more times."
+      }
     },
     {
       "name": "Plant - Dryad",
       "key": "plant-dryad",
       "iconIndex": 52,
-      "description": "Plant family, Dryad subgroup."
+      "description": "Plant family, Dryad subgroup.",
+      "prose": {
+        "beginning": "The grove answers a healthy wood. While every ally near you stands above {s.gate} Life, Force {p.mat}.",
+        "middle": "Nature's ire: {p.mat} Force and {p.mdf} Resist, for as long as nobody around you is bleeding badly.",
+        "end": "Nature's judgment asks less and gives more. Allies need only hold {s.gate} Life for Force {p.mat} and Resist {p.mdf}."
+      }
     },
     {
       "name": "Plant - Treant",
       "key": "plant-treant",
       "iconIndex": 52,
-      "description": "Plant family, Treant subgroup."
+      "description": "Plant family, Treant subgroup.",
+      "prose": {
+        "beginning": "Bark thickens where nothing disturbs it. {s.gate} untouched and physical blows land {p.pdr} softer.",
+        "middle": "Tempered ironbark, and quicker to set: {s.gate} clear buys {p.pdr} against physical harm and Endurance {p.def}.",
+        "end": "Ancient ironbark. Barely {s.gate} between blows and the wood closes over: physical damage {p.pdr}, Endurance {p.def}."
+      }
     },
     {
       "name": "Plant - Flower",
       "key": "plant-flower",
       "iconIndex": 52,
-      "description": "Plant family, Flower subgroup."
+      "description": "Plant family, Flower subgroup.",
+      "prose": {
+        "beginning": "A quiet bloom every {s.interval} lifts one affliction from anyone within {s.radius}.",
+        "middle": "Cleansing petals, {s.radius} tiles wide, stripping {s.count} afflictions off your allies every {s.interval}.",
+        "end": "A sacred bloom. Every {s.interval}, everything within {s.radius} is simply made clean, however much they were carrying."
+      }
     },
     {
       "name": "Beast - Bearcat",
       "key": "beast-bearcat",
       "iconIndex": 53,
-      "description": "Beast family, Bearcat subgroup."
+      "description": "Beast family, Bearcat subgroup.",
+      "prose": {
+        "beginning": "Muscle and magic start to rhyme: Force rises by {v.matBuffPlus} of your Power.",
+        "middle": "A void chord runs through every swing. Force takes {v.matBuffPlus} of your Power, and {s.chance} of your blows leave Emptiness behind.",
+        "end": "Void harmonics. Power feeds Force and Force feeds Power, each carrying {v.matBuffPlus} of the other, and {s.chance} of what you touch is unmade."
+      }
     },
     {
       "name": "Beast - Bat",
       "key": "beast-bat",
       "iconIndex": 53,
-      "description": "Beast family, Bat subgroup."
+      "description": "Beast family, Bat subgroup.",
+      "prose": {
+        "beginning": "Bats do not hunt alone. With an ally inside {s.gate}, Accuracy {p.hit}.",
+        "middle": "A chittering frenzy carries {s.gate} now: Accuracy {p.hit} and Grace {p.eva} for as long as someone flies with you.",
+        "end": "A wingbeat chorus reaches {s.gate}. Accuracy {p.hit}, Grace {p.eva}, and everything you do costs {p.tcr} less."
+      }
     },
     {
       "name": "Beast - Beaker",
       "key": "beast-beaker",
       "iconIndex": 53,
-      "description": "Beast family, Beaker subgroup."
+      "description": "Beast family, Beaker subgroup.",
+      "prose": {
+        "beginning": "Harm sends you skyward: {s.duration} of {d.speedBoost} movement, once every {s.interval}.",
+        "middle": "A rising gust, now every {s.interval}: {d.speedBoost} faster and {d.eva} harder to touch while it lasts.",
+        "end": "Gale force. Every {s.interval}, {s.duration} of {d.speedBoost} movement, {d.eva} Grace, and everything that swings at you answers to itself."
+      }
     },
     {
       "name": "Beast - Rat",
       "key": "beast-rat",
       "iconIndex": 53,
-      "description": "Beast family, Rat subgroup."
+      "description": "Beast family, Rat subgroup.",
+      "prose": {
+        "beginning": "Rats hoard together. Keep an ally within {s.gate} and everything you learn sticks {v.aptMultiplier} better.",
+        "middle": "A nest egg travels: the bond holds out to {s.gate} now, paying Aptitude {v.aptMultiplier} and Experience {p.exr}.",
+        "end": "Compound interest. Even {s.gate} apart the share still counts: points, Aptitude and Experience all at {v.aptMultiplier}."
+      }
     },
     {
       "name": "Beast - Quadruped",
       "key": "beast-quadruped",
       "iconIndex": 53,
-      "description": "Beast family, Quadruped subgroup."
+      "description": "Beast family, Quadruped subgroup.",
+      "prose": {
+        "beginning": "The pack looks to you. Every {s.interval}, allies within {s.radius} take Endurance {d.def}.",
+        "middle": "An alpha's howl carries {s.radius}, bringing Endurance {d.def} to everyone who hears it.",
+        "end": "Pack sovereignty. Endurance {d.def} to all within {s.radius}, and your own guard becomes theirs: Resist rises by {d.mdf} of what you carry."
+      }
     },
     {
       "name": "Insect - Needler",
       "key": "insect-needler",
       "iconIndex": 54,
-      "description": "Insect family, Needler subgroup."
+      "description": "Insect family, Needler subgroup.",
+      "prose": {
+        "beginning": "The sting carries something. {s.chance} of your hits leave Poison behind.",
+        "middle": "A hive puncture finds the sickness first: {s.chance} to poison, and {v.bonusDamageIfStateType} more damage to anything already carrying it.",
+        "end": "Lance of the hive. Everything you touch is poisoned, and everything poisoned takes {v.bonusDamageIfStateType} from you."
+      }
     },
     {
       "name": "Insect - Crawler",
       "key": "insect-crawler",
       "iconIndex": 54,
-      "description": "Insect family, Crawler subgroup."
+      "description": "Insect family, Crawler subgroup.",
+      "prose": {
+        "beginning": "The network feeds on company. Every enemy near you is worth {v.lst} Lifesteal.",
+        "middle": "A spire synapse: {v.lst} Lifesteal and {p.hrg} regeneration for each one that crowds you.",
+        "end": "Spire dominion. Every body around you gives {v.lst} Lifesteal, {p.hrg} regeneration, and {v.critReduction} off the crits they land. Being surrounded is the point."
+      }
     },
     {
       "name": "Insect - Brood",
       "key": "insect-brood",
       "iconIndex": 54,
-      "description": "Insect family, Brood subgroup."
+      "description": "Insect family, Brood subgroup.",
+      "prose": {
+        "beginning": "Plague wants company. Poison you inflict jumps {v.spread[0]} of the time to anything within {v.spread[1]}.",
+        "middle": "An endemic swarm: poison leaps {v.spread[1]}, taking {v.spreadPerTick} more of them every {v.spreadTick}.",
+        "end": "Pandemic. {v.spreadPerTick} new hosts every {v.spreadTick} out to {v.spread[1]}. Put it on one of them and it belongs to all of them."
+      }
     },
     {
       "name": "Insect - Scorpion",
       "key": "insect-scorpion",
       "iconIndex": 54,
-      "description": "Insect family, Scorpion subgroup."
+      "description": "Insect family, Scorpion subgroup.",
+      "prose": {
+        "beginning": "Barbs answer every blow: {s.payload} back to whatever struck you within {s.radius}.",
+        "middle": "A chitin lash reaches {s.radius} now, returning {s.payload} for every physical hit you take.",
+        "end": "Barbed retribution, and it lands twice: {s.payload} each time, to anything within {s.radius}."
+      }
     },
     {
       "name": "Insect - Parasite",
       "key": "insect-parasite",
       "iconIndex": 54,
-      "description": "Insect family, Parasite subgroup."
+      "description": "Insect family, Parasite subgroup.",
+      "prose": {
+        "beginning": "What mends you mends the swarm: {v.onSelfHpHealHp} of any healing you take reaches allies within {s.radius}.",
+        "middle": "A siphon weave, {s.radius} wide, sharing out {v.onSelfHpHealHp} of your healing and {v.onSelfMpHealMp} of your Magi.",
+        "end": "Cradle of leech. Every drop of Life, Magi and Tech that reaches you reaches everyone within {s.radius} too."
+      }
     },
     {
       "name": "Humanoid - Minotaur",
       "key": "humanoid-minotaur",
       "iconIndex": 55,
-      "description": "Humanoid family, Minotaur subgroup."
+      "description": "Humanoid family, Minotaur subgroup.",
+      "prose": {
+        "beginning": "Keep moving and it builds: {d.atk} Power a step, {s.stacks} deep, and the next skill you throw spends all of it.",
+        "middle": "Gathering thunder, {s.stacks} steps' worth at {d.atk} apiece. Run further, hit once, hit enormously.",
+        "end": "Stampede. There is no ceiling worth naming: {d.atk} Power per step, and every step you have ever taken goes into the swing."
+      }
     },
     {
       "name": "Humanoid - Orc",
       "key": "humanoid-orc",
       "iconIndex": 55,
-      "description": "Humanoid family, Orc subgroup."
+      "description": "Humanoid family, Orc subgroup.",
+      "prose": {
+        "beginning": "A warchief does not wait. Every cooldown you carry runs {v.cdr} shorter.",
+        "middle": "",
+        "end": ""
+      }
     },
     {
       "name": "Humanoid - Bandit",
       "key": "humanoid-bandit",
       "iconIndex": 55,
-      "description": "Humanoid family, Bandit subgroup."
+      "description": "Humanoid family, Bandit subgroup.",
+      "prose": {
+        "beginning": "Fight dirty. {s.chance} of your hits leave them clawing at their eyes.",
+        "middle": "A dirty trick every time: {s.chance} to Blind, and {p.eva} Grace while they swing at nothing.",
+        "end": "A blinding gambit. Everything you hit goes blind, and every dodge you make leaves them wide open to something far worse."
+      }
     },
     {
       "name": "Humanoid - Cyclops",
       "key": "humanoid-cyclops",
       "iconIndex": 55,
-      "description": "Humanoid family, Cyclops subgroup."
+      "description": "Humanoid family, Cyclops subgroup.",
+      "prose": {
+        "beginning": "A thick skull has its uses. Roots hold you {p.stateRate} less, until they stop holding you at all.",
+        "middle": "Stone temper: nothing roots you, and what would disable you slips {p.stateRate} of the time.",
+        "end": "An adamant mind. Neither root nor disabling touches you, and half of what would move you simply doesn't."
+      }
     },
     {
       "name": "Humanoid - Kobold",
       "key": "humanoid-kobold",
       "iconIndex": 55,
-      "description": "Humanoid family, Kobold subgroup."
+      "description": "Humanoid family, Kobold subgroup.",
+      "prose": {
+        "beginning": "A field medic wastes nothing. Everything you consume works {p.pha} harder.",
+        "middle": "Trail rations keep: {s.foodTypes} last longer on you, and the keeping shows in {s.statList} across the board.",
+        "end": "A battlefield banquet. Every food lingers, every stat it feeds climbs, and Metabolize no longer costs you the meal."
+      }
     },
     {
       "name": "Construct - Titan",
       "key": "construct-titan",
       "iconIndex": 56,
-      "description": "Construct family, Titan subgroup."
+      "description": "Construct family, Titan subgroup.",
+      "prose": {
+        "beginning": "Nothing sticks to a titan. Every affliction you carry is worth {p.atk} Power and Force.",
+        "middle": "A relentless march: each curse on you gives {p.atk} Power and Force, and {p.pdr} off everything they throw.",
+        "end": "Juggernaut. Every affliction feeds you {p.atk} Power and Force, {p.pdr} of protection, and {v.lst} Lifesteal. Let them pile on."
+      }
     },
     {
       "name": "Construct - Hazard",
       "key": "construct-hazard",
       "iconIndex": 56,
-      "description": "Construct family, Hazard subgroup."
+      "description": "Construct family, Hazard subgroup.",
+      "prose": {
+        "beginning": "Everything you throw lands wider: blast radius {v.radiusRate}.",
+        "middle": "A blast front, not a blast point: {v.radiusRate} across and {v.thicknessRate} deep.",
+        "end": "Ground zero. {v.radiusRate} and {v.thicknessRate} on everything, and then more on top of that. There is no edge left to stand on."
+      }
     },
     {
       "name": "Construct - Bot",
       "key": "construct-bot",
       "iconIndex": 56,
-      "description": "Construct family, Bot subgroup."
+      "description": "Construct family, Bot subgroup.",
+      "prose": {
+        "beginning": "The chassis maintains itself. Every {s.interval}, {s.payload} back, no thought required.",
+        "middle": "A maintenance cycle worth {s.payload} every {s.interval}. Attrition simply stops working on you.",
+        "end": "Autonomic overdrive. {s.payload} every {s.interval}, and the better you get at fighting the more it mends."
+      }
     },
     {
       "name": "Construct - Puppet",
       "key": "construct-puppet",
       "iconIndex": 56,
-      "description": "Construct family, Puppet subgroup."
+      "description": "Construct family, Puppet subgroup.",
+      "prose": {
+        "beginning": "Every thread you tie pulls harder: {v.perDebuffBuff} more damage for each affliction on them.",
+        "middle": "A soul bind. {v.perDebuffBuff} per affliction, and {s.chance} of your hits take their hands away entirely.",
+        "end": "Soul rend. {v.perDebuffBuff} per affliction, and every strike risks silencing them and disabling them both at once."
+      }
     },
     {
       "name": "Construct - Orb",
       "key": "construct-orb",
       "iconIndex": 56,
-      "description": "Construct family, Orb subgroup."
+      "description": "Construct family, Orb subgroup.",
+      "prose": {
+        "beginning": "What you break, you spend. Shattering a shield bursts for {s.payload} of what it was holding, out to {s.radius}.",
+        "middle": "A capacitor surge: {s.payload} of every broken shield thrown back out across {s.radius}.",
+        "end": "Meltdown. The entire shield detonates, amplified by your own, and everything within {s.radius} learns what it was holding back."
+      }
     },
     {
       "name": "Deity - Elemental",
       "key": "deity-elemental",
       "iconIndex": 57,
-      "description": "Deity family, Elemental subgroup."
+      "description": "Deity family, Elemental subgroup.",
+      "prose": {
+        "beginning": "Resistance is a suggestion. The four great elements pierce {v.pierceElement} deeper.",
+        "middle": "Elemental flux: six elements now, each cutting {v.pierceElement} through whatever they hide behind.",
+        "end": "An elemental singularity. Every element there is pierces {v.pierceElement}, and nothing is safe from anything."
+      }
     },
     {
       "name": "Deity - Aspect",
       "key": "deity-emotion",
       "iconIndex": 57,
-      "description": "Deity family, Aspect subgroup."
+      "description": "Deity family, Aspect subgroup.",
+      "prose": {
+        "beginning": "You feel what they feel. Whenever an ally within {s.radius} is mended, {v.onAllyHpHealHp} of it reaches you too.",
+        "middle": "An empathic echo carries {s.radius}: {v.onAllyHpHealHp} of every kindness they receive lands on you as Life and Magi both.",
+        "end": "An empathic nexus. Life, Magi, Tech: anything that restores an ally within {s.radius} restores {v.onAllyHpHealHp} of it in you."
+      }
     },
     {
       "name": "Deity - Sovereign",
       "key": "deity-devil",
       "iconIndex": 57,
-      "description": "Deity family, Sovereign subgroup."
+      "description": "Deity family, Sovereign subgroup.",
+      "prose": {
+        "beginning": "A small bargain, honestly struck: {v.sdpMultiplier} more points from everything you kill.",
+        "middle": "The devil's wager pays {v.sdpMultiplier}, and it has never yet asked for anything back.",
+        "end": "The devil's due. {v.sdpMultiplier} more points, and another {v.sdpBonusFormula} for every mastery you already carry. The debt compounds in your favor."
+      }
     },
     {
       "name": "Deity - Sin",
       "key": "deity-sin",
       "iconIndex": 57,
-      "description": "Deity family, Sin subgroup."
+      "description": "Deity family, Sin subgroup.",
+      "prose": {
+        "beginning": "",
+        "middle": "",
+        "end": ""
+      }
     },
     {
       "name": "Deity - Sin Votary",
       "key": "deity-sin-votary",
       "iconIndex": 57,
-      "description": "Deity family, Sin Votary subgroup."
+      "description": "Deity family, Sin Votary subgroup.",
+      "prose": {
+        "beginning": "",
+        "middle": "",
+        "end": ""
+      }
     }
   ],
   "families": [

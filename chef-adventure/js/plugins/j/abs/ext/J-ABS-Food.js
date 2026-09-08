@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 ABS-FOOD] A JABS extension enabling food group chain states and a dedicated R2 food slot.
+ * [v2.0.0 ABS-FOOD] A JABS extension enabling food group chain states and a dedicated R2 food slot.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -34,7 +34,7 @@
  * Tag every state that belongs to a food arc with the group name:
  *    <foodChain:TYPE>
  *  Where TYPE is a lower-case string (protein, vegetable, fruit, grain,
- *  dairy, confection, overstuffed, etc.). All states in one arc share TYPE.
+ *  dairy, confection, etc.). All states in one arc share TYPE.
  *
  * Chain progression is authored entirely via <applyStateOnExpire> (J-ABS
  * core). The Well Fed entry state expires into the peak, the peak expires
@@ -61,19 +61,48 @@
  *
  * A phase state with no color tag renders as a neutral grey segment instead.
  * ============================================================================
- * OVERSTUFFED IMMUNITY (FIELD MEDIC):
- * Any battler whose getAllNotes() sources include the following tag is treated
- * as having Field Medic mastery. This tag may appear on any passive state,
- * accessory, class, or other note-bearing database object.
+ * ENDING A CHAIN (METABOLIZE):
+ * Tag a skill so that executing it ends the caster's active food arc:
  *
- *    <overstuffedImpervious>
+ *    <endFoodChain>
  *
- * With this tag active on the leader, re-feeding during any phase (including
- * Well Fed and peak) snaps to the new Well Fed instead of triggering the
- * Overstuffed chain. Tail-phase behaviour is unchanged (always rescues).
+ * There is no tail phase and no consolation state; the arc is simply over.
+ * This is what makes a "metabolize" skill cost the meal that fuelled it.
+ *
+ * Pair it with J-ABS core's <slotTransform:[UsableItem, SKILL_ID]> on each
+ * phase state to turn the R2 button into that skill for as long as the arc
+ * runs — eat when empty, burn the meal when full. Because the tag is read off
+ * the executed skill rather than tracked through whatever dispatched it, an
+ * enemy attack may carry it too and take the player's meal away.
+ *
+ * OMITTING THE TAG IS A DESIGN CHOICE, NOT AN OVERSIGHT. A skill that burns
+ * fuel without spending the arc is an endurance move, bounded by the chain's
+ * own duration rather than by a single use. Nothing warns about its absence.
+ *
+ * ============================================================================
+ * FOOD CHAIN IMMUNITY:
+ * Any battler whose getAllNotes() sources include the following tag keeps
+ * their arc through a chain-ending skill. This tag may appear on any passive
+ * state, accessory, class, or other note-bearing database object.
+ *
+ *    <foodChainImpervious>
+ *
+ * The bearer still executes the skill and still receives everything it does;
+ * they simply do not spend the meal. This is the capstone form of food
+ * mastery — fullness stops being ammunition and becomes a standing condition.
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    Food chains gained a second type, an alternative to healing.
+ *    Retired Overstuffed along with it: <overstuffedImpervious> is gone, replaced by
+ *    <foodChainImpervious>, and <endFoodChain> now closes a chain outright.
+ * - 1.1.0
+ *    The Well Fed entry state names the leader as its source, so it applies as a JABS
+ *    state and its expiry advances the chain. Without one it landed as an inert
+ *    vanilla state that never expired, and the arc never started.
+ *    An item declaring a food group nothing registered now warns and names the groups
+ *    that do exist, rather than being eaten to no effect in silence.
  * - 1.0.3
  *    Routed the missing-duration authoring warning through J-Base's new
  *    Diagnostics, so it names J-ABS-Food in the console rather than the
@@ -159,7 +188,7 @@ J.ABS.EXT.FOOD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.FOOD.Metadata = new JFood_PluginMetadata("J-ABS-Food", "1.0.3");
+J.ABS.EXT.FOOD.Metadata = new JFood_PluginMetadata("J-ABS-Food", "2.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -193,21 +222,46 @@ J.ABS.EXT.FOOD.RegExp = {
 	*/
 	FoodGroupColor: /<foodGroupColor:[ ]?(#[0-9A-Fa-f]{6})>/i,
 	/**
-	* Boolean tag: bearer is immune to triggering the Overstuffed chain on re-feed.
-	* May live on any note-bearing database object readable via getAllNotes().
+	* Boolean tag: executing this skill ends the caster's active food chain.
+	*
+	* This is what makes a metabolize skill cost the meal. Its absence is a design choice rather
+	* than an oversight. A skill that burns fuel without consuming the arc is an endurance move,
+	* bounded by the chain's own duration instead of by a single use.
+	*
+	* <pre>
+	* Structure:
+	*  <endFoodChain>
+	*
+	* Example:
+	*  <endFoodChain>
+	*
+	* Translation:
+	*  when this skill executes, whatever food arc the caster is in ends immediately
+	* </pre>
+	* @type {RegExp}
 	*/
-	OverstuffedImpervious: /<overstuffedImpervious>/i
+	EndFoodChain: /<endFoodChain>/i,
+	/**
+	* Boolean tag: the bearer's food chains never end from {@link #EndFoodChain}.
+	*
+	* The bearer still executes the skill and still receives everything it does; they simply keep
+	* the arc they were in. May live on any note-bearing database object readable via
+	* {@code getAllNotes()}: passive, equip, state, class or the battler's own row.
+	*
+	* <pre>
+	* Structure:
+	*  <foodChainImpervious>
+	*
+	* Example:
+	*  <foodChainImpervious>
+	*
+	* Translation:
+	*  this bearer metabolizes without ever spending the meal
+	* </pre>
+	* @type {RegExp}
+	*/
+	FoodChainImpervious: /<foodChainImpervious>/i
 };
-/**
-* Canonical chain type key constants used throughout this plugin.
-* Using these constants avoids magic strings in the code.
-*/
-J.ABS.EXT.FOOD.ChainType = { 
-/**
-* The chain type applied when a player eats mid-arc without overstuffed immunity.
-* @type {'overstuffed'}
-*/
-Overstuffed: "overstuffed" };
 
 //#endregion
 //#region src/plugins/abs/ext/food/database/RPG_Item.js
@@ -226,10 +280,26 @@ Object.defineProperty(RPG_Item.prototype, "jabsFoodType", { get: function() {
 } });
 
 //#endregion
+//#region src/plugins/abs/ext/food/database/RPG_Skill.js
+/**
+* Whether or not executing this skill ends the caster's active food chain.<br/>
+* Sourced from the {@code <endFoodChain>} boolean notetag.
+*
+* A metabolize skill carries this because burning the meal is what it costs. A skill that
+* deliberately omits it burns fuel without spending the arc: an endurance move bounded by the
+* chain's own duration rather than by a single use. Absence is therefore an authoring decision,
+* not an omission, and nothing warns about it.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsEndsFoodChain", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.EXT.FOOD.RegExp.EndFoodChain);
+} });
+
+//#endregion
 //#region src/plugins/abs/ext/food/database/RPG_State.js
 /**
 * The food group chain type this state belongs to, if any.<br/>
-* Returns the lower-cased type string (e.g. 'protein', 'overstuffed') or null
+* Returns the lower-cased type string (e.g. 'protein', 'vegetable') or null
 * when the state is not part of any food chain arc.
 * @type {string|null}
 */
@@ -373,6 +443,18 @@ var JABS_FoodChainPlan = class JABS_FoodChainPlan {
 		return JABS_FoodChainPlan._registry.get(typeKey) ?? null;
 	}
 	/**
+	* Lists every chain type the boot-time walk actually registered.
+	*
+	* This exists for diagnostics rather than for gameplay: when an item declares a food group that
+	* resolves to nothing, the useful half of the report is not the key that missed but the set of
+	* keys that would have hit, because the gap between them is usually a typo or a chain whose
+	* entry state was never authored.
+	* @returns {string[]} The registered chain type keys.
+	*/
+	static registeredChainTypes() {
+		return Array.from(JABS_FoodChainPlan._registry.keys());
+	}
+	/**
 	* Walks the natural-expiry chain starting at the given entry state id, producing an
 	* ordered {@link JABS_FoodChainSegment} array.
 	*
@@ -501,7 +583,7 @@ var JABS_FoodChainResolver = class JABS_FoodChainResolver {
 	}
 	/**
 	* Returns the first active food-chain type found on the given battler, or null.
-	* The type is a string like 'protein', 'overstuffed', etc. from the database tag.
+	* The type is a string like 'protein', 'vegetable', etc. from the database tag.
 	* @param {Game_Actor} battler The battler to inspect for active food chain states.
 	* @returns {string|null} The chain type string, or null if no food chain is active.
 	*/
@@ -512,32 +594,48 @@ var JABS_FoodChainResolver = class JABS_FoodChainResolver {
 	}
 	/**
 	* Derives the current chain phase for a battler relative to a given plan.
-	* Returns 'wellFed', 'peak', 'tail', 'overstuffed', or null when no plan
-	* or no matching active state is found.
+	* Returns 'wellFed', 'peak', 'tail', or null when no plan or no matching
+	* active state is found.
 	* @param {Game_Actor} battler The battler to inspect.
 	* @param {JABS_FoodChainPlan} plan The plan to check phases against.
-	* @returns {'wellFed'|'peak'|'tail'|'overstuffed'|null} The current phase label.
+	* @returns {'wellFed'|'peak'|'tail'|null} The current phase label.
 	*/
 	static getPhase(battler, plan) {
 		if (!plan || plan.isEmpty()) return null;
 		for (const segment of plan.segments) {
 			if (!battler.isStateAffected(segment.stateId)) continue;
 			const index = plan.indexOfState(segment.stateId);
-			if (segment.chainType === J.ABS.EXT.FOOD.ChainType.Overstuffed) return "overstuffed";
 			return plan.phaseAtIndex(index);
 		}
 		return null;
 	}
 	/**
-	* Returns true when the leader's notes contain the overstuffedImpervious tag,
-	* granting Field Medic immunity to the Overstuffed chain on re-feed.
-	* @returns {boolean} True if the leader has Field Medic mastery, false otherwise.
+	* Returns true when the given battler's notes contain the foodChainImpervious tag.
+	*
+	* An impervious battler still executes a chain-ending skill and still receives everything it
+	* does- they simply keep the arc they were in. This is the capstone form of food mastery: the
+	* meal stops being the ammunition and becomes a standing condition.
+	* @param {Game_Actor} battler The battler to inspect for immunity.
+	* @returns {boolean} True if the battler keeps their chain through an ending skill.
 	*/
-	static leaderHasOverstuffedImpervious() {
-		const leader = $gameParty.leader();
-		if (!leader) return false;
-		const notes = leader.getAllNotes();
-		return RPGManager.checkForBooleanFromAllNotesByRegex(notes, J.ABS.EXT.FOOD.RegExp.OverstuffedImpervious);
+	static hasFoodChainImpervious(battler) {
+		if (!battler) return false;
+		const notes = battler.getAllNotes();
+		return RPGManager.checkForBooleanFromAllNotesByRegex(notes, J.ABS.EXT.FOOD.RegExp.FoodChainImpervious);
+	}
+	/**
+	* Ends the given battler's active food chain, as demanded by a skill tagged
+	* {@code <endFoodChain>}.
+	*
+	* This is the other half of metabolizing: the skill delivers whatever it delivers through the
+	* ordinary action pipeline, and this clears the arc that paid for it. Imperviousness is checked
+	* here rather than at the call site so that every future path into chain-ending inherits it.
+	* @param {Game_Actor} battler The battler whose chain should end.
+	*/
+	static resolveEndFoodChain(battler) {
+		if (!battler) return;
+		if (JABS_FoodChainResolver.hasFoodChainImpervious(battler)) return;
+		JABS_FoodChainResolver.stripFoodChainStates([battler]);
 	}
 	/**
 	* Executes the full eat event for a food item consumed via the R2 food slot.
@@ -546,11 +644,8 @@ var JABS_FoodChainResolver = class JABS_FoodChainResolver {
 	*   - Always: heal/MP/TP/cure effects applied to all party members (skip code 21).
 	*   - Resolve the food group type from the item's {@code <food:TYPE>} tag.
 	*   - Look up the pre-built chain plan from the registry.
-	*   - Determine the leader's current chain phase.
 	*   - No active chain → apply Well Fed entry state, store plan.
-	*   - Tail phase → strip all chains, apply new Well Fed, store plan.
-	*   - Field Medic immune → strip all chains, apply new Well Fed, store plan.
-	*   - Otherwise (well-fed or peak, no immunity) → strip all, apply Overstuffed.
+	*   - Any active chain → strip all chains, apply new Well Fed, store plan.
 	*
 	* @param {number} itemId The database id of the food item consumed.
 	* @param {JABS_Battler} jabsBattler The JABS battler eating the item (the map leader).
@@ -561,23 +656,24 @@ var JABS_FoodChainResolver = class JABS_FoodChainResolver {
 		const foodType = item.jabsFoodType;
 		if (!foodType) return;
 		const newPlan = JABS_FoodChainPlan.forChainType(foodType);
-		if (!newPlan) return;
+		if (!newPlan) {
+			Diagnostics.warn("J-ABS-Food", `no food chain is registered for type: [ ${foodType} ].`, () => ({
+				itemId,
+				itemName: item.name,
+				registeredTypes: JABS_FoodChainPlan.registeredChainTypes()
+			}));
+			return;
+		}
 		const leader = $gameParty.leader();
 		const members = $gameParty.battleMembers();
 		JABS_FoodChainResolver.#applyFoodBuffetEffects(item, members, jabsBattler);
 		const entryStateId = newPlan.getEntry().stateId;
 		const currentChainType = JABS_FoodChainResolver.getActiveFoodChainType(leader);
 		const leaderUuid = jabsBattler.getUuid();
-		const existingPlan = $jabsEngine.getFoodChainPlanByUuid(leaderUuid);
-		const currentPhase = existingPlan ? JABS_FoodChainResolver.getPhase(leader, existingPlan) : null;
 		if (currentChainType === null) {
 			JABS_FoodChainResolver.#startFoodChain(leader, entryStateId, leaderUuid, newPlan);
-		} else if (currentPhase === "tail") {
-			JABS_FoodChainResolver.#stripAndStartFoodChain(members, leader, entryStateId, leaderUuid, newPlan);
-		} else if (JABS_FoodChainResolver.leaderHasOverstuffedImpervious()) {
-			JABS_FoodChainResolver.#stripAndStartFoodChain(members, leader, entryStateId, leaderUuid, newPlan);
 		} else {
-			JABS_FoodChainResolver.#triggerOverstuffed(members, leader, leaderUuid);
+			JABS_FoodChainResolver.#stripAndStartFoodChain(members, leader, entryStateId, leaderUuid, newPlan);
 		}
 	}
 	/**
@@ -613,7 +709,7 @@ var JABS_FoodChainResolver = class JABS_FoodChainResolver {
 	* @param {JABS_FoodChainPlan} plan The pre-built registry plan for this food group.
 	*/
 	static #startFoodChain(leader, entryStateId, leaderUuid, plan) {
-		leader.addState(entryStateId);
+		leader.addState(entryStateId, leader);
 		$jabsEngine.setFoodChainPlanByUuid(leaderUuid, plan);
 	}
 	/**
@@ -628,21 +724,6 @@ var JABS_FoodChainResolver = class JABS_FoodChainResolver {
 	static #stripAndStartFoodChain(members, leader, entryStateId, leaderUuid, plan) {
 		JABS_FoodChainResolver.stripFoodChainStates(members);
 		JABS_FoodChainResolver.#startFoodChain(leader, entryStateId, leaderUuid, plan);
-	}
-	/**
-	* Strips all food chain states and applies the Overstuffed entry state to the leader.
-	* The Overstuffed plan is looked up from the registry by its chain type constant.
-	* This is the punishment path for eating mid-arc without Field Medic immunity.
-	* @param {Game_Actor[]} members All party members to strip food states from.
-	* @param {Game_Actor} leader The party leader actor.
-	* @param {string} leaderUuid The UUID of the leader's JABS battler.
-	*/
-	static #triggerOverstuffed(members, leader, leaderUuid) {
-		JABS_FoodChainResolver.stripFoodChainStates(members);
-		const overstuffedPlan = JABS_FoodChainPlan.forChainType(J.ABS.EXT.FOOD.ChainType.Overstuffed);
-		if (!overstuffedPlan) return;
-		const entryStateId = overstuffedPlan.getEntry().stateId;
-		JABS_FoodChainResolver.#startFoodChain(leader, entryStateId, leaderUuid, overstuffedPlan);
 	}
 };
 
@@ -680,6 +761,23 @@ JABS_Battler.prototype.applyUsableItemEffects = function(itemId, isLoot = false)
 
 //#endregion
 //#region src/plugins/abs/ext/food/managers/JABS_Engine.js
+/**
+* Extends {@link JABS_Engine.prototype.onExecuteMapAction}.<br>
+* Ends the caster's food chain when the executed skill is tagged {@code <endFoodChain>}.
+*
+* This is the seam the whole metabolize loop hangs on. Core resolves the food slot to a skill and
+* executes it like any other; the food extension never dispatches anything and so cannot know a
+* burn happened- except here, where every executed action passes through. Reading the tag off the
+* skill rather than tracking the dispatch is what lets an enemy attack take a meal away too.
+* @param {JABS_Battler} caster The JABS battler executing the action.
+* @param {JABS_Action} action The action being executed.
+*/
+J.ABS.EXT.FOOD.Aliased.JABS_Engine.set("onExecuteMapAction", JABS_Engine.prototype.onExecuteMapAction);
+JABS_Engine.prototype.onExecuteMapAction = function(caster, action) {
+	J.ABS.EXT.FOOD.Aliased.JABS_Engine.get("onExecuteMapAction").call(this, caster, action);
+	if (!action.getBaseSkill().jabsEndsFoodChain) return;
+	JABS_FoodChainResolver.resolveEndFoodChain(caster.getBattler());
+};
 /**
 * Extends {@link JABS_Engine.prototype.initialize}.<br>
 * Adds the _foodChainPlans Map which stores one JABS_FoodChainPlan per actor

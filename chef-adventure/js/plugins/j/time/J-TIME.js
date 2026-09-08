@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.2.2 TIME] A system for tracking time- real or artificial.
+ * @plugindesc [v1.3.0 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -201,6 +201,10 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Time conditionals are resolved from TimeMapper.ConditionalKinds, an ordered list
+ *    a plugin can register its own conditional into, rather than from a hardcoded pair
+ *    of branches per tag.
  * - 1.2.2
  *    Loading a save on a map tagged <noToneChange> keeps that map's tone. The tone
  *    was resolved only on transfer, and a load is not a transfer, so the screen
@@ -682,7 +686,7 @@ J.TIME = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.2.2");
+J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2106,7 +2110,7 @@ var Time_Snapshot = class Time_Snapshot {
 * A class with several static mapping functions for parsing comments into {@link TimeConditional}s.
 * Registered and referenced by time/initialization, not in-file.
 */
-var TimeMapper = class {
+var TimeMapper = class TimeMapper {
 	constructor() {
 		throw new Error("This is a static class.");
 	}
@@ -2287,6 +2291,108 @@ var TimeMapper = class {
 		timeConditional.isFullDateRange = true;
 		return timeConditional;
 	}
+	/**
+	* The kinds of time conditional a comment can declare, in the order they are tested.
+	*
+	* Order is load-bearing rather than cosmetic. Several of these tags are prefixes of one another
+	* once their captures are stripped, so the first entry whose pattern matches wins and a kind
+	* moved up the list can shadow one below it.
+	*
+	* A kind names itself once and is tested against both regex families, because the whole-event
+	* tags and the choice-branch tags parse identically and differ only in which comment carries
+	* them. That is also the extension contract: **a kind's key must match entries named
+	* `<Key>Page` and `<Key>Choice` in {@link J.TIME.RegExp}**, and a plugin adding a time
+	* conditional of its own registers its regexes under that naming and pushes one entry here,
+	* rather than this list growing a hardcoded pair per tag.
+	* @type {{key: string, map: function(string, RegExp): TimeConditional}[]}
+	*/
+	static ConditionalKinds = [
+		{
+			key: "Minute",
+			map: TimeMapper.minuteToConditional
+		},
+		{
+			key: "Hour",
+			map: TimeMapper.hourToConditional
+		},
+		{
+			key: "Day",
+			map: TimeMapper.dayToConditional
+		},
+		{
+			key: "Month",
+			map: TimeMapper.monthToConditional
+		},
+		{
+			key: "Year",
+			map: TimeMapper.yearToConditional
+		},
+		{
+			key: "TimeOfDay",
+			map: TimeMapper.timeOfDayToConditional
+		},
+		{
+			key: "SeasonOfYear",
+			map: TimeMapper.seasonOfYearToConditional
+		},
+		{
+			key: "TimeRange",
+			map: TimeMapper.timeRangeToConditional
+		},
+		{
+			key: "FullDateRange",
+			map: TimeMapper.fullDateRangeToConditional
+		},
+		{
+			key: "MinuteRange",
+			map: TimeMapper.minuteRangeToConditional
+		},
+		{
+			key: "HourRange",
+			map: TimeMapper.hourRangeToConditional
+		},
+		{
+			key: "DayRange",
+			map: TimeMapper.dayRangeToConditional
+		},
+		{
+			key: "MonthRange",
+			map: TimeMapper.monthRangeToConditional
+		},
+		{
+			key: "YearRange",
+			map: TimeMapper.yearRangeToConditional
+		}
+	];
+	/**
+	* The regex families a conditional kind is looked up under, in the order they are tested.
+	*
+	* Whole-event tags are tested ahead of choice-branch tags, matching the order these were
+	* originally written in.
+	* @type {string[]}
+	*/
+	static ConditionalFamilies = ["Page", "Choice"];
+	/**
+	* Parses a comment into the {@link TimeConditional} it declares.
+	*
+	* The regex table is read here rather than captured when this class is defined, because the
+	* table is populated during plugin bootstrap and a kind may be registered by an extension after
+	* that. Reading it per call is also what lets a plugin add a conditional at any point without
+	* this class knowing it happened.
+	* @param {string} comment The comment to parse.
+	* @returns {TimeConditional|null} The conditional declared, or null when the comment declares
+	* none. Null is meaningful here: the caller distinguishes an unparsed tag from a parsed one and
+	* reports it, which an empty conditional would hide.
+	*/
+	static toConditional(comment) {
+		for (const family of TimeMapper.ConditionalFamilies) {
+			for (const kind of TimeMapper.ConditionalKinds) {
+				const regex = J.TIME.RegExp[`${kind.key}${family}`];
+				if (regex.test(comment)) return kind.map(comment, regex);
+			}
+		}
+		return null;
+	}
 };
 
 //#endregion
@@ -2411,39 +2517,12 @@ Game_Event.filterCommentCommandsByChoiceTimeConditional = function(command) {
 */
 Game_Event.toTimeConditional = function(commentCommand) {
 	const [comment] = commentCommand.parameters;
-	switch (true) {
-		case J.TIME.RegExp.MinutePage.test(comment): return TimeMapper.minuteToConditional(comment, J.TIME.RegExp.MinutePage);
-		case J.TIME.RegExp.HourPage.test(comment): return TimeMapper.hourToConditional(comment, J.TIME.RegExp.HourPage);
-		case J.TIME.RegExp.DayPage.test(comment): return TimeMapper.dayToConditional(comment, J.TIME.RegExp.DayPage);
-		case J.TIME.RegExp.MonthPage.test(comment): return TimeMapper.monthToConditional(comment, J.TIME.RegExp.MonthPage);
-		case J.TIME.RegExp.YearPage.test(comment): return TimeMapper.yearToConditional(comment, J.TIME.RegExp.YearPage);
-		case J.TIME.RegExp.TimeOfDayPage.test(comment): return TimeMapper.timeOfDayToConditional(comment, J.TIME.RegExp.TimeOfDayPage);
-		case J.TIME.RegExp.SeasonOfYearPage.test(comment): return TimeMapper.seasonOfYearToConditional(comment, J.TIME.RegExp.SeasonOfYearPage);
-		case J.TIME.RegExp.TimeRangePage.test(comment): return TimeMapper.timeRangeToConditional(comment, J.TIME.RegExp.TimeRangePage);
-		case J.TIME.RegExp.FullDateRangePage.test(comment): return TimeMapper.fullDateRangeToConditional(comment, J.TIME.RegExp.FullDateRangePage);
-		case J.TIME.RegExp.MinuteRangePage.test(comment): return TimeMapper.minuteRangeToConditional(comment, J.TIME.RegExp.MinuteRangePage);
-		case J.TIME.RegExp.HourRangePage.test(comment): return TimeMapper.hourRangeToConditional(comment, J.TIME.RegExp.HourRangePage);
-		case J.TIME.RegExp.DayRangePage.test(comment): return TimeMapper.dayRangeToConditional(comment, J.TIME.RegExp.DayRangePage);
-		case J.TIME.RegExp.MonthRangePage.test(comment): return TimeMapper.monthRangeToConditional(comment, J.TIME.RegExp.MonthRangePage);
-		case J.TIME.RegExp.YearRangePage.test(comment): return TimeMapper.yearRangeToConditional(comment, J.TIME.RegExp.YearRangePage);
-		case J.TIME.RegExp.MinuteChoice.test(comment): return TimeMapper.minuteToConditional(comment, J.TIME.RegExp.MinuteChoice);
-		case J.TIME.RegExp.HourChoice.test(comment): return TimeMapper.hourToConditional(comment, J.TIME.RegExp.HourChoice);
-		case J.TIME.RegExp.DayChoice.test(comment): return TimeMapper.dayToConditional(comment, J.TIME.RegExp.DayChoice);
-		case J.TIME.RegExp.MonthChoice.test(comment): return TimeMapper.monthToConditional(comment, J.TIME.RegExp.MonthChoice);
-		case J.TIME.RegExp.YearChoice.test(comment): return TimeMapper.yearToConditional(comment, J.TIME.RegExp.YearChoice);
-		case J.TIME.RegExp.TimeOfDayChoice.test(comment): return TimeMapper.timeOfDayToConditional(comment, J.TIME.RegExp.TimeOfDayChoice);
-		case J.TIME.RegExp.SeasonOfYearChoice.test(comment): return TimeMapper.seasonOfYearToConditional(comment, J.TIME.RegExp.SeasonOfYearChoice);
-		case J.TIME.RegExp.TimeRangeChoice.test(comment): return TimeMapper.timeRangeToConditional(comment, J.TIME.RegExp.TimeRangeChoice);
-		case J.TIME.RegExp.FullDateRangeChoice.test(comment): return TimeMapper.fullDateRangeToConditional(comment, J.TIME.RegExp.FullDateRangeChoice);
-		case J.TIME.RegExp.MinuteRangeChoice.test(comment): return TimeMapper.minuteRangeToConditional(comment, J.TIME.RegExp.MinuteRangeChoice);
-		case J.TIME.RegExp.HourRangeChoice.test(comment): return TimeMapper.hourRangeToConditional(comment, J.TIME.RegExp.HourRangeChoice);
-		case J.TIME.RegExp.DayRangeChoice.test(comment): return TimeMapper.dayRangeToConditional(comment, J.TIME.RegExp.DayRangeChoice);
-		case J.TIME.RegExp.MonthRangeChoice.test(comment): return TimeMapper.monthRangeToConditional(comment, J.TIME.RegExp.MonthRangeChoice);
-		case J.TIME.RegExp.YearRangeChoice.test(comment): return TimeMapper.yearRangeToConditional(comment, J.TIME.RegExp.YearRangeChoice);
-		default:
-			Diagnostics.warn("J-TIME", `a time conditional was not generated for an identified TIME tag; ${comment}`);
-			return new TimeConditional();
+	const conditional = TimeMapper.toConditional(comment);
+	if (conditional === null) {
+		Diagnostics.warn("J-TIME", `a time conditional was not generated for an identified TIME tag; ${comment}`);
+		return new TimeConditional();
 	}
+	return conditional;
 };
 /**
 * Evaluates a {@link TimeConditional} to see if its requirements are currently met.

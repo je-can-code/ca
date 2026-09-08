@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 ABS-LOADOUT] A scene for managing every party member's combat loadout.
+ * [v1.1.0 ABS-LOADOUT] A scene for managing every party member's combat loadout.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -51,6 +51,11 @@
  * JABS, and their contents are chosen by the player rather than tagged.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    An item authored for the battle screen is now eligible for a combat slot
+ *    alongside an always-usable one. In an ABS the map is the battle, so battle-only
+ *    is the strongest claim an item can make to belonging in a slot, not a weaker one.
+ *    Menu-only and never remain excluded.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -145,7 +150,7 @@ J.ABS.EXT.LOADOUT = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.LOADOUT.Metadata = new J_JabsLoadout_PluginMetadata("J-ABS-Loadout", "1.0.0");
+J.ABS.EXT.LOADOUT.Metadata = new J_JabsLoadout_PluginMetadata("J-ABS-Loadout", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -570,7 +575,7 @@ var Window_LoadoutSpine = class extends Window_Base {
 * shared inventory. Those pools are owned by JABS and its extensions rather than defined here, so
 * that a skill becoming eligible elsewhere is reflected here without this window being touched.
 */
-var Window_LoadoutPicker = class extends Window_Command {
+var Window_LoadoutPicker = class Window_LoadoutPicker extends Window_Command {
 	/**
 	* @constructor
 	* @param {Rectangle} rect The rectangle that defines this window's shape.
@@ -682,10 +687,20 @@ var Window_LoadoutPicker = class extends Window_Command {
 		return $gameParty.allItems().filter((item) => this.isEligibleItem(item) && item.jabsTool !== true);
 	}
 	/**
+	* The occasion value for an item RMMZ considers usable anywhere.
+	* @type {number}
+	*/
+	static OccasionAlways = 0;
+	/**
+	* The occasion value for an item RMMZ restricts to the battle screen.
+	* @type {number}
+	*/
+	static OccasionBattle = 1;
+	/**
 	* Determines whether an item may occupy a slot at all.
 	*
-	* Mirrors the gates JABS applies elsewhere: the item must be a genuine always-usable item rather
-	* than a weapon or armor that happens to carry a tag, and must not have been explicitly hidden.
+	* Mirrors the gates JABS applies elsewhere: the item must be a genuine usable item rather than a
+	* weapon or armor that happens to carry a tag, and must not have been explicitly hidden.
 	* @param {RPG_Item} item The item to evaluate.
 	* @returns {boolean}
 	*/
@@ -693,7 +708,7 @@ var Window_LoadoutPicker = class extends Window_Command {
 		if (item.jabsHiddenFromMenus) return false;
 		if (DataManager.isItem(item) === false) return false;
 		if (item.itypeId !== 1) return false;
-		return item.occasion === 0;
+		return item.occasion === Window_LoadoutPicker.OccasionAlways || item.occasion === Window_LoadoutPicker.OccasionBattle;
 	}
 	/**
 	* Builds the command representing a single candidate.
