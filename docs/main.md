@@ -33,6 +33,7 @@ As such, while the plugins living in my [other repository can be found over here
 - [the recipe system (components, cuisines, methods, unlocks)][30]
 - [ingredient roster (every food item/armor, bucketed and tagged)][33]
 - [food chain durations and colors][31]
+- [metabolize (the panic button — burning a food chain for HP)][37]
 - [progression bands (play order, enemy levels, per-map table)][32]
 
 And of course, a list of unlockables and their details:
@@ -76,3 +77,5 @@ And of course, a list of unlockables and their details:
 [35]: ./crafting/refinement-parameters.md
 
 [36]: ./acquisition.md
+
+[37]: ./food/metabolize.md

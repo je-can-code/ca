@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.2 APT] A plugin that grants the ability to learn by gaining points.
+ * [v1.4.0 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -129,6 +129,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.4.0
+ *    Added ApManager#resolveDisplaySourceByKey, so a display can name where an
+ *    aptitude gain came from.
  * - 1.3.2
  *    Repointed AP gain and aptitude-growth logging at J-Log's new $mapLogs
  *    registry. The $actionLogManager and $diaLogManager globals these called
@@ -714,7 +717,7 @@ J.APT.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.3.2");
+J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1198,6 +1201,34 @@ var ApManager = class ApManager {
 			default: return null;
 		}
 	}
+	/**
+	* Resolves a `sourceKey` into the best available object for *display* purposes.
+	*
+	* Aptitude progress is persisted per source key and outlives the source itself- unequipping a
+	* weapon, losing a state, or reclassing all leave their earned progress behind. Those rows are
+	* still rendered (greyed, marked inactive), so anything reading a row's authored data needs an
+	* object even when the actor no longer carries the source.
+	*
+	* The actor's live copy is preferred, because a skill resolved through the actor has any
+	* extension overlays folded into it and therefore may teach more than the raw database row does.
+	* Only when the source is genuinely no longer on the actor do we fall back to the database.
+	*
+	* @param {Game_Actor} actor - The actor whose sources are searched first.
+	* @param {string} sourceKey - The stable key (e.g., "@base:usable:skill:17").
+	* @returns {RPG_Actor|RPG_Class|RPG_Skill|RPG_Weapon|RPG_Armor|RPG_State|RPG_Item|null} The
+	* resolved source, or null when the key names nothing that exists in the database anymore.
+	*/
+	static resolveDisplaySourceByKey(actor, sourceKey) {
+		const live = this.resolveSourceByKey(actor, sourceKey);
+		if (live !== null) return live;
+		return this.resolveStaticSourceByKey(sourceKey);
+	}
+	/**
+	* Determines whether the given source key is currently active on the actor.
+	* @param {Game_Actor} actor The actor whose sources are searched.
+	* @param {string} sourceKey The stable key to look for.
+	* @returns {boolean} True if the actor currently carries the source, false otherwise.
+	*/
 	static isSourceActive(actor, sourceKey) {
 		if (!actor) return false;
 		const sources = actor.getAptitudeSources();

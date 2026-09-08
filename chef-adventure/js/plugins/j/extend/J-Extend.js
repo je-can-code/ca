@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.7.3 EXTEND] Extends the capabilities of skills/actions.
+ * @plugindesc [v1.9.0 EXTEND] Extends the capabilities of skills/actions.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -433,6 +433,13 @@
  * A three-state cycle: 12 -> 13 -> 14 -> 12 -> ..., one step per execution.
  * ============================================================================
  * CHANGELOG:
+ * - 1.9.0
+ *    Added Game_Item#carryWhenSynthetic, so a synthetic row keeps the fields a real
+ *    database row would have carried.
+ * - 1.8.0
+ *    Only a row the database does not contain is carried on the item now. A row the
+ *    engine can find by id stays a class plus an id, so a savefile holds a reference
+ *    to it rather than a frozen copy that never sees a rebalance.
  * - 1.7.3
  *    Adapted to the RPGManager array read signature.
  * - 1.7.2
@@ -580,7 +587,7 @@ J.EXTEND = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.7.3");
+J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.9.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2066,19 +2073,57 @@ Game_Item.prototype.underlyingObject = function() {
 	return this._item;
 };
 /**
+* Sets the underlying object this item carries.
+*
+* Only ever handed something the database does not contain; a row the engine can look up by id is
+* left uncarried on purpose. See {@link Game_Item.carryWhenSynthetic} for why.
+* @param {RPG_UsableItem|RPG_EquipItem} obj The object to carry, or null to carry nothing.
+*/
+Game_Item.prototype.setItem = function(obj) {
+	this._item = obj;
+};
+/**
+* Carries the given object only when its database does not already hold it at its own id.
+*
+* A row the database holds is reachable by id, so it stays a data class plus an id- which is what
+* keeps a savefile referencing a row rather than freezing a copy of one that will never see a
+* rebalance, with nothing reporting that it didn't. Anything else was synthesized (an overlay-merged
+* skill, almost always) and exists nowhere the engine can look it up, so this wrapper is the only
+* thing that can hold onto it.
+*
+* Clearing on a real row matters as much as carrying on a synthetic one. The wrapper outlives any
+* single binding, so a carry left behind by a previous skill would answer for the next one bound
+* here- silently handing back a skill nobody asked for.
+* @param {RPG_UsableItem} obj The object being bound to this wrapper.
+* @param {RPG_UsableItem[]} database The database that would hold it, if it came from one.
+*/
+Game_Item.prototype.carryWhenSynthetic = function(obj, database) {
+	if (database[obj.id] === obj) {
+		this.setItem(null);
+		return;
+	}
+	this.setItem(obj);
+};
+/**
 * Extends `setObject()` to enable setting custom skills and items.
+*
+* Only an object the database does not contain is carried; everything else stays a data class plus
+* an id. Whether a row came from the database is a question of provenance rather than of type- a
+* merged clone is every bit as much an {@link RPG_Skill} as the row it was cloned from- so that
+* question is asked of the database itself in {@link Game_Item.carryWhenSynthetic}. The type
+* predicates here decide only which database is the one worth asking.
 * @param {RPG_UsableItem|RPG_EquipItem} obj The database row or custom object being bound.
 */
 J.EXTEND.Aliased.Game_Item.set("setObject", Game_Item.prototype.setObject);
 Game_Item.prototype.setObject = function(obj) {
 	J.EXTEND.Aliased.Game_Item.get("setObject").call(this, obj);
 	if (!obj) return;
-	if (obj.hasOwnProperty("stypeId")) {
+	if (obj.isSkill()) {
 		this.setDataClass("skill");
-		this._item = obj;
-	} else if (obj.hasOwnProperty("itypeId")) {
+		this.carryWhenSynthetic(obj, $dataSkills);
+	} else if (obj.isItem()) {
 		this.setDataClass("item");
-		this._item = obj;
+		this.carryWhenSynthetic(obj, $dataItems);
 	}
 };
 /**

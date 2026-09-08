@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0.3 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v3.1.0 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -94,6 +94,15 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.1.0
+ *    An ally backing away from its target now arcs around it toward the leader and
+ *    stops on arrival, rather than marching down a single axis until it is out of
+ *    the fight entirely.
+ *    The leash measures euclidean distance, matching everything else that measures a
+ *    battler against the world. Manhattan over-reported a diagonal by up to 41%, so
+ *    an ally walking one was hauled back from a gap a straight walk was allowed.
+ *    Leash multipliers climb with spacing rather than falling. A backline ally stands
+ *    furthest from the target and so needs the most rope, not the least.
  * - 3.0.3
  *    Routed the invalid-preset error through J-Base's new Diagnostics, so it
  *    names J-ABS-AllyAI in the console.
@@ -354,7 +363,7 @@ J.ABS.EXT.ALLYAI = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.0.3");
+J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -443,11 +452,21 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	/**
 	* The leash multiplier for each spacing axis value.
 	* Applied to {@link JABS_Battler.allyRubberbandRange} to derive per-ally leash distance.
+	*
+	* These climb with spacing rather than falling, because spacing is measured from the ally's
+	* target while the leash is measured from the leader- and in a fight the leader is standing on
+	* the target. An ally told to hold seven tiles off the enemy is therefore also seven tiles off
+	* the player, so the tier that stands furthest back is the tier that needs the most rope.
+	*
+	* Every value here must resolve to less than {@link JABS_AiManager.maxAiRange}. Beyond that
+	* distance the ally falls out of the AI management sweep entirely, so the leash check that would
+	* have hauled them back never runs again- and with vanilla follower chasing suppressed, nothing
+	* else is left to bring them home. A leash above the sweep radius does not stretch, it snaps.
 	*/
 	static LeashMultipliers = {
-		[JABS_AllyAI.Spacing.FRONTLINE]: 1.5,
-		[JABS_AllyAI.Spacing.MIDLINE]: 1,
-		[JABS_AllyAI.Spacing.BACKLINE]: .6
+		[JABS_AllyAI.Spacing.FRONTLINE]: 1.1,
+		[JABS_AllyAI.Spacing.MIDLINE]: 1.15,
+		[JABS_AllyAI.Spacing.BACKLINE]: 1.2
 	};
 	/**
 	* The close-distance threshold when do-nothing is active (very large so the ally always backs away).
@@ -1164,7 +1183,7 @@ JABS_AiManager.allyFollowLeader = function(allyBattler) {
 * @returns {boolean} True if a corrective action occurred, false otherwise.
 */
 JABS_AiManager.maintainLeashAndEngagement = function(allyBattler, leaderBattler) {
-	const distanceToLeader = $gameMap.distance(allyBattler.getCharacter()._realX, allyBattler.getCharacter()._realY, leaderBattler.getCharacter()._realX, leaderBattler.getCharacter()._realY);
+	const distanceToLeader = allyBattler.distanceToDesignatedTarget(leaderBattler);
 	const leash = allyBattler.getAllyLeashRange();
 	if (distanceToLeader > leash) {
 		this.rubberbandAlly(allyBattler);
@@ -1311,10 +1330,80 @@ JABS_AiManager.maintainSafeDistance = function(battler) {
 	const closeDistance = battler.getCloseDistance();
 	const farDistance = battler.getFarDistance();
 	if (distance <= closeDistance) {
-		battler.smartMoveAwayFromTarget();
+		this.repositionAllyToStandoff(battler);
 	} else if (distance > farDistance) {
 		battler.smartMoveTowardTarget();
 	} else {}
+};
+/**
+* Moves an ally that is too close to its target back out to its standoff ring, arcing around the
+* target toward the leader rather than retreating straight back.
+*
+* The vanilla retreat this replaces walks directly away from the target, and it does so on one
+* cardinal axis at a time, choosing whichever axis currently dominates. That choice reinforces
+* itself- a step that grows the horizontal gap makes horizontal dominate harder next frame- so an
+* ally being pursued locks onto an axis and marches in a dead straight line for as long as the
+* chase lasts. Nothing in it knows the party exists, so the line leads out of the fight.
+*
+* Steering toward a fixed point instead of a direction is what ends the march: a point is arrived
+* at, and {@link JABS_Battler.smartMoveTowardCoordinates} stops on arrival. Biasing that point
+* toward the leader is what keeps the ally in the fight while it backs off.
+* @param {JABS_Battler} allyBattler The ally battler repositioning.
+*/
+JABS_AiManager.repositionAllyToStandoff = function(allyBattler) {
+	const leader = $jabsEngine.getPlayer1();
+	const target = allyBattler.getTarget();
+	const standoffPoint = this.calculateAllyStandoffPoint(allyBattler, target, leader);
+	const [standoffX, standoffY] = standoffPoint;
+	allyBattler.smartMoveTowardCoordinates(standoffX, standoffY);
+};
+/**
+* Calculates the point an ally should back off to: on its own standoff ring around the target, on
+* whichever side of that ring sits nearest the leader.
+*
+* The bearing is built from two pieces. The first is the ally's own bearing away from the target,
+* which is what stops it cutting through the target to reach the other side. The second is the
+* portion of the leader's bearing that runs perpendicular to it- the sideways pull, with the
+* away-or-toward part removed. Adding a perpendicular vector to a unit vector can never cancel it
+* out, so the result always points somewhere sane no matter where the leader is standing, which
+* is the reason for taking only the perpendicular part rather than blending the two bearings.
+* @param {JABS_Battler} allyBattler The ally battler repositioning.
+* @param {JABS_Battler} target The battler being backed away from.
+* @param {JABS_Battler} leader The battler the standoff point is biased toward.
+* @returns {[number, number]} The [x, y] coordinates to back off to.
+*/
+JABS_AiManager.calculateAllyStandoffPoint = function(allyBattler, target, leader) {
+	const targetX = target.getX();
+	const targetY = target.getY();
+	const closeDistance = allyBattler.getCloseDistance();
+	const farDistance = allyBattler.getFarDistance();
+	const standoffRadius = (closeDistance + farDistance) / 2;
+	const awayBearing = this.normalizeVector(allyBattler.getX() - targetX, allyBattler.getY() - targetY);
+	const [awayX, awayY] = awayBearing;
+	const leaderBearing = this.normalizeVector(leader.getX() - targetX, leader.getY() - targetY);
+	const [leaderX, leaderY] = leaderBearing;
+	const alongAway = leaderX * awayX + leaderY * awayY;
+	const sidewaysPull = this.normalizeVector(leaderX - alongAway * awayX, leaderY - alongAway * awayY);
+	const [sidewaysX, sidewaysY] = sidewaysPull;
+	const bearing = this.normalizeVector(awayX + sidewaysX, awayY + sidewaysY);
+	const [bearingX, bearingY] = bearing;
+	return [targetX + bearingX * standoffRadius, targetY + bearingY * standoffRadius];
+};
+/**
+* Reduces a vector to length one, or to the zero vector when it has no length to speak of.
+*
+* The zero case is real rather than defensive: two battlers standing on the same tile genuinely
+* have no bearing between them, and a leader directly behind the ally genuinely has no sideways
+* component. Both answer zero here, and the caller's addition then simply leaves the other term
+* standing, which is the correct behavior in each case.
+* @param {number} x The x component of the vector.
+* @param {number} y The y component of the vector.
+* @returns {[number, number]} The [x, y] components of the unit vector.
+*/
+JABS_AiManager.normalizeVector = function(x, y) {
+	const length = Math.hypot(x, y);
+	if (length < .01) return [0, 0];
+	return [x / length, y / length];
 };
 /**
 * Extends {@link #decideAiPhase2Action}.<br/>

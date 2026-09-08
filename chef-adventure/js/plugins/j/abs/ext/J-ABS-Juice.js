@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
+ * [v1.2.1 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -179,6 +179,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    Corrected which hook the juice manager reads when resolving a motion.
  * - 1.2.0
  *    Caster and target body motion is now declared on J-Motion's composer rather
  *    than written onto the sprite directly, which makes J-Motion a hard dependency.
@@ -371,7 +373,7 @@ J.ABS.EXT.JUICE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.JUICE.Metadata = new JAbsJuice_PluginMetadata("J-ABS-Juice", "1.2.0");
+J.ABS.EXT.JUICE.Metadata = new JAbsJuice_PluginMetadata("J-ABS-Juice", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -430,7 +432,7 @@ J.ABS.EXT.JUICE.RegExp = {
 //#endregion
 //#region src/plugins/abs/ext/juice/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS-Juice";
-var PLUGIN_VERSION = "1.2.0";
+var PLUGIN_VERSION = "1.2.1";
 var PLUGIN_DESC_TAG = "ABS-JUICE";
 
 //#endregion
@@ -2085,14 +2087,14 @@ var JuiceHookManager = class JuiceHookManager {
 		const skill = action.getBaseSkill();
 		const cooldownKey = action.getCooldownType();
 		const dodgeKey = JABS_Button.Dodge;
-		if (cooldownKey === dodgeKey) {
-			JuiceHookManager.#applyDodgeJuice(caster);
-			return;
-		}
 		if (skill.jabsNoJuice === true) {
 			return;
 		}
 		const motionKey = skill.jabsJuiceMotion;
+		if (cooldownKey === dodgeKey && motionKey === String.empty) {
+			JuiceHookManager.#applyDodgeJuice(caster);
+			return;
+		}
 		if (motionKey === "none") {
 			return;
 		}

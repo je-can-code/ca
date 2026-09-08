@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v3.3.4 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v4.0.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -366,6 +366,13 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.0.0
+ *    The SDP header now names the mastery a panel grants and describes what it does,
+ *    read from a new per-act prose block on each subgroup in config.sdp.json.
+ *    Window_SdpMastery is gone, folded into that header, and the actor ribbon now
+ *    caps only the panel list so the header can use the width.
+ *    Removed topFlavorText from panel identity; the header it fed is now the
+ *    mastery description.
  * - 3.3.4
  *    Removed the J.SDP namespace check from getSdpBonusForParameterKey. A plugin
  *    cannot be absent from itself, so that guard had no reachable false case.
@@ -953,9 +960,8 @@ var PanelIdentity = class PanelIdentity {
 	* @param {number} iconIndex The icon index driving this step.
 	* @param {boolean} unlockedByDefault The unlocked by default driving this step.
 	* @param {string} description The description driving this step.
-	* @param {string} topFlavorText The top flavor text driving this step.
 	*/
-	constructor(name, iconIndex, unlockedByDefault, description, topFlavorText) {
+	constructor(name, iconIndex, unlockedByDefault, description) {
 		/**
 		* Friendly name for this SDP.
 		* @type {string}
@@ -976,11 +982,6 @@ var PanelIdentity = class PanelIdentity {
 		* @type {string}
 		*/
 		this.description = description;
-		/**
-		* Short flavor line under the name in the details window.
-		* @type {string}
-		*/
-		this.topFlavorText = topFlavorText;
 	}
 	/**
 	* Blank identity row for builder defaults.
@@ -998,9 +999,9 @@ var PanelIdentity = class PanelIdentity {
 	static fromConfigPanel(parsedPanel) {
 		const nested = parsedPanel.identity;
 		if (nested) {
-			return new PanelIdentity(nested.name ?? String.empty, PanelIdentity.#parseIntField(nested.iconIndex, 0), nested.unlockedByDefault === true, nested.description ?? String.empty, nested.topFlavorText ?? String.empty);
+			return new PanelIdentity(nested.name ?? String.empty, PanelIdentity.#parseIntField(nested.iconIndex, 0), nested.unlockedByDefault === true, nested.description ?? String.empty);
 		}
-		return new PanelIdentity(parsedPanel.name ?? String.empty, PanelIdentity.#parseIntField(parsedPanel.iconIndex, 0), parsedPanel.unlockedByDefault === true, parsedPanel.description ?? String.empty, parsedPanel.topFlavorText ?? String.empty);
+		return new PanelIdentity(parsedPanel.name ?? String.empty, PanelIdentity.#parseIntField(parsedPanel.iconIndex, 0), parsedPanel.unlockedByDefault === true, parsedPanel.description ?? String.empty);
 	}
 	/**
 	* @param {string|number|null|undefined} value The value driving this step.
@@ -1021,7 +1022,6 @@ var PanelIdentity = class PanelIdentity {
 	*   iconIndex: number,
 	*   unlockedByDefault: boolean,
 	*   description: string,
-	*   topFlavorText: string
 	* }}
 	*/
 	toConfigJson() {
@@ -1029,8 +1029,7 @@ var PanelIdentity = class PanelIdentity {
 			name: this.name,
 			iconIndex: this.iconIndex,
 			unlockedByDefault: this.unlockedByDefault,
-			description: this.description,
-			topFlavorText: this.topFlavorText
+			description: this.description
 		};
 	}
 };
@@ -1180,10 +1179,6 @@ var StatDistributionPanelBuilder = class {
 		this.#identity.description = description;
 		return this;
 	}
-	flavorText(flavorText) {
-		this.#identity.topFlavorText = flavorText;
-		return this;
-	}
 	maxRank(maxRank) {
 		this.#progression.maxRank = maxRank;
 		return this;
@@ -1315,13 +1310,6 @@ var StatDistributionPanel = class {
 	*/
 	get description() {
 		return this.identity.description;
-	}
-	/**
-	* Short flavor line under the name in the details window.
-	* @returns {string}
-	*/
-	get topFlavorText() {
-		return this.identity.topFlavorText;
 	}
 	/**
 	* Maximum rank for this SDP.
@@ -1601,6 +1589,122 @@ var PanelRarity = class PanelRarity {
 };
 
 //#endregion
+//#region src/plugins/sdp/core/models/PanelMasteryProse.js
+/**
+* The player-facing description templates for a subgroup's mastery, one per act.
+* Serialized on each subgroup row in config.sdp.json as a nested `prose` object.
+*
+* A mastery's potency changes tier by tier, but its *mechanic* changes only at act boundaries, so the
+* prose is authored three times per subgroup rather than ten. Each template carries tokens that the
+* resolver fills from live data at draw time, which is what keeps a rebalance from leaving the
+* sentence describing a number that no longer exists.
+*/
+var PanelMasteryProse = class PanelMasteryProse {
+	/**
+	* The highest tier still considered part of the beginning act.
+	* @type {number}
+	*/
+	static BeginningActMaxTier = 3;
+	/**
+	* The highest tier still considered part of the middle act; anything beyond it is the capstone.
+	* @type {number}
+	*/
+	static MiddleActMaxTier = 9;
+	/**
+	* @param {string} beginning The beginning act template driving this step.
+	* @param {string} middle The middle act template driving this step.
+	* @param {string} end The end act template driving this step.
+	*/
+	constructor(beginning, middle, end) {
+		/**
+		* The template describing tiers 1 through 3, where the base effect is established.
+		* @type {string}
+		*/
+		this.beginning = beginning;
+		/**
+		* The template describing tiers 4 through 9, where potency ramps and behavior layers appear.
+		* @type {string}
+		*/
+		this.middle = middle;
+		/**
+		* The template describing the tier 10 capstone, usually a qualitative shift rather than a bigger number.
+		* @type {string}
+		*/
+		this.end = end;
+	}
+	/**
+	* Whether any act of this subgroup has an authored template.
+	* A subgroup with none falls through to the generated per-tag prose instead of rendering blank.
+	* @returns {boolean}
+	*/
+	hasProse() {
+		if (this.beginning !== String.empty) return true;
+		if (this.middle !== String.empty) return true;
+		return this.end !== String.empty;
+	}
+	/**
+	* The template describing the given tier, before token resolution.
+	*
+	* Falls back through the neighboring acts rather than returning blank, because a subgroup whose
+	* mechanic never changes is authored once and left to cover the whole strip. `humanoid-orc` is the
+	* standing example: every tier is the same cooldown reduction at a different number, so only the
+	* beginning act is written and the other eight tiers resolve to it.
+	* @param {number} tier The subgroup tier driving this step.
+	* @returns {string}
+	*/
+	forTier(tier) {
+		if (tier <= PanelMasteryProse.BeginningActMaxTier) {
+			return this.#firstAuthored(this.beginning, this.middle, this.end);
+		}
+		if (tier <= PanelMasteryProse.MiddleActMaxTier) {
+			return this.#firstAuthored(this.middle, this.beginning, this.end);
+		}
+		return this.#firstAuthored(this.end, this.middle, this.beginning);
+	}
+	/**
+	* The first of the given templates that was actually authored.
+	* @param {string} preferred The act the tier actually belongs to.
+	* @param {string} firstFallback The act to borrow from when the preferred one is blank.
+	* @param {string} secondFallback The act to borrow from when both others are blank.
+	* @returns {string}
+	*/
+	#firstAuthored(preferred, firstFallback, secondFallback) {
+		if (preferred !== String.empty) return preferred;
+		if (firstFallback !== String.empty) return firstFallback;
+		return secondFallback;
+	}
+	/**
+	* An empty prose row for a subgroup whose masteries have no authored description.
+	* @returns {PanelMasteryProse}
+	*/
+	static none() {
+		return new PanelMasteryProse(String.empty, String.empty, String.empty);
+	}
+	/**
+	* Hydrates mastery prose from a parsed config.sdp.json subgroup row.
+	* A row predating this field yields the empty prose rather than failing to load.
+	* @param {object} parsedSubgroup The parsed subgroup driving this step.
+	* @returns {PanelMasteryProse}
+	*/
+	static fromConfigSubgroup(parsedSubgroup) {
+		const nested = parsedSubgroup.prose;
+		if (!nested) return PanelMasteryProse.none();
+		return new PanelMasteryProse(nested.beginning ?? String.empty, nested.middle ?? String.empty, nested.end ?? String.empty);
+	}
+	/**
+	* Serializes this prose row for config.sdp.json.
+	* @returns {{ beginning: string, middle: string, end: string }}
+	*/
+	toConfigJson() {
+		return {
+			beginning: this.beginning,
+			middle: this.middle,
+			end: this.end
+		};
+	}
+};
+
+//#endregion
 //#region src/plugins/sdp/core/models/PanelSubgroup.js
 /**
 * Authoring metadata for a panel subgroup (mirrors crafting categories).
@@ -1628,17 +1732,26 @@ var PanelSubgroup = class {
 	*/
 	description = String.empty;
 	/**
+	* Player-facing mastery description templates, one per act.
+	* Lives on the subgroup rather than the panel because a mastery's mechanic changes at act
+	* boundaries, not tier by tier, so three templates cover all ten panels in the strip.
+	* @type {PanelMasteryProse}
+	*/
+	prose = PanelMasteryProse.none();
+	/**
 	* Constructor.
 	* @param {string} name The name driving this step.
 	* @param {string} key The key driving this step.
 	* @param {number} iconIndex The icon index driving this step.
 	* @param {string} description The description driving this step.
+	* @param {PanelMasteryProse} prose The mastery prose driving this step.
 	*/
-	constructor(name, key, iconIndex, description) {
+	constructor(name, key, iconIndex, description, prose) {
 		this.name = name;
 		this.key = key;
 		this.iconIndex = iconIndex;
 		this.description = description;
+		this.prose = prose;
 	}
 };
 
@@ -2171,6 +2284,160 @@ var PanelTracking = class {
 };
 
 //#endregion
+//#region src/plugins/sdp/core/managers/MasteryProseResolver.js
+/**
+* Fills the tokens in a subgroup's mastery prose from live database values.
+*
+* The templates are authored per act and stored on the subgroup, but the numbers they describe live
+* across three layers: the wrapper skill's gate, the mastery state's own tags and traits, and the
+* payload those tags point at. This resolver walks that chain so a rebalance never leaves a
+* description quoting a number that no longer exists.
+*
+* **Resolution fails closed.** A template is rendered only when *every* token in it resolves; one
+* unknown token yields the empty string and the caller shows nothing. A half-filled sentence is worse
+* than a missing one here, because the whole feature exists to inform a purchase the player cannot
+* take back.
+*/
+var MasteryProseResolver = class MasteryProseResolver {
+	/**
+	* The token grammar: a namespace, a name, and an optional bracketed selector.
+	*
+	* <pre>
+	* Structure:
+	*  {NAMESPACE.NAME}
+	*  {NAMESPACE.NAME[SELECTOR]}
+	*
+	* Example:
+	*  {v.cdr}
+	*  {v.boostElement[8]}
+	*
+	* Translation:
+	*  the value of the cdr tag
+	*  the value of the boostElement tag whose first argument is 8
+	* </pre>
+	* @type {RegExp}
+	*/
+	static TokenPattern = /\{([psdv])\.([a-zA-Z]+)(?:\[(\d+)])?}/g;
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Renders a template against the mastery it describes.
+	* @param {string} template The authored template, tokens and all.
+	* @param {number} masterySkillId The wrapper skill id whose state carries the mastery's tags.
+	* @returns {string} The finished sentence, or an empty string when any token could not be resolved.
+	*/
+	static resolve(template, masterySkillId) {
+		if (template === String.empty) return String.empty;
+		const state = $dataStates[masterySkillId];
+		if (!state) return String.empty;
+		let resolvable = true;
+		const rendered = template.replace(MasteryProseResolver.TokenPattern, (whole, namespace, name, selector) => {
+			const value = MasteryProseResolver.#resolveToken(state, namespace, name, selector);
+			if (value === null) {
+				resolvable = false;
+				return whole;
+			}
+			return value;
+		});
+		if (resolvable === false) return String.empty;
+		return rendered;
+	}
+	/**
+	* Whether every token in the given template can currently be resolved.
+	* Exists so callers can decide what to show without paying for the render twice.
+	* @param {string} template The authored template, tokens and all.
+	* @param {number} masterySkillId The wrapper skill id whose state carries the mastery's tags.
+	* @returns {boolean}
+	*/
+	static canResolve(template, masterySkillId) {
+		return MasteryProseResolver.resolve(template, masterySkillId) !== String.empty;
+	}
+	/**
+	* Resolves a single token, or answers null when this resolver does not yet know how.
+	*
+	* Null rather than a sentinel: an empty string is a legitimate resolved value for some tags, so the
+	* "I cannot do this" answer has to be distinguishable from "this resolved to nothing".
+	* @param {RPG_State} state The mastery state carrying the tags.
+	* @param {string} namespace One of p, d, s or v.
+	* @param {string} name The parameter key, structural field, or tag name.
+	* @param {string|undefined} selector The bracketed selector, when the token carried one.
+	* @returns {string|null}
+	*/
+	static #resolveToken(state, namespace, name, selector) {
+		if (namespace === "v") return MasteryProseResolver.#resolveTagValue(state, name, selector);
+		return null;
+	}
+	/**
+	* Reads a named tag's value off the mastery state.
+	* @param {RPG_State} state The mastery state carrying the tags.
+	* @param {string} tagName The tag whose value is wanted.
+	* @param {string|undefined} selector The first argument to match on, when the tag repeats.
+	* @returns {string|null}
+	*/
+	static #resolveTagValue(state, tagName, selector) {
+		const matches = MasteryProseResolver.#matchingTags(state, tagName);
+		if (matches.length === 0) return null;
+		const chosen = MasteryProseResolver.#chooseMatch(matches, selector);
+		if (chosen === null) return null;
+		return MasteryProseResolver.#formatValue(chosen);
+	}
+	/**
+	* Every occurrence of the named tag on the state, each as its raw argument list.
+	* @param {RPG_State} state The mastery state carrying the tags.
+	* @param {string} tagName The tag whose occurrences are wanted.
+	* @returns {string[][]}
+	*/
+	static #matchingTags(state, tagName) {
+		const pattern = new RegExp(`<${tagName}:[ ]?(\\[[^\\]]*]|[^>]*)>`, "gi");
+		const found = [];
+		for (const match of state.note.matchAll(pattern)) {
+			const stripped = match[1].replace(/^\[/, "").replace(/]$/, "");
+			const args = stripped.split(",").map((arg) => arg.trim());
+			found.push(args);
+		}
+		return found;
+	}
+	/**
+	* Picks the occurrence the token asked for.
+	*
+	* Without a selector there must be exactly one occurrence, because "the value of this tag" is
+	* ambiguous when a mastery carries several and guessing would print a plausible wrong number.
+	* @param {string[][]} matches Every occurrence of the tag, as argument lists.
+	* @param {string|undefined} selector The first argument to match on.
+	* @returns {string[]|null}
+	*/
+	static #chooseMatch(matches, selector) {
+		if (selector === undefined) {
+			if (matches.length !== 1) return null;
+			return matches[0];
+		}
+		const selected = matches.find((args) => args[0] === selector);
+		if (selected === undefined) return null;
+		return selected;
+	}
+	/**
+	* Formats a chosen tag's arguments as the value half of a sentence.
+	*
+	* The last argument is the magnitude in every tag shape this resolver handles; the earlier ones
+	* select what the magnitude applies to and are already spoken by the authored nouns around the token.
+	* @param {string[]} args The chosen occurrence's argument list.
+	* @returns {string}
+	*/
+	static #formatValue(args) {
+		const magnitude = args.at(-1);
+		const numeric = Number(magnitude);
+		if (Number.isNaN(numeric)) return magnitude;
+		const sign = numeric >= 0 ? "+" : String.empty;
+		return `${sign}${magnitude}%`;
+	}
+};
+
+//#endregion
 //#region src/plugins/sdp/core/_metadata/_pluginMetadata.js
 var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	/**
@@ -2219,7 +2486,8 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 			if (subgroupName.startsWith("==")) return;
 			if (subgroupName.startsWith("--")) return;
 			if (subgroupName.startsWith("__")) return;
-			const subgroup = new PanelSubgroup(subgroupName, parsedSubgroup.key ?? String.empty, J.BASE.Helpers.parsePluginInt(parsedSubgroup.iconIndex, -1), parsedSubgroup.description ?? String.empty);
+			const prose = PanelMasteryProse.fromConfigSubgroup(parsedSubgroup);
+			const subgroup = new PanelSubgroup(subgroupName, parsedSubgroup.key ?? String.empty, J.BASE.Helpers.parsePluginInt(parsedSubgroup.iconIndex, -1), parsedSubgroup.description ?? String.empty, prose);
 			parsedSubgroups.push(subgroup);
 		});
 		return parsedSubgroups;
@@ -2576,7 +2844,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.3.4");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -4088,8 +4356,12 @@ var Window_SdpList = class extends Window_FilterableList {
 //#endregion
 //#region src/plugins/sdp/core/windows/Window_SdpHeader.js
 /**
-* A single-line, help-like header that summarizes the hovered panel.
-* Name + rarity + flavor in one readable sentence, controller-first.
+* The header above the panel details, naming the mastery a panel grants and describing what it does.
+*
+* This is the only place a player can learn what a mastery does *before* buying it. The passives scene
+* describes the same thing, but reaching it means already owning the mastery, which is exactly the
+* wrong moment - a strip costs ten rank-ups, twenty at the capstone, and the mastery is the reason to
+* spend them.
 */
 var Window_SdpHeader = class extends Window_Base {
 	/**
@@ -4112,25 +4384,63 @@ var Window_SdpHeader = class extends Window_Base {
 	}
 	/**
 	* Implements {@link Window_Base.drawContent}.<br/>
-	* Renders the single-line summary for the hovered panel.
+	* Renders the mastery identity, then the prose describing it.
 	*/
 	drawContent() {
 		const panel = this.panel();
 		if (!panel) {
 			return;
 		}
-		const { name } = panel;
-		const { topFlavorText: flavor } = panel;
+		const { mastery } = panel;
+		if (mastery.participates() === false) {
+			this.drawNoMastery();
+			return;
+		}
+		this.drawMasteryIdentity(mastery);
+		this.drawMasteryProse(mastery);
+	}
+	/**
+	* Draws the muted placeholder for a panel that grants no mastery.
+	*/
+	drawNoMastery() {
 		this.resetFontSettings();
-		const rarityCx = panel.getPanelRarityColorIndex();
-		const boldName = `\\*${name}\\*`;
-		const tintedName = this.colorizeText(rarityCx, boldName);
-		const sizedName = this.modFontSizeForText(2, tintedName);
-		this.drawTextEx(sizedName, 0, 0, this.innerWidth);
+		const mutedText = this.colorizeText(8, "This panel grants no mastery.");
+		this.drawTextEx(mutedText, 0, 0, this.innerWidth);
 		this.resetFontSettings();
+	}
+	/**
+	* Draws the first line: which enemy subgroup this mastery belongs to, and the skill it grants.
+	* @param {PanelMastery} mastery The mastery enrollment of the hovered panel.
+	*/
+	drawMasteryIdentity(mastery) {
+		const subgroup = J.SDP.Metadata.subgroupsMap.get(mastery.subgroupKey);
+		const subgroupName = subgroup ? subgroup.name : mastery.subgroupKey;
 		this.resetFontSettings();
-		const sizedFlavor = this.modFontSizeForText(-1, flavor);
-		this.drawTextEx(sizedFlavor, 0, this.lineHeight(), this.innerWidth);
+		const tintedSubgroup = this.colorizeText(14, subgroupName);
+		const skillName = `\\Skill[${mastery.masterySkillId}]`;
+		const tierNote = this.colorizeText(8, `Tier ${mastery.subgroupTier} · Rank MAX`);
+		const identityLine = `${tintedSubgroup} · ${skillName} ${tierNote}`;
+		this.drawTextEx(identityLine, 0, 0, this.innerWidth);
+		this.resetFontSettings();
+	}
+	/**
+	* Draws the two lines describing what the mastery actually does.
+	*
+	* Nothing is drawn when the subgroup has no authored prose, or when the prose still carries a token
+	* this build cannot resolve. Showing a partly-filled sentence would be worse than showing none: the
+	* player would read a number that is not the number.
+	* @param {PanelMastery} mastery The mastery enrollment of the hovered panel.
+	*/
+	drawMasteryProse(mastery) {
+		const subgroup = J.SDP.Metadata.subgroupsMap.get(mastery.subgroupKey);
+		if (!subgroup) return;
+		const template = subgroup.prose.forTier(mastery.subgroupTier);
+		if (template === String.empty) return;
+		const resolved = MasteryProseResolver.resolve(template, mastery.masterySkillId);
+		if (resolved === String.empty) return;
+		this.resetFontSettings();
+		const sized = this.modFontSizeForText(-1, resolved);
+		this.drawTextEx(sized, 0, this.lineHeight(), this.innerWidth);
 		this.resetFontSettings();
 	}
 };
@@ -4385,66 +4695,6 @@ var Window_SdpRewardList = class extends Window_Command {
 		const labelX = valueX - labelW;
 		this.drawText(label, labelX, y, labelW, Window_Base.TextAlignments.Left);
 		this.drawStyledZeroPaddedNumber(valueX, y, rankRequired, valueW, 2, 8, 0);
-	}
-};
-
-//#endregion
-//#region src/plugins/sdp/core/windows/Window_SdpMastery.js
-/**
-* Read-only mastery summary for the hovered panel.
-* Mastery is separate from {@link Window_SdpRewardList} — it reflects subgroup tier
-* replacement skills granted at max rank, not panelRewards eval rows.
-*/
-var Window_SdpMastery = class extends Window_Base {
-	/**
-	* @type {StatDistributionPanel|null}
-	*/
-	_panel = null;
-	/**
-	* Binds the hovered panel to this mastery strip.
-	* @param {StatDistributionPanel|null} panel The hovered panel.
-	*/
-	setPanel(panel) {
-		this._panel = panel;
-	}
-	/**
-	* The panel currently bound to this mastery strip.
-	* @returns {StatDistributionPanel|null}
-	*/
-	panel() {
-		return this._panel;
-	}
-	/**
-	* Implements {@link Window_Base.drawContent}.<br>
-	* Renders subgroup mastery enrollment for the hovered panel.
-	*/
-	drawContent() {
-		const panel = this.panel();
-		if (!panel) {
-			return;
-		}
-		const { mastery } = panel;
-		if (mastery.participates() === false) {
-			this.changeTextColor(ColorManager.textColor(8));
-			this.drawText("No mastery.", 0, 0, this.innerWidth, Window_Base.TextAlignments.Left);
-			this.resetTextColor();
-			return;
-		}
-		const subgroup = J.SDP.Metadata.subgroupsMap.get(mastery.subgroupKey);
-		const subgroupName = subgroup ? subgroup.name : mastery.subgroupKey;
-		const subgroupIcon = subgroup && subgroup.iconIndex >= 0 ? subgroup.iconIndex : J.SDP.Metadata.sdpIconIndex;
-		const iconPad = 4;
-		const textX = subgroupIcon >= 0 ? ImageManager.iconWidth + iconPad : 0;
-		if (subgroupIcon >= 0) {
-			this.drawIcon(subgroupIcon, iconPad, 0);
-		}
-		this.resetFontSettings();
-		const tintedSubgroup = this.colorizeText(14, subgroupName);
-		this.drawTextEx(tintedSubgroup, textX, 0, this.innerWidth - textX);
-		this.resetFontSettings();
-		const skillLine = `\\Skill[${mastery.masterySkillId}] \\C[8]· Tier ${mastery.subgroupTier} · Rank MAX\\C[0]`;
-		this.drawTextEx(skillLine, 0, this.lineHeight(), this.innerWidth);
-		this.resetFontSettings();
 	}
 };
 
@@ -5033,11 +5283,6 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		*/
 		this._j._sdp._windows._sdpRewardList = null;
 		/**
-		* Subgroup mastery summary for the hovered panel (separate from rank rewards).
-		* @type {Window_SdpMastery}
-		*/
-		this._j._sdp._windows._sdpMastery = null;
-		/**
 		* The shopping cart window for planned rank-ups.
 		* @type {Window_SdpCart}
 		*/
@@ -5072,7 +5317,7 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	* Gets the j.
 	* @returns {{_sdp: {_windows: {_sdpList: Window_Base|null, _sdpHeader: Window_Base|null,
 	* _sdpParameterList: Window_Base|null, _sdpRewardList: Window_Base|null,
-	* _sdpMastery: Window_Base|null, _sdpCart: Window_Base|null}}}} The j.
+	* _sdpCart: Window_Base|null}}}} The j.
 	*/
 	j() {
 		return this._j;
@@ -5104,7 +5349,6 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		this.createSdpHelpWindow();
 		this.createSdpListWindow();
 		this.createSdpParameterListWindow();
-		this.createSdpMasteryWindow();
 		this.createSdpRewardListWindow();
 		this.createSdpCartWindow();
 		this.createSdpConfirmationWindow();
@@ -5359,37 +5603,6 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		this.j()._sdp._windows._sdpRewardList = listWindow;
 	}
 	/**
-	* Creates the mastery summary window above rank rewards.
-	*/
-	createSdpMasteryWindow() {
-		const window = this.buildSdpMasteryWindow();
-		this.setSdpMasteryWindow(window);
-		this.addWindow(window);
-	}
-	/**
-	* Builds the read-only mastery strip for the hovered panel.
-	* @returns {Window_SdpMastery}
-	*/
-	buildSdpMasteryWindow() {
-		const rectangle = this.sdpMasteryRectangle();
-		const window = new Window_SdpMastery(rectangle);
-		return window;
-	}
-	/**
-	* Gets the tracked mastery window.
-	* @returns {Window_SdpMastery}
-	*/
-	getSdpMasteryWindow() {
-		return this.j()._sdp._windows._sdpMastery;
-	}
-	/**
-	* Sets the tracked mastery window.
-	* @param {Window_SdpMastery} masteryWindow The mastery window to track.
-	*/
-	setSdpMasteryWindow(masteryWindow) {
-		this.j()._sdp._windows._sdpMastery = masteryWindow;
-	}
-	/**
 	* Creates the window for planned ("cart") panel rankups.
 	*/
 	createSdpCartWindow() {
@@ -5436,7 +5649,7 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		const bottom = this.sdpRightColumnBottom();
 		const gap = this.sdpRightColumnSplitGap();
 		const topY = headerRect.y + headerRect.height;
-		const cartHeight = Math.floor((contentArea.height - gap) / 2);
+		const cartHeight = Math.floor((contentArea.height - gap) * this.sdpCartRegionRatio());
 		const cartY = bottom - cartHeight;
 		const topRegionHeight = cartY - topY - gap;
 		return {
@@ -5448,22 +5661,6 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 			topRegionHeight,
 			gap
 		};
-	}
-	/**
-	* Pixel height for the mastery summary strip (two text rows + chrome).
-	* @returns {number}
-	*/
-	sdpMasteryWindowHeight() {
-		return this.calcWindowHeight(2, false);
-	}
-	/**
-	* Rectangle for the mastery window at the top of the right column.
-	* @returns {Rectangle}
-	*/
-	sdpMasteryRectangle() {
-		const metrics = this.sdpRightColumnMetrics();
-		const height = this.sdpMasteryWindowHeight();
-		return new Rectangle(metrics.x, metrics.topY, metrics.width, height);
 	}
 	/**
 	* Rectangle for the cart window, occupying the bottom half of the right column.
@@ -5479,10 +5676,19 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	*/
 	sdpRewardListRectangle() {
 		const metrics = this.sdpRightColumnMetrics();
-		const masteryHeight = this.sdpMasteryWindowHeight();
-		const y = metrics.topY + masteryHeight + metrics.gap;
-		const height = metrics.cartY - y - metrics.gap;
-		return new Rectangle(metrics.x, y, metrics.width, height);
+		const height = metrics.cartY - metrics.topY - metrics.gap;
+		return new Rectangle(metrics.x, metrics.topY, metrics.width, height);
+	}
+	/**
+	* The share of the right column the cart occupies.
+	*
+	* Three fifths rather than half: folding the mastery strip into the header freed a band here, and
+	* the cart is where it earns the most- a player mid-purchase is reading what they are about to
+	* spend, and a cart that scrolls hides exactly the row they were checking.
+	* @returns {number}
+	*/
+	sdpCartRegionRatio() {
+		return .6;
 	}
 	/**
 	* The bottom boundary for the right column (rewards + cart).
@@ -5498,6 +5704,20 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	*/
 	sdpRightColumnSplitGap() {
 		return 0;
+	}
+	/**
+	* Overrides {@link Scene_ActorFacetBase.actorRibbonWindowRect}.<br/>
+	* Confines the ribbon to the panel list column instead of spanning the full width.
+	*
+	* The base assumes a full-width band because most facet scenes have nothing worth promoting into
+	* that space. Here the mastery description does- it is the one thing on this screen a player cannot
+	* learn anywhere else before spending- so the ribbon caps the list it already sits above, and the
+	* header grows into what it gave up.
+	* @returns {Rectangle}
+	*/
+	actorRibbonWindowRect() {
+		const facetArea = this.facetAreaRect();
+		return new Rectangle(facetArea.x, facetArea.y, this.sdpListColumnWidth(), this.actorRibbonHeight());
 	}
 	/**
 	* Creates the header window for the hovered SDP.
@@ -5520,11 +5740,11 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	* @returns {Rectangle}
 	*/
 	sdpHeaderRectangle() {
-		const contentArea = this.contentAreaRect();
-		const x = contentArea.x + this.sdpListColumnWidth();
-		const height = this.calcWindowHeight(2, false);
-		const width = contentArea.x + contentArea.width - x;
-		return new Rectangle(x, contentArea.y, width, height);
+		const facetArea = this.facetAreaRect();
+		const x = facetArea.x + this.sdpListColumnWidth();
+		const height = this.calcWindowHeight(3, false);
+		const width = facetArea.x + facetArea.width - x;
+		return new Rectangle(x, facetArea.y, width, height);
 	}
 	/**
 	* Gets the tracked header window.
@@ -5895,8 +6115,6 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	clearPanelDetailWindows() {
 		this.getSdpHeaderWindow().setPanel(null);
 		this.getSdpHeaderWindow().refresh();
-		this.getSdpMasteryWindow().setPanel(null);
-		this.getSdpMasteryWindow().refresh();
 		const parameterListWindow = this.getSdpParameterListWindow();
 		parameterListWindow.setParameters(null);
 		parameterListWindow.refresh();
@@ -5931,8 +6149,6 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		const rewardListWindow = this.getSdpRewardListWindow();
 		rewardListWindow.setRewards(currentPanel.panelRewards);
 		rewardListWindow.refresh();
-		this.getSdpMasteryWindow().setPanel(currentPanel);
-		this.getSdpMasteryWindow().refresh();
 		this.getSdpCartWindow().setCart(currentActor, this.j()._sdp._cart);
 		this.getSdpCartWindow().refresh();
 		this.getSdpHeaderWindow().setPanel(currentPanel);

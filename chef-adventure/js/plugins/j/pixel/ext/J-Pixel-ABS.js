@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
+ * [v1.1.2 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -90,6 +90,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    Simplified how the pixel battler resolves its angle and idle state.
+ * - 1.1.1
+ *    Dodge distance scaling moved onto J-ABS's determineDodgeStepCount seam. On the
+ *    step setter it also caught the per-step countdown, re-scaling what remained on
+ *    every step so the count climbed away from the zero the dodge waits for.
  * - 1.1.0
  *    Forced displacement - knockback, pull-forward, gap-close - is now clamped by the
  *    same collision predicate the character's own movement obeys. J-ABS clamps it on
@@ -275,7 +281,7 @@ J.PIXEL.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-Pixel-ABS", "1.1.0");
+J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-Pixel-ABS", "1.1.2");
 /**
 * A collection of regex patterns for this plugin.
 */
@@ -1143,18 +1149,18 @@ JABS_Battler.prototype._rollIdleDestination = function() {
 	return null;
 };
 /**
-* Extends {@link #setDodgeSteps}.<br/>
-* Scales the step count by the pixel collision density so dodge distance
-* covers the same visual distance as it would in tile-locked movement.
-* @param {number} stepCount The number of steps to dodge.
+* Overwrites {@link JABS_Battler#dodgeStepDistance}.<br/>
+* States what one forced dodge step costs under pixel movement.
+*
+* A pixel dodge step is not a tile and it is not a subcell either: `Game_CharacterBase#moveStraight`
+* travels `distancePerFrame()`, so one step is one frame of ordinary walking. That figure is read
+* fresh on every step rather than baked into a count up front, because `realMoveSpeed` folds in the
+* dash boost and the dodge speed modifier- both of which can come and go partway through a dodge,
+* and either of which would make a count computed at execute time cover the wrong distance.
+* @returns {number} The distance in tiles a single pixel dodge step covers.
 */
-J.PIXEL.EXT.ABS.Aliased.JABS_Battler.set("setDodgeSteps", JABS_Battler.prototype.setDodgeSteps);
-JABS_Battler.prototype.setDodgeSteps = function(stepCount) {
-	if (PIXEL_CollisionManager.collisionStepCount === undefined) {
-		PIXEL_CollisionManager.initConfig();
-	}
-	const scaledStepCount = stepCount * PIXEL_CollisionManager.collisionStepCount;
-	J.PIXEL.EXT.ABS.Aliased.JABS_Battler.get("setDodgeSteps").call(this, scaledStepCount);
+JABS_Battler.prototype.dodgeStepDistance = function() {
+	return this.getCharacter().distancePerFrame();
 };
 /**
 * Extends {@link #destroy}.<br/>
