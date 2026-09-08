@@ -5005,7 +5005,7 @@
       "iconIndex": 0
     },
     {
-      "name": "Surf & Turf",
+      "name": "Surf \u0026 Turf",
       "key": "yelena-003",
       "categoryKey": "folk",
       "tagKeys": [
@@ -13013,7 +13013,7 @@
     {
       "key": "ch5",
       "name": "Chapter 5",
-      "iconIndex": 0
+      "iconIndex": 2060
     }
   ],
   "categories": [
@@ -13040,7 +13040,7 @@
     {
       "key": "folk",
       "name": "Townsfolk",
-      "iconIndex": 0
+      "iconIndex": 82
     }
   ]
 }

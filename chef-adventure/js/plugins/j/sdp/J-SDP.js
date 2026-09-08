@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v4.1.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v4.2.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -366,6 +366,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.2.0
+ *    Mastery descriptions wrap across the two lines the header reserves instead of
+ *    running off its right edge, and the reach token carries its own unit the way
+ *    the cadence and duration tokens already did.
  * - 4.1.0
  *    Mastery descriptions now resolve in full. The prose resolver reads parameters
  *    from traits or buff tags, follows a mastery to the payload it delivers, phrases
@@ -3011,13 +3015,13 @@ var MasteryProseResolver = class MasteryProseResolver {
 	*/
 	static #resolveRadius(state, skill, payload) {
 		const declared = MasteryProseResolver.#shapedArgument(state, "radius");
-		if (declared !== null) return declared;
+		if (declared !== null) return `${declared} tiles`;
 		const names = ["radius", "proximity"];
 		const sources = [payload, MasteryPayloadLocator.locateVehicle(state, skill)];
 		for (const source of sources) {
 			for (const name of names) {
 				const value = MasteryProseResolver.#numberTag(source, name);
-				if (value !== null) return `${value}`;
+				if (value !== null) return `${value} tiles`;
 			}
 		}
 		return null;
@@ -3733,7 +3737,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.1.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -5313,6 +5317,13 @@ var Window_SdpHeader = class extends Window_Base {
 		this.resetFontSettings();
 	}
 	/**
+	* How many lines the header reserves for the description beneath the identity row.
+	* @returns {number}
+	*/
+	proseLineCount() {
+		return 2;
+	}
+	/**
 	* Draws the two lines describing what the mastery actually does.
 	*
 	* Nothing is drawn when the subgroup has no authored prose, or when the prose still carries a token
@@ -5328,8 +5339,12 @@ var Window_SdpHeader = class extends Window_Base {
 		const resolved = MasteryProseResolver.resolve(template, mastery.masterySkillId);
 		if (resolved === String.empty) return;
 		this.resetFontSettings();
-		const sized = this.modFontSizeForText(-1, resolved);
-		this.drawTextEx(sized, 0, this.lineHeight(), this.innerWidth);
+		const measure = (text) => this.textWidth(text);
+		const lines = TextWrapper.wrapToLines(resolved, this.innerWidth, this.proseLineCount(), measure);
+		lines.forEach((line, index) => {
+			const y = this.lineHeight() * (index + 1);
+			this.drawTextEx(line, 0, y, this.innerWidth);
+		});
 		this.resetFontSettings();
 	}
 };

@@ -52,8 +52,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-02",
@@ -107,8 +107,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-03",
@@ -162,8 +162,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-04",
@@ -217,8 +217,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-05",
@@ -272,8 +272,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-06",
@@ -319,8 +319,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-07",
@@ -382,8 +382,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-08",
@@ -437,8 +437,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-09",
@@ -492,8 +492,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-10",
@@ -547,8 +547,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-11",
@@ -602,8 +602,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-12",
@@ -657,8 +657,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-13",
@@ -720,8 +720,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-14",
@@ -775,8 +775,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-15",
@@ -838,8 +838,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-16",
@@ -893,8 +893,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-17",
@@ -948,8 +948,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-18",
@@ -987,8 +987,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-19",
@@ -1050,8 +1050,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-20",
@@ -1113,8 +1113,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-21",
@@ -1168,8 +1168,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-22",
@@ -1223,8 +1223,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t1-23",
@@ -1286,8 +1286,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-protein-t2-01",
@@ -1347,8 +1347,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-02",
@@ -1408,8 +1408,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-03",
@@ -1469,8 +1469,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-04",
@@ -1530,8 +1530,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-05",
@@ -1591,8 +1591,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-06",
@@ -1642,8 +1642,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-protein-t2-07",
@@ -1709,8 +1709,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-protein-t3-01",
@@ -1772,8 +1772,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-protein-t3-02",
@@ -1831,8 +1831,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-protein-t3-03",
@@ -1896,8 +1896,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-protein-t3-04",
@@ -1955,8 +1955,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-protein-t3-05",
@@ -2020,8 +2020,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-protein-t3-06",
@@ -2077,8 +2077,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-protein-t4-01",
@@ -2144,8 +2144,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-protein-t4-02",
@@ -2205,8 +2205,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-protein-t4-03",
@@ -2266,8 +2266,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-protein-t4-04",
@@ -2339,8 +2339,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-carb-t1-01",
@@ -2402,8 +2402,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-02",
@@ -2449,8 +2449,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-03",
@@ -2518,8 +2518,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-04",
@@ -2573,8 +2573,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-05",
@@ -2628,8 +2628,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-06",
@@ -2683,8 +2683,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-07",
@@ -2746,8 +2746,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-08",
@@ -2801,8 +2801,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-09",
@@ -2864,8 +2864,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-10",
@@ -2919,8 +2919,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-11",
@@ -2966,8 +2966,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-12",
@@ -3021,8 +3021,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-13",
@@ -3084,8 +3084,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-14",
@@ -3147,8 +3147,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-15",
@@ -3210,8 +3210,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-16",
@@ -3257,8 +3257,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-17",
@@ -3320,8 +3320,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-18",
@@ -3367,8 +3367,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-19",
@@ -3430,8 +3430,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-20",
@@ -3493,8 +3493,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-21",
@@ -3556,8 +3556,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t1-22",
@@ -3617,8 +3617,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-carb-t2-01",
@@ -3670,8 +3670,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-02",
@@ -3723,8 +3723,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-03",
@@ -3784,8 +3784,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-04",
@@ -3837,8 +3837,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-05",
@@ -3882,8 +3882,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-06",
@@ -3935,8 +3935,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-07",
@@ -4006,8 +4006,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-08",
@@ -4051,8 +4051,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-09",
@@ -4120,8 +4120,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-carb-t2-10",
@@ -4179,8 +4179,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-carb-t3-01",
@@ -4230,8 +4230,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-carb-t3-02",
@@ -4289,8 +4289,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-carb-t3-03",
@@ -4354,8 +4354,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-carb-t3-04",
@@ -4411,8 +4411,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-carb-t4-01",
@@ -4478,8 +4478,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-carb-t4-02",
@@ -4545,8 +4545,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-carb-t4-03",
@@ -4618,8 +4618,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-carb-t4-04",
@@ -4679,8 +4679,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-vegetable-t1-01",
@@ -4734,8 +4734,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-02",
@@ -4789,8 +4789,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-03",
@@ -4852,8 +4852,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-04",
@@ -4915,8 +4915,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-05",
@@ -4970,8 +4970,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-06",
@@ -5033,8 +5033,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-07",
@@ -5096,8 +5096,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-08",
@@ -5151,8 +5151,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-09",
@@ -5206,8 +5206,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-10",
@@ -5269,8 +5269,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-11",
@@ -5324,8 +5324,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-12",
@@ -5387,8 +5387,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-13",
@@ -5450,8 +5450,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-14",
@@ -5521,8 +5521,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-15",
@@ -5576,8 +5576,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-16",
@@ -5639,8 +5639,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-17",
@@ -5694,8 +5694,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-18",
@@ -5749,8 +5749,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-19",
@@ -5810,8 +5810,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t1-20",
@@ -5873,8 +5873,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-vegetable-t2-01",
@@ -5926,8 +5926,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-02",
@@ -5979,8 +5979,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-03",
@@ -6048,8 +6048,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-04",
@@ -6101,8 +6101,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-05",
@@ -6144,8 +6144,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-06",
@@ -6195,8 +6195,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-07",
@@ -6256,8 +6256,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-08",
@@ -6313,8 +6313,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-09",
@@ -6366,8 +6366,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-10",
@@ -6421,8 +6421,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t2-11",
@@ -6482,8 +6482,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-vegetable-t3-01",
@@ -6541,8 +6541,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-vegetable-t3-02",
@@ -6600,8 +6600,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-vegetable-t3-03",
@@ -6659,8 +6659,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-vegetable-t3-04",
@@ -6718,8 +6718,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-vegetable-t3-05",
@@ -6785,8 +6785,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-vegetable-t4-01",
@@ -6846,8 +6846,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-vegetable-t4-02",
@@ -6907,8 +6907,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-vegetable-t4-03",
@@ -6974,8 +6974,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-vegetable-t4-04",
@@ -7035,8 +7035,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-dairy-t1-01",
@@ -7082,8 +7082,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-02",
@@ -7129,8 +7129,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-03",
@@ -7192,8 +7192,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-04",
@@ -7239,8 +7239,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-05",
@@ -7310,8 +7310,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-06",
@@ -7365,8 +7365,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-07",
@@ -7428,8 +7428,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-08",
@@ -7491,8 +7491,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-09",
@@ -7546,8 +7546,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-10",
@@ -7593,8 +7593,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-11",
@@ -7648,8 +7648,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-12",
@@ -7695,8 +7695,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-13",
@@ -7742,8 +7742,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t1-14",
@@ -7805,8 +7805,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-dairy-t2-01",
@@ -7850,8 +7850,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-02",
@@ -7895,8 +7895,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-03",
@@ -7948,8 +7948,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-04",
@@ -7999,8 +7999,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-05",
@@ -8044,8 +8044,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-06",
@@ -8097,8 +8097,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-07",
@@ -8150,8 +8150,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-08",
@@ -8195,8 +8195,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-09",
@@ -8254,8 +8254,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-10",
@@ -8321,8 +8321,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-11",
@@ -8374,8 +8374,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-12",
@@ -8435,8 +8435,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-13",
@@ -8496,8 +8496,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t2-14",
@@ -8555,8 +8555,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-dairy-t3-01",
@@ -8606,8 +8606,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-02",
@@ -8657,8 +8657,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-03",
@@ -8708,8 +8708,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-04",
@@ -8759,8 +8759,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-05",
@@ -8810,8 +8810,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-06",
@@ -8861,8 +8861,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-07",
@@ -8920,8 +8920,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-dairy-t3-08",
@@ -8979,8 +8979,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-dairy-t4-01",
@@ -9046,8 +9046,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-dairy-t4-02",
@@ -9113,8 +9113,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-dairy-t4-03",
@@ -9180,8 +9180,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-dairy-t4-04",
@@ -9247,8 +9247,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-fruit-t1-01",
@@ -9310,8 +9310,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-02",
@@ -9357,8 +9357,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-03",
@@ -9412,8 +9412,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-04",
@@ -9467,8 +9467,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-05",
@@ -9522,8 +9522,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-06",
@@ -9585,8 +9585,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-07",
@@ -9632,8 +9632,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-08",
@@ -9679,8 +9679,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-09",
@@ -9742,8 +9742,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-10",
@@ -9797,8 +9797,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-11",
@@ -9860,8 +9860,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-12",
@@ -9923,8 +9923,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-13",
@@ -9986,8 +9986,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-14",
@@ -10049,8 +10049,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-15",
@@ -10104,8 +10104,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-16",
@@ -10151,8 +10151,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-17",
@@ -10214,8 +10214,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-18",
@@ -10269,8 +10269,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t1-19",
@@ -10332,8 +10332,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-fruit-t2-01",
@@ -10377,8 +10377,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-02",
@@ -10442,8 +10442,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-03",
@@ -10501,8 +10501,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-04",
@@ -10568,8 +10568,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-05",
@@ -10627,8 +10627,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-06",
@@ -10686,8 +10686,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-07",
@@ -10747,8 +10747,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-08",
@@ -10814,8 +10814,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-09",
@@ -10873,8 +10873,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-10",
@@ -10926,8 +10926,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t2-11",
@@ -10983,8 +10983,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-fruit-t3-01",
@@ -11040,8 +11040,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-fruit-t3-02",
@@ -11099,8 +11099,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-fruit-t3-03",
@@ -11164,8 +11164,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-fruit-t3-04",
@@ -11221,8 +11221,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-fruit-t3-05",
@@ -11278,8 +11278,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-fruit-t3-06",
@@ -11335,8 +11335,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-fruit-t4-01",
@@ -11402,8 +11402,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-fruit-t4-02",
@@ -11469,8 +11469,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-fruit-t4-03",
@@ -11536,8 +11536,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-fruit-t4-04",
@@ -11603,8 +11603,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-sweet-t1-01",
@@ -11650,8 +11650,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-02",
@@ -11705,8 +11705,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-03",
@@ -11766,8 +11766,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-04",
@@ -11821,8 +11821,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-05",
@@ -11876,8 +11876,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-06",
@@ -11939,8 +11939,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-07",
@@ -12002,8 +12002,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-08",
@@ -12065,8 +12065,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-09",
@@ -12128,8 +12128,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-10",
@@ -12183,8 +12183,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-11",
@@ -12238,8 +12238,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-12",
@@ -12301,8 +12301,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-13",
@@ -12364,8 +12364,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-14",
@@ -12419,8 +12419,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-15",
@@ -12482,8 +12482,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-16",
@@ -12545,8 +12545,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-17",
@@ -12600,8 +12600,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-18",
@@ -12671,8 +12671,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t1-19",
@@ -12734,8 +12734,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-sweet-t2-01",
@@ -12779,8 +12779,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-02",
@@ -12824,8 +12824,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-03",
@@ -12877,8 +12877,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-04",
@@ -12926,8 +12926,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-05",
@@ -12985,8 +12985,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-06",
@@ -13046,8 +13046,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-07",
@@ -13107,8 +13107,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-08",
@@ -13166,8 +13166,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-09",
@@ -13219,8 +13219,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-sweet-t2-10",
@@ -13278,8 +13278,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "food-sweet-t3-01",
@@ -13329,8 +13329,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-02",
@@ -13380,8 +13380,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-03",
@@ -13437,8 +13437,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-04",
@@ -13494,8 +13494,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-05",
@@ -13551,8 +13551,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-06",
@@ -13608,8 +13608,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-sweet-t3-07",
@@ -13665,8 +13665,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "food-sweet-t4-01",
@@ -13732,8 +13732,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-sweet-t4-02",
@@ -13799,8 +13799,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-sweet-t4-03",
@@ -13866,8 +13866,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-sweet-t4-04",
@@ -13927,8 +13927,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "food-pantry-t1-01",
@@ -13974,8 +13974,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-02",
@@ -14021,8 +14021,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-03",
@@ -14068,8 +14068,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-04",
@@ -14115,8 +14115,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-05",
@@ -14162,8 +14162,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-06",
@@ -14209,8 +14209,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-07",
@@ -14246,8 +14246,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-08",
@@ -14291,8 +14291,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-09",
@@ -14328,8 +14328,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "food-pantry-t1-10",
@@ -14365,8 +14365,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "ingot-01",
@@ -14402,8 +14402,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "ingot-02",
@@ -14439,8 +14439,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "ingot-03",
@@ -14476,8 +14476,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "ingot-04",
@@ -14513,8 +14513,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "ingot-05",
@@ -14550,8 +14550,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "ingot-06",
@@ -14587,8 +14587,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "ingot-07",
@@ -14624,8 +14624,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "paper-01",
@@ -14661,8 +14661,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "paper-02",
@@ -14698,8 +14698,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "paper-03",
@@ -14735,8 +14735,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "paper-04",
@@ -14772,8 +14772,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "paper-05",
@@ -14809,8 +14809,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "paper-06",
@@ -14846,8 +14846,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "paper-07",
@@ -14883,8 +14883,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "fabric-01",
@@ -14920,8 +14920,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "fabric-02",
@@ -14957,8 +14957,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "fabric-03",
@@ -14994,8 +14994,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "fabric-04",
@@ -15031,8 +15031,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "fabric-05",
@@ -15068,8 +15068,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "fabric-06",
@@ -15105,8 +15105,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "fabric-07",
@@ -15142,8 +15142,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "circuit-01",
@@ -15191,8 +15191,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "circuit-02",
@@ -15240,8 +15240,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "circuit-03",
@@ -15295,8 +15295,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "circuit-04",
@@ -15356,8 +15356,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "circuit-05",
@@ -15423,8 +15423,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "circuit-06",
@@ -15484,8 +15484,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-sword-01",
@@ -15535,8 +15535,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-sword-02",
@@ -15601,8 +15601,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-sword-03",
@@ -15675,8 +15675,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-sword-04",
@@ -15757,8 +15757,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-sword-05",
@@ -15839,8 +15839,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-sword-06",
@@ -15929,8 +15929,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-sword-10",
@@ -16008,8 +16008,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-claymore-01",
@@ -16045,8 +16045,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-claymore-02",
@@ -16105,8 +16105,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-claymore-03",
@@ -16173,8 +16173,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-claymore-04",
@@ -16249,8 +16249,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-claymore-05",
@@ -16325,8 +16325,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-claymore-06",
@@ -16409,8 +16409,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-claymore-10",
@@ -16476,8 +16476,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-edge-01",
@@ -16533,8 +16533,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-edge-02",
@@ -16590,8 +16590,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-edge-03",
@@ -16655,8 +16655,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-edge-04",
@@ -16728,8 +16728,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-edge-05",
@@ -16801,8 +16801,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-edge-06",
@@ -16874,8 +16874,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-edge-10",
@@ -16941,8 +16941,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-pike-01",
@@ -16992,8 +16992,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-pike-02",
@@ -17043,8 +17043,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-pike-03",
@@ -17102,8 +17102,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-pike-04",
@@ -17169,8 +17169,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-pike-05",
@@ -17236,8 +17236,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-pike-06",
@@ -17311,8 +17311,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-pike-10",
@@ -17378,8 +17378,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-warstaff-01",
@@ -17429,8 +17429,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-warstaff-02",
@@ -17495,8 +17495,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-warstaff-03",
@@ -17569,8 +17569,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-warstaff-04",
@@ -17643,8 +17643,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-warstaff-05",
@@ -17717,8 +17717,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-warstaff-06",
@@ -17791,8 +17791,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-warstaff-10",
@@ -17864,8 +17864,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-javelin-01",
@@ -17915,8 +17915,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-javelin-02",
@@ -17966,8 +17966,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-javelin-03",
@@ -18025,8 +18025,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-javelin-04",
@@ -18092,8 +18092,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-javelin-05",
@@ -18159,8 +18159,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-javelin-06",
@@ -18234,8 +18234,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-javelin-10",
@@ -18301,8 +18301,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-handgun-01",
@@ -18350,8 +18350,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-handgun-02",
@@ -18399,8 +18399,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-handgun-03",
@@ -18456,8 +18456,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-handgun-04",
@@ -18521,8 +18521,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-handgun-05",
@@ -18586,8 +18586,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-handgun-06",
@@ -18659,8 +18659,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-handgun-10",
@@ -18714,8 +18714,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-taser-01",
@@ -18765,8 +18765,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-taser-02",
@@ -18816,8 +18816,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-taser-03",
@@ -18875,8 +18875,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-taser-04",
@@ -18942,8 +18942,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-taser-05",
@@ -19009,8 +19009,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-taser-06",
@@ -19084,8 +19084,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-taser-10",
@@ -19151,8 +19151,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-boomstick-01",
@@ -19196,8 +19196,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-boomstick-02",
@@ -19241,8 +19241,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-boomstick-03",
@@ -19308,8 +19308,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-boomstick-04",
@@ -19383,8 +19383,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-boomstick-05",
@@ -19458,8 +19458,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-boomstick-06",
@@ -19533,8 +19533,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-boomstick-10",
@@ -19588,8 +19588,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-hatchet-01",
@@ -19639,8 +19639,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-hatchet-02",
@@ -19690,8 +19690,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-hatchet-03",
@@ -19749,8 +19749,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-hatchet-04",
@@ -19816,8 +19816,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-hatchet-05",
@@ -19883,8 +19883,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-hatchet-06",
@@ -19958,8 +19958,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-hatchet-10",
@@ -20025,8 +20025,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-glaive-01",
@@ -20076,8 +20076,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-glaive-02",
@@ -20127,8 +20127,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-glaive-03",
@@ -20186,8 +20186,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-glaive-04",
@@ -20253,8 +20253,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-glaive-05",
@@ -20320,8 +20320,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-glaive-06",
@@ -20395,8 +20395,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-glaive-10",
@@ -20462,8 +20462,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-mace-01",
@@ -20513,8 +20513,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-mace-02",
@@ -20564,8 +20564,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-mace-03",
@@ -20623,8 +20623,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-mace-04",
@@ -20690,8 +20690,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-mace-05",
@@ -20757,8 +20757,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-mace-06",
@@ -20832,8 +20832,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-mace-10",
@@ -20899,8 +20899,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-cane-01",
@@ -20942,8 +20942,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-cane-02",
@@ -20985,8 +20985,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-cane-03",
@@ -21051,8 +21051,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-cane-04",
@@ -21125,8 +21125,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-cane-05",
@@ -21199,8 +21199,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-cane-06",
@@ -21273,8 +21273,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-cane-10",
@@ -21328,8 +21328,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-rod-01",
@@ -21380,8 +21380,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-rod-02",
@@ -21432,8 +21432,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-rod-03",
@@ -21492,8 +21492,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-rod-04",
@@ -21560,8 +21560,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-rod-05",
@@ -21628,8 +21628,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-rod-06",
@@ -21696,8 +21696,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-rod-10",
@@ -21763,8 +21763,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-tome-01",
@@ -21815,8 +21815,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-tome-02",
@@ -21867,8 +21867,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-tome-03",
@@ -21927,8 +21927,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-tome-04",
@@ -21995,8 +21995,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-tome-05",
@@ -22063,8 +22063,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-tome-06",
@@ -22131,8 +22131,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-tome-10",
@@ -22198,8 +22198,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-gloves-01",
@@ -22241,8 +22241,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-gloves-02",
@@ -22299,8 +22299,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-gloves-03",
@@ -22365,8 +22365,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-gloves-04",
@@ -22439,8 +22439,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-gloves-05",
@@ -22513,8 +22513,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-gloves-06",
@@ -22587,8 +22587,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-gloves-10",
@@ -22654,8 +22654,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-claws-01",
@@ -22697,8 +22697,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-claws-02",
@@ -22740,8 +22740,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-claws-03",
@@ -22791,8 +22791,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-claws-04",
@@ -22850,8 +22850,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-claws-05",
@@ -22909,8 +22909,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-claws-06",
@@ -22968,8 +22968,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-claws-10",
@@ -23023,8 +23023,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "w-arm-01",
@@ -23074,8 +23074,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "w-arm-02",
@@ -23125,8 +23125,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "w-arm-03",
@@ -23198,8 +23198,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "w-arm-04",
@@ -23279,8 +23279,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "w-arm-05",
@@ -23360,8 +23360,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "w-arm-06",
@@ -23441,8 +23441,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "w-arm-10",
@@ -23508,8 +23508,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "a-off-light-1",
@@ -23554,8 +23554,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-off-light-2",
@@ -23600,8 +23600,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-off-light-3",
@@ -23654,8 +23654,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-off-light-4",
@@ -23716,8 +23716,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-off-light-5",
@@ -23778,8 +23778,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "a-off-light-6",
@@ -23848,8 +23848,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "a-off-light-10",
@@ -23909,8 +23909,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "a-off-medium-1",
@@ -23960,8 +23960,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-off-medium-2",
@@ -24011,8 +24011,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-off-medium-3",
@@ -24070,8 +24070,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-off-medium-4",
@@ -24137,8 +24137,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-off-medium-5",
@@ -24204,8 +24204,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "a-off-medium-6",
@@ -24279,8 +24279,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "a-off-medium-10",
@@ -24346,8 +24346,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "a-off-heavy-1",
@@ -24397,8 +24397,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-off-heavy-2",
@@ -24448,8 +24448,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-off-heavy-3",
@@ -24507,8 +24507,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-off-heavy-4",
@@ -24574,8 +24574,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-off-heavy-5",
@@ -24641,8 +24641,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "a-off-heavy-6",
@@ -24716,8 +24716,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "a-off-heavy-10",
@@ -24783,8 +24783,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "a-body-light-1",
@@ -24828,8 +24828,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-body-light-2",
@@ -24888,8 +24888,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-body-light-3",
@@ -24956,8 +24956,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-body-light-4",
@@ -25032,8 +25032,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-body-light-5",
@@ -25108,8 +25108,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "a-body-light-6",
@@ -25192,8 +25192,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "a-body-light-10",
@@ -25265,8 +25265,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "a-body-medium-1",
@@ -25316,8 +25316,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-body-medium-2",
@@ -25367,8 +25367,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-body-medium-3",
@@ -25426,8 +25426,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-body-medium-4",
@@ -25493,8 +25493,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-body-medium-5",
@@ -25560,8 +25560,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "a-body-medium-6",
@@ -25635,8 +25635,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "a-body-medium-10",
@@ -25702,8 +25702,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "a-body-heavy-1",
@@ -25753,8 +25753,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-body-heavy-2",
@@ -25804,8 +25804,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-body-heavy-3",
@@ -25863,8 +25863,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-body-heavy-4",
@@ -25930,8 +25930,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-body-heavy-5",
@@ -25997,8 +25997,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "a-body-heavy-6",
@@ -26072,8 +26072,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "a-body-heavy-10",
@@ -26139,8 +26139,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "a-feet-light-1",
@@ -26184,8 +26184,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-feet-light-2",
@@ -26229,8 +26229,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-feet-light-3",
@@ -26282,8 +26282,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-feet-light-4",
@@ -26343,8 +26343,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-feet-light-5",
@@ -26404,8 +26404,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "a-feet-light-6",
@@ -26473,8 +26473,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "a-feet-light-10",
@@ -26534,8 +26534,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "a-feet-medium-1",
@@ -26585,8 +26585,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-feet-medium-2",
@@ -26636,8 +26636,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-feet-medium-3",
@@ -26695,8 +26695,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-feet-medium-4",
@@ -26762,8 +26762,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-feet-medium-5",
@@ -26829,8 +26829,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "a-feet-medium-6",
@@ -26904,8 +26904,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "a-feet-medium-10",
@@ -26971,8 +26971,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "a-feet-heavy-1",
@@ -27016,8 +27016,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-feet-heavy-2",
@@ -27061,8 +27061,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-feet-heavy-3",
@@ -27114,8 +27114,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-feet-heavy-4",
@@ -27175,8 +27175,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-feet-heavy-5",
@@ -27236,8 +27236,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "a-feet-heavy-6",
@@ -27305,8 +27305,8 @@
           "categories": []
         }
       ],
-      "tier": 6,
-      "cost": []
+      "cost": [],
+      "tier": 6
     },
     {
       "key": "a-feet-heavy-10",
@@ -27366,8 +27366,8 @@
           "categories": []
         }
       ],
-      "tier": 7,
-      "cost": []
+      "cost": [],
+      "tier": 7
     },
     {
       "key": "a-gems-life-1",
@@ -29615,8 +29615,8 @@
           "categories": []
         }
       ],
-      "tier": 0,
-      "cost": []
+      "cost": [],
+      "tier": 0
     },
     {
       "key": "a-runes-poke-glyph",
@@ -29674,8 +29674,8 @@
           "categories": []
         }
       ],
-      "tier": 0,
-      "cost": []
+      "cost": [],
+      "tier": 0
     },
     {
       "key": "a-runes-blunt-glyph",
@@ -29733,8 +29733,8 @@
           "categories": []
         }
       ],
-      "tier": 0,
-      "cost": []
+      "cost": [],
+      "tier": 0
     },
     {
       "key": "a-runes-heat-glyph",
@@ -31182,8 +31182,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-extra-skill-2",
@@ -31247,8 +31247,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-extra-skill-3",
@@ -31312,8 +31312,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-extra-skill-4",
@@ -31377,8 +31377,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-extra-skill-5",
@@ -31442,8 +31442,8 @@
           "categories": []
         }
       ],
-      "tier": 5,
-      "cost": []
+      "cost": [],
+      "tier": 5
     },
     {
       "key": "a-extra-battle-1",
@@ -31501,8 +31501,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-extra-battle-2",
@@ -31560,8 +31560,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-extra-battle-3",
@@ -31619,8 +31619,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-extra-junction-1",
@@ -31678,8 +31678,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-extra-junction-2",
@@ -31737,8 +31737,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-extra-junction-3",
@@ -31796,8 +31796,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-extra-junction-4",
@@ -31855,8 +31855,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-extra-healing-1",
@@ -31909,8 +31909,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-extra-healing-2",
@@ -31971,8 +31971,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-extra-healing-3",
@@ -32033,8 +32033,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-extra-healing-4",
@@ -32095,8 +32095,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-extra-mind-1",
@@ -32149,8 +32149,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-extra-mind-2",
@@ -32211,8 +32211,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-extra-mind-3",
@@ -32273,8 +32273,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-extra-mind-4",
@@ -32335,8 +32335,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-extra-battery-1",
@@ -32394,8 +32394,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-extra-battery-2",
@@ -32461,8 +32461,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-extra-battery-3",
@@ -32528,8 +32528,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-extra-battery-4",
@@ -32595,8 +32595,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-extra-poets-1",
@@ -32649,8 +32649,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-extra-poets-2",
@@ -32711,8 +32711,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-extra-poets-3",
@@ -32773,8 +32773,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-extra-poets-4",
@@ -32835,8 +32835,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "a-extra-helm-1",
@@ -32905,8 +32905,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-extra-helm-2",
@@ -32975,8 +32975,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-extra-hat-1",
@@ -33031,8 +33031,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-extra-hat-2",
@@ -33087,8 +33087,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-extra-hat-3",
@@ -33143,8 +33143,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "a-extra-weights-1",
@@ -33205,8 +33205,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "a-extra-weights-2",
@@ -33275,8 +33275,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "a-extra-weights-3",
@@ -33345,8 +33345,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-coremata-up-1",
@@ -33382,8 +33382,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-coremata-down-1",
@@ -33419,8 +33419,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-coremata-up-2",
@@ -33456,8 +33456,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-coremata-down-2",
@@ -33493,8 +33493,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-coremata-up-3",
@@ -33530,8 +33530,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-coremata-down-3",
@@ -33567,8 +33567,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-coremata-up-4",
@@ -33604,8 +33604,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-coremata-down-4",
@@ -33641,8 +33641,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-powder-up-1",
@@ -33678,8 +33678,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-powder-down-1",
@@ -33715,8 +33715,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-powder-up-2",
@@ -33752,8 +33752,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-powder-down-2",
@@ -33789,8 +33789,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-powder-up-3",
@@ -33826,8 +33826,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-powder-down-3",
@@ -33863,8 +33863,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-powder-up-4",
@@ -33900,8 +33900,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-powder-down-4",
@@ -33937,8 +33937,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-crumbles-up-1",
@@ -33974,8 +33974,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-crumbles-down-1",
@@ -34011,8 +34011,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-crumbles-up-2",
@@ -34048,8 +34048,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-crumbles-down-2",
@@ -34085,8 +34085,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-crumbles-up-3",
@@ -34122,8 +34122,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-crumbles-down-3",
@@ -34159,8 +34159,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-crumbles-up-4",
@@ -34196,8 +34196,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-crumbles-down-4",
@@ -34233,8 +34233,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-horn-up-1",
@@ -34270,8 +34270,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-horn-down-1",
@@ -34307,8 +34307,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-horn-up-2",
@@ -34344,8 +34344,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-horn-down-2",
@@ -34381,8 +34381,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-horn-up-3",
@@ -34418,8 +34418,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-horn-down-3",
@@ -34455,8 +34455,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-horn-up-4",
@@ -34492,8 +34492,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-horn-down-4",
@@ -34529,8 +34529,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-root-up-1",
@@ -34566,8 +34566,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-root-down-1",
@@ -34603,8 +34603,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-root-up-2",
@@ -34640,8 +34640,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-root-down-2",
@@ -34677,8 +34677,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-root-up-3",
@@ -34714,8 +34714,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-root-down-3",
@@ -34751,8 +34751,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-root-up-4",
@@ -34788,8 +34788,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-root-down-4",
@@ -34825,8 +34825,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-tongue-up-1",
@@ -34862,8 +34862,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-tongue-down-1",
@@ -34899,8 +34899,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-tongue-up-2",
@@ -34936,8 +34936,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-tongue-down-2",
@@ -34973,8 +34973,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-tongue-up-3",
@@ -35010,8 +35010,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-tongue-down-3",
@@ -35047,8 +35047,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-tongue-up-4",
@@ -35084,8 +35084,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-tongue-down-4",
@@ -35121,8 +35121,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-scales-up-1",
@@ -35158,8 +35158,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-scales-down-1",
@@ -35195,8 +35195,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-scales-up-2",
@@ -35232,8 +35232,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-scales-down-2",
@@ -35269,8 +35269,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-scales-up-3",
@@ -35306,8 +35306,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-scales-down-3",
@@ -35343,8 +35343,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-scales-up-4",
@@ -35380,8 +35380,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-scales-down-4",
@@ -35417,8 +35417,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-toe-up-1",
@@ -35454,8 +35454,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-toe-down-1",
@@ -35491,8 +35491,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-toe-up-2",
@@ -35528,8 +35528,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-toe-down-2",
@@ -35565,8 +35565,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-toe-up-3",
@@ -35602,8 +35602,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-toe-down-3",
@@ -35639,8 +35639,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-toe-up-4",
@@ -35676,8 +35676,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-toe-down-4",
@@ -35713,8 +35713,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-clover-up-1",
@@ -35750,8 +35750,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-clover-down-1",
@@ -35787,8 +35787,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-clover-up-2",
@@ -35824,8 +35824,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-clover-down-2",
@@ -35861,8 +35861,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-clover-up-3",
@@ -35898,8 +35898,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-clover-down-3",
@@ -35935,8 +35935,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-clover-up-4",
@@ -35972,8 +35972,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-clover-down-4",
@@ -36009,8 +36009,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-stinger-up-1",
@@ -36046,8 +36046,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-stinger-down-1",
@@ -36083,8 +36083,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-stinger-up-2",
@@ -36120,8 +36120,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-stinger-down-2",
@@ -36157,8 +36157,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-stinger-up-3",
@@ -36194,8 +36194,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-stinger-down-3",
@@ -36231,8 +36231,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-stinger-up-4",
@@ -36268,8 +36268,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-stinger-down-4",
@@ -36305,8 +36305,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-wings-up-1",
@@ -36342,8 +36342,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-wings-down-1",
@@ -36379,8 +36379,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-wings-up-2",
@@ -36416,8 +36416,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-wings-down-2",
@@ -36453,8 +36453,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-wings-up-3",
@@ -36490,8 +36490,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-wings-down-3",
@@ -36527,8 +36527,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-wings-up-4",
@@ -36564,8 +36564,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-wings-down-4",
@@ -36601,8 +36601,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-fangs-up-1",
@@ -36638,8 +36638,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-fangs-down-1",
@@ -36675,8 +36675,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-fangs-up-2",
@@ -36712,8 +36712,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-fangs-down-2",
@@ -36749,8 +36749,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-fangs-up-3",
@@ -36786,8 +36786,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-fangs-down-3",
@@ -36823,8 +36823,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-fangs-up-4",
@@ -36860,8 +36860,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-fangs-down-4",
@@ -36897,8 +36897,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-talon-up-1",
@@ -36934,8 +36934,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-talon-down-1",
@@ -36971,8 +36971,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-talon-up-2",
@@ -37008,8 +37008,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-talon-down-2",
@@ -37045,8 +37045,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-talon-up-3",
@@ -37082,8 +37082,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-talon-down-3",
@@ -37119,8 +37119,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-talon-up-4",
@@ -37156,8 +37156,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-talon-down-4",
@@ -37193,8 +37193,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-core-up-1",
@@ -37230,8 +37230,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-core-down-1",
@@ -37267,8 +37267,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-core-up-2",
@@ -37304,8 +37304,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-core-down-2",
@@ -37341,8 +37341,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-core-up-3",
@@ -37378,8 +37378,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-core-down-3",
@@ -37415,8 +37415,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-core-up-4",
@@ -37452,8 +37452,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-core-down-4",
@@ -37489,8 +37489,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-branch-up-1",
@@ -37526,8 +37526,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-branch-down-1",
@@ -37563,8 +37563,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-branch-up-2",
@@ -37600,8 +37600,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-branch-down-2",
@@ -37637,8 +37637,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-branch-up-3",
@@ -37674,8 +37674,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-branch-down-3",
@@ -37711,8 +37711,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-branch-up-4",
@@ -37748,8 +37748,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-branch-down-4",
@@ -37785,8 +37785,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-spines-up-1",
@@ -37822,8 +37822,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-spines-down-1",
@@ -37859,8 +37859,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-spines-up-2",
@@ -37896,8 +37896,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-spines-down-2",
@@ -37933,8 +37933,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-spines-up-3",
@@ -37970,8 +37970,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-spines-down-3",
@@ -38007,8 +38007,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-spines-up-4",
@@ -38044,8 +38044,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-spines-down-4",
@@ -38081,8 +38081,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-liver-up-1",
@@ -38118,8 +38118,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-liver-down-1",
@@ -38155,8 +38155,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-liver-up-2",
@@ -38192,8 +38192,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-liver-down-2",
@@ -38229,8 +38229,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-liver-up-3",
@@ -38266,8 +38266,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-liver-down-3",
@@ -38303,8 +38303,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-liver-up-4",
@@ -38340,8 +38340,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-liver-down-4",
@@ -38377,8 +38377,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-pelt-up-1",
@@ -38414,8 +38414,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-pelt-down-1",
@@ -38451,8 +38451,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-pelt-up-2",
@@ -38488,8 +38488,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-pelt-down-2",
@@ -38525,8 +38525,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-pelt-up-3",
@@ -38562,8 +38562,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-pelt-down-3",
@@ -38599,8 +38599,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-pelt-up-4",
@@ -38636,8 +38636,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-pelt-down-4",
@@ -38673,8 +38673,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-ear-up-1",
@@ -38710,8 +38710,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-ear-down-1",
@@ -38747,8 +38747,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-ear-up-2",
@@ -38784,8 +38784,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-ear-down-2",
@@ -38821,8 +38821,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-ear-up-3",
@@ -38858,8 +38858,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-ear-down-3",
@@ -38895,8 +38895,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-ear-up-4",
@@ -38932,8 +38932,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-ear-down-4",
@@ -38969,8 +38969,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-veil-up-1",
@@ -39006,8 +39006,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-veil-down-1",
@@ -39043,8 +39043,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-veil-up-2",
@@ -39080,8 +39080,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-veil-down-2",
@@ -39117,8 +39117,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-veil-up-3",
@@ -39154,8 +39154,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-veil-down-3",
@@ -39191,8 +39191,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-veil-up-4",
@@ -39228,8 +39228,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-veil-down-4",
@@ -39265,8 +39265,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-stone-up-1",
@@ -39302,8 +39302,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-stone-down-1",
@@ -39339,8 +39339,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-stone-up-2",
@@ -39376,8 +39376,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-stone-down-2",
@@ -39413,8 +39413,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-stone-up-3",
@@ -39450,8 +39450,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-stone-down-3",
@@ -39487,8 +39487,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-stone-up-4",
@@ -39524,8 +39524,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-stone-down-4",
@@ -39561,8 +39561,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-saline-up-1",
@@ -39598,8 +39598,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-saline-down-1",
@@ -39635,8 +39635,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-saline-up-2",
@@ -39672,8 +39672,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-saline-down-2",
@@ -39709,8 +39709,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-saline-up-3",
@@ -39746,8 +39746,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-saline-down-3",
@@ -39783,8 +39783,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-saline-up-4",
@@ -39820,8 +39820,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-saline-down-4",
@@ -39857,8 +39857,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-pills-up-1",
@@ -39894,8 +39894,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-pills-down-1",
@@ -39931,8 +39931,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-pills-up-2",
@@ -39968,8 +39968,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-pills-down-2",
@@ -40005,8 +40005,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-pills-up-3",
@@ -40042,8 +40042,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-pills-down-3",
@@ -40079,8 +40079,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-pills-up-4",
@@ -40116,8 +40116,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-pills-down-4",
@@ -40153,8 +40153,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-liquids-up-1",
@@ -40190,8 +40190,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-liquids-down-1",
@@ -40227,8 +40227,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-liquids-up-2",
@@ -40264,8 +40264,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-liquids-down-2",
@@ -40301,8 +40301,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-liquids-up-3",
@@ -40338,8 +40338,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-liquids-down-3",
@@ -40375,8 +40375,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-liquids-up-4",
@@ -40412,8 +40412,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-liquids-down-4",
@@ -40449,8 +40449,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-bone-up-1",
@@ -40486,8 +40486,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-bone-down-1",
@@ -40523,8 +40523,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-bone-up-2",
@@ -40560,8 +40560,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-bone-down-2",
@@ -40597,8 +40597,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-bone-up-3",
@@ -40634,8 +40634,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-bone-down-3",
@@ -40671,8 +40671,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-bone-up-4",
@@ -40708,8 +40708,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-bone-down-4",
@@ -40745,8 +40745,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-mineral-up-1",
@@ -40782,8 +40782,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-mineral-down-1",
@@ -40819,8 +40819,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-mineral-up-2",
@@ -40856,8 +40856,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-mineral-down-2",
@@ -40893,8 +40893,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-mineral-up-3",
@@ -40930,8 +40930,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-mineral-down-3",
@@ -40967,8 +40967,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-mineral-up-4",
@@ -41004,8 +41004,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-mineral-down-4",
@@ -41041,8 +41041,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-caviar-up-1",
@@ -41078,8 +41078,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-caviar-down-1",
@@ -41115,8 +41115,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-caviar-up-2",
@@ -41152,8 +41152,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-caviar-down-2",
@@ -41189,8 +41189,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-caviar-up-3",
@@ -41226,8 +41226,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-caviar-down-3",
@@ -41263,8 +41263,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-caviar-up-4",
@@ -41300,8 +41300,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-caviar-down-4",
@@ -41337,8 +41337,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-plate-up-1",
@@ -41374,8 +41374,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-plate-down-1",
@@ -41411,8 +41411,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-plate-up-2",
@@ -41448,8 +41448,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-plate-down-2",
@@ -41485,8 +41485,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-plate-up-3",
@@ -41522,8 +41522,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-plate-down-3",
@@ -41559,8 +41559,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-plate-up-4",
@@ -41596,8 +41596,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-plate-down-4",
@@ -41633,8 +41633,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-fossil-up-1",
@@ -41670,8 +41670,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-fossil-down-1",
@@ -41707,8 +41707,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-fossil-up-2",
@@ -41744,8 +41744,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-fossil-down-2",
@@ -41781,8 +41781,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-fossil-up-3",
@@ -41818,8 +41818,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-fossil-down-3",
@@ -41855,8 +41855,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-fossil-up-4",
@@ -41892,8 +41892,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-fossil-down-4",
@@ -41929,8 +41929,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-tooth-up-1",
@@ -41966,8 +41966,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-tooth-down-1",
@@ -42003,8 +42003,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-tooth-up-2",
@@ -42040,8 +42040,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-tooth-down-2",
@@ -42077,8 +42077,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-tooth-up-3",
@@ -42114,8 +42114,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-tooth-down-3",
@@ -42151,8 +42151,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-tooth-up-4",
@@ -42188,8 +42188,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-tooth-down-4",
@@ -42225,8 +42225,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-seashell-up-1",
@@ -42262,8 +42262,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-seashell-down-1",
@@ -42299,8 +42299,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-seashell-up-2",
@@ -42336,8 +42336,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-seashell-down-2",
@@ -42373,8 +42373,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-seashell-up-3",
@@ -42410,8 +42410,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-seashell-down-3",
@@ -42447,8 +42447,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-seashell-up-4",
@@ -42484,8 +42484,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-seashell-down-4",
@@ -42521,8 +42521,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-feather-up-1",
@@ -42558,8 +42558,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-feather-down-1",
@@ -42595,8 +42595,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-feather-up-2",
@@ -42632,8 +42632,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-feather-down-2",
@@ -42669,8 +42669,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-feather-up-3",
@@ -42706,8 +42706,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-feather-down-3",
@@ -42743,8 +42743,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-feather-up-4",
@@ -42780,8 +42780,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-feather-down-4",
@@ -42817,8 +42817,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-acupuncture-up-1",
@@ -42854,8 +42854,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-acupuncture-down-1",
@@ -42891,8 +42891,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-acupuncture-up-2",
@@ -42928,8 +42928,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-acupuncture-down-2",
@@ -42965,8 +42965,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-acupuncture-up-3",
@@ -43002,8 +43002,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-acupuncture-down-3",
@@ -43039,8 +43039,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-acupuncture-up-4",
@@ -43076,8 +43076,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-acupuncture-down-4",
@@ -43113,8 +43113,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-rune-up-1",
@@ -43150,8 +43150,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-rune-down-1",
@@ -43187,8 +43187,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-rune-up-2",
@@ -43224,8 +43224,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-rune-down-2",
@@ -43261,8 +43261,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-rune-up-3",
@@ -43298,8 +43298,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-rune-down-3",
@@ -43335,8 +43335,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-rune-up-4",
@@ -43372,8 +43372,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-rune-down-4",
@@ -43409,8 +43409,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-syringe-up-1",
@@ -43446,8 +43446,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-syringe-down-1",
@@ -43483,8 +43483,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-syringe-up-2",
@@ -43520,8 +43520,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-syringe-down-2",
@@ -43557,8 +43557,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-syringe-up-3",
@@ -43594,8 +43594,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-syringe-down-3",
@@ -43631,8 +43631,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-syringe-up-4",
@@ -43668,8 +43668,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-syringe-down-4",
@@ -43705,8 +43705,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-aid-up-1",
@@ -43742,8 +43742,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-aid-down-1",
@@ -43779,8 +43779,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-aid-up-2",
@@ -43816,8 +43816,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-aid-down-2",
@@ -43853,8 +43853,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-aid-up-3",
@@ -43890,8 +43890,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-aid-down-3",
@@ -43927,8 +43927,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-aid-up-4",
@@ -43964,8 +43964,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-aid-down-4",
@@ -44001,8 +44001,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-cell-up-1",
@@ -44038,8 +44038,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-cell-down-1",
@@ -44075,8 +44075,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-cell-up-2",
@@ -44112,8 +44112,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-cell-down-2",
@@ -44149,8 +44149,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-cell-up-3",
@@ -44186,8 +44186,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-cell-down-3",
@@ -44223,8 +44223,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-cell-up-4",
@@ -44260,8 +44260,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-cell-down-4",
@@ -44297,8 +44297,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-jar-up-1",
@@ -44334,8 +44334,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-jar-down-1",
@@ -44371,8 +44371,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-jar-up-2",
@@ -44408,8 +44408,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-jar-down-2",
@@ -44445,8 +44445,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-jar-up-3",
@@ -44482,8 +44482,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-jar-down-3",
@@ -44519,8 +44519,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-jar-up-4",
@@ -44556,8 +44556,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-jar-down-4",
@@ -44593,8 +44593,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-radiator-up-1",
@@ -44630,8 +44630,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-radiator-down-1",
@@ -44667,8 +44667,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-radiator-up-2",
@@ -44704,8 +44704,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-radiator-down-2",
@@ -44741,8 +44741,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-radiator-up-3",
@@ -44778,8 +44778,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-radiator-down-3",
@@ -44815,8 +44815,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-radiator-up-4",
@@ -44852,8 +44852,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-radiator-down-4",
@@ -44889,8 +44889,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-memory-up-1",
@@ -44926,8 +44926,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-memory-down-1",
@@ -44963,8 +44963,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-memory-up-2",
@@ -45000,8 +45000,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-memory-down-2",
@@ -45037,8 +45037,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-memory-up-3",
@@ -45074,8 +45074,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-memory-down-3",
@@ -45111,8 +45111,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-memory-up-4",
@@ -45148,8 +45148,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-memory-down-4",
@@ -45185,8 +45185,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-urn-up-1",
@@ -45222,8 +45222,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-urn-down-1",
@@ -45259,8 +45259,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-urn-up-2",
@@ -45296,8 +45296,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-urn-down-2",
@@ -45333,8 +45333,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-urn-up-3",
@@ -45370,8 +45370,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-urn-down-3",
@@ -45407,8 +45407,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-urn-up-4",
@@ -45444,8 +45444,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-urn-down-4",
@@ -45481,8 +45481,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-plank-up-1",
@@ -45518,8 +45518,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-plank-down-1",
@@ -45555,8 +45555,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-plank-up-2",
@@ -45592,8 +45592,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-plank-down-2",
@@ -45629,8 +45629,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-plank-up-3",
@@ -45666,8 +45666,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-plank-down-3",
@@ -45703,8 +45703,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-plank-up-4",
@@ -45740,8 +45740,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-plank-down-4",
@@ -45777,8 +45777,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-skull-up-1",
@@ -45814,8 +45814,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-skull-down-1",
@@ -45851,8 +45851,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-skull-up-2",
@@ -45888,8 +45888,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-skull-down-2",
@@ -45925,8 +45925,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-skull-up-3",
@@ -45962,8 +45962,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-skull-down-3",
@@ -45999,8 +45999,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-skull-up-4",
@@ -46036,8 +46036,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-skull-down-4",
@@ -46073,8 +46073,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-dust-up-1",
@@ -46110,8 +46110,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-dust-down-1",
@@ -46147,8 +46147,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-dust-up-2",
@@ -46184,8 +46184,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-dust-down-2",
@@ -46221,8 +46221,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-dust-up-3",
@@ -46258,8 +46258,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-dust-down-3",
@@ -46295,8 +46295,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-dust-up-4",
@@ -46332,8 +46332,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-dust-down-4",
@@ -46369,8 +46369,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-leaf-up-1",
@@ -46406,8 +46406,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-leaf-down-1",
@@ -46443,8 +46443,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-leaf-up-2",
@@ -46480,8 +46480,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-leaf-down-2",
@@ -46517,8 +46517,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-leaf-up-3",
@@ -46554,8 +46554,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-leaf-down-3",
@@ -46591,8 +46591,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-leaf-up-4",
@@ -46628,8 +46628,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-leaf-down-4",
@@ -46665,8 +46665,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-stick-up-1",
@@ -46702,8 +46702,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-stick-down-1",
@@ -46739,8 +46739,8 @@
           "categories": []
         }
       ],
-      "tier": 1,
-      "cost": []
+      "cost": [],
+      "tier": 1
     },
     {
       "key": "mat-stick-up-2",
@@ -46776,8 +46776,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-stick-down-2",
@@ -46813,8 +46813,8 @@
           "categories": []
         }
       ],
-      "tier": 2,
-      "cost": []
+      "cost": [],
+      "tier": 2
     },
     {
       "key": "mat-stick-up-3",
@@ -46850,8 +46850,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-stick-down-3",
@@ -46887,8 +46887,8 @@
           "categories": []
         }
       ],
-      "tier": 3,
-      "cost": []
+      "cost": [],
+      "tier": 3
     },
     {
       "key": "mat-stick-up-4",
@@ -46924,8 +46924,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     },
     {
       "key": "mat-stick-down-4",
@@ -46961,8 +46961,8 @@
           "categories": []
         }
       ],
-      "tier": 4,
-      "cost": []
+      "cost": [],
+      "tier": 4
     }
   ],
   "categories": [
@@ -48034,7 +48034,7 @@
     {
       "key": "manufacturing",
       "name": "Manufacturing",
-      "iconIndex": 0,
+      "iconIndex": 196,
       "description": "The materials every other craft draws on. Its currency is undecided, so nothing here is charged yet.",
       "scrapItemId": 0,
       "tierPrices": [

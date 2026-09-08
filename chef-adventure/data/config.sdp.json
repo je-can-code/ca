@@ -23099,10 +23099,10 @@
     {
       "key": "RUN_1",
       "identity": {
-        "name": "===TBD RUN-1",
+        "name": "Boundless Runes",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Are robotic miners alive?\nShould they get rights, too?"
       },
       "progression": {
         "maxRank": 10,
@@ -25793,7 +25793,7 @@
       "description": "Undead family, Wisp subgroup.",
       "prose": {
         "beginning": "You burn at the edges. Every {s.interval}, anything close enough takes {s.payload} fire, and hurting you only stokes it.",
-        "middle": "The mantle spreads to {s.radius} tiles and bites for {s.payload}, still answering every wound with flame.",
+        "middle": "The mantle spreads to {s.radius} and bites for {s.payload}, still answering every wound with flame.",
         "end": "A scorched halo. {s.payload} to everything within {s.radius}, pulsing faster the more of them there are, and every hit you take answers instantly."
       }
     },
@@ -25902,8 +25902,8 @@
       "iconIndex": 50,
       "description": "Aquatic family, Crab subgroup.",
       "prose": {
-        "beginning": "The shell answers for you. Every physical blow returns {s.payload} of what it dealt.",
-        "middle": "An iron rebuke: {s.payload} of every hit thrown straight back, and nothing can parry it.",
+        "beginning": "The shell answers for you. Every physical blow returns {s.payload}.",
+        "middle": "An iron rebuke throws {s.payload} straight back, and nothing can parry it.",
         "end": "Shellbreaker's retort returns {s.payload}, and it lands before they have finished swinging."
       }
     },
@@ -25969,7 +25969,7 @@
       "description": "Slime family, Aerial subgroup.",
       "prose": {
         "beginning": "Something restorative drifts off you. Every {s.interval}, allies nearby mend for {s.payload}.",
-        "middle": "A miasma of life, {s.radius} tiles wide, mending {s.payload} every {s.interval}.",
+        "middle": "A miasma of life, {s.radius} wide, mending {s.payload} every {s.interval}.",
         "end": "Spore bloom. {s.payload} to everyone within {s.radius} every {s.interval}, and you knit yourself back together whether anyone notices or not."
       }
     },
@@ -26035,7 +26035,7 @@
       "description": "Plant family, Flower subgroup.",
       "prose": {
         "beginning": "A quiet bloom every {s.interval} lifts one affliction from anyone within {s.radius}.",
-        "middle": "Cleansing petals, {s.radius} tiles wide, stripping {s.count} afflictions off your allies every {s.interval}.",
+        "middle": "Cleansing petals, {s.radius} wide, stripping {s.count} afflictions off your allies every {s.interval}.",
         "end": "A sacred bloom. Every {s.interval}, everything within {s.radius} is simply made clean, however much they were carrying."
       }
     },
@@ -26254,8 +26254,8 @@
       "iconIndex": 56,
       "description": "Construct family, Orb subgroup.",
       "prose": {
-        "beginning": "What you break, you spend. Shattering a shield bursts for {s.payload} of what it was holding, out to {s.radius}.",
-        "middle": "A capacitor surge: {s.payload} of every broken shield thrown back out across {s.radius}.",
+        "beginning": "What you break, you spend. Shattering a shield bursts for {s.payload}, out to {s.radius}.",
+        "middle": "A capacitor surge throws {s.payload} back out across {s.radius}.",
         "end": "Meltdown. The entire shield detonates, amplified by your own, and everything within {s.radius} learns what it was holding back."
       }
     },
