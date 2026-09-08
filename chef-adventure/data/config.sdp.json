@@ -25770,9 +25770,9 @@
       "iconIndex": 48,
       "description": "Undead family, Ghosty subgroup.",
       "prose": {
-        "beginning": "Every trick you pull lingers. {v.skillHistoryBonus} damage for each unique skill in the last {s.window}.",
-        "middle": "The dead remember longer than the living: {v.skillHistoryBonus} per unique skill, now recalled across {s.window}.",
-        "end": "Nothing you do is forgotten. {v.skillHistoryBonus} per unique skill over {s.window}, and your strikes leave Emptiness behind."
+        "beginning": "Every trick you pull lingers.|{v.skillHistoryBonus} damage for each unique skill in the last {s.window}.",
+        "middle": "The dead remember longer than the living:|{v.skillHistoryBonus} per unique skill, now recalled across {s.window}.",
+        "end": "Nothing you do is forgotten.|{v.skillHistoryBonus} per unique skill over {s.window}, and your strikes leave \\state[14] behind."
       }
     },
     {
@@ -25781,9 +25781,9 @@
       "iconIndex": 48,
       "description": "Undead family, Reborn subgroup.",
       "prose": {
-        "beginning": "Death did not finish the job. Every {s.interval}, a ward gathers worth {d.shield}.",
-        "middle": "The pale wall thickens: a ward worth {d.shield} every {s.interval}, pooling up to {d.shieldCap}.",
-        "end": "Wraithwall eternal. Every {s.interval}, {d.shield} of ward, three layers deep, and it holds where flesh would fold."
+        "beginning": "Death did not finish the job.|Every {s.interval}, a ward gathers worth {d.shield}.",
+        "middle": "The pale wall thickens:|a ward worth {d.shield} every {s.interval}, pooling up to {d.shieldCap}.",
+        "end": "Wraithwall eternal.|Every {s.interval}, {d.shield} of ward, three layers deep, and it holds where flesh would fold."
       }
     },
     {
@@ -25792,9 +25792,9 @@
       "iconIndex": 48,
       "description": "Undead family, Wisp subgroup.",
       "prose": {
-        "beginning": "You burn at the edges. Every {s.interval}, anything close enough takes {s.payload} fire, and hurting you only stokes it.",
-        "middle": "The mantle spreads to {s.radius} and bites for {s.payload}, still answering every wound with flame.",
-        "end": "A scorched halo. {s.payload} to everything within {s.radius}, pulsing faster the more of them there are, and every hit you take answers instantly."
+        "beginning": "You burn at the edges.|Every {s.interval}, anything close enough takes {s.payload} fire, and hurting you only stokes it.",
+        "middle": "The mantle spreads to {s.radius} and bites for {s.payload},|still answering every wound with flame.",
+        "end": "A scorched halo.|{s.payload} to everything within {s.radius}, pulsing faster the more of them there are, and every hit you take answers instantly."
       }
     },
     {
@@ -25803,9 +25803,9 @@
       "iconIndex": 48,
       "description": "Undead family, Skeleton subgroup.",
       "prose": {
-        "beginning": "Bones do not flinch. Every {s.perStack} of Life you are missing feeds {d.atk} Power and Force.",
-        "middle": "Graveborn fury sharpens as you fail: {d.atk} Power and Force for every {s.perStack} of Life gone.",
-        "end": "Deathless. {d.atk} Power and Force per {s.perStack} of missing Life, and everything that hits you does half of what it meant to."
+        "beginning": "Bones do not flinch.|Every {s.perStack} of Life you are missing feeds {d.atk} Power and Force.",
+        "middle": "Graveborn fury sharpens as you fail:|{d.atk} Power and Force for every {s.perStack} of Life gone.",
+        "end": "Deathless.|{d.atk} Power and Force per {s.perStack} of missing Life, and everything that hits you does half of what it meant to."
       }
     },
     {
@@ -25814,9 +25814,9 @@
       "iconIndex": 48,
       "description": "Undead family, Armor subgroup.",
       "prose": {
-        "beginning": "The hollow armor plates over what it cannot heal: Endurance {p.def}, Max Life {p.mhp}.",
-        "middle": "A brittle bastion still turns a blade. Endurance {p.def} and Parry {p.grd}, paid for with Max Life {p.mhp}.",
-        "end": "A paper fortress: Endurance {p.def} against Max Life {p.mhp}. Parry {p.grd}, Crit Block {p.ctr}, and crits land {v.critReduction} softer."
+        "beginning": "The hollow armor plates over what it cannot heal:|Endurance {p.def}, Max Life {p.mhp}.",
+        "middle": "A brittle bastion still turns a blade.|Endurance {p.def} and Parry {p.grd}, paid for with Max Life {p.mhp}.",
+        "end": "A paper fortress: Endurance {p.def} against Max Life {p.mhp}.|Parry {p.grd}, Crit Block {p.ctr}, and crits land {v.critReduction} softer."
       }
     },
     {
@@ -25825,9 +25825,9 @@
       "iconIndex": 49,
       "description": "Reptile family, Cobra subgroup.",
       "prose": {
-        "beginning": "Your crits carry poison: {s.chance} to sink venom worth {d.hpFormula} a tick, and every fang after that keeps it alive longer.",
-        "middle": "Nothing survives the second bite. Venom pools {s.stacks} deep, each layer draining {d.hpFormula}.",
-        "end": "A deluge. Venom takes {d.hpFormula} every tick and only ever gets worse the longer you keep landing crits."
+        "beginning": "Your crits carry poison: {s.chance} to sink venom worth {d.hpFormula} a tick,|and every fang after that keeps it alive longer.",
+        "middle": "Nothing survives the second bite.|Venom pools {s.stacks} deep, each layer draining {d.hpFormula}.",
+        "end": "A deluge.|Venom takes {d.hpFormula} every tick and only ever gets worse the longer you keep landing crits."
       }
     },
     {
@@ -25836,9 +25836,9 @@
       "iconIndex": 49,
       "description": "Reptile family, Dargin subgroup.",
       "prose": {
-        "beginning": "A dragon's heart only wakes when the end is close. Below {s.gate} Life, damage taken {p.pdr}.",
-        "middle": "Dragonheart stirring, and stirring sooner: below {s.gate} Life, {p.pdr} to every blow and {p.elementRate} off every element.",
-        "end": "Dragonheart aflame. Below {s.gate} Life you take {p.pdr}, shrug {p.elementRate} off the elements, and nothing lesser can touch you at all."
+        "beginning": "A dragon's heart only wakes when the end is close.|Below {s.gate} Life, damage taken {p.pdr}.",
+        "middle": "Dragonheart stirring, and stirring sooner:|below {s.gate} Life, {p.pdr} to every blow and {p.elementRate} off every element.",
+        "end": "Dragonheart aflame.|Below {s.gate} Life you take {p.pdr}, shrug {p.elementRate} off the elements, and nothing lesser can touch you at all."
       }
     },
     {
@@ -25847,9 +25847,9 @@
       "iconIndex": 49,
       "description": "Reptile family, Draconite subgroup.",
       "prose": {
-        "beginning": "Hold still and the scales set like stone. Stand {s.gate} without moving for Endurance {p.def}.",
-        "middle": "Stone mantle. {s.gate} of stillness and Endurance climbs {p.def}. The longer you plant, the less anything moves you.",
-        "end": "A granite bastion. {s.gate} unmoving buys Endurance {p.def} and Parry {p.grd}; blows simply stop arriving anywhere."
+        "beginning": "Hold still and the scales set like stone.|Stand {s.gate} without moving for Endurance {p.def}.",
+        "middle": "Stone mantle. {s.gate} of stillness and Endurance climbs {p.def}.|The longer you plant, the less anything moves you.",
+        "end": "A granite bastion.|{s.gate} unmoving buys Endurance {p.def} and Parry {p.grd}; blows simply stop arriving anywhere."
       }
     },
     {
@@ -25858,9 +25858,9 @@
       "iconIndex": 49,
       "description": "Reptile family, Lamia subgroup.",
       "prose": {
-        "beginning": "Patience sharpens the beam: {v.castTimeDamageBonus} damage for every second you hold the cast.",
-        "middle": "Converging light. {v.castTimeDamageBonus} per second charged, and the charge itself comes {v.castSpeedRate} quicker.",
-        "end": "Everything collapses to a point. {v.castTimeDamageBonus} damage per second held, at {v.castSpeedRate} the charge rate."
+        "beginning": "Patience sharpens the beam:|{v.castTimeDamageBonus} damage for every second you hold the cast.",
+        "middle": "Converging light.|{v.castTimeDamageBonus} per second charged, and the charge itself comes {v.castSpeedRate} quicker.",
+        "end": "Everything collapses to a point.|{v.castTimeDamageBonus} damage per second held, at {v.castSpeedRate} the charge rate."
       }
     },
     {
@@ -25869,9 +25869,9 @@
       "iconIndex": 49,
       "description": "Reptile family, Salamander subgroup.",
       "prose": {
-        "beginning": "Something primal runs under the skin. Energy and Void strike {v.boostElement[8]} harder.",
-        "middle": "Attunement spreads outward: Energy and Void at {v.boostElement[8]}, and the four base elements answer to you too at {v.boostElement[4]}.",
-        "end": "A primal conduit. Every element in the world bends: nothing you throw lands at less than {v.boostElement[4]}, and Energy and Void hit for {v.boostElement[8]}."
+        "beginning": "Something primal runs under the skin.|Energy and Void strike {v.boostElement[8]} harder.",
+        "middle": "Attunement spreads outward: Energy and Void at {v.boostElement[8]},|and the four base elements answer to you too at {v.boostElement[4]}.",
+        "end": "A primal conduit.|Every element in the world bends: nothing you throw lands at less than {v.boostElement[4]}, and Energy and Void hit for {v.boostElement[8]}."
       }
     },
     {
@@ -25880,9 +25880,9 @@
       "iconIndex": 50,
       "description": "Aquatic family, Kappa subgroup.",
       "prose": {
-        "beginning": "A kappa's luck rubs off. Enemies part with {v.dropMultiplier} more than they meant to.",
-        "middle": "Fortune favors you twice: {v.dropMultiplier} more loot, and {p.eva} Grace to walk away with it.",
-        "end": "A trickster's gambit. Drop rate, Grace and Luck each climb by {v.evaBuffPlus}, and keep climbing every level you earn."
+        "beginning": "A kappa's luck rubs off.|Enemies part with {v.dropMultiplier} more than they meant to.",
+        "middle": "Fortune favors you twice: {v.dropMultiplier} more loot,|and {p.eva} Grace to walk away with it.",
+        "end": "A trickster's gambit.|Drop rate, Grace and Luck each climb by {v.evaBuffPlus}, and keep climbing every level you earn."
       }
     },
     {
@@ -25891,9 +25891,9 @@
       "iconIndex": 50,
       "description": "Aquatic family, Polliwog subgroup.",
       "prose": {
-        "beginning": "Root yourself and the power gathers: a stack every {s.interval} standing still, {d.mat} Force each, gone the moment you move.",
-        "middle": "A rooted tempest, {s.stacks} layers deep at {d.mat} Force apiece, but one step still costs you everything.",
-        "end": "Rooted cataclysm. {s.stacks} stacks at {d.mat} Force each, and at last you can move without losing it all: a step costs one stack, no more."
+        "beginning": "Root yourself and the power gathers:|a stack every {s.interval} standing still, {d.mat} Force each, gone the moment you move.",
+        "middle": "A rooted tempest, {s.stacks} layers deep at {d.mat} Force apiece,|but one step still costs you everything.",
+        "end": "Rooted cataclysm.|{s.stacks} stacks at {d.mat} Force each, and at last you can move without losing it all: a step costs one stack, no more."
       }
     },
     {
@@ -25902,9 +25902,9 @@
       "iconIndex": 50,
       "description": "Aquatic family, Crab subgroup.",
       "prose": {
-        "beginning": "The shell answers for you. Every physical blow returns {s.payload}.",
-        "middle": "An iron rebuke throws {s.payload} straight back, and nothing can parry it.",
-        "end": "Shellbreaker's retort returns {s.payload}, and it lands before they have finished swinging."
+        "beginning": "The shell answers for you.|Every physical blow returns {s.payload}.",
+        "middle": "An iron rebuke throws {s.payload} straight back,|and nothing can parry it.",
+        "end": "Shellbreaker's retort returns {s.payload},|and it lands before they have finished swinging."
       }
     },
     {
@@ -25913,9 +25913,9 @@
       "iconIndex": 50,
       "description": "Aquatic family, Fish subgroup.",
       "prose": {
-        "beginning": "Too slippery to pin down. For {s.gate} after anything hits you, move {v.speedBoost} faster.",
-        "middle": "A swift current carries you {s.gate} clear of whatever landed, at {v.speedBoost} speed.",
-        "end": "Slipstream. {s.gate} of {v.speedBoost} movement after every hit taken, and the opening you make is sharper for it."
+        "beginning": "Too slippery to pin down.|For {s.gate} after anything hits you, move {v.speedBoost} faster.",
+        "middle": "A swift current carries you {s.gate} clear of whatever landed,|at {v.speedBoost} speed.",
+        "end": "Slipstream.|{s.gate} of {v.speedBoost} movement after every hit taken, and the opening you make is sharper for it."
       }
     },
     {
@@ -25924,9 +25924,9 @@
       "iconIndex": 50,
       "description": "Aquatic family, Cephalopod subgroup.",
       "prose": {
-        "beginning": "Wounded, you vanish into ink: {s.duration} at {d.pdr} damage taken.",
-        "middle": "A murky pall, {s.duration} long and {d.pdr} deep. They lose you exactly when it matters.",
-        "end": "The abyssal veil answers any harm at all: {s.duration} at {d.pdr}, and even in clear water you take {p.pdr} less."
+        "beginning": "Wounded, you vanish into ink:|{s.duration} at {d.pdr} damage taken.",
+        "middle": "A murky pall, {s.duration} long and {d.pdr} deep.|They lose you exactly when it matters.",
+        "end": "The abyssal veil answers any harm at all: {s.duration} at {d.pdr},|and even in clear water you take {p.pdr} less."
       }
     },
     {
@@ -25935,9 +25935,9 @@
       "iconIndex": 51,
       "description": "Slime family, Puddle subgroup.",
       "prose": {
-        "beginning": "Wounds teach the slime what hit it: {s.duration} of {d.elementRate} against the elements.",
-        "middle": "Reactive gel, {s.stacks} layers thick and {s.duration} long. The more they burn you, the less it works.",
-        "end": "Elemental osmosis. {s.stacks} coats of {d.elementRate}, and now nothing elemental is unfamiliar: every element in the world, blunted."
+        "beginning": "Wounds teach the slime what hit it:|{s.duration} of {d.elementRate} against the elements.",
+        "middle": "Reactive gel, {s.stacks} layers thick and {s.duration} long.|The more they burn you, the less it works.",
+        "end": "Elemental osmosis.|{s.stacks} coats of {d.elementRate}, and now nothing elemental is unfamiliar: every element in the world, blunted."
       }
     },
     {
@@ -25946,9 +25946,9 @@
       "iconIndex": 51,
       "description": "Slime family, Roper subgroup.",
       "prose": {
-        "beginning": "Misery is an opening. {v.perDebuffBuff} more damage for every affliction already on them.",
-        "middle": "An eldritch tempest feeds itself: {v.perDebuffBuff} per affliction, and every strike adds another.",
-        "end": "Eldritch maelstrom. {v.perDebuffBuff} per affliction, and each blow heaps five more on. The wound teaches the next one where to land."
+        "beginning": "Misery is an opening.|{v.perDebuffBuff} more damage for every affliction already on them.",
+        "middle": "An eldritch tempest feeds itself: {v.perDebuffBuff} per affliction,|and every strike adds another.",
+        "end": "Eldritch maelstrom. {v.perDebuffBuff} per affliction, and each blow heaps five more on.|The wound teaches the next one where to land."
       }
     },
     {
@@ -25957,9 +25957,9 @@
       "iconIndex": 51,
       "description": "Slime family, Jelly subgroup.",
       "prose": {
-        "beginning": "Flesh knits and something else fills the gap: {v.onSelfHpHealMp} of any healing you take returns as Magi.",
-        "middle": "Mana weave. {v.onSelfHpHealMp} of your healing becomes Magi, yours and every ally's within {s.radius}.",
-        "end": "Arcane transfusion: any healing at all, of any kind, pays {v.onSelfAnyHealMp} back as Magi to everyone within {s.radius}."
+        "beginning": "Flesh knits and something else fills the gap:|{v.onSelfHpHealMp} of any healing you take returns as Magi.",
+        "middle": "Mana weave.|{v.onSelfHpHealMp} of your healing becomes Magi, yours and every ally's within {s.radius}.",
+        "end": "Arcane transfusion: any healing at all, of any kind,|pays {v.onSelfAnyHealMp} back as Magi to everyone within {s.radius}."
       }
     },
     {
@@ -25968,9 +25968,9 @@
       "iconIndex": 51,
       "description": "Slime family, Aerial subgroup.",
       "prose": {
-        "beginning": "Something restorative drifts off you. Every {s.interval}, allies nearby mend for {s.payload}.",
-        "middle": "A miasma of life, {s.radius} wide, mending {s.payload} every {s.interval}.",
-        "end": "Spore bloom. {s.payload} to everyone within {s.radius} every {s.interval}, and you knit yourself back together whether anyone notices or not."
+        "beginning": "Something restorative drifts off you.|Every {s.interval}, allies nearby mend for {s.payload}.",
+        "middle": "A miasma of life, {s.radius} wide,|mending {s.payload} every {s.interval}.",
+        "end": "Spore bloom.|{s.payload} to everyone within {s.radius} every {s.interval}, and you knit yourself back together whether anyone notices or not."
       }
     },
     {
@@ -25979,9 +25979,9 @@
       "iconIndex": 51,
       "description": "Slime family, Cube subgroup.",
       "prose": {
-        "beginning": "You are an obstacle now. Anything near you slows by {d.speedBoost}, and keeps slowing while it stays.",
-        "middle": "A living bulwark: {s.stacks} layers of mire, each stealing {d.speedBoost} of speed and fouling their casting.",
-        "end": "Immovable bulk. The mire never stops deepening: {d.speedBoost} slower with every stack, and every stack opens them {d.pdr} wider."
+        "beginning": "You are an obstacle now.|Anything near you slows by {d.speedBoost}, and keeps slowing while it stays.",
+        "middle": "A living bulwark: {s.stacks} layers of mire,|each stealing {d.speedBoost} of speed and fouling their casting.",
+        "end": "Immovable bulk.|The mire never stops deepening: {d.speedBoost} slower with every stack, and every stack opens them {d.pdr} wider."
       }
     },
     {
@@ -25990,9 +25990,9 @@
       "iconIndex": 52,
       "description": "Plant family, Trap subgroup.",
       "prose": {
-        "beginning": "What you inflict takes root. Every affliction you land lingers {v.stateDurationPerc} longer.",
-        "middle": "A thorned curse holds twice as long: {v.stateDurationPerc} added to everything you put on them.",
-        "end": "Stranglethorn. Afflictions last {v.stateDurationPerc} longer, and anything already Rooted takes {v.bonusDamageIfState} from you."
+        "beginning": "What you inflict takes root.|Every affliction you land lingers {v.stateDurationPerc} longer.",
+        "middle": "A thorned curse holds twice as long:|{v.stateDurationPerc} added to everything you put on them.",
+        "end": "Stranglethorn.|Afflictions last {v.stateDurationPerc} longer, and anything already \\state[5] takes {v.bonusDamageIfState} from you."
       }
     },
     {
@@ -26001,9 +26001,9 @@
       "iconIndex": 52,
       "description": "Plant family, Fungus subgroup.",
       "prose": {
-        "beginning": "Instinct sharpens in the waiting. With every skill ready, Crit Rate {p.cri}.",
-        "middle": "A primal surge. Crit Rate {p.cri} while nothing is spent, though the coiling costs you {p.atk} Power to hold.",
-        "end": "Primal apex. Nothing spent, everything ready: Crit Rate {p.cri}, Power {p.atk}, and every basic attack lands {v.bonusHitsBasic} more times."
+        "beginning": "Instinct sharpens in the waiting.|With every skill ready, Crit Rate {p.cri}.",
+        "middle": "A primal surge.|Crit Rate {p.cri} while nothing is spent, though the coiling costs you {p.atk} Power to hold.",
+        "end": "Primal apex.|Nothing spent, everything ready: Crit Rate {p.cri}, Power {p.atk}, and every basic attack lands {v.bonusHitsBasic} more times."
       }
     },
     {
@@ -26012,9 +26012,9 @@
       "iconIndex": 52,
       "description": "Plant family, Dryad subgroup.",
       "prose": {
-        "beginning": "The grove answers a healthy wood. While every ally near you stands above {s.gate} Life, Force {p.mat}.",
-        "middle": "Nature's ire: {p.mat} Force and {p.mdf} Resist, for as long as nobody around you is bleeding badly.",
-        "end": "Nature's judgment asks less and gives more. Allies need only hold {s.gate} Life for Force {p.mat} and Resist {p.mdf}."
+        "beginning": "The grove answers a healthy wood.|While every ally near you stands above {s.gate} Life, Force {p.mat}.",
+        "middle": "Nature's ire: {p.mat} Force and {p.mdf} Resist,|for as long as nobody around you is bleeding badly.",
+        "end": "Nature's judgment asks less and gives more.|Allies need only hold {s.gate} Life for Force {p.mat} and Resist {p.mdf}."
       }
     },
     {
@@ -26023,9 +26023,9 @@
       "iconIndex": 52,
       "description": "Plant family, Treant subgroup.",
       "prose": {
-        "beginning": "Bark thickens where nothing disturbs it. {s.gate} untouched and physical blows land {p.pdr} softer.",
-        "middle": "Tempered ironbark, and quicker to set: {s.gate} clear buys {p.pdr} against physical harm and Endurance {p.def}.",
-        "end": "Ancient ironbark. Barely {s.gate} between blows and the wood closes over: physical damage {p.pdr}, Endurance {p.def}."
+        "beginning": "Bark thickens where nothing disturbs it.|{s.gate} untouched and physical blows land {p.pdr} softer.",
+        "middle": "Tempered ironbark, and quicker to set:|{s.gate} clear buys {p.pdr} against physical harm and Endurance {p.def}.",
+        "end": "Ancient ironbark.|Barely {s.gate} between blows and the wood closes over: physical damage {p.pdr}, Endurance {p.def}."
       }
     },
     {
@@ -26035,8 +26035,8 @@
       "description": "Plant family, Flower subgroup.",
       "prose": {
         "beginning": "A quiet bloom every {s.interval} lifts one affliction from anyone within {s.radius}.",
-        "middle": "Cleansing petals, {s.radius} wide, stripping {s.count} afflictions off your allies every {s.interval}.",
-        "end": "A sacred bloom. Every {s.interval}, everything within {s.radius} is simply made clean, however much they were carrying."
+        "middle": "Cleansing petals, {s.radius} wide,|stripping {s.count} afflictions off your allies every {s.interval}.",
+        "end": "A sacred bloom.|Every {s.interval}, everything within {s.radius} is simply made clean, however much they were carrying."
       }
     },
     {
@@ -26045,9 +26045,9 @@
       "iconIndex": 53,
       "description": "Beast family, Bearcat subgroup.",
       "prose": {
-        "beginning": "Muscle and magic start to rhyme: Force rises by {v.matBuffPlus} of your Power.",
-        "middle": "A void chord runs through every swing. Force takes {v.matBuffPlus} of your Power, and {s.chance} of your blows leave Emptiness behind.",
-        "end": "Void harmonics. Power feeds Force and Force feeds Power, each carrying {v.matBuffPlus} of the other, and {s.chance} of what you touch is unmade."
+        "beginning": "Muscle and magic start to rhyme:|Force rises by {v.matBuffPlus} of your Power.",
+        "middle": "A void chord runs through every swing.|Force takes {v.matBuffPlus} of your Power, and {s.chance} of your blows leave \\state[14] behind.",
+        "end": "Void harmonics.|Power feeds Force and Force feeds Power, each carrying {v.matBuffPlus} of the other, and {s.chance} of what you touch is unmade."
       }
     },
     {
@@ -26056,9 +26056,9 @@
       "iconIndex": 53,
       "description": "Beast family, Bat subgroup.",
       "prose": {
-        "beginning": "Bats do not hunt alone. With an ally inside {s.gate}, Accuracy {p.hit}.",
-        "middle": "A chittering frenzy carries {s.gate} now: Accuracy {p.hit} and Grace {p.eva} for as long as someone flies with you.",
-        "end": "A wingbeat chorus reaches {s.gate}. Accuracy {p.hit}, Grace {p.eva}, and everything you do costs {p.tcr} less."
+        "beginning": "Bats do not hunt alone.|With an ally inside {s.gate}, Accuracy {p.hit}.",
+        "middle": "A chittering frenzy carries {s.gate} now:|Accuracy {p.hit} and Grace {p.eva} for as long as someone flies with you.",
+        "end": "A wingbeat chorus reaches {s.gate}.|Accuracy {p.hit}, Grace {p.eva}, and everything you do costs {p.tcr} less."
       }
     },
     {
@@ -26067,9 +26067,9 @@
       "iconIndex": 53,
       "description": "Beast family, Beaker subgroup.",
       "prose": {
-        "beginning": "Harm sends you skyward: {s.duration} of {d.speedBoost} movement, once every {s.interval}.",
-        "middle": "A rising gust, now every {s.interval}: {d.speedBoost} faster and {d.eva} harder to touch while it lasts.",
-        "end": "Gale force. Every {s.interval}, {s.duration} of {d.speedBoost} movement, {d.eva} Grace, and everything that swings at you answers to itself."
+        "beginning": "Harm sends you skyward:|{s.duration} of {d.speedBoost} movement, once every {s.interval}.",
+        "middle": "A rising gust, now every {s.interval}:|{d.speedBoost} faster and {d.eva} harder to touch while it lasts.",
+        "end": "Gale force.|Every {s.interval}, {s.duration} of {d.speedBoost} movement, {d.eva} Grace, and everything that swings at you answers to itself."
       }
     },
     {
@@ -26078,9 +26078,9 @@
       "iconIndex": 53,
       "description": "Beast family, Rat subgroup.",
       "prose": {
-        "beginning": "Rats hoard together. Keep an ally within {s.gate} and everything you learn sticks {v.aptMultiplier} better.",
-        "middle": "A nest egg travels: the bond holds out to {s.gate} now, paying Aptitude {v.aptMultiplier} and Experience {p.exr}.",
-        "end": "Compound interest. Even {s.gate} apart the share still counts: points, Aptitude and Experience all at {v.aptMultiplier}."
+        "beginning": "Rats hoard together.|Keep an ally within {s.gate} and everything you learn sticks {v.aptMultiplier} better.",
+        "middle": "A nest egg travels: the bond holds out to {s.gate} now,|paying Aptitude {v.aptMultiplier} and Experience {p.exr}.",
+        "end": "Compound interest.|Even {s.gate} apart the share still counts: points, Aptitude and Experience all at {v.aptMultiplier}."
       }
     },
     {
@@ -26089,9 +26089,9 @@
       "iconIndex": 53,
       "description": "Beast family, Quadruped subgroup.",
       "prose": {
-        "beginning": "The pack looks to you. Every {s.interval}, allies within {s.radius} take Endurance {d.def}.",
-        "middle": "An alpha's howl carries {s.radius}, bringing Endurance {d.def} to everyone who hears it.",
-        "end": "Pack sovereignty. Endurance {d.def} to all within {s.radius}, and your own guard becomes theirs: Resist rises by {d.mdf}."
+        "beginning": "The pack looks to you.|Every {s.interval}, allies within {s.radius} take Endurance {d.def}.",
+        "middle": "An alpha's howl carries {s.radius},|bringing Endurance {d.def} to everyone who hears it.",
+        "end": "Pack sovereignty.|Endurance {d.def} to all within {s.radius}, and your own guard becomes theirs: Resist rises by {d.mdf}."
       }
     },
     {
@@ -26100,9 +26100,9 @@
       "iconIndex": 54,
       "description": "Insect family, Needler subgroup.",
       "prose": {
-        "beginning": "The sting carries something. {s.chance} of your hits leave Poison behind.",
-        "middle": "A hive puncture finds the sickness first: {s.chance} to poison, and {v.bonusDamageIfStateType} more damage to anything already carrying it.",
-        "end": "Lance of the hive. Everything you touch is poisoned, and everything poisoned takes {v.bonusDamageIfStateType} from you."
+        "beginning": "The sting carries something.|{s.chance} of your hits leave \\state[16] behind.",
+        "middle": "A hive puncture finds the sickness first: {s.chance} to poison,|and {v.bonusDamageIfStateType} more damage to anything already carrying it.",
+        "end": "Lance of the hive.|Everything you touch is poisoned, and everything poisoned takes {v.bonusDamageIfStateType} from you."
       }
     },
     {
@@ -26111,9 +26111,9 @@
       "iconIndex": 54,
       "description": "Insect family, Crawler subgroup.",
       "prose": {
-        "beginning": "The network feeds on company. Every enemy near you is worth {v.lst} Lifesteal.",
+        "beginning": "The network feeds on company.|Every enemy near you is worth {v.lst} Lifesteal.",
         "middle": "A spire synapse: {v.lst} Lifesteal and {p.hrg} regeneration for each one that crowds you.",
-        "end": "Spire dominion. Every body around you gives {v.lst} Lifesteal, {p.hrg} regeneration, and {v.critReduction} off the crits they land. Being surrounded is the point."
+        "end": "Spire dominion. Every body around you gives {v.lst} Lifesteal, {p.hrg} regeneration, and {v.critReduction} off the crits they land.|Being surrounded is the point."
       }
     },
     {
@@ -26122,9 +26122,9 @@
       "iconIndex": 54,
       "description": "Insect family, Brood subgroup.",
       "prose": {
-        "beginning": "Plague wants company. Poison you inflict jumps {v.spread[0]} of the time to anything within {v.spread[1]}.",
-        "middle": "An endemic swarm: poison leaps {v.spread[1]}, taking {v.spreadPerTick} more of them every {v.spreadTick}.",
-        "end": "Pandemic. {v.spreadPerTick} new hosts every {v.spreadTick} out to {v.spread[1]}. Put it on one of them and it belongs to all of them."
+        "beginning": "Plague wants company.|\\state[16] you inflict jumps {v.spread[0]} of the time to anything within {v.spread[1]}.",
+        "middle": "An endemic swarm: poison leaps {v.spread[1]},|taking {v.spreadPerTick} more of them every {v.spreadTick}.",
+        "end": "Pandemic. {v.spreadPerTick} new hosts every {v.spreadTick} out to {v.spread[1]}.|Put it on one of them and it belongs to all of them."
       }
     },
     {
@@ -26133,9 +26133,9 @@
       "iconIndex": 54,
       "description": "Insect family, Scorpion subgroup.",
       "prose": {
-        "beginning": "Barbs answer every blow: {s.payload} back to whatever struck you within {s.radius}.",
-        "middle": "A chitin lash reaches {s.radius} now, returning {s.payload} for every physical hit you take.",
-        "end": "Barbed retribution, and it lands twice: {s.payload} each time, to anything within {s.radius}."
+        "beginning": "Barbs answer every blow:|{s.payload} back to whatever struck you within {s.radius}.",
+        "middle": "A chitin lash reaches {s.radius} now,|returning {s.payload} for every physical hit you take.",
+        "end": "Barbed retribution,|and it lands twice: {s.payload} each time, to anything within {s.radius}."
       }
     },
     {
@@ -26144,9 +26144,9 @@
       "iconIndex": 54,
       "description": "Insect family, Parasite subgroup.",
       "prose": {
-        "beginning": "What mends you mends the swarm: {v.onSelfHpHealHp} of any healing you take reaches allies within {s.radius}.",
-        "middle": "A siphon weave, {s.radius} wide, sharing out {v.onSelfHpHealHp} of your healing and {v.onSelfMpHealMp} of your Magi.",
-        "end": "Cradle of leech. Every drop of Life, Magi and Tech that reaches you reaches everyone within {s.radius} too."
+        "beginning": "What mends you mends the swarm:|{v.onSelfHpHealHp} of any healing you take reaches allies within {s.radius}.",
+        "middle": "A siphon weave, {s.radius} wide,|sharing out {v.onSelfHpHealHp} of your healing and {v.onSelfMpHealMp} of your Magi.",
+        "end": "Cradle of leech.|Every drop of Life, Magi and Tech that reaches you reaches everyone within {s.radius} too."
       }
     },
     {
@@ -26155,9 +26155,9 @@
       "iconIndex": 55,
       "description": "Humanoid family, Minotaur subgroup.",
       "prose": {
-        "beginning": "Keep moving and it builds: {d.atk} Power a step, {s.stacks} deep, and the next skill you throw spends all of it.",
-        "middle": "Gathering thunder, {s.stacks} steps' worth at {d.atk} apiece. Run further, hit once, hit enormously.",
-        "end": "Stampede. There is no ceiling worth naming: {d.atk} Power per step, and every step you have ever taken goes into the swing."
+        "beginning": "Keep moving and it builds: {d.atk} Power a step, {s.stacks} deep,|and the next skill you throw spends all of it.",
+        "middle": "Gathering thunder, {s.stacks} steps' worth at {d.atk} apiece.|Run further, hit once, hit enormously.",
+        "end": "Stampede.|There is no ceiling worth naming: {d.atk} Power per step, and every step you have ever taken goes into the swing."
       }
     },
     {
@@ -26166,7 +26166,7 @@
       "iconIndex": 55,
       "description": "Humanoid family, Orc subgroup.",
       "prose": {
-        "beginning": "A warchief does not wait. Every cooldown you carry runs {v.cdr} shorter.",
+        "beginning": "A warchief does not wait.|Every cooldown you carry runs {v.cdr} shorter.",
         "middle": "",
         "end": ""
       }
@@ -26177,9 +26177,9 @@
       "iconIndex": 55,
       "description": "Humanoid family, Bandit subgroup.",
       "prose": {
-        "beginning": "Fight dirty. {s.chance} of your hits leave them clawing at their eyes.",
-        "middle": "A dirty trick every time: {s.chance} to Blind, and {p.eva} Grace while they swing at nothing.",
-        "end": "A blinding gambit. Everything you hit goes blind, and every dodge you make leaves them wide open to something far worse."
+        "beginning": "Fight dirty.|{s.chance} of your hits leave them clawing at their eyes.",
+        "middle": "A dirty trick every time: {s.chance} to \\state[18],|and {p.eva} Grace while they swing at nothing.",
+        "end": "A blinding gambit.|Everything you hit goes blind, and every dodge you make leaves them wide open to something far worse."
       }
     },
     {
@@ -26188,9 +26188,9 @@
       "iconIndex": 55,
       "description": "Humanoid family, Cyclops subgroup.",
       "prose": {
-        "beginning": "A thick skull has its uses. Roots find less and less purchase on you, until they stop holding you at all.",
-        "middle": "Stone temper: nothing roots you, and what would disable you slips off more often than it lands.",
-        "end": "An adamant mind. Neither root nor disabling touches you, and half of what would move you simply doesn't."
+        "beginning": "A thick skull has its uses.|Roots find less and less purchase on you, until they stop holding you at all.",
+        "middle": "Stone temper: nothing roots you,|and what would disable you slips off more often than it lands.",
+        "end": "An adamant mind.|Neither root nor disabling touches you, and half of what would move you simply doesn't."
       }
     },
     {
@@ -26199,9 +26199,9 @@
       "iconIndex": 55,
       "description": "Humanoid family, Kobold subgroup.",
       "prose": {
-        "beginning": "A field medic wastes nothing. Everything you consume works {p.pha} harder.",
-        "middle": "Trail rations keep: {s.foodTypes} last longer on you, and the keeping shows in {s.statList} across the board.",
-        "end": "A battlefield banquet. Every food lingers, every stat it feeds climbs, and Metabolize no longer costs you the meal."
+        "beginning": "A field medic wastes nothing.|Everything you consume works {p.pha} harder.",
+        "middle": "Trail rations keep: {s.foodTypes} last longer on you,|and the keeping shows in {s.statList} across the board.",
+        "end": "A battlefield banquet.|Every food lingers, every stat it feeds climbs, and Metabolize no longer costs you the meal."
       }
     },
     {
@@ -26210,9 +26210,9 @@
       "iconIndex": 56,
       "description": "Construct family, Titan subgroup.",
       "prose": {
-        "beginning": "Nothing sticks to a titan. Every affliction you carry is worth {p.atk} Power and Force.",
-        "middle": "A relentless march: each curse on you gives {p.atk} Power and Force, and {p.pdr} off everything they throw.",
-        "end": "Juggernaut. Every affliction feeds you {p.atk} Power and Force, {p.pdr} of protection, and {v.lst} Lifesteal. Let them pile on."
+        "beginning": "Nothing sticks to a titan.|Every affliction you carry is worth {p.atk} Power and Force.",
+        "middle": "A relentless march: each curse on you gives {p.atk} Power and Force,|and {p.pdr} off everything they throw.",
+        "end": "Juggernaut. Every affliction feeds you {p.atk} Power and Force, {p.pdr} of protection, and {v.lst} Lifesteal.|Let them pile on."
       }
     },
     {
@@ -26221,9 +26221,9 @@
       "iconIndex": 56,
       "description": "Construct family, Hazard subgroup.",
       "prose": {
-        "beginning": "Everything you throw lands wider: blast radius {v.radiusRate}.",
-        "middle": "A blast front, not a blast point: {v.radiusRate} across and {v.thicknessRate} deep.",
-        "end": "Ground zero. {v.radiusRate} and {v.thicknessRate} on everything, and then more on top of that. There is no edge left to stand on."
+        "beginning": "Everything you throw lands wider:|blast radius {v.radiusRate}.",
+        "middle": "A blast front, not a blast point:|{v.radiusRate} across and {v.thicknessRate} deep.",
+        "end": "Ground zero. {v.radiusRate} and {v.thicknessRate} on everything, and then more on top of that.|There is no edge left to stand on."
       }
     },
     {
@@ -26232,9 +26232,9 @@
       "iconIndex": 56,
       "description": "Construct family, Bot subgroup.",
       "prose": {
-        "beginning": "The chassis maintains itself. Every {s.interval}, {s.payload} back, no thought required.",
-        "middle": "A maintenance cycle worth {s.payload} every {s.interval}. Attrition simply stops working on you.",
-        "end": "Autonomic overdrive. {s.payload} every {s.interval}, and the better you get at fighting the more it mends."
+        "beginning": "The chassis maintains itself.|Every {s.interval}, {s.payload} back, no thought required.",
+        "middle": "A maintenance cycle worth {s.payload} every {s.interval}.|Attrition simply stops working on you.",
+        "end": "Autonomic overdrive.|{s.payload} every {s.interval}, and the better you get at fighting the more it mends."
       }
     },
     {
@@ -26243,9 +26243,9 @@
       "iconIndex": 56,
       "description": "Construct family, Puppet subgroup.",
       "prose": {
-        "beginning": "Every thread you tie pulls harder: {v.perDebuffBuff} more damage for each affliction on them.",
-        "middle": "A soul bind. {v.perDebuffBuff} per affliction, and {s.chance} of your hits take their hands away entirely.",
-        "end": "Soul rend. {v.perDebuffBuff} per affliction, and every strike risks silencing them and disabling them both at once."
+        "beginning": "Every thread you tie pulls harder:|{v.perDebuffBuff} more damage for each affliction on them.",
+        "middle": "A soul bind.|{v.perDebuffBuff} per affliction, and {s.chance} of your hits take their hands away entirely.",
+        "end": "Soul rend.|{v.perDebuffBuff} per affliction, and every strike risks silencing them and disabling them both at once."
       }
     },
     {
@@ -26254,9 +26254,9 @@
       "iconIndex": 56,
       "description": "Construct family, Orb subgroup.",
       "prose": {
-        "beginning": "What you break, you spend. Shattering a shield bursts for {s.payload}, out to {s.radius}.",
+        "beginning": "What you break, you spend.|Shattering a shield bursts for {s.payload}, out to {s.radius}.",
         "middle": "A capacitor surge throws {s.payload} back out across {s.radius}.",
-        "end": "Meltdown. The entire shield detonates, amplified by your own, and everything within {s.radius} learns what it was holding back."
+        "end": "Meltdown.|The entire shield detonates, amplified by your own, and everything within {s.radius} learns what it was holding back."
       }
     },
     {
@@ -26265,9 +26265,9 @@
       "iconIndex": 57,
       "description": "Deity family, Elemental subgroup.",
       "prose": {
-        "beginning": "Resistance is a suggestion. The four great elements pierce {v.pierceElement} deeper.",
-        "middle": "Elemental flux: six elements now, each cutting {v.pierceElement} through whatever they hide behind.",
-        "end": "An elemental singularity. Every element there is pierces {v.pierceElement}, and nothing is safe from anything."
+        "beginning": "Resistance is a suggestion.|The four great elements pierce {v.pierceElement} deeper.",
+        "middle": "Elemental flux: six elements now,|each cutting {v.pierceElement} through whatever they hide behind.",
+        "end": "An elemental singularity.|Every element there is pierces {v.pierceElement}, and nothing is safe from anything."
       }
     },
     {
@@ -26276,9 +26276,9 @@
       "iconIndex": 57,
       "description": "Deity family, Aspect subgroup.",
       "prose": {
-        "beginning": "You feel what they feel. Whenever an ally within {s.radius} is mended, {v.onAllyHpHealHp} of it reaches you too.",
-        "middle": "An empathic echo carries {s.radius}: {v.onAllyHpHealHp} of every kindness they receive lands on you as Life and Magi both.",
-        "end": "An empathic nexus. Life, Magi, Tech: anything that restores an ally within {s.radius} restores {v.onAllyHpHealHp} of it in you."
+        "beginning": "You feel what they feel.|Whenever an ally within {s.radius} is mended, {v.onAllyHpHealHp} of it reaches you too.",
+        "middle": "An empathic echo carries {s.radius}:|{v.onAllyHpHealHp} of every kindness they receive lands on you as Life and Magi both.",
+        "end": "An empathic nexus.|Life, Magi, Tech: anything that restores an ally within {s.radius} restores {v.onAllyHpHealHp} of it in you."
       }
     },
     {
@@ -26287,9 +26287,9 @@
       "iconIndex": 57,
       "description": "Deity family, Sovereign subgroup.",
       "prose": {
-        "beginning": "A small bargain, honestly struck: {v.sdpMultiplier} more points from everything you kill.",
-        "middle": "The devil's wager pays {v.sdpMultiplier}, and it has never yet asked for anything back.",
-        "end": "The devil's due. {v.sdpMultiplier} more points, and another {v.sdpBonusFormula} for every mastery you already carry. The debt compounds in your favor."
+        "beginning": "A small bargain, honestly struck:|{v.sdpMultiplier} more points from everything you kill.",
+        "middle": "The devil's wager pays {v.sdpMultiplier},|and it has never yet asked for anything back.",
+        "end": "The devil's due. {v.sdpMultiplier} more points, and another {v.sdpBonusFormula} for every mastery you already carry.|The debt compounds in your favor."
       }
     },
     {
