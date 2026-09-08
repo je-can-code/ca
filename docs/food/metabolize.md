@@ -128,11 +128,21 @@ cheap, sweets burn fast and hot — and all of it is authored in ordinary skills
 Because states outrank equips, class and database row in the precedence chain, the arc claims the button
 for exactly as long as it runs and hands it straight back when it lapses.
 
-**Display resolves through the same path.** `JABS_SkillSlot.data()` would otherwise answer the icon,
-name and cost question using the slot's *stored* type, so a transformed R2 holding a Rib Broth would
-look up the metabolize skill id in `$dataItems` and draw whatever unrelated row lived at that index. It
-now asks the user whether the id it was handed came from a slot transform, and treats it as a skill when
-it did. Same for an empty slot, which used to refuse to draw anything at all.
+**Display resolves through the same path.** Three HUD seams had to learn about slot transforms, and the
+first playtest found the two that were missed:
+
+- `JABS_SkillSlot.data()` answered the icon/name/cost question using the slot's *stored* type, so a
+  transformed R2 holding a Rib Broth looked the metabolize skill id up in `$dataItems`. It now asks the
+  user whether the id came from a slot transform and treats it as a skill when it did; an empty slot no
+  longer refuses to draw.
+- `Sprite_BaseSkillSlot.skillId()` short-circuited item slots to the raw item id before any resolution
+  ran, which is why the icon changed to meat-on-bone but the name stayed "Erocian Pudding". The
+  short-circuit is gone; the resolver hands back the stored item id itself whenever nothing has claimed
+  the slot.
+- Nothing flagged the slots for redraw when a *state* changed, only when the slot's contents did. So the
+  burn happened, the arc ended, and R2 kept drawing the burn it could no longer perform. States, equips
+  and class are all transform sources, so `Game_Battler` now raises every slot's refresh flag on state
+  add and remove; the HUD compares and redraws only what actually differs.
 
 ### `<endFoodChain>` — J-ABS-Food, on skills
 
@@ -305,7 +315,14 @@ on every lifesteal tick. `on-attack-hp-gain` is skill-only and was never an opti
 - Spike icons reuse the group's Peak icon (35-40); Afterglows reuse the Well Fed food icon; Sugar Crash
   reuses Gassy's (2727).
 - Animation 41 "Heal One 1" on every self-burn; 43 "Heal All 1" on Radiate.
-- Squish burst: 8 squats over 60f for carb, 4 over 30f for sweet, 6 over 45f for everything else.
+- Squish burst at execution: 8 squats over 60f for carb, 4 over 30f for sweet, 6 over 45f for
+  everything else.
+- Squats *during* the cast: every skill carries `<castMotion:squish>`, with `<castMotionPeriod:10>` for
+  carb, `6` for sweet and `8` otherwise, and `<castMotionIntensity:75>` across the board (peak deformation
+  as a percent of true size; 75 was chosen in play as "acceptable preposterous", where 450 is a pancake
+  and 45 is polite). These are J-ABS-Juice's cast-motion tags, added
+  for this; the default cast visual is an accelerating swell, which is a charge-up, and a squat is the
+  opposite of one.
 
 ---
 
@@ -383,6 +400,6 @@ The engine and the first draft of the content are both in. What remains is not t
    not, and those rows were doing pacing work as well as healing work.
 3. **Whether the five non-dropping heal items get deleted or get a real place**: Redberry, Heartfruit,
    Nectar, Serum, Draught.
-4. **Squishing *during* the cast, if wanted.** The squish burst plays at execution; the cast itself shows
-   the existing casting swell. Moving the squats into the cast window is a small per-skill tag read at
-   `tickCastingJuice`, not needed to ship this.
+4. **Tuning the squat itself.** `<castMotionPeriod:N>` on each skill is frames per squat (carb 10, sweet
+   6, everything else 8) and `<castMotionIntensity:PERCENT>` is how far it deforms at the bottom (75
+   everywhere, settled in play). Both are per-skill; nothing global needs touching.

@@ -1926,9 +1926,10 @@ var TrackedOmniQuest = class {
 		return this.isInState(OmniQuest.States.Failed);
 	}
 	/**
-	* A {@link OmniQuest.States.Missed} quest is one that had one or more of its objectives placed into a missed state, and
-	* none of the objectives marked as completed. This most likely will happen to a quest that may or may not have a
-	* non-hidden objective to the player but the objective was never completed resulting in the quest being missed.
+	* A {@link OmniQuest.States.Missed} quest is one the world closed off before it could finish: every objective still
+	* open was placed into a missed state, either because nothing was ever completed (a quest the player walked past) or
+	* because it was finalized as missed outright (a questgiver gone for good). Objectives the player had already
+	* completed stay completed in the journal; the verdict on the quest is missed regardless.
 	* @returns {boolean}
 	*/
 	isMissed() {
@@ -2105,7 +2106,7 @@ var TrackedOmniQuest = class {
 				objective.setState(OmniObjective.States.Missed);
 			}
 		});
-		this.refreshState();
+		this.setState(OmniQuest.States.Missed);
 	}
 	/**
 	* Flags this quest as failed, which automatically fail all active and inactive objectives and fail the quest.
@@ -2163,6 +2164,11 @@ var TrackedOmniQuest = class {
 		const someActive = this.objectives.some((objective) => objective.isActive());
 		if (someActive) {
 			this.setState(OmniObjective.States.Active);
+			return;
+		}
+		const allMissed = this.objectives.every((objective) => objective.isMissed());
+		if (allMissed) {
+			this.setState(OmniQuest.States.Missed);
 			return;
 		}
 		const enoughComplete = this.objectives.every((objective) => objective.isCompleted() || objective.isMissed());
@@ -2466,6 +2472,7 @@ DataManager.createGameObjects = function() {
 * Called each time game objects are (re)created.
 */
 DataManager.registerQuestopediaInputActions = function() {
+	if (!J.ABS || !J.ABS.EXT.INPUT) return;
 	Input.registerAction("J.OMNI.QUEST", {
 		key: "open-quest-log",
 		label: "Open Quest Log",
@@ -2477,48 +2484,59 @@ DataManager.registerQuestopediaInputActions = function() {
 };
 
 //#endregion
-//#region src/plugins/omni/ext/quest/windows/Window_QuestopediaCategories.js
-var Window_QuestopediaCategories = class extends Window_HorzCommand {
-	constructor(rect) {
-		super(rect);
+//#region src/plugins/omni/ext/quest/managers/QuestNameTruncator.js
+/**
+* Shortens a quest name until it fits a measured width, marking the cut with an ellipsis.
+*
+* The quest list draws a tracking marker at the right edge of a row, and the engine paints a
+* command's name at full length underneath it. A name that runs into the marker is unreadable in
+* exactly the rows the player cares most about- the ones they chose to track- so the list reserves
+* the marker's room and asks this to make the name respect it. Words are dropped from the end rather
+* than characters, because a name may carry escape codes and a cut inside one corrupts the draw.
+*/
+var QuestNameTruncator = class QuestNameTruncator {
+	/**
+	* The mark appended to a shortened name.
+	* @type {string}
+	*/
+	static ELLIPSIS = "…";
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br/>
-	* Creates the command list of all known quests in this window.
+	* Shortens the name by whole words until the fit predicate accepts it.
+	*
+	* A name that fits is returned untouched, so short names carry no ellipsis. A single word that
+	* still does not fit is returned with the ellipsis anyway: there is nothing left to drop, and an
+	* overrun is more honest than an empty row.
+	* @param {string} name The name to fit.
+	* @param {function(string): boolean} fits Answers whether a candidate fits the available width.
+	* @returns {string}
 	*/
-	makeCommandList() {
-		const commands = this.buildCommands();
-		commands.forEach(this.addBuiltCommand, this);
-	}
-	/**
-	* Builds all commands for this command window.
-	* Adds all categories to the list.
-	* @returns {BuiltWindowCommand[]}
-	*/
-	buildCommands() {
-		const questCategories = QuestManager.categories(false);
-		return questCategories.map(this.buildCommand, this);
-	}
-	/**
-	* Builds a {@link BuiltWindowCommand} based on the category data.
-	* @param {OmniCategory} omniCategory The category data.
-	* @returns {BuiltWindowCommand} The built command based on this category.
-	*/
-	buildCommand(omniCategory) {
-		return new WindowCommandBuilder(omniCategory.name).setSymbol(omniCategory.key).setExtensionData(omniCategory).setIconIndex(omniCategory.iconIndex).build();
-	}
-	/**
-	* Overwrites {@link maxCols}.<br/>
-	* Sets the column count to be the number of categories there are.
-	* @returns {number}
-	*/
-	maxCols() {
-		return QuestManager.categories(false).length;
+	static fit(name, fits) {
+		if (fits(name)) return name;
+		const words = name.split(" ");
+		while (words.length > 1) {
+			words.pop();
+			const candidate = `${words.join(" ")}${QuestNameTruncator.ELLIPSIS}`;
+			if (fits(candidate)) return candidate;
+		}
+		return `${words.at(0)}${QuestNameTruncator.ELLIPSIS}`;
 	}
 };
 
 //#endregion
 //#region src/plugins/omni/ext/quest/windows/Window_QuestopediaList.js
+/**
+* The list of quests in the category being browsed, one row per quest.
+*
+* Rows render a touch smaller than body copy: quest names are authored long, and the column has
+* to leave room at its right edge for the tracking marker without the two ever meeting.
+*/
 var Window_QuestopediaList = class extends Window_Command {
 	/**
 	* Constructor.
@@ -2526,6 +2544,69 @@ var Window_QuestopediaList = class extends Window_Command {
 	*/
 	constructor(rect) {
 		super(rect);
+	}
+	/**
+	* Overrides {@link Window_Base.resetFontSize}.<br/>
+	* Every row of this list, marker included, renders a little smaller than body copy.
+	*
+	* This is the one seam that shrinks the name, the marker and the measurements together; wrapping
+	* each name in a size code would leave the marker at full size beside a smaller name.
+	*/
+	resetFontSize() {
+		this.contents.fontSize = $gameSystem.mainFontSize() - this.fontSizeReduction();
+	}
+	/**
+	* How much smaller than body copy this list renders.
+	* @returns {number}
+	*/
+	fontSizeReduction() {
+		return 4;
+	}
+	/**
+	* The text drawn at the right edge of a tracked quest's row.
+	* @returns {string}
+	*/
+	trackedMarker() {
+		return "🔍";
+	}
+	/**
+	* The width the command name is indented by to leave room for its icon.
+	*
+	* This mirrors the indent the shared command drawing applies before the name; it is not read from
+	* there because the drawing has no reason to expose it, and the name is fitted here before the
+	* drawing ever sees it.
+	* @returns {number}
+	*/
+	commandNameIndent() {
+		return 40;
+	}
+	/**
+	* The room reserved at the right edge of a row for the tracking marker, whether or not the row is
+	* tracked. Reserving it unconditionally keeps every name fitted to the same width, so tracking a
+	* quest never shortens its name.
+	* @returns {number}
+	*/
+	markerGutterWidth() {
+		const markerWidth = this.textSizeEx(this.trackedMarker()).width;
+		return markerWidth + this.itemPadding();
+	}
+	/**
+	* The width a quest name may occupy before it would reach the marker's gutter.
+	* @returns {number}
+	*/
+	nameAvailableWidth() {
+		const rowWidth = this.innerWidth - this.itemPadding() * 2;
+		return rowWidth - this.commandNameIndent() - this.markerGutterWidth();
+	}
+	/**
+	* Fits a quest name into the room a row leaves for it.
+	* @param {string} name The name, possibly carrying escape codes.
+	* @returns {string}
+	*/
+	fitQuestName(name) {
+		const available = this.nameAvailableWidth();
+		const fits = (candidate) => this.textSizeEx(candidate).width <= available;
+		return QuestNameTruncator.fit(name, fits);
 	}
 	/**
 	* Implements {@link Window_Command.initMembers}.<br/>
@@ -2591,8 +2672,9 @@ var Window_QuestopediaList = class extends Window_Command {
 	* @returns {BuiltWindowCommand} The built command based on this quest.
 	*/
 	buildCommand(questopediaEntry) {
-		const questName = questopediaEntry.isKnown() ? questopediaEntry.name() : J.BASE.Helpers.maskString(questopediaEntry.name());
-		const trackedText = questopediaEntry.isTracked() ? "🔍" : String.empty;
+		const rawName = questopediaEntry.isKnown() ? questopediaEntry.name() : J.BASE.Helpers.maskString(questopediaEntry.name());
+		const questName = this.fitQuestName(rawName);
+		const trackedText = questopediaEntry.isTracked() ? this.trackedMarker() : String.empty;
 		const canBeTracked = questopediaEntry.canBeTracked();
 		if (!canBeTracked && questopediaEntry.isTracked()) {
 			questopediaEntry.toggleTracked();
@@ -2615,7 +2697,85 @@ var Window_QuestopediaList = class extends Window_Command {
 };
 
 //#endregion
+//#region src/plugins/omni/ext/quest/managers/QuestOverviewWrapper.js
+/**
+* Breaks a quest overview into lines that fit a measured width.
+*
+* An overview is authored as one paragraph, with the occasional deliberate line break, and the pane it
+* lands in is whatever width the layout hands it that day. Breaking by character count only ever fits
+* one font at one width, which is how the questopedia came to run its text off the right edge of the
+* screen. So the caller hands over the measurement- a predicate answering whether a candidate line
+* fits- and this decides where the breaks go without knowing anything about pixels or fonts.
+*/
+var QuestOverviewWrapper = class QuestOverviewWrapper {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Breaks the overview into lines, each of which satisfies the given fit predicate.
+	*
+	* A blank token- what a doubled space or a newline in the source becomes once split on
+	* whitespace- is an authored line break and ends the line in progress. Two blanks in a row still
+	* yield only one empty line, because a paragraph gap is a paragraph gap however many times it was
+	* typed.
+	* @param {string} overview The paragraph to break into lines.
+	* @param {function(string): boolean} fits Answers whether a candidate line fits the available width.
+	* @returns {string[]}
+	*/
+	static wrap(overview, fits) {
+		const lines = [];
+		let currentLine = String.empty;
+		overview.split(/\s/).forEach((word) => {
+			if (word === String.empty) {
+				currentLine = QuestOverviewWrapper._breakLine(lines, currentLine);
+				return;
+			}
+			const candidate = currentLine === String.empty ? word : `${currentLine} ${word}`;
+			if (fits(candidate)) {
+				currentLine = candidate;
+				return;
+			}
+			if (currentLine !== String.empty) {
+				lines.push(currentLine);
+			}
+			currentLine = word;
+		});
+		if (currentLine !== String.empty) {
+			lines.push(currentLine);
+		}
+		return lines;
+	}
+	/**
+	* Finishes the line in progress at an authored break and inserts the gap it asked for.
+	* @param {string[]} lines The lines finished so far, which this appends to.
+	* @param {string} currentLine The line in progress.
+	* @returns {string} The new, empty line in progress.
+	*/
+	static _breakLine(lines, currentLine) {
+		if (currentLine !== String.empty) {
+			lines.push(currentLine);
+		}
+		const lastLine = lines.at(-1);
+		if (lastLine !== String.empty) {
+			lines.push(String.empty);
+		}
+		return String.empty;
+	}
+};
+
+//#endregion
 //#region src/plugins/omni/ext/quest/windows/Window_QuestopediaDescription.js
+/**
+* The pane describing the highlighted quest: its name, recommended level, tags and overview.
+*
+* The objectives live in their own pane beneath this one, so this window never draws them. Keeping
+* the two apart is what lets each be sized for its own content rather than one window guessing at
+* where the other's text will end.
+*/
 var Window_QuestopediaDescription = class extends Window_Base {
 	/**
 	* The current selected quest in the quest list window.
@@ -2643,9 +2803,13 @@ var Window_QuestopediaDescription = class extends Window_Base {
 	setCurrentQuest(quest) {
 		this._currentQuest = quest;
 	}
+	/**
+	* Implements {@link Window_Base.drawContent}.<br/>
+	* Draws the name, recommended level, tags and overview of the current quest, top to bottom.
+	*/
 	drawContent() {
 		const quest = this.getCurrentQuest();
-		if (!quest) return;
+		if (quest === null) return;
 		const [x, y] = [0, 0];
 		const lh = this.lineHeight();
 		this.drawQuestName(x, y);
@@ -2655,8 +2819,6 @@ var Window_QuestopediaDescription = class extends Window_Base {
 		this.drawQuestTagIcons(x, tagIconsY);
 		const overviewY = y + lh * 3;
 		this.drawQuestOverview(x, overviewY);
-		const logsY = y + lh * 9;
-		this.drawQuestLogs(x, logsY);
 	}
 	/**
 	* Renders the quest name, if it is known. If it is not, it will be masked.
@@ -2671,6 +2833,12 @@ var Window_QuestopediaDescription = class extends Window_Base {
 		const textWidth = this.textWidth(resizedText);
 		this.drawTextEx(resizedText, x, y, textWidth);
 	}
+	/**
+	* Renders the recommended level of the quest, masked while the quest is unknown or the level is
+	* deliberately unset.
+	* @param {number} x The origin x.
+	* @param {number} y The origin y.
+	*/
 	drawQuestRecommendedLevel(x, y) {
 		const quest = this.getCurrentQuest();
 		const questRecommendedLevel = quest.recommendedLevel();
@@ -2680,6 +2848,11 @@ var Window_QuestopediaDescription = class extends Window_Base {
 		const textWidth = this.textWidth(resizedText);
 		this.drawTextEx(resizedText, x, y, textWidth);
 	}
+	/**
+	* Renders one icon per tag on the quest, left to right, once the quest is known.
+	* @param {number} x The origin x.
+	* @param {number} y The origin y.
+	*/
 	drawQuestTagIcons(x, y) {
 		const quest = this.getCurrentQuest();
 		if (!quest.isKnown()) return;
@@ -2698,95 +2871,42 @@ var Window_QuestopediaDescription = class extends Window_Base {
 	*/
 	drawQuestOverview(x, y) {
 		const quest = this.getCurrentQuest();
-		let overview = quest.isKnown() ? quest.overview() : quest.unknownHint();
+		const overview = quest.isKnown() ? quest.overview() : quest.unknownHint();
 		if (overview.length === 0) {
-			overview = "???";
-			const textWidth = this.textWidth(overview);
-			this.drawTextEx(overview, x, y, textWidth);
+			this.drawTextEx("???", x, y, this.innerWidth);
 			return;
 		}
-		const lines = this.buildQuestOverviewLines(overview, 128);
+		const lines = this.buildQuestOverviewLines(overview);
 		const overviewLineHeight = this.lineHeight() - 10;
 		lines.forEach((line, index) => {
 			const lineY = y + index * overviewLineHeight;
-			const textWidth = this.textWidth(overview);
-			this.drawTextEx(line, x, lineY, textWidth);
+			this.drawTextEx(line, x, lineY, this.innerWidth);
 		});
 	}
 	/**
-	* Chops up the very long overview string into multiple lines based on the given max line length.
+	* Breaks the overview into lines no wider than this window's content area.
+	*
+	* The measurement is this window's own, so the same overview breaks differently in a narrower pane
+	* or a larger font, which is the whole point of measuring rather than counting characters.
 	* @param {string} overview The overview to be chopped into lines.
-	* @param {number=} [maxLineLength=128] The maximum line length for any one line.
 	* @returns {string[]} The overview chopped up into lines.
 	*/
-	buildQuestOverviewLines(overview, maxLineLength = 128) {
-		const words = overview.split(/\s/);
-		const lines = [];
-		const finalLine = words.reduce((currentLine, word) => {
-			if (word === String.empty) {
-				if (currentLine.length > 0) {
-					lines.push(currentLine);
-				}
-				if (lines.length >= 2 && lines.at(-1) === String.empty) {
-					return String.empty;
-				}
-				lines.push(String.empty);
-				return String.empty;
-			}
-			if (currentLine.length === 0) return word;
-			const translatedWord = this.convertEscapeCharacters(word);
-			const testLine = `${currentLine} ${translatedWord}`;
-			if (testLine.length <= maxLineLength) return `${currentLine} ${word}`;
-			lines.push(currentLine);
-			return word;
-		}, String.empty);
-		lines.push(finalLine);
-		return lines;
-	}
-	/**
-	* Renders the quest logs, the notes that the protagonist observes as they complete the objectives.
-	* @param {number} x The origin x.
-	* @param {number} y The origin y.
-	*/
-	drawQuestLogs(x, y) {
-		const quest = this.getCurrentQuest();
-		const lh = this.lineHeight();
-		quest.objectives.filter((objective) => {
-			if (objective.isKnown()) return true;
-			if (!objective.hidden && objective.isInactive()) return true;
-			return false;
-		}).forEach((objective, index) => {
-			const logY = y + lh * 2 * index;
-			this.drawQuestObjectiveLog(objective, x, logY);
-		});
-	}
-	/**
-	* Renders the log of the objective based on its current state.
-	* @param {TrackedOmniObjective} objective The objective with the log to render.
-	* @param {number} x The origin x.
-	* @param {number} y The origin y.
-	*/
-	drawQuestObjectiveLog(objective, x, y) {
-		const descriptionText = this.modFontSizeForText(-4, objective.description());
-		const description = `▫ ${descriptionText}`;
-		const descriptionWidth = this.textWidth(description);
-		this.drawTextEx(description, x, y, descriptionWidth);
-		const fulfillmentText = this.modFontSizeForText(-4, objective.fulfillmentText());
-		const fulfillment = `    ${fulfillmentText}`;
-		const fulfillmentWidth = this.textWidth(fulfillment);
-		const fulfillmentY = y + this.lineHeight() / 2;
-		this.drawTextEx(fulfillment, x, fulfillmentY, fulfillmentWidth);
-		const logText = objective.log();
-		const logWidth = this.textWidth(logText);
-		const logX = x + 40;
-		const logY = y + this.lineHeight();
-		this.drawTextEx(logText, logX, logY, logWidth);
-		this.drawIcon(objective.iconIndexByState(), x, logY);
+	buildQuestOverviewLines(overview) {
+		const fits = (line) => this.textSizeEx(line).width <= this.innerWidth;
+		return QuestOverviewWrapper.wrap(overview, fits);
 	}
 };
 
 //#endregion
 //#region src/plugins/omni/ext/quest/windows/Window_QuestopediaObjectives.js
+/**
+* The pane listing the objectives of the highlighted quest that the player knows about.
+*
+* Each row is one objective: the state icon and the description on the first line, then how it is
+* fulfilled and what the protagonists made of it beneath. The rows are read, never chosen- the scene
+* keeps the cursor on the quest list- but a command window is still the right shape, because it
+* already knows how to draw a block of lines per entry and to scroll when there are more than fit.
+*/
 var Window_QuestopediaObjectives = class extends Window_Command {
 	/**
 	* Constructor.
@@ -2811,7 +2931,8 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 	}
 	/**
 	* Overwrites {@link #itemHeight}.<br/>
-	* Makes the command rows bigger so there can be additional lines.
+	* Each row carries the objective's description and two lines of subtext beneath it, so the row is
+	* two lines tall to hold the block once it is centered.
 	* @returns {number}
 	*/
 	itemHeight() {
@@ -2829,11 +2950,11 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 	* @param {TrackedOmniObjective[]} questObjectives The quest objectives to render in this list.
 	*/
 	setCurrentObjectives(questObjectives) {
-		this._currentObjectives = questObjectives ?? [];
+		this._currentObjectives = questObjectives;
 	}
 	/**
 	* Implements {@link #makeCommandList}.<br/>
-	* Creates the command list of all known quests in this window.
+	* Creates one row per known objective, or a single row saying there are none.
 	*/
 	makeCommandList() {
 		const commands = this.buildCommands();
@@ -2843,15 +2964,15 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 		commands.forEach(this.addBuiltCommand, this);
 	}
 	/**
-	* Builds all commands for this command window.
-	* Adds all known quests to the list that are known.
+	* Builds the rows for every objective the player knows about.
+	*
+	* An objective is known once it has been activated, or when it was never hidden in the first
+	* place; a hidden objective that has not started yet is a spoiler and stays out of the pane.
 	* @returns {BuiltWindowCommand[]}
 	*/
 	buildCommands() {
 		const objectives = this.getCurrentObjectives();
-		if (objectives.length === 0) return [];
-		const commands = objectives.filter((objective) => objective.state !== OmniObjective.States.Inactive).map(this.buildCommand, this);
-		return commands;
+		return objectives.filter((objective) => objective.isKnown()).map(this.buildCommand, this);
 	}
 	/**
 	* Builds a {@link BuiltWindowCommand} based on the quest objective.
@@ -2859,55 +2980,30 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 	* @returns {BuiltWindowCommand} The built command based on this objective.
 	*/
 	buildCommand(questObjective) {
-		const text = this.modFontSizeForText(-4, questObjective.description());
-		return new WindowCommandBuilder(text).setSymbol(questObjective.id).setExtensionData(questObjective).setIconIndex(questObjective.iconIndexByState()).addTextLine(questObjective.fulfillmentText() ?? String.empty).flagAsMultiline().build();
+		const description = this.modFontSizeForText(-4, questObjective.description());
+		return new WindowCommandBuilder(description).setSymbol(questObjective.id).setExtensionData(questObjective).setIconIndex(questObjective.iconIndexByState()).addTextLine(questObjective.fulfillmentText()).addTextLine(questObjective.log()).build();
 	}
+	/**
+	* Builds the single row shown when the quest has no objectives the player knows about.
+	* @returns {BuiltWindowCommand}
+	*/
 	buildNoObjectivesCommand() {
-		return new WindowCommandBuilder(String.empty).setSymbol(0).setExtensionData(null).addTextLine("No known objectives for this quest.").flagAsSubText().build();
-	}
-};
-
-//#endregion
-//#region src/plugins/omni/ext/quest/windows/Window_QuestopediaControlsHint.js
-/**
-* A single-line controller hint for the Questopedia scene.
-*/
-var Window_QuestopediaControlsHint = class extends Window_Base {
-	/**
-	* @param {Rectangle} rect The dimensions of the window.
-	*/
-	constructor(rect) {
-		super(rect);
-		this.initialize(rect);
-	}
-	/**
-	* Re-renders the static controller hint.
-	*/
-	refresh() {
-		this.contents.clear();
-		this.drawControllerHint();
-	}
-	/**
-	* Draws the controller-first legend for quest category cycling.
-	*/
-	drawControllerHint() {
-		const padX = 12;
-		this.resetFontSettings();
-		this.modFontSize(-4);
-		this.changeTextColor(ColorManager.normalColor());
-		const text = "L2/R2: category";
-		const y = Math.max(0, Math.floor((this.innerHeight - this.lineHeight()) / 2));
-		this.drawText(text, padX, y, this.innerWidth - padX * 2, "left");
-		this.resetFontSettings();
+		return new WindowCommandBuilder(String.empty).setSymbol(0).setExtensionData(null).addTextLine("No known objectives for this quest.").build();
 	}
 };
 
 //#endregion
 //#region src/plugins/omni/ext/quest/scenes/Scene_Questopedia.js
 /**
-* A scene for interacting with the Questopedia.
+* A scene for perusing the quests the player knows about, and choosing which to track.
+*
+* Built on the facet skeleton rather than laid out from scratch, so it shares the control legend and
+* the bounded region every other menu in the ecosystem draws inside. The left column is a strip
+* naming the category being browsed with the quests of that category beneath it; the right side is
+* the highlighted quest's description above its objectives. The shoulder triggers walk the
+* categories, and confirming a quest toggles whether it is tracked on the map.
 */
-var Scene_Questopedia = class extends Scene_MenuBase {
+var Scene_Questopedia = class extends Scene_MenuFacetBase {
 	/**
 	* Constructor.
 	*/
@@ -2922,50 +3018,30 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		SceneManager.push(this);
 	}
 	/**
-	* Initialize the window and all properties required by the scene.
-	*/
-	initialize() {
-		super.initialize();
-		this.initMembers();
-	}
-	/**
 	* Extends {@link #initMembers}.<br/>
-	* Also initializes all properties for our omnipedia.
+	* Also initializes the questopedia's own members.
 	*/
 	initMembers() {
 		super.initMembers();
-		this.initCoreMembers();
-		this.initPrimaryMembers();
-	}
-	/**
-	* The core properties of this scene are the root namespace definitions for this plugin.
-	*/
-	initCoreMembers() {
-		/**
-		* The shared root namespace for all of J's plugin data.
-		*/
-		this._j ||= {};
 		/**
 		* A grouping of all properties associated with the omnipedia.
 		*/
 		this._j._omni = {};
-	}
-	/**
-	* The primary properties of the scene are the initial properties associated with
-	* the main list containing all pedias unlocked by the player along with some subtext of
-	* what the pedia entails.
-	*/
-	initPrimaryMembers() {
 		/**
 		* A grouping of all properties associated with the questopedia.
 		* The questopedia is a subcategory of the omnipedia.
 		*/
 		this._j._omni._quest = {};
 		/**
-		* The window that shows the categories a quest can be associated with.
-		* @type {Window_QuestopediaCategories}
+		* The L2/R2 ring of quest categories this scene pages through.
+		* @type {FilterCycle}
 		*/
-		this._j._omni._quest._pediaCategories = null;
+		this._j._omni._quest._categoryFilter = new FilterCycle(this.buildCategoryPositions());
+		/**
+		* The strip naming whichever category is currently being browsed.
+		* @type {Window_FilterStrip}
+		*/
+		this._j._omni._quest._categoryStrip = null;
 		/**
 		* The window that shows the list of known quests.
 		* @type {Window_QuestopediaList}
@@ -2977,45 +3053,36 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		*/
 		this._j._omni._quest._pediaDescription = null;
 		/**
-		* The window that shows the list of objectives for the selected quest.
+		* The window that shows the objectives of the selected quest.
 		* @type {Window_QuestopediaObjectives}
 		*/
 		this._j._omni._quest._pediaObjectives = null;
-		/**
-		* The controller hint strip for category cycling.
-		* @type {Window_QuestopediaControlsHint}
-		*/
-		this._j._omni._quest._pediaControlsHint = null;
 	}
 	/**
-	* Initialize all resources required for this scene.
+	* The positions of the category ring, in the order the categories were authored.
+	*
+	* A category already carries a key, a name and an icon, which is exactly what a ring position is.
+	* @returns {{key: string, name: string, iconIndex: number}[]}
+	*/
+	buildCategoryPositions() {
+		return QuestManager.categories(false);
+	}
+	/**
+	* Extends {@link #create}.<br/>
+	* Also creates this scene's own windows.
 	*/
 	create() {
 		super.create();
-		this.createDisplayObjects();
-	}
-	/**
-	* Creates the display objects for this scene.
-	*/
-	createDisplayObjects() {
-		this.createAllWindows();
-	}
-	/**
-	* Creates all questopedia windows.
-	*/
-	createAllWindows() {
-		this.createQuestopediaCategoriesWindow();
+		this.createCategoryStripWindow();
 		this.createQuestopediaListWindow();
 		this.createQuestopediaDescriptionWindow();
-		this.createQuestopediaControlsHintWindow();
-		const categoriesWindow = this.getQuestopediaCategoriesWindow();
-		categoriesWindow.onIndexChange();
-		const listWindow = this.getQuestopediaListWindow();
-		listWindow.onIndexChange();
+		this.createQuestopediaObjectivesWindow();
+		this.applyActiveCategory();
+		this.getQuestopediaListWindow().activate();
 	}
 	/**
 	* Overwrites {@link Scene_MenuBase.prototype.createBackground}.<br/>
-	* Changes the filter to a different type from {@link PIXI.filters}.
+	* Keeps the map faintly visible behind the pedia.
 	*/
 	createBackground() {
 		this.setBackgroundFilter(new PIXI.filters.AlphaFilter(.1));
@@ -3025,47 +3092,119 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		this.addChild(this.backgroundSprite());
 	}
 	/**
-	* Creates the quest categories window.
+	* Overrides {@link #hasHelpWindow}.<br/>
+	* The description pane is this scene's help; a strip across the top would only repeat it.
+	* @returns {boolean}
 	*/
-	createQuestopediaCategoriesWindow() {
-		const window = this.buildQuestopediaCategoriesWindow();
-		this.setQuestopediaCategoriesWindow(window);
+	hasHelpWindow() {
+		return false;
+	}
+	/**
+	* Overrides {@link #commandColumnRatio}.<br/>
+	* Quest names run long, so the column is wider than the base's default.
+	* @returns {number}
+	*/
+	commandColumnRatio() {
+		return .28;
+	}
+	/**
+	* How many lines of text the description pane is sized for: the name, the level, the tag icons,
+	* and room for the overview to wrap beneath them.
+	*
+	* The longest authored overview runs to about seven wrapped lines at this pane's width in the
+	* game's monospace font, and the overview lines are drawn tighter than a full line, so seven fit
+	* inside the seven full lines left after the three header lines.
+	* @returns {number}
+	*/
+	descriptionLineCount() {
+		return 10;
+	}
+	/**
+	* The rectangle for the category strip, crowning the left column.
+	* @returns {Rectangle}
+	*/
+	categoryStripRectangle() {
+		const facetArea = this.facetAreaRect();
+		const height = this.calcWindowHeight(1, false);
+		return new Rectangle(facetArea.x, facetArea.y, this.commandColumnWidth(), height);
+	}
+	/**
+	* The rectangle for the quest list, filling the left column beneath the strip.
+	* @returns {Rectangle}
+	*/
+	questopediaListRectangle() {
+		const facetArea = this.facetAreaRect();
+		const stripRectangle = this.categoryStripRectangle();
+		const y = stripRectangle.y + stripRectangle.height;
+		const height = facetArea.y + facetArea.height - y;
+		return new Rectangle(facetArea.x, y, this.commandColumnWidth(), height);
+	}
+	/**
+	* The rectangle for the description pane, across the top of the right side.
+	* @returns {Rectangle}
+	*/
+	questopediaDescriptionRectangle() {
+		const facetArea = this.facetAreaRect();
+		const x = facetArea.x + this.commandColumnWidth();
+		const width = facetArea.x + facetArea.width - x;
+		const height = this.calcWindowHeight(this.descriptionLineCount(), false);
+		return new Rectangle(x, facetArea.y, width, height);
+	}
+	/**
+	* The rectangle for the objectives pane, filling whatever the description left of the right side.
+	* @returns {Rectangle}
+	*/
+	questopediaObjectivesRectangle() {
+		const facetArea = this.facetAreaRect();
+		const descriptionRectangle = this.questopediaDescriptionRectangle();
+		const y = descriptionRectangle.y + descriptionRectangle.height;
+		const height = facetArea.y + facetArea.height - y;
+		return new Rectangle(descriptionRectangle.x, y, descriptionRectangle.width, height);
+	}
+	/**
+	* Implements {@link #controlLegendEntries}.<br/>
+	* Teaches the two controls that leave no mark on screen until pressed: the shoulder triggers that
+	* walk the categories, and confirm, which tracks a quest rather than opening anything.
+	* @returns {{semantic: (string|string[]), label: string}[]}
+	*/
+	controlLegendEntries() {
+		return [{
+			semantic: ["content-prev", "content-next"],
+			label: "category"
+		}, {
+			semantic: "ok",
+			label: "track"
+		}];
+	}
+	/**
+	* Creates the strip naming the active category.
+	*/
+	createCategoryStripWindow() {
+		const window = this.buildCategoryStripWindow();
+		this.setCategoryStripWindow(window);
 		this.addWindow(window);
 	}
 	/**
-	* Sets up and defines the questopedia categories window.
-	* @returns {Window_QuestopediaCategories}
+	* Sets up and defines the category strip window.
+	* @returns {Window_FilterStrip}
 	*/
-	buildQuestopediaCategoriesWindow() {
-		const rectangle = this.questopediaCategoriesRectangle();
-		const window = new Window_QuestopediaCategories(rectangle);
-		window.onIndexChange = this.onQuestopediaCategoryChange.bind(this);
-		window.deactivate();
-		return window;
+	buildCategoryStripWindow() {
+		const rectangle = this.categoryStripRectangle();
+		return new Window_FilterStrip(rectangle);
 	}
 	/**
-	* Gets the rectangle associated with the questopedia list command window.
-	* @returns {Rectangle}
+	* Gets the currently tracked category strip window.
+	* @returns {Window_FilterStrip}
 	*/
-	questopediaCategoriesRectangle() {
-		const [x, y] = Graphics.boxOrigin;
-		const width = 500;
-		const height = Graphics.boxHeight * .08 - Graphics.verticalPadding * 2;
-		return new Rectangle(x, y, width, height);
+	getCategoryStripWindow() {
+		return this._j._omni._quest._categoryStrip;
 	}
 	/**
-	* Gets the currently tracked questopedia categories window.
-	* @returns {Window_QuestopediaCategories}
+	* Sets the currently tracked category strip window.
+	* @param {Window_FilterStrip} stripWindow The category strip window to track.
 	*/
-	getQuestopediaCategoriesWindow() {
-		return this._j._omni._quest._pediaCategories;
-	}
-	/**
-	* Set the currently tracked questopedia categories window to the given window.
-	* @param {Window_QuestopediaCategories} categoriesWindow The questopedia categories window to track.
-	*/
-	setQuestopediaCategoriesWindow(categoriesWindow) {
-		this._j._omni._quest._pediaCategories = categoriesWindow;
+	setCategoryStripWindow(stripWindow) {
+		this._j._omni._quest._categoryStrip = stripWindow;
 	}
 	/**
 	* Creates the list of quests the player can potentially complete.
@@ -3077,30 +3216,17 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 	}
 	/**
 	* Sets up and defines the questopedia listing window.
-	* @returns {Window_OmnipediaList}
+	* @returns {Window_QuestopediaList}
 	*/
 	buildQuestopediaListWindow() {
 		const rectangle = this.questopediaListRectangle();
 		const window = new Window_QuestopediaList(rectangle);
-		window.setHandler("cancel", this.onCancelQuestopedia.bind(this));
 		window.setHandler("ok", this.onQuestopediaListSelection.bind(this));
-		window.onIndexChange = this.onQuestopediaIndexChange.bind(this);
+		window.setHandler("cancel", this.onCancelQuestopedia.bind(this));
 		window.setHandler("content-next", this.cycleQuestCategories.bind(this, true));
 		window.setHandler("content-prev", this.cycleQuestCategories.bind(this, false));
+		window.onIndexChange = this.onQuestopediaIndexChange.bind(this);
 		return window;
-	}
-	/**
-	* Gets the rectangle associated with the questopedia list command window.
-	* @returns {Rectangle}
-	*/
-	questopediaListRectangle() {
-		const categoriesRectangle = this.questopediaCategoriesRectangle();
-		const { x } = categoriesRectangle;
-		const y = categoriesRectangle.height + Graphics.verticalPadding;
-		const { width } = categoriesRectangle;
-		const hintH = this.questopediaControlsHintHeight();
-		const height = Graphics.boxHeight - Graphics.verticalPadding - y - hintH;
-		return new Rectangle(x, y, width, height);
 	}
 	/**
 	* Gets the currently tracked questopedia list window.
@@ -3110,103 +3236,44 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		return this._j._omni._quest._pediaList;
 	}
 	/**
-	* Set the currently tracked questopedia list window to the given window.
+	* Sets the currently tracked questopedia list window to the given window.
 	* @param {Window_QuestopediaList} listWindow The questopedia list window to track.
 	*/
 	setQuestopediaListWindow(listWindow) {
 		this._j._omni._quest._pediaList = listWindow;
 	}
 	/**
-	* Height reserved for the controller hint strip beneath the quest list.
-	* @returns {number}
-	*/
-	questopediaControlsHintHeight() {
-		return 28;
-	}
-	/**
-	* Creates the controller hint strip beneath the quest list.
-	*/
-	createQuestopediaControlsHintWindow() {
-		const window = this.buildQuestopediaControlsHintWindow();
-		this.setQuestopediaControlsHintWindow(window);
-		this.addWindow(window);
-	}
-	/**
-	* Builds the questopedia controller hint window.
-	* @returns {Window_QuestopediaControlsHint}
-	*/
-	buildQuestopediaControlsHintWindow() {
-		return new Window_QuestopediaControlsHint(this.questopediaControlsHintRectangle());
-	}
-	/**
-	* Gets the rectangle for the controller hint strip.
-	* @returns {Rectangle}
-	*/
-	questopediaControlsHintRectangle() {
-		const listRectangle = this.questopediaListRectangle();
-		const hintH = this.questopediaControlsHintHeight();
-		const y = listRectangle.y + listRectangle.height;
-		return new Rectangle(listRectangle.x, y, listRectangle.width, hintH);
-	}
-	/**
-	* Gets the tracked controller hint window.
-	* @returns {Window_QuestopediaControlsHint}
-	*/
-	getQuestopediaControlsHintWindow() {
-		return this._j._omni._quest._pediaControlsHint;
-	}
-	/**
-	* Sets the tracked controller hint window.
-	* @param {Window_QuestopediaControlsHint} hintWindow The hint window to track.
-	*/
-	setQuestopediaControlsHintWindow(hintWindow) {
-		this._j._omni._quest._pediaControlsHint = hintWindow;
-	}
-	/**
-	* Creates the description of a single quest the player has discovered.
+	* Creates the pane describing the highlighted quest.
 	*/
 	createQuestopediaDescriptionWindow() {
-		const window = this.buildQuestopediaDetailWindow();
-		this.setQuestopediaDetailWindow(window);
+		const window = this.buildQuestopediaDescriptionWindow();
+		this.setQuestopediaDescriptionWindow(window);
 		this.addWindow(window);
 	}
 	/**
-	* Sets up and defines the questopedia detail window.
+	* Sets up and defines the questopedia description window.
 	* @returns {Window_QuestopediaDescription}
 	*/
-	buildQuestopediaDetailWindow() {
-		const rectangle = this.questopediaDetailRectangle();
-		const window = new Window_QuestopediaDescription(rectangle);
-		return window;
-	}
-	/**
-	* Gets the rectangle associated with the questopedia detail command window.
-	* @returns {Rectangle}
-	*/
-	questopediaDetailRectangle() {
-		const listWindow = this.getQuestopediaListWindow();
-		const x = listWindow.x + listWindow.width;
-		const y = Graphics.verticalPadding;
-		const width = Graphics.boxWidth - listWindow.width - Graphics.horizontalPadding * 2;
-		const height = Graphics.boxHeight - Graphics.verticalPadding * 2;
-		return new Rectangle(x, y, width, height);
+	buildQuestopediaDescriptionWindow() {
+		const rectangle = this.questopediaDescriptionRectangle();
+		return new Window_QuestopediaDescription(rectangle);
 	}
 	/**
 	* Gets the currently tracked questopedia description window.
 	* @returns {Window_QuestopediaDescription}
 	*/
-	getQuestopediaDetailWindow() {
+	getQuestopediaDescriptionWindow() {
 		return this._j._omni._quest._pediaDescription;
 	}
 	/**
-	* Set the currently tracked questopedia description window to the given window.
+	* Sets the currently tracked questopedia description window to the given window.
 	* @param {Window_QuestopediaDescription} descriptionWindow The questopedia description window to track.
 	*/
-	setQuestopediaDetailWindow(descriptionWindow) {
+	setQuestopediaDescriptionWindow(descriptionWindow) {
 		this._j._omni._quest._pediaDescription = descriptionWindow;
 	}
 	/**
-	* Creates the list of objectives for the current quest that the player knows about.
+	* Creates the pane listing the highlighted quest's known objectives.
 	*/
 	createQuestopediaObjectivesWindow() {
 		const window = this.buildQuestopediaObjectivesWindow();
@@ -3225,18 +3292,6 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		return window;
 	}
 	/**
-	* Gets the rectangle associated with the questopedia objectives command window.
-	* @returns {Rectangle}
-	*/
-	questopediaObjectivesRectangle() {
-		const listWindow = this.getQuestopediaListWindow();
-		const x = listWindow.x + listWindow.width;
-		const y = Graphics.boxHeight / 2;
-		const width = Graphics.boxWidth - listWindow.width - Graphics.horizontalPadding * 2;
-		const height = Graphics.boxHeight / 2 - Graphics.verticalPadding;
-		return new Rectangle(x, y, width, height);
-	}
-	/**
 	* Gets the currently tracked questopedia objectives window.
 	* @returns {Window_QuestopediaObjectives}
 	*/
@@ -3244,71 +3299,90 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		return this._j._omni._quest._pediaObjectives;
 	}
 	/**
-	* Set the currently tracked questopedia objectives window to the given window.
-	* @param {Window_QuestopediaObjectives} listWindow The questopedia objectives window to track.
+	* Sets the currently tracked questopedia objectives window to the given window.
+	* @param {Window_QuestopediaObjectives} objectivesWindow The questopedia objectives window to track.
 	*/
-	setQuestopediaObjectivesWindow(listWindow) {
-		this._j._omni._quest._pediaObjectives = listWindow;
+	setQuestopediaObjectivesWindow(objectivesWindow) {
+		this._j._omni._quest._pediaObjectives = objectivesWindow;
 	}
 	/**
-	* Synchronize the detail window with the list window of the questopedia.
+	* The category ring this scene pages through.
+	* @returns {FilterCycle}
 	*/
-	onQuestopediaIndexChange() {
-		const listWindow = this.getQuestopediaListWindow();
-		const detailWindow = this.getQuestopediaDetailWindow();
-		const highlightedQuestEntry = listWindow.currentExt();
-		if (!highlightedQuestEntry) {
-			detailWindow.clearContent();
-			return;
-		}
-		detailWindow.setCurrentQuest(highlightedQuestEntry);
-		detailWindow.refresh();
+	getCategoryFilter() {
+		return this._j._omni._quest._categoryFilter;
 	}
-	onQuestopediaCategoryChange() {
-		const categoriesWindow = this.getQuestopediaCategoriesWindow();
+	/**
+	* Points the strip and the list at whichever category is now selected, then the panes at whatever
+	* the list lands on.
+	*/
+	applyActiveCategory() {
+		const categoryFilter = this.getCategoryFilter();
+		const activePosition = categoryFilter.activePosition();
+		this.getCategoryStripWindow().setPosition(activePosition);
 		const listWindow = this.getQuestopediaListWindow();
-		listWindow.setCurrentCategoryKey(categoriesWindow.currentSymbol());
+		listWindow.setCurrentCategoryKey(activePosition.key);
 		listWindow.refresh();
+		listWindow.select(0);
 		this.onQuestopediaIndexChange();
 	}
 	/**
-	* Triggered when the player hits the OK button on a quest.<br/>
-	* This marks a quest as "tracked".
+	* Walks the category ring, wrapping at either end.
+	* @param {boolean} isForward Whether to walk forwards.
+	*/
+	cycleQuestCategories(isForward) {
+		const categoryFilter = this.getCategoryFilter();
+		const listWindow = this.getQuestopediaListWindow();
+		if (!categoryFilter.canCycle()) {
+			SoundManager.playBuzzer();
+			listWindow.activate();
+			return;
+		}
+		if (isForward) {
+			categoryFilter.next();
+		} else {
+			categoryFilter.previous();
+		}
+		SoundManager.playCursor();
+		this.applyActiveCategory();
+		listWindow.activate();
+	}
+	/**
+	* Synchronizes the description and objectives panes with the highlighted quest.
+	*/
+	onQuestopediaIndexChange() {
+		const listWindow = this.getQuestopediaListWindow();
+		const descriptionWindow = this.getQuestopediaDescriptionWindow();
+		const objectivesWindow = this.getQuestopediaObjectivesWindow();
+		const highlightedQuest = listWindow.currentExt();
+		if (highlightedQuest === null) {
+			descriptionWindow.setCurrentQuest(null);
+			descriptionWindow.refresh();
+			objectivesWindow.setCurrentObjectives([]);
+			objectivesWindow.refresh();
+			return;
+		}
+		descriptionWindow.setCurrentQuest(highlightedQuest);
+		descriptionWindow.refresh();
+		objectivesWindow.setCurrentObjectives(highlightedQuest.objectives);
+		objectivesWindow.refresh();
+	}
+	/**
+	* Toggles whether the highlighted quest is tracked on the map.
+	*
+	* The quest is never null here: a row that cannot be tracked is disabled, and an empty list has no
+	* current item, so in both cases the engine buzzes instead of calling this handler.
 	*/
 	onQuestopediaListSelection() {
 		const listWindow = this.getQuestopediaListWindow();
-		const highlighted = listWindow.currentExt();
-		if (highlighted) {
-			highlighted.toggleTracked();
-		}
+		/** @type {TrackedOmniQuest} */
+		const highlightedQuest = listWindow.currentExt();
+		highlightedQuest.toggleTracked();
 		listWindow.refresh();
 		listWindow.activate();
 	}
 	/**
-	* Cycles forward or back through quest categories available.
-	* @param {boolean} isForward True if cycling up(right) through the index, false if cycling down(left).
-	*/
-	cycleQuestCategories(isForward = true) {
-		if (QuestManager.categories().size <= 1) return;
-		const categoriesWindow = this.getQuestopediaCategoriesWindow();
-		const currentIndex = categoriesWindow.index();
-		if (isForward) {
-			if (categoriesWindow._list.length === currentIndex + 1) {
-				categoriesWindow.select(0);
-			} else {
-				categoriesWindow.select(currentIndex + 1);
-			}
-		} else {
-			if (currentIndex === 0) {
-				categoriesWindow.select(categoriesWindow._list.length - 1);
-			} else {
-				categoriesWindow.select(currentIndex - 1);
-			}
-		}
-		this.getQuestopediaListWindow().activate();
-	}
-	/**
-	* Close the questopedia and return to the main omnipedia.
+	* Closes the questopedia and returns to the omnipedia.
 	*/
 	onCancelQuestopedia() {
 		SceneManager.pop();

@@ -1962,6 +1962,7 @@ DataManager.createGameObjects = function() {
 * Called each time game objects are (re)created.
 */
 DataManager.registerMinimapInputActions = function() {
+	if (!J.ABS || !J.ABS.EXT.INPUT) return;
 	Input.registerAction("J.MAP", {
 		key: "minimap-toggle",
 		label: "Toggle Minimap",

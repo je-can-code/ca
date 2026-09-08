@@ -147,6 +147,23 @@
  *   On healing skills, omitting juiceMotion keeps caster-only support squish; any juiceMotion
  *   tag opts into full strike juice.
  *
+ * <castMotion:NAME>
+ *   Selects the body motion shown for the WHOLE of this skill's cast, as opposed to
+ *   juiceMotion above, which plays once at execution. Valid values:
+ *   squish  - a fixed-period squat, width swelling as height compresses, for the length
+ *             of the cast. Reads as effort being spent rather than energy gathering.
+ *   When omitted, the cast shows the default accelerating charge pulse.
+ *
+ * <castMotionPeriod:N>
+ *   Frames per repetition of the cast motion (default 8, which is about seven squats a
+ *   second). Smaller is faster. Only read when castMotion is set.
+ *
+ * <castMotionIntensity:PERCENT>
+ *   Peak deformation of the cast motion as a percent of the sprite's true size: at the
+ *   bottom of a 45 squat the sprite is 45% wider and correspondingly shorter. When
+ *   omitted, the juice config's unarmedStrikeSquishIntensity is used, which is tuned for
+ *   a poke rather than a workout. Only read when castMotion is set.
+ *
  * <juiceSpan:N>
  *   Arc span in degrees for arc / arc-reverse / arc-oscillate (default 120; typical range 30–300).
  *
@@ -420,6 +437,56 @@ J.ABS.EXT.JUICE.RegExp = {
 	*/
 	JuiceDuration: /<juiceDuration:[ ]?(\d+)>/i,
 	/**
+	* Skill: `<castMotion:NAME>` — selects the body motion shown for the whole of this skill's cast,
+	* as opposed to `<juiceMotion:>`, which plays once at execution. Currently: squish.
+	* When omitted, the cast shows the default accelerating charge pulse.
+	*
+	* <pre>
+	* Structure:
+	*  <castMotion:NAME>
+	*
+	* Example:
+	*  <castMotion:squish>
+	*
+	* Translation:
+	*  while this skill is being cast, the caster squats on a fixed rapid period
+	* </pre>
+	*/
+	CastMotion: /<castMotion:[ ]?([a-zA-Z0-9_-]+)>/i,
+	/**
+	* Skill: `<castMotionPeriod:N>` — how many frames one repetition of the cast motion takes.
+	* Smaller is faster. When omitted, the motion type's registered default period is used.
+	*
+	* <pre>
+	* Structure:
+	*  <castMotionPeriod:FRAMES>
+	*
+	* Example:
+	*  <castMotionPeriod:6>
+	*
+	* Translation:
+	*  one squat every six frames, ten a second
+	* </pre>
+	*/
+	CastMotionPeriod: /<castMotionPeriod:[ ]?(\d+)>/i,
+	/**
+	* Skill: `<castMotionIntensity:PERCENT>` — how far the body deforms at the peak of each repetition
+	* of the cast motion, as a percent of its true size. When omitted, the unarmed strike squish
+	* intensity from the juice config is used, which is tuned for a poke rather than a workout.
+	*
+	* <pre>
+	* Structure:
+	*  <castMotionIntensity:PERCENT>
+	*
+	* Example:
+	*  <castMotionIntensity:45>
+	*
+	* Translation:
+	*  at the bottom of each squat the sprite is 45% wider and correspondingly shorter
+	* </pre>
+	*/
+	CastMotionIntensity: /<castMotionIntensity:[ ]?(\d+)>/i,
+	/**
 	* Skill: `<juiceStabTipDegrees:N>` — tip/bore bearing from Pixi +x at rotation 0 (stab / bash / recoil; see help).
 	*/
 	JuiceStabTipDegrees: /<juiceStabTipDegrees:[ ]?(-?\d+)>/i,
@@ -464,6 +531,30 @@ Object.defineProperty(RPG_Skill.prototype, "jabsJuiceWeaponStyle", { get: functi
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsJuiceMotion", { get: function() {
 	return RPGManager.getStringFromNoteByRegex(this, J.ABS.EXT.JUICE.RegExp.JuiceMotion, true) ?? String.empty;
+} });
+/**
+* Skill note: the body motion shown for the whole of this skill's cast (`<castMotion:NAME>`).
+* Empty when omitted, which means the default charge pulse.
+* @type {string}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsJuiceCastMotion", { get: function() {
+	return RPGManager.getStringFromNoteByRegex(this, J.ABS.EXT.JUICE.RegExp.CastMotion, true) ?? String.empty;
+} });
+/**
+* Skill note: frames per repetition of the cast motion (`<castMotionPeriod:N>`).
+* Zero when omitted, which lets the motion type's registered default period stand.
+* @type {number}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsJuiceCastMotionPeriod", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.EXT.JUICE.RegExp.CastMotionPeriod, true) ?? 0;
+} });
+/**
+* Skill note: peak deformation of the cast motion as a percent (`<castMotionIntensity:PERCENT>`).
+* Zero when omitted, which lets the juice config's unarmed strike intensity stand.
+* @type {number}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsJuiceCastMotionIntensity", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.EXT.JUICE.RegExp.CastMotionIntensity, true) ?? 0;
 } });
 /**
 * Skill note: arc / arc-reverse span in degrees (`<juiceSpan:N>`). Omitted uses plugin default (120).
@@ -1705,6 +1796,23 @@ var JuiceMotionManager = class JuiceMotionManager {
 		CharacterMotionComposer.declare(character, sourceKey, [declaration], heartbeatFrames);
 	}
 	/**
+	* Keeps a battler squatting while it works something off mid-cast.
+	*
+	* The same heartbeat contract as {@link #scheduleCastingPulse}, on the same source key- a cast
+	* makes exactly one casting motion, so whichever of the two a skill asks for replaces the other,
+	* and {@link #cancelCastingPulse} settles either. Only the shape differs: a fixed-period squash
+	* rather than an accelerating swell.
+	* @param {Game_Character} character The character working it off.
+	* @param {number} intensity How far the body deforms at the peak of a squat, ex: `0.14`.
+	* @param {number} periodFrames How many frames one squat takes.
+	* @param {number} heartbeatFrames How long to keep squatting after the last call.
+	*/
+	static scheduleCastingSquish(character, intensity, periodFrames, heartbeatFrames) {
+		const sourceKey = JuiceMotionManager.CASTING_SOURCE_KEY;
+		const declaration = new MotionDeclaration("castSquish", [intensity, periodFrames], sourceKey);
+		CharacterMotionComposer.declare(character, sourceKey, [declaration], heartbeatFrames);
+	}
+	/**
 	* Stops a battler's casting pulse.
 	* @param {Game_Character} character The character to settle.
 	*/
@@ -2250,7 +2358,51 @@ var JuiceHookManager = class JuiceHookManager {
 	static tickCastingJuice(battler) {
 		const md = J.ABS.EXT.JUICE.Metadata;
 		const character = battler.getCharacter();
+		const castMotion = JuiceHookManager.#castMotionFor(battler);
+		if (castMotion === "squish") {
+			const skill = battler.getDecidedAction()[0].getBaseSkill();
+			const period = skill.jabsJuiceCastMotionPeriod || JuiceHookManager.#castingSquishDefaultPeriodFrames;
+			JuiceMotionManager.scheduleCastingSquish(character, JuiceHookManager.#castingSquishIntensityFor(skill, md), period, JuiceHookManager.#castingHeartbeatFrames);
+			return;
+		}
 		JuiceMotionManager.scheduleCastingPulse(character, md.castingPulseAmplitude, JuiceHookManager.#castingHeartbeatFrames);
+	}
+	/**
+	* How many frames one casting squat takes when the skill does not say.
+	*
+	* Eight frames is seven and a half squats a second, which is the "rapidly" the design asked for
+	* without turning into a vibration.
+	* @type {number}
+	*/
+	static #castingSquishDefaultPeriodFrames = 8;
+	/**
+	* How hard the casting squat deforms the sprite.
+	*
+	* A skill may author its own peak as a percent; a workout wants to read as a workout, and the
+	* config's unarmed strike squish is tuned for a poke. Zero is the getter's "nothing authored"
+	* sentinel, in which case that config value stands.
+	* @param {RPG_Skill} skill The skill being cast.
+	* @param {object} md This plugin's metadata, holding the config fallback.
+	* @returns {number} The peak deformation as a fraction of true size, ex: `0.45`.
+	*/
+	static #castingSquishIntensityFor(skill, md) {
+		const authoredPercent = skill.jabsJuiceCastMotionIntensity;
+		if (authoredPercent === 0) return md.unarmedStrikeSquishIntensity;
+		return authoredPercent / 100;
+	}
+	/**
+	* The cast motion the battler's in-flight skill asked for, if any.
+	*
+	* A battler mid-cast always has a decided action, but the tick can land on a frame where the
+	* decision has not been made yet or has already been cleared, and an empty answer there simply
+	* means the default charge-up.
+	* @param {JABS_Battler} battler The casting battler.
+	* @returns {string} The cast motion key, or an empty string for the default.
+	*/
+	static #castMotionFor(battler) {
+		const actions = battler.getDecidedAction();
+		if (!actions || actions.length === 0) return String.empty;
+		return actions[0].getBaseSkill().jabsJuiceCastMotion;
 	}
 	/**
 	* Hook: cast completion — tears down casting-layer motion before execution juice runs.
@@ -2537,6 +2689,59 @@ var JuiceTiltMotionEffect = class extends MotionEffect {
 };
 
 //#endregion
+//#region src/plugins/abs/ext/juice/models/JuiceCastingSquishMotionEffect.js
+/**
+* The frantic squat a battler does while it is working something off mid-cast.
+*
+* Like the casting pulse, this has no duration: a cast lasts until the caster finishes, is
+* interrupted, or dies, and this animates for exactly as long as something keeps declaring it. What
+* differs is the shape. The pulse swells both axes together because it is a charge-up, and nothing is
+* being deformed. This compresses height as it widens, which is the squish grammar for impact, and it
+* does so on a fixed fast period rather than a ramp. A steady, rapid squat reads as effort being spent;
+* a build-up would read as energy gathering, which is the opposite of the fiction.
+*
+* The envelope only ever squashes. A sine over half a cycle sits at zero on both ends and peaks in the
+* middle, so every squat starts and ends at the sprite's true size and nothing snaps back.
+*
+* `MotionEffect` and `MotionChannels` are reached as globals rather than imports: they ship inside
+* J-Motion's bundle and are hoisted by the time this one loads.
+*/
+var JuiceCastingSquishMotionEffect = class extends MotionEffect {
+	/**
+	* The channels a casting squish takes exclusive ownership of.
+	*
+	* Scale only, like every other body reaction. No glow is claimed or contributed: the charge glow
+	* belongs to gathering energy, and a battler doing squats is spending it.
+	* @returns {string[]}
+	*/
+	claims() {
+		return [MotionChannels.SCALE_X, MotionChannels.SCALE_Y];
+	}
+	/**
+	* How far through the current squat this frame is, from 0 to 1.
+	*
+	* Counted by wrapping elapsed frames rather than resetting a counter, so a squat that runs for the
+	* length of a long cast needs no bookkeeping and cannot drift.
+	* @returns {number}
+	*/
+	cycleProgress() {
+		const { period } = this.parameters();
+		return this.elapsedFrames() % period / period;
+	}
+	/**
+	* Writes this frame of the squat into the composition.
+	* @param {MotionComposition} composition The composition being built for this character.
+	*/
+	applyTo(composition) {
+		const { intensity } = this.parameters();
+		const envelope = Math.sin(this.cycleProgress() * Math.PI);
+		const swell = 1 + envelope * intensity;
+		composition.contribute(this, MotionChannels.SCALE_X, swell);
+		composition.contribute(this, MotionChannels.SCALE_Y, 1 / swell);
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/ext/juice/core/registerJuiceMotionTypes.js
 /**
 * Teaches J-Motion the four shapes a battler makes when it does something.
@@ -2596,6 +2801,15 @@ MotionTypeRegistry.register("charge", {
 	implementation: JuiceCastingPulseMotionEffect,
 	parameterNames: ["amplitude"],
 	defaults: { amplitude: .04 },
+	phaseSpan: () => 0
+});
+MotionTypeRegistry.register("castSquish", {
+	implementation: JuiceCastingSquishMotionEffect,
+	parameterNames: ["intensity", "period"],
+	defaults: {
+		intensity: .14,
+		period: 8
+	},
 	phaseSpan: () => 0
 });
 

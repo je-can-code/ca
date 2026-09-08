@@ -29773,9 +29773,21 @@ J.ABS.Aliased.Game_Battler.set("addState", Game_Battler.prototype.addState);
 Game_Battler.prototype.addState = function(stateId, attacker, sourceSkill = null) {
 	if (!attacker || !$jabsEngine.absEnabled) {
 		J.ABS.Aliased.Game_Battler.get("addState").call(this, stateId);
+		this.flagSkillSlotsForRefresh();
 		return;
 	}
 	this.handleAddingJabsState(stateId, attacker, null, sourceSkill);
+};
+/**
+* Flags every skill slot for a visual refresh, if this battler has any.
+*
+* States, equips and class are all transform sources, so whenever one of them changes the skill a
+* slot resolves to may change with it- and the HUD only redraws a slot that has been flagged. The
+* flags are booleans, so raising them on every state change costs nothing when nothing moved.
+*/
+Game_Battler.prototype.flagSkillSlotsForRefresh = function() {
+	if (!this.getSkillSlotManager()) return;
+	this.getSkillSlotManager().flagAllSkillSlotsForRefresh();
 };
 /**
 * Whether or not this battler is immune to absolutely all state application, including the death
@@ -29887,6 +29899,7 @@ Game_Battler.prototype.handleAddingJabsState = function(stateId, attacker, overr
 	this.addJabsState(stateId, attacker, overrides, sourceSkill);
 	this.onJabsStateInflicted(stateId, attacker);
 	this.result().pushAddedState(stateId);
+	this.flagSkillSlotsForRefresh();
 };
 /**
 * A no-op hook fired on the afflicted battler whenever an attacker successfully inflicts a state
@@ -29909,6 +29922,7 @@ Game_Battler.prototype.removeState = function(stateId) {
 	if (trackedState) {
 		$jabsEngine.removeJabsStateByUuid(this.getUuid(), stateId);
 	}
+	this.flagSkillSlotsForRefresh();
 };
 /**
 * Extends `clearStates()` to also purge this battler's JABS-tracked map states.

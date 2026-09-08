@@ -64,22 +64,23 @@ so `{v.evaBuffPlus}` renders as "your level" rather than a number. The same appl
 
 ---
 
-## Resolution status (2026-09-07)
+## Resolution status
 
-The templates are stored and the SDP header renders them, but the resolver is only partly built.
-It **fails closed**: a subgroup shows fully-correct prose or none at all, never a half-filled
-sentence quoting a number that is not the number.
+**All 48 authored subgroups render every tier**, verified against the live database rather than
+asserted. The resolver still **fails closed**: a subgroup shows fully-correct prose or none at all,
+never a half-filled sentence quoting a number that is not the number.
 
-| Namespace | Resolves today | Why |
-|---|---|---|
-| `{v.<tag>}` | **yes** | purely syntactic; it reads notetag grammar, not tag meaning, so it needs no knowledge of which plugin owns what |
-| `{p.<key>}` / `{d.<key>}` | no | needs a parameter-key to trait-code table. `ParameterDefinition` carries no trait mapping, and the table belongs in J-Base beside `RPG_Trait.NameFormatters`, not in `sdp/core` |
-| `{s.<field>}` | no | the twelve structural fields each need a rule for which tag argument carries the cadence, the radius, the chance, and so on |
+| Namespace | How it resolves |
+|---|---|
+| `{v.<tag>}` | Reads the tag off the mastery state. A shape table says which argument holds the magnitude, because `onSelfHpHealMp:[PCT, RANGE]` and `boostElement:[ELEM, PCT]` disagree and guessing prints a plausible wrong number. Repeated tags that agree on a magnitude are not ambiguous; ones that disagree are refused. |
+| `{p.<key>}` | Reads the parameter off the mastery state, from a buff tag, a plain tag, or the trait `ParameterTraitMap` names. A `BuffPlus` tag renders without a percent sign, because it adds points rather than a proportion. |
+| `{d.<key>}` | The same, one hop down, against the payload the mastery delivers. |
+| `{s.<field>}` | Derived from the three-layer walk: gates phrased per kind, cadences and durations rendered in seconds, reaches taken from the tag or the delivering skill, and damage or shield formulas read aloud. |
 
-**9 of 48 subgroups render in full right now**: `reptile-lamia`, `reptile-salamander`,
-`slime-roper`, `plant-trap`, `insect-brood`, `humanoid-orc`, `construct-hazard`,
-`deity-elemental`, `deity-devil`. The other 39 show the mastery's name and tier but no description
-until the remaining namespaces land.
+**Formulas are phrased, not quoted.** `(b.mhp * 0.02) + (a.mdf * 2)` becomes "2% of their Max Life
+plus 2x your Resist"; `(b.mhp - b.hp) * 0.035` becomes "3.5% of their missing Life"; the standard
+mitigation clause is dropped rather than read out. A formula that cannot be read term by term without
+changing its meaning is refused outright.
 
 ---
 
