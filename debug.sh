@@ -1,1 +1,1 @@
-../../utilities/nwjs/nw ./chef-adventure/ "test" &>/dev/null &
+${NWJS_EXE:-nw} ./chef-adventure/ "test" &>/dev/null &
