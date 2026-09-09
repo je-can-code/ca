@@ -1625,9 +1625,9 @@ var PanelRarity = class PanelRarity {
 * Serialized on each subgroup row in config.sdp.json as a nested `prose` object.
 *
 * A mastery's potency changes tier by tier, but its *mechanic* changes only at act boundaries, so the
-* prose is authored three times per subgroup rather than ten. Each template carries tokens that the
-* resolver fills from live data at draw time, which is what keeps a rebalance from leaving the
-* sentence describing a number that no longer exists.
+* prose is authored three times per subgroup rather than once per tier. Each template carries tokens
+* that the resolver fills from live data at draw time, which is what keeps a rebalance from leaving
+* the sentence describing a number that no longer exists.
 */
 var PanelMasteryProse = class PanelMasteryProse {
 	/**
@@ -1647,17 +1647,20 @@ var PanelMasteryProse = class PanelMasteryProse {
 	*/
 	constructor(beginning, middle, end) {
 		/**
-		* The template describing tiers 1 through 3, where the base effect is established.
+		* The template describing the opening tiers through {@link PanelMasteryProse.BeginningActMaxTier},
+		* where the base effect is established.
 		* @type {string}
 		*/
 		this.beginning = beginning;
 		/**
-		* The template describing tiers 4 through 9, where potency ramps and behavior layers appear.
+		* The template describing the tiers above {@link PanelMasteryProse.BeginningActMaxTier} and through
+		* {@link PanelMasteryProse.MiddleActMaxTier}, where potency ramps and behavior layers appear.
 		* @type {string}
 		*/
 		this.middle = middle;
 		/**
-		* The template describing the tier 10 capstone, usually a qualitative shift rather than a bigger number.
+		* The template describing the capstone tier above {@link PanelMasteryProse.MiddleActMaxTier},
+		* usually a qualitative shift rather than a bigger number.
 		* @type {string}
 		*/
 		this.end = end;
@@ -1678,7 +1681,7 @@ var PanelMasteryProse = class PanelMasteryProse {
 	* Falls back through the neighboring acts rather than returning blank, because a subgroup whose
 	* mechanic never changes is authored once and left to cover the whole strip. `humanoid-orc` is the
 	* standing example: every tier is the same cooldown reduction at a different number, so only the
-	* beginning act is written and the other eight tiers resolve to it.
+	* beginning act is written and the remaining tiers resolve to it.
 	* @param {number} tier The subgroup tier driving this step.
 	* @returns {string}
 	*/
