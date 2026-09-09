@@ -7,6 +7,12 @@
 > **Why templates instead of sentences.** Balance numbers get nudged; mechanics rarely do. A token
 > resolves from live data at draw time, so a retune never leaves the prose describing a number that
 > no longer exists. Tokens emit the **value only**, signed and formatted. Every noun is authored.
+>
+> 🔻 **The strip is five tiers as of 2026-09-09**, with acts at **1–2 / 3–4 / 5**. Not one template
+> needed rewriting for it — they are authored per *act*, not per tier, which is exactly what that
+> choice was for. The per-subgroup mechanic tables below still describe the old ten-rung ramps; the
+> surviving rungs are old tiers **1, 3, 5, 7 and 10**, moved down verbatim, so read those tables as
+> intent rather than as tier numbers. See [`five-tier-recut.md`](./five-tier-recut.md).
 
 ## Reading a mastery: three layers
 
@@ -103,9 +109,10 @@ so `{v.evaBuffPlus}` renders as "your level" rather than a number. The same appl
 
 ## Resolution status
 
-**All 48 authored subgroups render every tier**, verified against the live database rather than
-asserted. The resolver still **fails closed**: a subgroup shows fully-correct prose or none at all,
-never a half-filled sentence quoting a number that is not the number.
+**All 48 authored subgroups render every tier** — 240 of 240 descriptions after the five-tier recut,
+verified against the live database rather than asserted. The resolver still **fails closed**: a
+subgroup shows fully-correct prose or none at all, never a half-filled sentence quoting a number that
+is not the number.
 
 | Namespace | How it resolves |
 |---|---|
@@ -150,7 +157,7 @@ written until that changes.
 
 ## Undead
 
-### `undead-ghosty` (1101-1110)
+### `undead-ghosty` (1101-1105)
 
 | Act | Mechanics |
 |---|---|
@@ -162,7 +169,7 @@ written until that changes.
 - **Middle:** `The dead remember longer than the living: {v.skillHistoryBonus} per unique skill, now recalled across {s.window}.`
 - **End:** `Nothing you do is forgotten. {v.skillHistoryBonus} per unique skill over {s.window}, and your strikes leave Emptiness behind.`
 
-### `undead-reborn` (1111-1120)
+### `undead-reborn` (1111-1115)
 
 Payload: ward states 1001-1010.
 
@@ -176,7 +183,7 @@ Payload: ward states 1001-1010.
 - **Middle:** `The pale wall thickens: a ward worth {d.shield} every {s.interval}, pooling up to {d.shieldCap}.`
 - **End:** `Wraithwall eternal. Every {s.interval}, {d.shield} of ward, three layers deep, and it holds where flesh would fold.`
 
-### `undead-wisp` (1121-1130)
+### `undead-wisp` (1121-1125)
 
 Payload: aura skills 1001-1010.
 
@@ -190,7 +197,7 @@ Payload: aura skills 1001-1010.
 - **Middle:** `The mantle spreads to {s.radius} tiles and bites for {s.payload}, still answering every wound with flame.`
 - **End:** `A scorched halo. {s.payload} to everything within {s.radius}, pulsing faster the more of them there are, and every hit you take answers instantly.`
 
-### `undead-skeleton` (1131-1140)
+### `undead-skeleton` (1131-1135)
 
 Payload: rage states 1011-1020. All states are per-stack.
 
@@ -204,7 +211,7 @@ Payload: rage states 1011-1020. All states are per-stack.
 - **Middle:** `Graveborn fury sharpens as you fail: {d.atk} Power and Force for every {s.perStack} of Life gone.`
 - **End:** `Deathless. {d.atk} Power and Force per {s.perStack} of missing Life, and everything that hits you does half of what it meant to.`
 
-### `undead-armor` (1141-1150)
+### `undead-armor` (1141-1145)
 
 | Act | Mechanics |
 |---|---|
@@ -220,7 +227,7 @@ Payload: rage states 1011-1020. All states are per-stack.
 
 ## Reptile
 
-### `reptile-snake` (1151-1160)
+### `reptile-snake` (1151-1155)
 
 Payload: venom states 1021-1030.
 
@@ -234,7 +241,7 @@ Payload: venom states 1021-1030.
 - **Middle:** `Nothing survives the second bite. Venom pools {s.stacks} deep, each layer draining {d.hpFormula}.`
 - **End:** `A deluge. Venom takes {d.hpFormula} every tick and only ever gets worse the longer you keep landing crits.`
 
-### `reptile-dargin` (1161-1170)
+### `reptile-dargin` (1161-1165)
 
 **Skill-gated:** `passiveSourceRule:[hpBelow, 20/30/40]`. A last-stand, not flat mitigation.
 
@@ -248,7 +255,7 @@ Payload: venom states 1021-1030.
 - **Middle:** `Dragonheart stirring, and stirring sooner: below {s.gate} Life, {p.pdr} to every blow and {p.elementRate} off every element.`
 - **End:** `Dragonheart aflame. Below {s.gate} Life you take {p.pdr}, shrug {p.elementRate} off the elements, and nothing lesser can touch you at all.`
 
-### `reptile-draconite` (1171-1180)
+### `reptile-draconite` (1171-1175)
 
 **Skill-gated:** `passiveSourceRule:[sinceLastMoved, 300/240/180]`. The Beginning act ramps the *wait*, not the number.
 
@@ -262,7 +269,7 @@ Payload: venom states 1021-1030.
 - **Middle:** `Stone mantle. {s.gate} of stillness and Endurance climbs {p.def}. The longer you plant, the less anything moves you.`
 - **End:** `A granite bastion. {s.gate} unmoving buys Endurance {p.def} and Parry {p.grd}; blows simply stop arriving anywhere.`
 
-### `reptile-lamia` (1181-1190)
+### `reptile-lamia` (1181-1185)
 
 `castTimeDamageBonus` is percent-per-second-of-cast.
 
@@ -276,7 +283,7 @@ Payload: venom states 1021-1030.
 - **Middle:** `Converging light. {v.castTimeDamageBonus} per second charged, and the charge itself comes {v.castSpeedRate} quicker.`
 - **End:** `Everything collapses to a point. {v.castTimeDamageBonus} damage per second held, at {v.castSpeedRate} the charge rate.`
 
-### `reptile-salamander` (1191-1200)
+### `reptile-salamander` (1191-1195)
 
 | Act | Mechanics |
 |---|---|
@@ -292,7 +299,7 @@ Payload: venom states 1021-1030.
 
 ## Aquatic
 
-### `aquatic-kappa` (1201-1210)
+### `aquatic-kappa` (1201-1205)
 
 Tiers 1-9 use `dropMultiplier`; the capstone swaps to `dorBuffPlus` (drop *rate*). They math out
 loosely equivalent, and deliberate.
@@ -307,7 +314,7 @@ loosely equivalent, and deliberate.
 - **Middle:** `Fortune favors you twice: {v.dropMultiplier} more loot, and {p.eva} Grace to walk away with it.`
 - **End:** `A trickster's gambit. Drop rate, Grace and Luck each climb by {v.evaBuffPlus}, and keep climbing every level you earn.`
 
-### `aquatic-frog` (1211-1220)
+### `aquatic-frog` (1211-1215)
 
 Payload: Rooted Stance states 1031-1040. Stand still to build; moving strips.
 
@@ -321,7 +328,7 @@ Payload: Rooted Stance states 1031-1040. Stand still to build; moving strips.
 - **Middle:** `A rooted tempest, {s.stacks} layers deep at {d.mat} Force apiece, but one step still costs you everything.`
 - **End:** `Rooted cataclysm. {s.stacks} stacks at {d.mat} Force each, and at last you can move without losing it all: a step costs one stack, no more.`
 
-### `aquatic-crab` (1221-1230)
+### `aquatic-crab` (1221-1225)
 
 Payload: thorn skills 1011-1020. `d` in those formulas is the HP damage that triggered the action.
 
@@ -335,7 +342,7 @@ Payload: thorn skills 1011-1020. `d` in those formulas is the HP damage that tri
 - **Middle:** `An iron rebuke: {s.payload} of every hit thrown straight back, and nothing can parry it.`
 - **End:** `Shellbreaker's retort returns {s.payload}, and it lands before they have finished swinging.`
 
-### `aquatic-fish` (1231-1240)
+### `aquatic-fish` (1231-1235)
 
 **Skill-gated:** `passiveSourceRule:[attackedWithin, N]`, so it only runs just after something hits you.
 
@@ -349,7 +356,7 @@ Payload: thorn skills 1011-1020. `d` in those formulas is the HP damage that tri
 - **Middle:** `A swift current carries you {s.gate} clear of whatever landed, at {v.speedBoost} speed.`
 - **End:** `Slipstream. {s.gate} of {v.speedBoost} movement after every hit taken, and the opening you make is sharper for it.`
 
-### `aquatic-cephalopod` (1241-1250)
+### `aquatic-cephalopod` (1241-1245)
 
 Payload: ink states 1041-1050.
 
@@ -367,7 +374,7 @@ Payload: ink states 1041-1050.
 
 ## Slime
 
-### `slime-puddle` (1251-1260)
+### `slime-puddle` (1251-1255)
 
 Payload: gel states 1051-1060. Taking Life damage coats you.
 
@@ -381,7 +388,7 @@ Payload: gel states 1051-1060. Taking Life damage coats you.
 - **Middle:** `Reactive gel, {s.stacks} layers thick and {s.duration} long. The more they burn you, the less it works.`
 - **End:** `Elemental osmosis. {s.stacks} coats of {d.elementRate}, and now nothing elemental is unfamiliar: every element in the world, blunted.`
 
-### `slime-roper` (1261-1270)
+### `slime-roper` (1261-1265)
 
 `perDebuffBuff:N` is +N% damage per `<type:negative>` state on the target.
 
@@ -402,7 +409,7 @@ The synergy is the point: Suffering is itself a negative state, so it feeds the 
 > Jeremy is aware it was probably meant to be `b.mhp` and is leaving it to see how it plays.
 > **Do not "fix" this without asking.**
 
-### `slime-jelly` (1271-1280)
+### `slime-jelly` (1271-1275)
 
 `onSelfHpHealMp:[PCT, RANGE]`: PCT of HP healing received also returns as MP; RANGE is the tile
 radius of allies who also benefit (0 = self only).
@@ -417,7 +424,7 @@ radius of allies who also benefit (0 = self only).
 - **Middle:** `Mana weave. {v.onSelfHpHealMp} of your healing becomes Magi, yours and every ally's within {s.radius}.`
 - **End:** `Arcane transfusion: any healing at all, of any kind, pays {v.onSelfHpHealMp} back as Magi to everyone within {s.radius}.`
 
-### `slime-aerial` (1281-1290)
+### `slime-aerial` (1281-1285)
 
 Payload: heal-aura skills 1021-1030 (damage type 3, so recovery).
 
@@ -433,7 +440,7 @@ Payload: heal-aura skills 1021-1030 (damage type 3, so recovery).
 
 The capstone's self-regen is deliberately popup-less, so the prose is the only place a player learns it exists.
 
-### `slime-cube` (1291-1300)
+### `slime-cube` (1291-1295)
 
 Payload: slow states 1061-1070. Every second, nearby enemies are re-slowed.
 
@@ -451,7 +458,7 @@ Payload: slow states 1061-1070. Every second, nearby enemies are re-slowed.
 
 ## Plant
 
-### `plant-trap` (1301-1310)
+### `plant-trap` (1301-1305)
 
 `stateDurationPerc:N` extends the duration of states this battler inflicts by N%.
 
@@ -465,7 +472,7 @@ Payload: slow states 1061-1070. Every second, nearby enemies are re-slowed.
 - **Middle:** `A thorned curse holds twice as long: {v.stateDurationPerc} added to everything you put on them.`
 - **End:** `Stranglethorn. Afflictions last {v.stateDurationPerc} longer, and anything already Rooted takes {v.bonusDamageIfState} from you.`
 
-### `plant-fungus` (1311-1320)
+### `plant-fungus` (1311-1315)
 
 **Skill-gated:** `passiveSourceRule:[allOffCooldown]`, so it pays out only while nothing is spent.
 The Power line begins as a penalty and climbs out of it.
@@ -480,7 +487,7 @@ The Power line begins as a penalty and climbs out of it.
 - **Middle:** `A primal surge. Crit Rate {p.cri} while nothing is spent, though the coiling costs you {p.atk} Power to hold.`
 - **End:** `Primal apex. Nothing spent, everything ready: Crit Rate {p.cri}, Power {p.atk}, and every basic attack lands {v.bonusHitsBasic} more times.`
 
-### `plant-dryad` (1321-1330)
+### `plant-dryad` (1321-1325)
 
 **Skill-gated:** `passiveSourceRule:[hpAbove, 75, allAllies, 8]`, so every ally within 8 tiles must be
 above the threshold. The capstone makes the **gate easier**, not just the number bigger.
@@ -495,7 +502,7 @@ above the threshold. The capstone makes the **gate easier**, not just the number
 - **Middle:** `Nature's ire: {p.mat} Force and {p.mdf} Resist, for as long as nobody around you is bleeding badly.`
 - **End:** `Nature's judgment asks less and gives more. Allies need only hold {s.gate} Life for Force {p.mat} and Resist {p.mdf}.`
 
-### `plant-treant` (1331-1340)
+### `plant-treant` (1331-1335)
 
 **Skill-gated:** `passiveSourceRule:[sinceLastHit, 480/300/120]`, and the wait shortens as you invest.
 
@@ -509,7 +516,7 @@ above the threshold. The capstone makes the **gate easier**, not just the number
 - **Middle:** `Tempered ironbark, and quicker to set: {s.gate} clear buys {p.pdr} against physical harm and Endurance {p.def}.`
 - **End:** `Ancient ironbark. Barely {s.gate} between blows and the wood closes over: physical damage {p.pdr}, Endurance {p.def}.`
 
-### `plant-flower` (1341-1350)
+### `plant-flower` (1341-1345)
 
 The wrapper skill is a **real map skill** (radius/hitbox/direct/proximity + J-ABS-Juice tags), and the
 state's `autoExecuteSkill` points at **the wrapper's own id**, so the skill is both the passive and its
@@ -529,7 +536,7 @@ own payload. Deliberate, not a mistake. `purgeStates:[TYPE, ALLOW_DEATH, COUNT]`
 
 ## Beast
 
-### `beast-bearcat` (1351-1360)
+### `beast-bearcat` (1351-1355)
 
 `matBuffPlus:[a.atk*N]` converts Power into Force. The capstone makes the conversion **mutual**.
 
@@ -543,7 +550,7 @@ own payload. Deliberate, not a mistake. `purgeStates:[TYPE, ALLOW_DEATH, COUNT]`
 - **Middle:** `A void chord runs through every swing. Force takes {v.matBuffPlus} of your Power, and {s.chance} of your blows leave Emptiness behind.`
 - **End:** `Void harmonics. Power feeds Force and Force feeds Power, each carrying {v.matBuffPlus} of the other, and {s.chance} of what you touch is unmade.`
 
-### `beast-bat` (1361-1370)
+### `beast-bat` (1361-1365)
 
 **Skill-gated:** `passiveSourceRule:[alliesNearby, 1, N]`, and the radius grows as you invest.
 
@@ -557,7 +564,7 @@ own payload. Deliberate, not a mistake. `purgeStates:[TYPE, ALLOW_DEATH, COUNT]`
 - **Middle:** `A chittering frenzy carries {s.gate} now: Accuracy {p.hit} and Grace {p.eva} for as long as someone flies with you.`
 - **End:** `A wingbeat chorus reaches {s.gate}. Accuracy {p.hit}, Grace {p.eva}, and everything you do costs {p.tcr} less.`
 
-### `beast-beaker` (1371-1380)
+### `beast-beaker` (1371-1375)
 
 Payload: tailwind states 1071-1080. Any damage taken triggers a 3s burst.
 
@@ -571,7 +578,7 @@ Payload: tailwind states 1071-1080. Any damage taken triggers a 3s burst.
 - **Middle:** `A rising gust, now every {s.interval}: {d.speedBoost} faster and {d.eva} harder to touch while it lasts.`
 - **End:** `Gale force. Every {s.interval}, {s.duration} of {d.speedBoost} movement, {d.eva} Grace, and everything that swings at you answers to itself.`
 
-### `beast-rat` (1381-1390)
+### `beast-rat` (1381-1385)
 
 **Skill-gated:** `passiveSourceRule:[alliesNearby, 1, N]`. The theme is the **leash lengthening**:
 Jerald and Rupert drifting further apart and still sharing the hoard.
@@ -591,7 +598,7 @@ Jerald and Rupert drifting further apart and still sharing the hoard.
 - **Middle:** `A nest egg travels: the bond holds out to {s.gate} now, paying Aptitude {v.aptMultiplier} and Experience {p.exr}.`
 - **End:** `Compound interest. Even {s.gate} apart the share still counts: points, Aptitude and Experience all at {v.aptMultiplier}.`
 
-### `beast-quadruped` (1391-1400)
+### `beast-quadruped` (1391-1395)
 
 Payload: aura skills 1031-1040 (damage type 0, an add-state effect at 100%) delivering pack states
 1081-1090. `mdfBuffPlus:[a.def * 0.5]` on the capstone state reads `a` as the **alpha** who applied it.
@@ -613,7 +620,7 @@ Payload: aura skills 1031-1040 (damage type 0, an add-state effect at 100%) deli
 **Family combo:** Needler applies Poison and punishes the poisoned; Brood turns one poisoned target
 into a room full of them. The two strips are built to be run together.
 
-### `insect-needler` (1401-1410)
+### `insect-needler` (1401-1405)
 
 State 16 is Poison (ticks 3% of current Life, extends +3s on reapply).
 
@@ -627,7 +634,7 @@ State 16 is Poison (ticks 3% of current Life, extends +3s on reapply).
 - **Middle:** `A hive puncture finds the sickness first: {s.chance} to poison, and {v.bonusDamageIfStateType} more damage to anything already carrying it.`
 - **End:** `Lance of the hive. Everything you touch is poisoned, and everything poisoned takes {v.bonusDamageIfStateType} from you.`
 
-### `insect-crawler` (1411-1420)
+### `insect-crawler` (1411-1415)
 
 Not a gate. `passiveStateCount:[N, enemiesNearby, 1]` on the **skill** stacks the mastery once per
 nearby enemy. Every number is per enemy surrounding you. Being surrounded goes from lethal to desirable.
@@ -642,7 +649,7 @@ nearby enemy. Every number is per enemy surrounding you. Being surrounded goes f
 - **Middle:** `A spire synapse: {v.lst} Lifesteal and {p.hrg} regeneration for each one that crowds you.`
 - **End:** `Spire dominion. Every body around you gives {v.lst} Lifesteal, {p.hrg} regeneration, and {v.critReduction} off the crits they land. Being surrounded is the point.`
 
-### `insect-brood` (1421-1430)
+### `insect-brood` (1421-1425)
 
 | Act | Mechanics |
 |---|---|
@@ -654,7 +661,7 @@ nearby enemy. Every number is per enemy surrounding you. Being surrounded goes f
 - **Middle:** `An endemic swarm: poison leaps {v.spread[1]}, taking {v.spreadPerTick} more of them every {v.spreadTick}.`
 - **End:** `Pandemic. {v.spreadPerTick} new hosts every {v.spreadTick} out to {v.spread[1]}. Put it on one of them and it belongs to all of them.`
 
-### `insect-scorpion` (1431-1440)
+### `insect-scorpion` (1431-1435)
 
 Payload: retaliation skills 1041-1050. The capstone carries `retaliate` **twice**, and that is the
 qualitative shift, not a duplicated tag.
@@ -669,7 +676,7 @@ qualitative shift, not a duplicated tag.
 - **Middle:** `A chitin lash reaches {s.radius} now, returning {s.payload} for every physical hit you take.`
 - **End:** `Barbed retribution, and it lands twice: {s.payload} each time, to anything within {s.radius}.`
 
-### `insect-parasite` (1441-1450)
+### `insect-parasite` (1441-1445)
 
 `onSelfHpHealHp:[PCT, RANGE, MAX_DEPTH]`: being healed splashes a share onto everyone nearby.
 
@@ -687,7 +694,7 @@ qualitative shift, not a duplicated tag.
 
 ## Humanoid
 
-### `humanoid-minotaur` (1451-1460)
+### `humanoid-minotaur` (1451-1455)
 
 Payload: momentum states 1091-1100. `autoApplyState:[N, move, 1]` builds a stack per step;
 `removeOnSkillResolution:[0, 100]` + `loseAllStacksAtOnce` spends every stack when a skill resolves.
@@ -702,14 +709,14 @@ Payload: momentum states 1091-1100. `autoApplyState:[N, move, 1]` builds a stack
 - **Middle:** `Gathering thunder, {s.stacks} steps' worth at {d.atk} apiece. Run further, hit once, hit enormously.`
 - **End:** `Stampede. There is no ceiling worth naming: {d.atk} Power per step, and every step you have ever taken goes into the swing.`
 
-### `humanoid-orc` (1461-1470): **one template**
+### `humanoid-orc` (1461-1465): **one template**
 
 The only strip so far that genuinely does not need three. Nothing changes across the acts except the
 number: `cdr` 3/7/10% -> 12 -> 25% -> 30%. Proof that granularity is a per-subgroup call, not a rule.
 
 - **All acts:** `A warchief does not wait. Every cooldown you carry runs {v.cdr} shorter.`
 
-### `humanoid-bandit` (1471-1480)
+### `humanoid-bandit` (1471-1475)
 
 The capstone chases three states deep: `onEvadeApplySelf:[63, 100]` applies **Very Grabby** (63),
 which extends **Grab Ready!** (62), whose `skillTransform:[174,175]` turns *Half Roundhouse* into
@@ -725,7 +732,7 @@ which extends **Grab Ready!** (62), whose `skillTransform:[174,175]` turns *Half
 - **Middle:** `A dirty trick every time: {s.chance} to Blind, and {p.eva} Grace while they swing at nothing.`
 - **End:** `A blinding gambit. Everything you hit goes blind, and every dodge you make leaves them wide open to something far worse.`
 
-### `humanoid-cyclops` (1481-1490)
+### `humanoid-cyclops` (1481-1485)
 
 State 5 is **Rooted** (cannot move), state 7 is **Disabled** (cannot use main/off/dodge/tool skills).
 The cheatsheet said "disarmed" for the latter; corrected 2026-09-07.
@@ -740,7 +747,7 @@ The cheatsheet said "disarmed" for the latter; corrected 2026-09-07.
 - **Middle:** `Stone temper: nothing roots you, and what would disable you slips {p.stateRate} of the time.`
 - **End:** `An adamant mind. Neither root nor disabling touches you, and half of what would move you simply doesn't.`
 
-### `humanoid-kobold` (1491-1500)
+### `humanoid-kobold` (1491-1495)
 
 The most legible ramp in the set: one more food group and one more stat per tier.
 
@@ -767,7 +774,7 @@ The most legible ramp in the set: one more food group and one more stat per tier
 **Family mirror:** Roper and Puppet pay for debuffs on *them*; Titan pays for debuffs on *you*.
 Same verb, opposite direction.
 
-### `construct-titan` (1501-1510)
+### `construct-titan` (1501-1505)
 
 `passiveStateCount:[N, negativeStateCount, 1]` on the **skill** stacks once per negative state on
 **self**, to 100. Every number is per affliction you are carrying.
@@ -782,7 +789,7 @@ Same verb, opposite direction.
 - **Middle:** `A relentless march: each curse on you gives {p.atk} Power and Force, and {p.pdr} off everything they throw.`
 - **End:** `Juggernaut. Every affliction feeds you {p.atk} Power and Force, {p.pdr} of protection, and {v.lst} Lifesteal. Let them pile on.`
 
-### `construct-hazard` (1511-1520)
+### `construct-hazard` (1511-1515)
 
 | Act | Mechanics |
 |---|---|
@@ -794,7 +801,7 @@ Same verb, opposite direction.
 - **Middle:** `A blast front, not a blast point: {v.radiusRate} across and {v.thicknessRate} deep.`
 - **End:** `Ground zero. {v.radiusRate} and {v.thicknessRate} on everything, and then more on top of that. There is no edge left to stand on.`
 
-### `construct-bot` (1521-1530)
+### `construct-bot` (1521-1525)
 
 Payload: self-repair skills 1051-1060 (damage type 3). Every 5s, unconditionally. The capstone folds
 `p`, skill proficiency, into the heal.
@@ -809,7 +816,7 @@ Payload: self-repair skills 1051-1060 (damage type 3). Every 5s, unconditionally
 - **Middle:** `A maintenance cycle worth {s.payload} every {s.interval}. Attrition simply stops working on you.`
 - **End:** `Autonomic overdrive. {s.payload} every {s.interval}, and the better you get at fighting the more it mends.`
 
-### `construct-puppet` (1531-1540)
+### `construct-puppet` (1531-1535)
 
 State 7 is Disabled (cannot use main/off/dodge/tool skills), state 6 is Muted (cannot use combat skills).
 
@@ -823,7 +830,7 @@ State 7 is Disabled (cannot use main/off/dodge/tool skills), state 6 is Muted (c
 - **Middle:** `A soul bind. {v.perDebuffBuff} per affliction, and {s.chance} of your hits take their hands away entirely.`
 - **End:** `Soul rend. {v.perDebuffBuff} per affliction, and every strike risks silencing them and disabling them both at once.`
 
-### `construct-orb` (1541-1550)
+### `construct-orb` (1541-1545)
 
 Payload: shield-break skills 1061-1070. `s` in those formulas is `lastShieldBreakValue`; `a.sar` on the
 capstone is the Shield Amp parameter.
@@ -842,7 +849,7 @@ capstone is the Shield Amp parameter.
 
 ## Deity
 
-### `deity-elemental` (1551-1560)
+### `deity-elemental` (1551-1555)
 
 `pierceElement:[ELEM, PCT]` cuts through their resistance rather than boosting your damage.
 
@@ -856,7 +863,7 @@ capstone is the Shield Amp parameter.
 - **Middle:** `Elemental flux: six elements now, each cutting {v.pierceElement} through whatever they hide behind.`
 - **End:** `An elemental singularity. Every element there is pierces {v.pierceElement}, and nothing is safe from anything.`
 
-### `deity-emotion` (1561-1570)
+### `deity-emotion` (1561-1565)
 
 The exact mirror of `insect-parasite`: there, healing **you** splashes onto allies. Here, healing an
 **ally** feeds **you**.
@@ -871,7 +878,7 @@ The exact mirror of `insect-parasite`: there, healing **you** splashes onto alli
 - **Middle:** `An empathic echo carries {s.radius}: {v.onAllyHpHealHp} of every kindness they receive lands on you as Life and Magi both.`
 - **End:** `An empathic nexus. Life, Magi, Tech: anything that restores an ally within {s.radius} restores {v.onAllyHpHealHp} of it in you.`
 
-### `deity-devil` (1571-1580)
+### `deity-devil` (1571-1575)
 
 `sdpBonusFormula:[a.getMasteryCount() * 0.01]` on the capstone reads the count of panels already
 mastered, so the reward compounds against your own progress.

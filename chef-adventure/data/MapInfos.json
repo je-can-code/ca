@@ -1,7 +1,7 @@
 [
 null,
-{"id":1,"expanded":false,"name":"Test Oasis","order":5,"parentId":0,"scrollX":1109,"scrollY":869.5,"quick":true},
-{"id":2,"expanded":false,"name":"_ActionMap","order":1,"parentId":0,"scrollX":1280.6666666666667,"scrollY":991.3333333333334},
+{"id":1,"expanded":true,"name":"Test Oasis","order":5,"parentId":0,"scrollX":1101,"scrollY":869.5,"quick":true},
+{"id":2,"expanded":true,"name":"_ActionMap","order":1,"parentId":0,"scrollX":1280.6666666666667,"scrollY":991.3333333333334},
 {"id":3,"expanded":true,"name":"DUNGEON: Intro","order":249,"parentId":14,"scrollX":1101,"scrollY":679.5},
 {"id":4,"expanded":false,"name":"Cave - 1 - START","order":250,"parentId":3,"scrollX":982.5,"scrollY":658.5,"quick":true},
 {"id":5,"expanded":true,"name":"Cave - 2 - attacking","order":251,"parentId":3,"scrollX":1109,"scrollY":1005.5},
@@ -11,7 +11,7 @@ null,
 {"id":9,"expanded":true,"name":"Cave - 6a - ranged","order":255,"parentId":3,"scrollX":816,"scrollY":800},
 {"id":10,"expanded":false,"name":"Cave - 7","order":257,"parentId":3,"scrollX":1109,"scrollY":1663.5},
 {"id":11,"expanded":true,"name":"Cave - 8a","order":258,"parentId":3,"scrollX":1101,"scrollY":752.5},
-{"id":12,"expanded":true,"name":"Map","order":32,"parentId":0,"scrollX":1291,"scrollY":1291.5},
+{"id":12,"expanded":false,"name":"Map","order":32,"parentId":0,"scrollX":1291,"scrollY":1291.5},
 {"id":13,"expanded":true,"name":"REGION: Western Erocia","order":57,"parentId":12,"scrollX":1101,"scrollY":701.5},
 {"id":14,"expanded":true,"name":"Crossroads","order":248,"parentId":333,"scrollX":1531,"scrollY":984.5},
 {"id":15,"expanded":false,"name":"Cave - 8b","order":259,"parentId":11,"scrollX":1510,"scrollY":1104},
@@ -359,6 +359,6 @@ null,
 {"id":357,"expanded":false,"name":"SDP Oasis","order":27,"parentId":1,"scrollX":960.5,"scrollY":735.5},
 {"id":358,"expanded":true,"name":"Bathroom","order":63,"parentId":40,"scrollX":1109,"scrollY":738.5},
 {"id":359,"expanded":false,"name":"Respawn Test","order":28,"parentId":1,"scrollX":969.5,"scrollY":735.5},
-{"id":360,"expanded":false,"name":"Motion Test","order":29,"parentId":1,"scrollX":969.5,"scrollY":735.5},
-{"id":361,"expanded":false,"name":"_FullEnemyMap","order":3,"parentId":2,"scrollX":0,"scrollY":0,"quick":false}
+{"id":360,"expanded":false,"name":"Motion Test","order":29,"parentId":1,"scrollX":1101,"scrollY":701.5},
+{"id":361,"expanded":false,"name":"_FullEnemyMap","order":3,"parentId":2,"scrollX":1101,"scrollY":701.5,"quick":false}
 ]

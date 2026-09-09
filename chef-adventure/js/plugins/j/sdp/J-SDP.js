@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v4.6.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v4.7.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -366,6 +366,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.7.0
+ *    Mastery prose acts now break at tiers 2 and 4 rather than 3 and 9, matching a
+ *    five-tier subgroup strip.
  * - 4.6.0
  *    A name-only mastery token names a parameter without its value, so one stated
  *    magnitude can cover several stats. Clearing the panel detail windows hands them
@@ -1631,12 +1634,12 @@ var PanelMasteryProse = class PanelMasteryProse {
 	* The highest tier still considered part of the beginning act.
 	* @type {number}
 	*/
-	static BeginningActMaxTier = 3;
+	static BeginningActMaxTier = 2;
 	/**
 	* The highest tier still considered part of the middle act; anything beyond it is the capstone.
 	* @type {number}
 	*/
-	static MiddleActMaxTier = 9;
+	static MiddleActMaxTier = 4;
 	/**
 	* @param {string} beginning The beginning act template driving this step.
 	* @param {string} middle The middle act template driving this step.
@@ -3894,7 +3897,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.6.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.7.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

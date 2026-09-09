@@ -33,12 +33,23 @@ In **Chef Adventure**, panels are the primary balance and design lever for playe
 
 ### How panels are organized
 
-Enemies are grouped into **10 families**, each containing **5 subgroups of 10 tiers** — approximately 500 enemies total. A subgroup is 10 escalating tiers of the same enemy type (e.g. ghosty → creepy → spooky → ...), with higher tiers having stronger base stats and potentially richer skill sets. Each enemy in a subgroup drops its corresponding panel, so farming a subgroup rewards the player with the playstyle of that enemy.
+Enemies are grouped into **10 families**, each containing **5 subgroups of 5 tiers** — approximately 250 enemies total. A subgroup is 5 escalating tiers of the same enemy type (e.g. ghosty → creepy → spooky → ...), with higher tiers having stronger base stats and potentially richer skill sets. Each enemy in a subgroup drops its corresponding panel, so farming a subgroup rewards the player with the playstyle of that enemy.
 
-The 10 panels in a subgroup form a **strip**. Strips are divided into three **acts**:
-- **Beginning (tiers 1–3):** entry-level potency, base effect established
-- **Middle (tiers 4–9):** ramping potency, optional behavior layers added
-- **End (tier 10 — capstone):** qualitative shift or dramatically amplified power, intentionally strong
+Each subgroup occupies a decade of ids, of which only the first five and the last are used:
+
+| Slot | Holds |
+|---|---|
+| 1–5 | the strip |
+| 6–9 | empty; growth room |
+| 10 | the named **anomaly**, which grants SDP points but no panel |
+
+The 5 panels in a subgroup form a **strip**. Strips are divided into three **acts**:
+- **Beginning (tiers 1–2):** entry-level potency, base effect established
+- **Middle (tiers 3–4):** ramping potency, optional behavior layers added
+- **End (tier 5 — capstone):** qualitative shift or dramatically amplified power, intentionally strong
+
+> The strip was ten tiers until 2026-09-09; see [`five-tier-recut.md`](./five-tier-recut.md) for what
+> changed and why. Anything describing ten rungs predates that.
 
 ### Masteries
 
@@ -46,7 +57,7 @@ Almost every panel also grants a **mastery** — a skill the battler learns when
 
 **Mastery passives always live on the ally that unlocked them** — never on enemies. Enemies do not receive mastery passives and will never use them against the player. The effects may still act adversely against enemies (e.g. a mastery that extends the duration of debuffs the ally applies to foes), but the passive itself is always on the ally side.
 
-The capstone (tier 10) mastery is intentionally powerful — sometimes dramatically so. This is by design: acquiring a tier-10 panel drop from the highest-tier enemy of a subgroup is a meaningful feat, and the 20-rank point investment compounds that cost. Players who reach a capstone mastery are *supposed* to feel godly.
+The capstone (tier 5) mastery is intentionally powerful — sometimes dramatically so. This is by design: acquiring a tier-5 panel drop from the highest-tier enemy of a subgroup is a meaningful feat, and the 20-rank point investment compounds that cost. Players who reach a capstone mastery are *supposed* to feel godly.
 
 This document iterates over subgroups one at a time, authoring their panel parameters and masteries in sequence.
 
@@ -62,8 +73,8 @@ Then pull the subgroup's flavor twist and mastery mechanic from the family table
 
 Propose a full parameter spread for the subgroup based on its archetype (UP/DOWN pool) and flavor twist. Present two things:
 
-1. **Proposed panel rows** — a table of `parameterKey`, `perRank`, `isCore` for a representative tier (e.g. tier 5), with a note on how potency scales across tiers 1–9 and the capstone.
-2. **Accumulated bonuses chart** — write and run an inline Bun script that calculates, for each parameter, the total bonus a player would accumulate by maxing every panel in the strip (perRank × maxRank, summed across all 10 panels).
+1. **Proposed panel rows** — a table of `parameterKey`, `perRank`, `isCore` for a representative tier (e.g. tier 3), with a note on how potency scales across tiers 1–4 and the capstone.
+2. **Accumulated bonuses chart** — write and run an inline Bun script that calculates, for each parameter, the total bonus a player would accumulate by maxing every panel in the strip (perRank × maxRank, summed across all 5 panels).
 
 Fiddle with JE until the spread feels right, then write the finalized values to `config.sdp.json` **using a single bun script** — load the file, patch all panels in memory, write it back in one operation. Never use serial Edit tool calls on the JSON directly.
 
@@ -72,7 +83,10 @@ Fiddle with JE until the spread feels right, then write the finalized values to 
 - Every non-Generalist strip has at least one DOWN row.
 - `isCore: true` on 2–4 rows only — identity UPs + primary DOWNs only. Flavor twist stats are NOT core.
 - **4–5 rows per panel, not all stats on every tier.** Core params (`flavor UP` + primary DOWNs) appear every tier. Secondary UPs (`hrg`, `pha`, `mhp`, `lst`, etc.) rotate in across tiers — typically 3–5 appearances each, sprinkled across the strip. Never dump all secondaries on every panel.
-- **`maxRank`: tiers 1–9 = `10`, tier 10 (capstone) = `20`. Always. No exceptions.**
+- **`maxRank`: tiers 1–4 = `10`, tier 5 (capstone) = `20`. Always. No exceptions.**
+- **Rarity ladder: `0, 2, 3, 4, 5` across the five tiers.**
+- **A parameter row must be worth a few percent on the panel it sits on.** Spreading a small total
+  across every tier produces rows nobody feels; concentrate it onto fewer tiers instead.
 
 ---
 
@@ -80,9 +94,9 @@ Fiddle with JE until the spread feels right, then write the finalized values to 
 
 Discuss the mastery mechanic with JE — clarify intent, hook availability, and any P2 gaps. Then propose the three-act breakdown:
 
-- **Beginning (tiers 1–3):** base effect, softest potency
-- **Middle (tiers 4–9):** ramping potency, optional behavior layer
-- **End (tier 10):** capstone — qualitative shift or maximum potency
+- **Beginning (tiers 1–2):** base effect, softest potency
+- **Middle (tiers 3–4):** ramping potency, optional behavior layer
+- **End (tier 5):** capstone — qualitative shift or maximum potency
 
 Get agreement, then write the mastery effect tags into the mastery states in `States.json`.
 

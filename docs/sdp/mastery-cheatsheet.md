@@ -17,60 +17,69 @@
 
 **Redesign complete** · Devil verification pending · Sin authored per-boss (no sequential mastery pass) · All other families verified · Future work: tweaks, retunes, Sin boss authoring
 
-> **Payload bands are per-database — Skills.json and States.json IDs are independent.**
-> **Skills.json bands:** 1001–1010 Reborn ward pulse · 1011–1020 Crab thorns · 1021–1030 Aerial aura pulse · 1031–1040 Quadruped pack aura · 1041–1050 Scorpion retaliation · 1051–1060 Bot self-repair · 1061–1070 Orb shield-break explosion. Next free: **1071+**.
-> **States.json bands:** 1001–1010 Reborn ward · 1011–1020 Skeleton rage · 1021–1030 Snake venom · 1031–1040 Frog MAT stacks · 1041–1050 Cephalopod ink cloud · 1051–1060 Puddle elemental gel · 1061–1070 Cube slow (Gooped/Enmired/Subsumed) · 1071–1080 Beaker speed/evasion buff · 1081–1090 Quadruped pack DEF buff · 1091–1100 Minotaur momentum stacks. Next free: **1101+**. *(Crawler uses no payload band — tags live directly on mastery states 1411–1420.)*
+> 🔻 **The strip is five tiers as of 2026-09-09.** Every band below still reserves a decade, but only
+> the **first five ids** hold anything; 6–9 are blank growth room and, in the enemy tables, id 10 is the
+> named anomaly. See [`five-tier-recut.md`](./five-tier-recut.md).
+>
+> **Per-row notes in the progress table below describe the old ten-rung ramps** (e.g. "tiers 4–9",
+> "T10: 9 elements"). They are kept as a record of what each mastery was designed to do; the surviving
+> rungs are old tiers **1, 3, 5, 7 and 10**, moved down verbatim. Read them as intent, not as ids.
+
+> **Payload bands are per-database — Skills.json and States.json IDs are independent.** Each reserves a
+> decade and uses its first five.
+> **Skills.json bands:** 1001–1005 Wisp aura pulse · 1011–1015 Crab thorns · 1021–1025 Aerial aura pulse · 1031–1035 Quadruped pack aura · 1041–1045 Scorpion retaliation · 1051–1055 Bot self-repair · 1061–1065 Orb shield-break explosion. Next free: **1071+**.
+> **States.json bands:** 1001–1005 Reborn ward · 1011–1015 Skeleton rage · 1021–1025 Snake venom · 1031–1035 Frog MAT stacks · 1041–1045 Cephalopod ink cloud · 1051–1055 Puddle elemental gel · 1061–1065 Cube slow (Gooped/Enmired/Subsumed) · 1071–1075 Beaker speed/evasion buff · 1081–1085 Quadruped pack DEF buff · 1091–1095 Minotaur momentum stacks. Next free: **1101+**. *(Crawler uses no payload band — tags live directly on mastery states 1411–1415.)*
 
 | # | Family | Subgroup | `subgroupKey` | Panels | Mastery IDs | Status |
 |---:|---|---|---|---|---|---|
-| 1 | Undead | Ghosty | `undead-ghosty` | `GHO_*` | 1101–1110 | ✅ Verified |
-| 2 | Undead | Reborn | `undead-reborn` | `REB_*` | 1111–1120 | ✅ Verified — ward payloads **1001–1010** |
-| 3 | Undead | Wisp | `undead-wisp` | `WIL_*` | 1121–1130 | ✅ Verified |
-| 4 | Undead | Skeleton | `undead-skeleton` | `BON_*` | 1131–1140 | ✅ Verified — support states TBD |
-| 5 | Undead | Armor | `undead-armor` | `ARM_*` | 1141–1150 | ✅ Verified — DEF↑ / MHP↓ traits; GRD + CDR capstone **1150** |
-| 6 | Reptile | Snake | `reptile-snake` | `SNK_*` | 1151–1160 | ✅ Verified — masteries + payloads **1021–1030** + panel params |
-| 7 | Reptile | Dargin | `reptile-dargin` | `DRG_*` | 1161–1170 | ✅ Verified |
-| 8 | Reptile | Draconite | `reptile-draconite` | `DCO_*` | 1171–1180 | ✅ Verified |
-| 9 | Reptile | Lamia | `reptile-lamia` | `LAM_*` | 1181–1190 | ✅ Verified |
-| 10 | Reptile | Salamander | `reptile-salamander` | `SAL_*` | 1191–1200 | ✅ Verified |
-| 11 | Aquatic | Kappa | `aquatic-kappa` | `KAP_*` | 1201–1210 | ✅ Verified |
-| 12 | Aquatic | Frog | `aquatic-frog` | `FRG_*` | 1211–1220 | ✅ Verified — payload states **1031–1040** + `removeStateOnMove` hook |
-| 13 | Aquatic | Crab | `aquatic-crab` | `CRB_*` | 1221–1230 | ✅ Verified — thorns payloads **1011–1020** + panel params; `<retaliate:[ID, 100, physical]>` |
-| 14 | Aquatic | Fish | `aquatic-fish` | `FSH_*` | 1231–1240 | ✅ Verified |
-| 15 | Aquatic | Cephalopod | `aquatic-cephalopod` | `CPH_*` | 1241–1250 | ✅ Verified — ink cloud payloads **1041–1050** + panel params |
-| 16 | Slime | Puddle | `slime-puddle` | `SLI_*` | 1251–1260 | ✅ Verified — elemental gel payloads **1051–1060** + panel params |
-| 17 | Slime | Roper | `slime-roper` | `TNT_*` | 1261–1270 | ✅ Verified — `<perDebuffBuff:N>` + Roper Goop on-hit trait (state 70); capstone 5× goop |
-| 18 | Slime | Jelly | `slime-jelly` | `JEL_*` | 1271–1280 | ✅ Verified — `<onSelfHpHealMp:[PCT, R]>` / `<onSelfAnyHealMp:[PCT, R]>` mana transfusion; panel params authored |
-| 19 | Slime | Aerial | `slime-aerial` | `AER_*` | 1281–1290 | ✅ Verified — Cleric aura pulse payloads **1021–1030**; capstone `<hpPercent:5>` regen |
-| 20 | Slime | Cube | `slime-cube` | `CUB_*` | 1291–1300 | ✅ Verified — slow payloads **1061–1070** |
-| 21 | Plant | Trap | `plant-trap` | `TRP_*` | 1301–1310 | ✅ Verified |
-| 22 | Plant | Fungus | `plant-fungus` | `FUN_*` | 1311–1320 | ✅ Verified |
-| 23 | Plant | Dryad | `plant-dryad` | `FAE_*` | 1321–1330 | ✅ Verified |
-| 24 | Plant | Treant | `plant-treant` | `TRE_*` | 1331–1340 | ✅ Verified |
-| 25 | Plant | Flower | `plant-flower` | `FLW_*` | 1341–1350 | ✅ Verified |
-| 26 | Beast | Bearcat | `beast-bearcat` | `HBR_*` | 1351–1360 | ✅ Verified |
-| 27 | Beast | Bat | `beast-bat` | `WNG_*` | 1361–1370 | ✅ Verified |
-| 28 | Beast | Beaker | `beast-beaker` | `BEK_*` | 1371–1380 | ✅ Verified |
-| 29 | Beast | Rat | `beast-rat` | `ROD_*` | 1381–1390 | ✅ Verified |
-| 30 | Beast | Quadruped | `beast-quadruped` | `QUA_*` | 1391–1400 | ✅ Verified — pack aura payloads **1031–1040** (skills) + **1081–1090** (states); `<mdfBuffPlus:[a.def * 0.5]>` capstone |
-| 31 | Insect | Needler | `insect-needler` | `STG_*` | 1401–1410 | ✅ Verified |
-| 32 | Insect | Crawler | `insect-crawler` | `WRM_*` | 1411–1420 | ✅ Verified |
-| 33 | Insect | Brood | `insect-brood` | `HIV_*` | 1421–1430 | ✅ Verified — `<extendStateType:poison>` + spread masteries; state extension shipped |
-| 34 | Insect | Scorpion | `insect-scorpion` | `JMP_*` | 1431–1440 | ✅ Verified — retaliation payloads **1041–1050**; capstone double-fires at 8-tile proximity |
-| 35 | Insect | Parasite | `insect-parasite` | `PAR_*` | 1441–1450 | ✅ Verified |
-| 36 | Humanoid | Minotaur | `humanoid-minotaur` | `BUL_*` | 1451–1460 | ✅ Verified — momentum payloads **1091–1100** |
-| 37 | Humanoid | Orc | `humanoid-orc` | `ORC_*` | 1461–1470 | ✅ Verified — CDR: +3/7/10/12/15/17/20/22/25/30% |
-| 38 | Humanoid | Bandit | `humanoid-bandit` | `THF_*` | 1471–1480 | ✅ Verified — Pocket Sand: stacking blind (state 18) 10/20/30/50/60/70/80/90/100/100% proc; tiers 4–10 add 5/10/15/20/25/30/50% EVA |
-| 39 | Humanoid | Cyclops | `humanoid-cyclops` | `WLK_*` | 1481–1490 | ✅ Verified — rooted resist→immunity (1–3); Disabled resist→immunity (4–9); knockback resist +50% (10) |
-| 40 | Humanoid | Kobold | `humanoid-kobold` | `CLN_*` | 1491–1500 | ✅ Verified |
-| 41 | Construct | Titan | `construct-titan` | `GOL_*` | 1501–1510 | ✅ Verified — `negativeStateCount` stacks ATK/MAT (×1.1→×3.0); PDR/MDR/FDR reduction (0.98→0.90); capstone `<lst:10>` per stack |
-| 42 | Construct | Hazard | `construct-hazard` | `HAZ_*` | 1511–1520 | ✅ Verified — `radiusRate` 1.05→1.50; `thicknessRate` 1.25→1.50 (tiers 4+); capstone adds `radiusBuff:0.5` + `thicknessBuff:0.5` |
-| 43 | Construct | Bot | `construct-bot` | `RBT_*` | 1521–1530 | ✅ Verified — self-repair payloads **1051–1060**; `autoExecuteSkill` every 5s; capstone + proficiency |
-| 44 | Construct | Puppet | `construct-puppet` | `HOM_*` | 1531–1540 | ✅ Verified — `<perDebuffBuff>` 3→33%; Attack State: Disabled @ 1–10% (tiers 4–10); capstone + Muted @ 10% |
-| 45 | Construct | Orb | `construct-orb` | `RUN_*` | 1541–1550 | ✅ Verified — `<shieldBreak:[SKILL_ID]>` tiers 1–3 radius 2 (`s*0.10–0.20`), tiers 4–9 radius 3 (`s*0.30–0.80`), tier 10 radius 4 (`(s*a.sar)*1.50`); payload skills 1061–1070 |
-| 46 | Deity | Elemental | `deity-elemental` | `ELE_*` | 1551–1560 | ✅ Verified — `<pierceElement:[ID, PCT]>` T1–3: 4 elements (4–7) 5/10/15%; T4–9: 6 elements (4–9) 25–50%; T10: 9 elements (1–9) 75% |
-| 47 | Deity | Emotion | `deity-emotion` | `ASP_*` | 1561–1570 | ✅ Verified — `<onAllyHpHealHp/Mp/Tp>` tiers 1–3 HP only radius 2 (5–15%), tiers 4–9 HP+MP radius 3 (25–50%), tier 10 HP+MP+TP radius 4 (50%) |
-| 48 | Deity | Devil | `deity-devil` | `SOV_*` | 1571–1580 | 🟠 Authored — verification pending |
+| 1 | Undead | Ghosty | `undead-ghosty` | `GHO_*` | 1101–1105 | ✅ Verified |
+| 2 | Undead | Reborn | `undead-reborn` | `REB_*` | 1111–1115 | ✅ Verified — ward payloads **1001–1005** |
+| 3 | Undead | Wisp | `undead-wisp` | `WIL_*` | 1121–1125 | ✅ Verified |
+| 4 | Undead | Skeleton | `undead-skeleton` | `BON_*` | 1131–1135 | ✅ Verified — support states TBD |
+| 5 | Undead | Armor | `undead-armor` | `ARM_*` | 1141–1145 | ✅ Verified — DEF↑ / MHP↓ traits; GRD + CDR capstone **1145** |
+| 6 | Reptile | Snake | `reptile-snake` | `SNK_*` | 1151–1155 | ✅ Verified — masteries + payloads **1021–1025** + panel params |
+| 7 | Reptile | Dargin | `reptile-dargin` | `DRG_*` | 1161–1165 | ✅ Verified |
+| 8 | Reptile | Draconite | `reptile-draconite` | `DCO_*` | 1171–1175 | ✅ Verified |
+| 9 | Reptile | Lamia | `reptile-lamia` | `LAM_*` | 1181–1185 | ✅ Verified |
+| 10 | Reptile | Salamander | `reptile-salamander` | `SAL_*` | 1191–1195 | ✅ Verified |
+| 11 | Aquatic | Kappa | `aquatic-kappa` | `KAP_*` | 1201–1205 | ✅ Verified |
+| 12 | Aquatic | Frog | `aquatic-frog` | `FRG_*` | 1211–1215 | ✅ Verified — payload states **1031–1035** + `removeStateOnMove` hook |
+| 13 | Aquatic | Crab | `aquatic-crab` | `CRB_*` | 1221–1225 | ✅ Verified — thorns payloads **1011–1015** + panel params; `<retaliate:[ID, 100, physical]>` |
+| 14 | Aquatic | Fish | `aquatic-fish` | `FSH_*` | 1231–1235 | ✅ Verified |
+| 15 | Aquatic | Cephalopod | `aquatic-cephalopod` | `CPH_*` | 1241–1245 | ✅ Verified — ink cloud payloads **1041–1045** + panel params |
+| 16 | Slime | Puddle | `slime-puddle` | `SLI_*` | 1251–1255 | ✅ Verified — elemental gel payloads **1051–1055** + panel params |
+| 17 | Slime | Roper | `slime-roper` | `TNT_*` | 1261–1265 | ✅ Verified — `<perDebuffBuff:N>` + Roper Goop on-hit trait (state 70); capstone 5× goop |
+| 18 | Slime | Jelly | `slime-jelly` | `JEL_*` | 1271–1275 | ✅ Verified — `<onSelfHpHealMp:[PCT, R]>` / `<onSelfAnyHealMp:[PCT, R]>` mana transfusion; panel params authored |
+| 19 | Slime | Aerial | `slime-aerial` | `AER_*` | 1281–1285 | ✅ Verified — Cleric aura pulse payloads **1021–1025**; capstone `<hpPercent:5>` regen |
+| 20 | Slime | Cube | `slime-cube` | `CUB_*` | 1291–1295 | ✅ Verified — slow payloads **1061–1065** |
+| 21 | Plant | Trap | `plant-trap` | `TRP_*` | 1301–1305 | ✅ Verified |
+| 22 | Plant | Fungus | `plant-fungus` | `FUN_*` | 1311–1315 | ✅ Verified |
+| 23 | Plant | Dryad | `plant-dryad` | `FAE_*` | 1321–1325 | ✅ Verified |
+| 24 | Plant | Treant | `plant-treant` | `TRE_*` | 1331–1335 | ✅ Verified |
+| 25 | Plant | Flower | `plant-flower` | `FLW_*` | 1341–1345 | ✅ Verified |
+| 26 | Beast | Bearcat | `beast-bearcat` | `HBR_*` | 1351–1355 | ✅ Verified |
+| 27 | Beast | Bat | `beast-bat` | `WNG_*` | 1361–1365 | ✅ Verified |
+| 28 | Beast | Beaker | `beast-beaker` | `BEK_*` | 1371–1375 | ✅ Verified |
+| 29 | Beast | Rat | `beast-rat` | `ROD_*` | 1381–1385 | ✅ Verified |
+| 30 | Beast | Quadruped | `beast-quadruped` | `QUA_*` | 1391–1395 | ✅ Verified — pack aura payloads **1031–1035** (skills) + **1081–1085** (states); `<mdfBuffPlus:[a.def * 0.5]>` capstone |
+| 31 | Insect | Needler | `insect-needler` | `STG_*` | 1401–1405 | ✅ Verified |
+| 32 | Insect | Crawler | `insect-crawler` | `WRM_*` | 1411–1415 | ✅ Verified |
+| 33 | Insect | Brood | `insect-brood` | `HIV_*` | 1421–1425 | ✅ Verified — `<extendStateType:poison>` + spread masteries; state extension shipped |
+| 34 | Insect | Scorpion | `insect-scorpion` | `JMP_*` | 1431–1435 | ✅ Verified — retaliation payloads **1041–1045**; capstone double-fires at 8-tile proximity |
+| 35 | Insect | Parasite | `insect-parasite` | `PAR_*` | 1441–1445 | ✅ Verified |
+| 36 | Humanoid | Minotaur | `humanoid-minotaur` | `BUL_*` | 1451–1455 | ✅ Verified — momentum payloads **1091–1100** |
+| 37 | Humanoid | Orc | `humanoid-orc` | `ORC_*` | 1461–1465 | ✅ Verified — CDR: +3/7/10/12/15/17/20/22/25/30% |
+| 38 | Humanoid | Bandit | `humanoid-bandit` | `THF_*` | 1471–1475 | ✅ Verified — Pocket Sand: stacking blind (state 18) 10/20/30/50/60/70/80/90/100/100% proc; tiers 4–10 add 5/10/15/20/25/30/50% EVA |
+| 39 | Humanoid | Cyclops | `humanoid-cyclops` | `WLK_*` | 1481–1485 | ✅ Verified — rooted resist→immunity (1–3); Disabled resist→immunity (4–9); knockback resist +50% (10) |
+| 40 | Humanoid | Kobold | `humanoid-kobold` | `CLN_*` | 1491–1495 | ✅ Verified |
+| 41 | Construct | Titan | `construct-titan` | `GOL_*` | 1501–1505 | ✅ Verified — `negativeStateCount` stacks ATK/MAT (×1.1→×3.0); PDR/MDR/FDR reduction (0.98→0.90); capstone `<lst:10>` per stack |
+| 42 | Construct | Hazard | `construct-hazard` | `HAZ_*` | 1511–1515 | ✅ Verified — `radiusRate` 1.05→1.50; `thicknessRate` 1.25→1.50 (tiers 4+); capstone adds `radiusBuff:0.5` + `thicknessBuff:0.5` |
+| 43 | Construct | Bot | `construct-bot` | `RBT_*` | 1521–1525 | ✅ Verified — self-repair payloads **1051–1055**; `autoExecuteSkill` every 5s; capstone + proficiency |
+| 44 | Construct | Puppet | `construct-puppet` | `HOM_*` | 1531–1535 | ✅ Verified — `<perDebuffBuff>` 3→33%; Attack State: Disabled @ 1–10% (tiers 4–10); capstone + Muted @ 10% |
+| 45 | Construct | Orb | `construct-orb` | `RUN_*` | 1541–1545 | ✅ Verified — `<shieldBreak:[SKILL_ID]>` tiers 1–3 radius 2 (`s*0.10–0.20`), tiers 4–9 radius 3 (`s*0.30–0.80`), tier 10 radius 4 (`(s*a.sar)*1.50`); payload skills 1061–1070 |
+| 46 | Deity | Elemental | `deity-elemental` | `ELE_*` | 1551–1555 | ✅ Verified — `<pierceElement:[ID, PCT]>` T1–3: 4 elements (4–7) 5/10/15%; T4–9: 6 elements (4–9) 25–50%; T10: 9 elements (1–9) 75% |
+| 47 | Deity | Emotion | `deity-emotion` | `ASP_*` | 1561–1565 | ✅ Verified — `<onAllyHpHealHp/Mp/Tp>` tiers 1–3 HP only radius 2 (5–15%), tiers 4–9 HP+MP radius 3 (25–50%), tier 10 HP+MP+TP radius 4 (50%) |
+| 48 | Deity | Devil | `deity-devil` | `SOV_*` | 1571–1575 | 🟠 Authored — verification pending |
 | 49 | Deity | Sin | `deity-sin` | `SIN_*` | 1581–1590 | 🔲 Todo |
 | 50 | Deity | Sin Votary | `deity-sin-votary` | — | 1591–1600 | — (enemy decade only; no mastery pass) |
 
@@ -92,9 +101,9 @@ Aligns with food arcs (beginning → middle → end). Same mechanics per act; po
 
 | Panel `subgroupTier` | Skill / state `name` in DB |
 |---:|---|
-| **1–3** | **Beginning** |
-| **4–9** | **Middle** |
-| **10** | **End** (capstone) |
+| **1–2** | **Beginning** |
+| **3–4** | **Middle** |
+| **5** | **End** (capstone) |
 
 Only one mastery skill active at a time; `<hideFromJabsMenu>` on all wrapper skills.
 
@@ -149,30 +158,29 @@ Rarity drives **SDP cost per rank** (plugin-parameter defaults); it does **not**
 | `subgroupTier` | Rarity idx | Label |
 |---:|---:|---|
 | 1 | 0 | Common |
-| 2 | 1 | Magical |
-| 3 | 2 | Rare |
-| 4 | 2 | Rare |
-| 5 | 3 | Epic |
-| 6 | 3 | Epic |
-| 7 | 4 | Legendary |
-| 8 | 4 | Legendary |
-| 9 | 4 | Legendary |
-| 10 | 5 | Godlike |
+| 2 | 2 | Rare |
+| 3 | 3 | Epic |
+| 4 | 4 | Legendary |
+| 5 | 5 | Godlike |
 
-Pattern: **`0 → 1 → 2 → 2 → 3 → 3 → 4 → 4 → 4 → 5`**
+Pattern: **`0 → 2 → 3 → 4 → 5`**
 
 ### maxRank policy (family / enemy subgroup strips)
 
 | `subgroupTier` | `maxRank` | Why |
 |---:|---:|---|
-| **1–9** | **10** | Same purchase depth everywhere; **tier power = `perRank`**, not extra ranks |
-| **10** (capstone) | **20** | Rare drop + best stats/rank + **End mastery** — grind matches reward |
+| **1–4** | **10** | Same purchase depth everywhere; **tier power = `perRank`**, not extra ranks |
+| **5** (capstone) | **20** | Rare drop + best stats/rank + **End mastery** — grind matches reward |
 
 **Exception — `SIN_*` panels:** own recipe (not this curve).
 
-Capstone **20** at Godlike is intentionally a large share of the subgroup wallet (~64% of default-cost strip when tiers 1–9 are 10 each). That is by design.
+The capstone at Godlike is intentionally a large share of the subgroup wallet — roughly **83%** of a
+default-cost strip, since the four rungs beneath it now total about 240k against its 1.19m. That is by
+design, and it is why a full strip costs **78%** of what the ten-tier version did while granting the
+same accumulated stats.
 
-**Power scaling:** even when **rarity holds** (e.g. tier 3 vs 4 both Rare), **tier 4+ uses higher `perRank`** — stronger yield per click, same rank cap and same cost-per-rank band.
+**Power scaling:** the rarity ladder no longer repeats a rung, so every tier is both a cost step and a
+`perRank` step — stronger yield per click *and* a wider cost band as you climb.
 
 ---
 
@@ -305,10 +313,10 @@ Five subgroup slots (Kaiju sacked — Sin owns the last **two** enemy decades). 
 
 | Slot | Subgroup | `subgroupKey` | Panel prefix | Enemy IDs | Archetype | **1–3** | **4–9** | **10** | Mastery IDs | What it does | Tag recipe |
 |---:|---|---|---|---|---|---|---|---|---:|---|---|
-| 1 | Elemental | `deity-elemental` | `ELE` | 551–560 | Wizard | Elemental Saturation | Elemental Flux | Elemental Singularity | 1551–1560 | Pierce X% elemental resist. | ✅ `<pierceElement:[…]>` |
-| 2 | Emotion | `deity-emotion` | `ASP` | 561–570 | Cleric | Empathic Bond | Empathic Echo | Empathic Nexus | 1561–1570 | Gain X% of ally heals in range. | ✅ `<onAllyHpHealHp:[PCT, R]>` |
-| 3 | Devil | `deity-devil` | `SOV` | 571–580 | Generalist | Devil's Bargain | Devil's Wager | Devil's Due | 1571–1580 | +X% damage dealt and taken. | ✅ +/- damage % |
-| 4 | Sin | `deity-sin` | `SIN` | 581–590 | Multi | — | — | — | 1581–1590 | One panel per sin; one mastery at panel max. | Per sin |
+| 1 | Elemental | `deity-elemental` | `ELE` | 551–560 | Wizard | Elemental Saturation | Elemental Flux | Elemental Singularity | 1551–1555 | Pierce X% elemental resist. | ✅ `<pierceElement:[…]>` |
+| 2 | Emotion | `deity-emotion` | `ASP` | 561–570 | Cleric | Empathic Bond | Empathic Echo | Empathic Nexus | 1561–1565 | Gain X% of ally heals in range. | ✅ `<onAllyHpHealHp:[PCT, R]>` |
+| 3 | Devil | `deity-devil` | `SOV` | 571–580 | Generalist | Devil's Bargain | Devil's Wager | Devil's Due | 1571–1575 | +X% damage dealt and taken. | ✅ +/- damage % |
+| 4 | Sin | `deity-sin` | `SIN` | 581–590 | Multi | — | — | — | 1581–1585 | One panel per sin; one mastery at panel max. | Per sin |
 | 5 | Sin Votary | `deity-sin-votary` | — | 591–600 | Multi | — | — | — | 1591–1600 reserved | Helpers respawn; ~1% drop for matching `SIN_*` panel. | No panel strip |
 
 ### Sin panels — one panel, one mastery (not three-act)
