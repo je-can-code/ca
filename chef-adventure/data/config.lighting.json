@@ -1,0 +1,15 @@
+{
+  "light": {
+    "radius": 5,
+    "color": "#FFFFFF",
+    "intensity": 0,
+    "effects": {
+      "flicker": { "depth": 0.2, "period": 40, "chance": 0, "variance": 0.18 },
+      "pulse":   { "depth": 0.45, "period": 165, "chance": 0, "variance": 0.22 },
+      "glitch":  { "depth": 0.85, "period": 55, "chance": 0.28, "variance": 0.12 }
+    }
+  },
+  "ambient": {
+    "color": "#000000"
+  }
+}

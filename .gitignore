@@ -27,3 +27,5 @@ node_modules
 # recovered 282 aptitude tags after the clobber and is worth keeping findable.
 *.backup.json
 *.backup-*.json
+# generated maps awaiting review; tools/mapgen/install.js is what moves them into data/
+tools/mapgen/.staging/

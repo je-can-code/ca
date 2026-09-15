@@ -7,6 +7,10 @@
 Here you can dig into specific regions and learn more about them.
 
 - [Raevula][1]
+- [Nimbus][4] — the chapter 4 Pride dungeon, unbuilt. The build spec: gate staging, tileset, island
+  chain, the split, the palace, Gloria's fight, and what has moved since it was designed.
+- [The Subterranean][5] — the chapter 4 Sloth dungeon, barely started. The look, the snake-shaped
+  descent, the two entrances, the heartbeat, and the rosters it needs. Much of it is still open.
 
 ## Progression
 
@@ -27,3 +31,7 @@ Here you can dig into specific regions and learn more about them.
 [2]: atlas.md
 
 [3]: progression-bands.md
+
+[4]: nimbus.md
+
+[5]: subterranean.md

@@ -107,9 +107,9 @@ bands**, not rungs — the overlap is the design, not a rounding artifact.
 | Crystalline Ravine | 75-90 | Erocia Isthmus | JE, 2026-08-24 |
 | Seashell Shores | 80-95 | Outer Cliffs | JE, 2026-08-24 |
 | Deluge Plains | 85-100 | ch4 continent | JE, 2026-08-24 |
-| Nimbus ("Heaven") | 85-100 | Negative Peaks, Room of Sacrifice `Map322` | `story-canon.md` |
+| Nimbus ("Heaven") | 85-100 | Negative Peaks, Room of Sacrifice `Map322` | `story-canon.md`, [`nimbus.md`](./nimbus.md) |
 | Desolate Graves | 90-105 | ch4 continent, purpose open | JE, 2026-08-24 |
-| The Subterranean ("Hell") | 95-110 | Pearlsalt Mines *and* Forlorn Basin, snakerope-gated | `story-canon.md` |
+| The Subterranean ("Hell") | 95-110 | Pearlsalt Mines *and* Forlorn Basin, snakerope-gated | `story-canon.md`, [`subterranean.md`](./subterranean.md) |
 | Windward Tunnels | - | Deluge Plains to Pearlsalt Mines | unassigned |
 | Frozen Fortress (ch5) | 115-130 | RGB Technohypercube | `story-canon.md` |
 | The gent | ~150 | Frozen Fortress, Courtyard | `story-canon.md` |

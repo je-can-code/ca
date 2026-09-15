@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
+ * [v1.2.1 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -46,6 +46,9 @@
  * entirely plugin-parameter driven.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    Fixed a page-level move route pausing for its frequency after every pixel
+ *    step instead of once per command.
  * - 1.2.0
  *    Subcell passability is decided by PIXEL_CollisionManager.PassagePredicates and
  *    tile merging by SingleTileMerges, so a plugin adding a collision code teaches
@@ -217,13 +220,14 @@ J.PIXEL.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.2.0");
+J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.PIXEL.Aliased = {
 	Game_Character: new Map(),
 	Game_CharacterBase: new Map(),
+	Game_Event: new Map(),
 	Game_Follower: new Map(),
 	Game_Map: new Map(),
 	Game_Player: new Map(),
@@ -2466,6 +2470,24 @@ Game_Event.prototype.checkEventTriggerTouchFront = function(d) {
 	const x2 = $gameMap.roundXWithDirection(this.occupiedTileX(), d);
 	const y2 = $gameMap.roundYWithDirection(this.occupiedTileY(), d);
 	this.checkEventTriggerTouch(x2, y2);
+};
+/**
+* Extends {@link Game_Event.stopCountThreshold}.<br/>
+* Vanilla pauses a page-level custom move route between commands by making the event wait out
+* the frequency threshold each time it comes to a stop, on the assumption that a stop means a
+* command has finished. Under pixel movement a single "Move X" command is repeated once per pixel
+* step to cover the tile ({@link Game_Character#handlePixelRoutineMove}), and every one of those
+* steps ends in a stop, so the pause was landing sixteen times per tile instead of once. While a
+* repeat cycle is active the command is still in progress, so the threshold is zero; once the
+* cycle ends the frequency pause applies exactly as the editor implies, between commands.
+* @returns {number}
+*/
+J.PIXEL.Aliased.Game_Event.set("stopCountThreshold", Game_Event.prototype.stopCountThreshold);
+Game_Event.prototype.stopCountThreshold = function() {
+	if (this.isRepeatMoveActive()) {
+		return 0;
+	}
+	return J.PIXEL.Aliased.Game_Event.get("stopCountThreshold").call(this);
 };
 
 //#endregion

@@ -399,25 +399,35 @@ mounts when ready — not corridor stops.**
 
 ### Disk 1 — Nimbus (Pride) `LOCKED`
 
+> The dungeon itself (look, topology, rosters, the palace, the fight) is specced in
+> [`maps/nimbus.md`](./maps/nimbus.md), transcribed from the 2026-08-31 session. This section stays the
+> story authority; that page is the build spec.
+
 - **Nimbus**: a "Heaven" dungeon above the Negative Peaks, unlocked at the **Room of Sacrifice** (Map322),
   just before the summit.
-- **The gate gag** `LOCKED (drafted)`: the room's grim sacrificial decor demands... `Items[242]`
-  **"Big Gelatin"** (price: 40; dropped by the first slimes in the game — **the same ingredient as the
+- **The gate gag** `LOCKED (drafted)`: the room's grim sacrificial decor demands... `Items[241]`
+  **"Droopy Gelatin"** (dropped by the first slimes in the game — **the same ingredient as the
   intro-dungeon pudding recipe**). Pride's gate, guardian of glory, opens for the game's very first
   ingredient — the most disposable material that exists. Full circle. Jerald refuses to believe the
   scripture; Rupert makes him read it; vindication; the gelatin jiggles, melts into the pedestal, the gate
   opens.
-- **The Sin of Pride: Leo's master** (name `OPEN`) — the world-famous alchemist whose farewell note said he
-  left for **"a new world."** Not a planet. A bigger stage — the one place grander than the world he'd
-  already conquered. "Brimming with righteous glory" is Pride's own vocabulary. (Geography receipt: the
-  giant bird that scattered Leo's journal pages already lives in this airspace — seeded before the sin was
-  assigned.)
-- **The split-party seed lives here** `PROPOSED (2026-08-06)` — a short, voluntary, entirely comic two-switch
+- **The Sin of Pride: Leo's master, Gloria** (name `LOCKED (2026-08-31)`) — the world-famous alchemist whose
+  farewell note said she left for **"a new world."** Not a planet. A bigger stage — the one place grander
+  than the world she'd already conquered. "Brimming with righteous glory" is Pride's own vocabulary, which is
+  where the name came from. Shipped text already genders her (Rupert's attic reread: *"She must've been
+  really smart"*). Her transformation was real and **internal** — she wears no monster form; the fight is a
+  homunculus showcase (see `maps/nimbus.md`). (Geography receipt: the giant bird that scattered Leo's
+  journal pages already lives in this airspace — seeded before the sin was assigned.)
+- **The split-party seed lives here** `LOCKED (2026-08-31)` — a short, voluntary, entirely comic two-switch
   separation, a few screens long, where they *agree* to the gimmick rather than having it inflicted. It exists
-  to train a reflex the Frozen Fortress then takes away. Full drafting under
-  [Ch5 → THE SPLIT](#the-split--the-duo-runs-the-fortress-alone-proposed-2026-08-06).
+  to train a reflex the Frozen Fortress then takes away. Ratified as twin gatehouses that both must be cleared
+  to open the palace gate, control forfeited to events ("first Jerald goes, then Rupert goes"). Full drafting
+  under [Ch5 → THE SPLIT](#the-split--the-duo-runs-the-fortress-alone-proposed-2026-08-06).
 
 ### Disk 2 — The Subterranean (Sloth) `LOCKED`
+
+> The build spec lives in [`maps/subterranean.md`](./maps/subterranean.md). This section stays the
+> story authority for Sloth; that page carries the look, the topology, the rosters and the open items.
 
 - **"Hell"**: dive-deeper entrances beneath the Pearlsalt Mines *and* the Forlorn Basin (both glimpsed and
   unreachable in ch1–2; both snakerope-gated now).

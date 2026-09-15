@@ -1254,38 +1254,38 @@ Game_Temp.prototype.buildAppliedDifficulty = function() {
 		cost += layer.cost;
 		const { actorEffects, enemyEffects } = layer;
 		actorEffects.bparams.forEach((bparam, bIndex) => {
-			const bParamFactor = parseFloat((bparam / 100).toFixed(3));
+			const bParamFactor = bparam / 100;
 			enabledActorEffects.bparams[bIndex] *= bParamFactor;
 		});
 		actorEffects.xparams.forEach((xparam, xIndex) => {
-			const xParamFactor = parseFloat((xparam / 100).toFixed(3));
+			const xParamFactor = xparam / 100;
 			enabledActorEffects.xparams[xIndex] *= xParamFactor;
 		});
 		actorEffects.sparams.forEach((sparam, sIndex) => {
-			const sParamFactor = parseFloat((sparam / 100).toFixed(3));
+			const sParamFactor = sparam / 100;
 			enabledActorEffects.sparams[sIndex] *= sParamFactor;
 		});
 		enemyEffects.bparams.forEach((bparam, bIndex) => {
-			const bParamFactor = parseFloat((bparam / 100).toFixed(3));
+			const bParamFactor = bparam / 100;
 			enabledEnemyEffects.bparams[bIndex] *= bParamFactor;
 		});
 		enemyEffects.xparams.forEach((xparam, xIndex) => {
-			const xParamFactor = parseFloat((xparam / 100).toFixed(3));
+			const xParamFactor = xparam / 100;
 			enabledEnemyEffects.xparams[xIndex] *= xParamFactor;
 		});
 		enemyEffects.sparams.forEach((sparam, sIndex) => {
-			const sParamFactor = parseFloat((sparam / 100).toFixed(3));
+			const sParamFactor = sparam / 100;
 			enabledEnemyEffects.sparams[sIndex] *= sParamFactor;
 		});
-		const expFactor = parseFloat((layer.rewards.exp / 100).toFixed(3));
+		const expFactor = layer.rewards.exp / 100;
 		rewards.exp *= expFactor;
-		const goldFactor = parseFloat((layer.rewards.gold / 100).toFixed(3));
+		const goldFactor = layer.rewards.gold / 100;
 		rewards.gold *= goldFactor;
-		const dropsFactor = parseFloat((layer.rewards.drops / 100).toFixed(3));
+		const dropsFactor = layer.rewards.drops / 100;
 		rewards.drops *= dropsFactor;
-		const encountersFactor = parseFloat((layer.rewards.encounters / 100).toFixed(3));
+		const encountersFactor = layer.rewards.encounters / 100;
 		rewards.encounters *= encountersFactor;
-		const sdpFactor = parseFloat((layer.rewards.sdp / 100).toFixed(3));
+		const sdpFactor = layer.rewards.sdp / 100;
 		rewards.sdp *= sdpFactor;
 	}, this);
 	const { appliedKey, appliedName, appliedDescription } = DifficultyLayer;

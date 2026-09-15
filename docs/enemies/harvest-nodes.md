@@ -273,8 +273,8 @@ consumes 12x the tier-N wood or ingot, so material tier *is* weapon tier. Nothin
 The bands overlap deliberately. A player is not pushed off one tier the moment the next appears; they
 run alongside each other for a stretch.
 
-**Price is not tier.** The wood rows all sit at 400g and the ore rows past Silver at 0g, both of which
-are copy-paste artefacts. Reading a ladder out of the prices produces a wrong answer — Claude did
+**Price is not tier.** Every row in the database is priced at 0 (Jeremy, 2026-09-10); price carries no
+information about anything. Reading a ladder out of the prices produces a wrong answer — Claude did
 exactly that on 2026-08-29 and concluded the woods were a peer set. The recipes are the authority.
 
 **Monster materials are not a universal backstop either.** It is tempting to assume high-tier wood and

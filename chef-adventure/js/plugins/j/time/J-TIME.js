@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.3.0 TIME] A system for tracking time- real or artificial.
+ * @plugindesc [v2.0.0 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -54,12 +54,12 @@
  * Additionally, this system tracks "time of day". "Time of Day" is defined
  * as a block of time (measured in hours) that is named.
  * There are six of these blocks of time that make up a day:
- * - Night (00:00am - 03:59am)
+ * - Moontide (00:00am - 03:59am)
  * - Dawn (04:00am - 7:59am)
  * - Morning (08:00am - 11:59am)
  * - Afternoon (12:00pm - 15:59pm)
  * - Evening (16:00pm - 19:59pm)
- * - Twilight (20:00pm - 23:59pm)
+ * - Night (20:00pm - 23:59pm)
  *
  * Alongside the "time of day" functionality, there is also an optional "tone"
  * adjustment to alter the screen tone based on "time of day". The tone will
@@ -117,8 +117,8 @@
  *  <yearPage:YEAR>                <yearChoice:YEAR>
  *  <timeOfDayPage:TIME_OF_DAY>    <timeOfDayChoice:TIME_OF_DAY>
  *  <seasonOfYearPage:SEASON>      <seasonOfYearChoice:SEASON>
- * Where TIME_OF_DAY is a 0-5 index or one of: night, dawn, morning,
- *   afternoon, evening, twilight.
+ * Where TIME_OF_DAY is a 0-5 index or one of: moontide, dawn, morning,
+ *   afternoon, evening, night.
  * Where SEASON is a 0-3 index or one of: spring, summer, autumn, winter.
  *
  * RANGE TAG FORMAT (inclusive START-END):
@@ -201,6 +201,14 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    BREAKING: the day/night look moved out to J-Lighting-Time. This plugin keeps the
+ *    clock, the variables, the conditionals and the HUD, and paints nothing.
+ *    BREAKING: the phases are now Moontide, Dawn, Morning, Afternoon, Evening, Night.
+ *    The hours each one covers are unchanged; twilight was two times of day wearing
+ *    one word, and night was sitting on the block it describes.
+ *    An overnight range like 18-5 now holds past midnight instead of ending there.
+ *    setTime announces the change, so setting the clock while it is stopped repaints.
  * - 1.3.0
  *    Time conditionals are resolved from TimeMapper.ConditionalKinds, an ordered list
  *    a plugin can register its own conditional into, rather than from a hardcoded pair
@@ -299,15 +307,6 @@
  * @on Real Time
  * @off Artificial Time
  * @default false
- *
- * @param changeToneByTime
- * @parent BASEconfigs
- * @type boolean
- * @text Change Tone by Time
- * @desc Lets TIME manage screen tone based on the hour.
- * @on Allow
- * @off Disallow
- * @default true
  *
  * @param useVariableAssignment
  * @parent BASEconfigs
@@ -516,7 +515,7 @@
  * @type select
  * @desc Use the dropdown to select a time of day to jump to.
  * This will jump to the next day rather than rewind.
- * @option Night (00:00am aka midnight)
+ * @option Moontide (00:00am aka midnight)
  * @value 0
  * @option Dawn (04:00am)
  * @value 1
@@ -526,7 +525,7 @@
  * @value 3
  * @option Evening (16:00pm)
  * @value 4
- * @option Twilight (20:00pm)
+ * @option Night (20:00pm)
  * @value 5
  *
  * @command setTime
@@ -614,15 +613,6 @@
  * @text Start TIME
  * @desc Starts the flow of time; only applicable to artificial time.
  *
- * @command unlockTone
- * @text Unlock Screen Tone
- * @desc Allows the TIME system to control screen tone.
- * Does nothing if screen tone changing was initially disabled.
- *
- * @command lockTone
- * @text Lock Screen Tone
- * @desc Prevents the TIME system from controlling the screen tone.
- *
  */
 
 //#region src/plugins/time/core/_metadata/_pluginMetadata.js
@@ -645,7 +635,6 @@ var J_TIME_PluginMetadata = class extends PluginMetadata {
 		this.StartVisible = pp["startVisible"] === "true";
 		this.StartActivated = pp["startActivated"] === "true";
 		this.UseRealTime = pp["useRealTime"] === "true";
-		this.ChangeToneByTime = pp["changeToneByTime"] === "true";
 		this.UseVariableAssignment = pp["useVariableAssignment"] === "true";
 		this.SecondsVariable = Number(pp["secondsVariable"]);
 		this.MinutesVariable = Number(pp["minutesVariable"]);
@@ -686,7 +675,7 @@ J.TIME = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.3.0");
+J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "2.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -708,7 +697,7 @@ J.TIME.RegExp.HourPage = /<hourPage:[ ]?(\d+)>/i;
 J.TIME.RegExp.DayPage = /<dayPage:[ ]?(\d+)>/i;
 J.TIME.RegExp.MonthPage = /<monthPage:[ ]?(\d+)>/i;
 J.TIME.RegExp.YearPage = /<yearPage:[ ]?(\d+)>/i;
-J.TIME.RegExp.TimeOfDayPage = /<timeOfDayPage:[ ]?([0-5]|night|dawn|morning|afternoon|evening|twilight)>/i;
+J.TIME.RegExp.TimeOfDayPage = /<timeOfDayPage:[ ]?([0-5]|moontide|dawn|morning|afternoon|evening|night)>/i;
 J.TIME.RegExp.SeasonOfYearPage = /<seasonOfYearPage:[ ]?([0-3]|spring|summer|autumn|winter)>/i;
 J.TIME.RegExp.MinuteRangePage = /<minuteRangePage:[ ]?(\d+)-(\d+)>/i;
 J.TIME.RegExp.HourRangePage = /<hourRangePage:[ ]?(\d+)-(\d+)>/i;
@@ -722,7 +711,7 @@ J.TIME.RegExp.HourChoice = /<hourChoice:[ ]?(\d+)>/i;
 J.TIME.RegExp.DayChoice = /<dayChoice:[ ]?(\d+)>/i;
 J.TIME.RegExp.MonthChoice = /<monthChoice:[ ]?(\d+)>/i;
 J.TIME.RegExp.YearChoice = /<yearChoice:[ ]?(\d+)>/i;
-J.TIME.RegExp.TimeOfDayChoice = /<timeOfDayChoice:[ ]?([0-5]|night|dawn|morning|afternoon|evening|twilight)>/i;
+J.TIME.RegExp.TimeOfDayChoice = /<timeOfDayChoice:[ ]?([0-5]|moontide|dawn|morning|afternoon|evening|night)>/i;
 J.TIME.RegExp.SeasonOfYearChoice = /<seasonOfYearChoice:[ ]?([0-3]|spring|summer|autumn|winter)>/i;
 J.TIME.RegExp.MinuteRangeChoice = /<minuteRangeChoice:[ ]?(\d+)-(\d+)>/i;
 J.TIME.RegExp.HourRangeChoice = /<hourRangeChoice:[ ]?(\d+)-(\d+)>/i;
@@ -766,80 +755,18 @@ var TimeConditional = class {
 };
 
 //#endregion
-//#region src/plugins/time/core/managers/TimeToneResolver.js
+//#region src/plugins/time/core/managers/TimePhases.js
 /**
-* Resolves the screen tone that belongs to a given hour of the day.
+* How the day is divided, and which part of it a given hour belongs to.
 *
-* This is deliberately free of any state at all- hand it an hour, get back a tone. Everything about
-* *when* a tone gets applied, whether the player has locked it, and how it reaches the screen stays
-* with {@link Game_Time}; this only answers "what colour is this hour?".
+* A day is six four-hour phases. That division is a clock concept rather than a presentational one -
+* it is surfaced to events through the time-of-day variable and the time conditionals, so anything
+* an author writes against "is it evening" is written against this.
 *
-* A day is divided into six four-hour phases, each fading from the previous phase's tone into its
-* own. The first three hours of a phase are partway through that fade and the fourth has arrived,
-* which is why an hour resolves to either an interpolation or a phase tone exactly.
+* What a phase *looks* like is deliberately not here. Colour and darkness belong to whatever is
+* presenting the time, and this class stays useful with nothing presenting it at all.
 */
-var TimeToneResolver = class {
-	/**
-	* The tone each phase of the day settles on, as `[red, green, blue, grey]`.
-	*
-	* Grey is constrained to 0-255 by the engine while the colour channels span -255 to 255.
-	*/
-	static toneOfDay = {
-		Night: [
-			-100,
-			-100,
-			-30,
-			100
-		],
-		Dawn: [
-			-30,
-			-15,
-			15,
-			64
-		],
-		Morning: [
-			0,
-			0,
-			0,
-			0
-		],
-		Afternoon: [
-			10,
-			10,
-			10,
-			10
-		],
-		Evening: [
-			0,
-			-30,
-			-30,
-			-30
-		],
-		Twilight: [
-			-68,
-			-68,
-			0,
-			68
-		]
-	};
-	/**
-	* The tones of day in the order a full day cycles through them.
-	*
-	* Twilight appears at both ends deliberately: the day opens partway through the twilight-to-night
-	* fade and closes having just arrived back at twilight, so bookending it lets one lookup serve
-	* every hour without a wraparound special case. Phase `n` starts at index `n` and arrives at
-	* index `n + 1`.
-	* @type {[number, number, number, number][]}
-	*/
-	static toneSequence = [
-		this.toneOfDay.Twilight,
-		this.toneOfDay.Night,
-		this.toneOfDay.Dawn,
-		this.toneOfDay.Morning,
-		this.toneOfDay.Afternoon,
-		this.toneOfDay.Evening,
-		this.toneOfDay.Twilight
-	];
+var TimePhases = class {
 	/**
 	* How many hours each phase of the day occupies before the next takes over.
 	* @type {number}
@@ -854,13 +781,13 @@ var TimeToneResolver = class {
 	* Buckets an hour into the phase of day it belongs to.
 	*
 	* The boundaries are arranged so each phase owns exactly {@link hoursPerPhase} hours, which means
-	* this is simply integer division- but it is spelled out as comparisons because the phase ids are
-	* a published contract, surfaced to events through the time-of-day variable.
+	* this is simply integer division- but it is spelled out because the phase ids are a published
+	* contract, surfaced to events through the time-of-day variable.
 	* @param {number} hours The hour of the day, 0 through 23.
 	* @returns {number} The phase id 0-5, or {@link unknownPhase} for an hour off the clock.
 	*/
 	static phaseOfHour(hours) {
-		if (!this.isClockHour(hours)) return this.unknownPhase;
+		if (this.isClockHour(hours) === false) return this.unknownPhase;
 		return Math.floor(hours / this.hoursPerPhase);
 	}
 	/**
@@ -882,55 +809,6 @@ var TimeToneResolver = class {
 	static isClockHour(hours) {
 		return Number.isInteger(hours) && hours >= 0 && hours <= 23;
 	}
-	/**
-	* Resolves the tone belonging to a given hour of the day.
-	* @param {number} hours The hour of the day, 0 through 23.
-	* @returns {[number, number, number, number]} The tone for that hour.
-	*/
-	static toneOfHour(hours) {
-		if (!this.isClockHour(hours)) return [
-			0,
-			0,
-			0,
-			0
-		];
-		const phase = this.phaseOfHour(hours);
-		const hoursIntoPhase = hours % this.hoursPerPhase;
-		const destination = this.toneSequence[phase + 1];
-		if (hoursIntoPhase === this.hoursPerPhase - 1) return destination;
-		const rate = (hoursIntoPhase + 1) / this.hoursPerPhase;
-		return this.between(this.toneSequence[phase], destination, rate);
-	}
-	/**
-	* Calculates the tone a given fraction of the way between two tones.
-	*
-	* Order matters- this travels from the first tone toward the second, so swapping the arguments
-	* does not produce the same result unless the rate is exactly half.
-	* @param {[number, number, number, number]} fromTone The tone being left behind.
-	* @param {[number, number, number, number]} toTone The tone being approached.
-	* @param {number} rate The decimal fraction of the way across, 0 through 1.
-	* @returns {[number, number, number, number]}
-	*/
-	static between(fromTone, toTone, rate) {
-		const distance = (from, to) => from > to ? from - to : to - from;
-		const blended = [];
-		fromTone.forEach((fromChannel, index) => {
-			const toChannel = toTone[index];
-			const travelled = Math.round(distance(fromChannel, toChannel) * rate);
-			blended.push(toChannel > fromChannel ? fromChannel + travelled : fromChannel - travelled);
-		});
-		return blended;
-	}
-	/**
-	* Compares two tones channel by channel to see whether they are the same.
-	* @param {[number, number, number, number]} currentTone The tone presently in effect.
-	* @param {[number, number, number, number]} targetTone The tone being compared against.
-	* @returns {boolean}
-	*/
-	static isSameTone(currentTone, targetTone) {
-		if (currentTone.length < 4) return false;
-		return currentTone.every((channel, index) => channel === targetTone[index]);
-	}
 };
 
 //#endregion
@@ -944,7 +822,7 @@ var Game_Time = class Game_Time {
 	*/
 	constructor() {
 		this.initMembers();
-		this.updateCurrentTone();
+		this.onTimeChanged();
 	}
 	/**
 	* How many of each unit fit inside the unit above it, which is the point at which the smaller
@@ -1029,21 +907,6 @@ var Game_Time = class Game_Time {
 		* @type {number}
 		*/
 		this._years ??= J.TIME.Metadata.StartingYear;
-		/**
-		* Whether or not the screen's tone needs to be changed based on the time.
-		* @type {boolean}
-		*/
-		this._needsToneChange = false;
-		/**
-		* The current tone of the screen.
-		* @type {[number, number, number, number]}
-		*/
-		this._currentTone = [];
-		/**
-		* Whether or not the tone is able to be changed.
-		* @type {boolean}
-		*/
-		this._toneLocked ??= !J.TIME.Metadata.ChangeToneByTime;
 		/**
 		* Whether or not the time window is visible on the map.
 		* @type {boolean}
@@ -1297,25 +1160,6 @@ var Game_Time = class Game_Time {
 		this._blocked = false;
 	}
 	/**
-	* Gets whether or not the screen tone is currently locked from changing.
-	* @returns {boolean}
-	*/
-	isToneLocked() {
-		return this._toneLocked;
-	}
-	/**
-	* Locks the screen's tone, preventing it from changing by this system.
-	*/
-	lockTone() {
-		this._toneLocked = true;
-	}
-	/**
-	* Unlocks the screen's tone, allowing this system to regain control over it.
-	*/
-	unlockTone() {
-		this._toneLocked = false;
-	}
-	/**
 	* Hides the time window on the map.
 	*/
 	hideMapWindow() {
@@ -1359,9 +1203,6 @@ var Game_Time = class Game_Time {
 		if (this.canUpdateTime()) {
 			this.handleUpdateTime();
 		}
-		if (this.getNeedsToneChange()) {
-			this.handleUpdateTone();
-		}
 	}
 	/**
 	* Determine if TIME can be updated.
@@ -1380,141 +1221,17 @@ var Game_Time = class Game_Time {
 		this.flagForHudUpdate();
 	}
 	/**
-	* Processes screen tone updating.
-	*/
-	handleUpdateTone() {
-		this.setNeedsToneChange(false);
-		this.processToneChange();
-	}
-	/**
-	* Gets whether or not the screen's tone change is needed.
-	* @returns {boolean}
-	*/
-	getNeedsToneChange() {
-		if (!J.TIME.Metadata.ChangeToneByTime) {
-			return false;
-		}
-		if (!$dataMap || !$dataMap.meta) {
-			return false;
-		}
-		return this._needsToneChange;
-	}
-	/**
-	* Sets whether or not the screen's tone change is needed.
-	* @param {boolean} need Whether or not a tone change is needed.
-	*/
-	setNeedsToneChange(need = true) {
-		this._needsToneChange = need;
-	}
-	/**
-	* Gets the current screen's tone.
-	* @returns {[number, number, number, number]}
-	*/
-	getCurrentTone() {
-		return this._currentTone;
-	}
-	/**
-	* Sets the current screen's tone.
-	* @param {[number, number, number, number]} newTone The new tone to change to.
-	*/
-	setCurrentTone(newTone) {
-		this._currentTone = newTone;
-	}
-	/**
-	* Updates the screen's tone based on the current time.
-	*/
-	updateCurrentTone() {
-		if (!this.canUpdateTone()) return;
-		const tone = this.targetTone();
-		if (this.isSameTone(tone)) return;
-		if (this.isToneSuppressedByMap() && this.hasForeignScreenTone()) {
-			this.setCurrentTone(tone.clone());
-			return;
-		}
-		this.setCurrentTone(tone.clone());
-		this.setNeedsToneChange(true);
-	}
-	/**
-	* Determines whether the screen is showing a tint that something other than the clock asked for.
+	* Announces that the hour on the clock may now be showing something different.
 	*
-	* The comparison is against the screen's *destination* rather than its current value, because a
-	* tint runs over a duration: partway through one of the clock's own fades the live tone is an
-	* interpolation matching nobody, and comparing against it would call the clock's own work foreign.
-	* @returns {boolean}
-	*/
-	hasForeignScreenTone() {
-		return TimeToneResolver.isSameTone($gameScreen.toneTarget(), this.getCurrentTone()) === false;
-	}
-	/**
-	* Determines the tone the screen ought to be showing right now.
+	* This is the seam the presentation of time hangs off, and it is deliberately shaped like an
+	* announcement rather than like an instruction. The clock's job is to know what time it is and to
+	* say when that changes; deciding what an hour should *look* like belongs to whatever is
+	* presenting it, and this class is not that.
 	*
-	* Normally that is whatever the hour of the day calls for, but a map can opt out of the day/night
-	* cycle entirely with a `noToneChange` tag- an interior, a cave, anywhere the sky is not visible.
-	* Such a map resolves to a neutral tone rather than to no answer at all, because the screen tint
-	* is global state that outlives a map change: nothing in the engine clears it on transfer, so
-	* declining to answer leaves the previous map's tone painted over the new one.
-	* @returns {[number, number, number, number]}
+	* Empty on purpose. J-TIME on its own is a working clock with a window and a set of variables, and
+	* no opinion whatsoever about the screen.
 	*/
-	targetTone() {
-		if (this.isToneSuppressedByMap()) return [
-			0,
-			0,
-			0,
-			0
-		];
-		return this.translateHourToTone();
-	}
-	/**
-	* Determines whether the active map has opted out of the day/night tone cycle.
-	* @returns {boolean}
-	*/
-	isToneSuppressedByMap() {
-		if (!$dataMap || !$dataMap.meta) return false;
-		return Boolean($dataMap.meta["noToneChange"]);
-	}
-	/**
-	* Gets whether or not the screen's tone can be updated.
-	* @returns {boolean}
-	*/
-	canUpdateTone() {
-		if (!J.TIME.Metadata.ChangeToneByTime) {
-			return false;
-		}
-		if (this.isToneLocked()) {
-			return false;
-		}
-		return true;
-	}
-	/**
-	* Determines the tone associated with the current hour of the day.
-	* Tone is represented as whole numbers in an array: `[red, green, blue, grey]`.
-	* For example: `[100, -50, 0, 0]`. `Grey` must be between 0 and 255, while the rest can
-	* be between -255 and 255.
-	* @returns {[number, number, number, number]}
-	*/
-	translateHourToTone() {
-		const hours = J.TIME.Metadata.UseRealTime ? new Date().getHours() : this.hours();
-		return TimeToneResolver.toneOfHour(hours);
-	}
-	/**
-	* Compares the current tone with a target tone to see if they are the same.
-	* @param {[number, number, number, number]} targetTone The tone being compared against.
-	* @returns {boolean}
-	*/
-	isSameTone(targetTone) {
-		return TimeToneResolver.isSameTone(this.getCurrentTone(), targetTone);
-	}
-	/**
-	* Processes the screen's tone change.
-	* @param {boolean} skip If true, then there will be no transition time. Defaults to false.
-	*/
-	processToneChange(skip = false) {
-		if (skip) {
-			$gameScreen.startTint(this.getCurrentTone(), 1);
-		} else {
-			$gameScreen.startTint(this.getCurrentTone(), 300);
-		}
-	}
+	onTimeChanged() {}
 	/**
 	* Gets a snapshot of the current time.
 	* @returns {Time_Snapshot}
@@ -1599,7 +1316,7 @@ var Game_Time = class Game_Time {
 	* @returns {number}
 	*/
 	timeOfDay(hours) {
-		return TimeToneResolver.phaseOfHour(hours);
+		return TimePhases.phaseOfHour(hours);
 	}
 	/**
 	* Determines when the (hour) start of a given time of day is.
@@ -1607,7 +1324,7 @@ var Game_Time = class Game_Time {
 	* @returns
 	*/
 	startOfTimeOfDay(timeOfDayId) {
-		return TimeToneResolver.startOfPhase(timeOfDayId);
+		return TimePhases.startOfPhase(timeOfDayId);
 	}
 	/**
 	* Translates the current month into the season of the year id.
@@ -1659,6 +1376,7 @@ var Game_Time = class Game_Time {
 		this.setDays(days);
 		this.setMonths(months);
 		this.setYears(years);
+		this.onTimeChanged();
 	}
 	/**
 	* Fast forwards to the next instance of a specific time of day.
@@ -1734,7 +1452,7 @@ var Game_Time = class Game_Time {
 	* @param {number} minutes The number of minutes to tick.
 	*/
 	addMinutes(minutes = this._minutesPerTick) {
-		this.updateCurrentTone();
+		this.onTimeChanged();
 		this.advanceUnit(minutes, Game_Time.minutesPerHour, true, () => this.minutes(), (newMinutes) => this.setMinutes(newMinutes), () => this.addHours(this.hoursPerTick()));
 	}
 	/**
@@ -1895,12 +1613,12 @@ var Time_Snapshot = class Time_Snapshot {
 	*/
 	static TimesOfDayName(timeOfDayId) {
 		switch (timeOfDayId) {
-			case 0: return "Night";
+			case 0: return "Moontide";
 			case 1: return "Dawn";
 			case 2: return "Morning";
 			case 3: return "Afternoon";
 			case 4: return "Evening";
-			case 5: return "Twilight";
+			case 5: return "Night";
 			default:
 				Diagnostics.error("J-TIME", `${timeOfDayId} is not a valid time of day id.`);
 				return null;
@@ -1968,12 +1686,12 @@ var Time_Snapshot = class Time_Snapshot {
 	*/
 	static TimesOfDayId(timeOfDayString) {
 		switch (timeOfDayString.toLowerCase()) {
-			case "night": return 0;
+			case "moontide": return 0;
 			case "dawn": return 1;
 			case "morning": return 2;
 			case "afternoon": return 3;
 			case "evening": return 4;
-			case "twilight": return 5;
+			case "night": return 5;
 			default:
 				Diagnostics.error("J-TIME", `${timeOfDayString} is not a valid time of day name.`);
 				return -1;
@@ -2592,10 +2310,15 @@ Game_Event._timeConditionalTimeRangeMet = function(timeConditional) {
 	if (isOverhour) {
 		fakeEndDate.addHours(1);
 	}
-	if (!$gameTime.currentTime().isBetweenDates(fakeStartDate, fakeEndDate)) {
-		return false;
+	if (isOvernight === false) {
+		return $gameTime.currentTime().isBetweenDates(fakeStartDate, fakeEndDate);
 	}
-	return true;
+	if ($gameTime.currentTime().isBetweenDates(fakeStartDate, fakeEndDate)) {
+		return true;
+	}
+	const yesterdayStartDate = fakeStartDate.addDays(-1);
+	const yesterdayEndDate = fakeEndDate.addDays(-1);
+	return $gameTime.currentTime().isBetweenDates(yesterdayStartDate, yesterdayEndDate);
 };
 /**
 * Determines if the current full date time was within the conditional full date time range.
@@ -2969,7 +2692,6 @@ Scene_Map.prototype.onMapLoaded = function() {
 	if (this.transfer()) {
 		this.handleTimeBlock();
 	}
-	$gameTime.updateCurrentTone();
 	J.TIME.Aliased.Scene_Map.get("onMapLoaded").call(this);
 };
 /**
@@ -3106,19 +2828,6 @@ PluginManager.registerCommand(J.TIME.Metadata.name, "stopTime", () => {
 */
 PluginManager.registerCommand(J.TIME.Metadata.name, "startTime", () => {
 	$gameTime.activate();
-});
-/**
-* Plugin command for allowing the TIME system to control the screen tone.
-* Does nothing if the plugin parameters are set to disable tone changing.
-*/
-PluginManager.registerCommand(J.TIME.Metadata.name, "unlockTone", () => {
-	$gameTime.unlockTone();
-});
-/**
-* Plugin command for locking the TIME system from controlling screen tone.
-*/
-PluginManager.registerCommand(J.TIME.Metadata.name, "lockTone", () => {
-	$gameTime.lockTone();
 });
 
 //#endregion

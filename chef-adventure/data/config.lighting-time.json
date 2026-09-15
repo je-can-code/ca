@@ -1,0 +1,11 @@
+{
+  "phases": {
+    "Moontide":  { "tone": [-30, -18, 34, 170], "darkness": 0.72 },
+    "Dawn":      { "tone": [30, 6, -12, 40],    "darkness": 0.30 },
+    "Morning":   { "tone": [0, 0, 0, 0],        "darkness": 0 },
+    "Afternoon": { "tone": [12, 8, -4, 0],      "darkness": 0 },
+    "Evening":   { "tone": [26, 0, -34, 22],    "darkness": 0.08 },
+    "Night":     { "tone": [-34, -14, 40, 95],  "darkness": 0.55 }
+  },
+  "sequence": [ "Moontide", "Dawn", "Morning", "Afternoon", "Evening", "Night", "Moontide" ]
+}
