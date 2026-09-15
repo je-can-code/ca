@@ -182,7 +182,6 @@ J.OMNI.EXT.MONSTER.RegExp = {};
 J.OMNI.EXT.MONSTER.RegExp.HideFromMonsterpedia = /<hideFromMonsterpedia>/i;
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaFamilyIcon = /<monsterFamilyIcon:[ ]?(\d+)>/i;
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,\-'"]+)>/i;
-J.OMNI.EXT.MONSTER.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
 
 //#endregion
 //#region src/plugins/omni/ext/monster/__models/MonsterpediaObservations.js
@@ -232,12 +231,6 @@ var MonsterpediaObservations = class {
 		* @type {boolean}
 		*/
 		this.knowsDescription = false;
-		/**
-		* Whether or not the player knows the regions this monster is found in.
-		* When the regions are unknown, it'll simply be blank.
-		* @type {boolean}
-		*/
-		this.knowsRegions = false;
 		/**
 		* Whether or not the player knows the parameters of this monster.
 		* When the parameters are unknown, they will be masked.

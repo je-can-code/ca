@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 ABS-TIME] Calendar-based respawn methods for JABS.
+ * [v1.1.1 ABS-TIME] Calendar-based respawn methods for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -48,7 +48,7 @@
  *
  * - next-time-of-day: the next time a time of day begins.
  *     <respawn:[next-time-of-day, morning]>
- *     Valid values: night, dawn, morning, afternoon, evening, twilight.
+ *     Valid values: moontide, dawn, morning, afternoon, evening, night.
  *     The phases tile the day in four-hour blocks starting at midnight, so
  *     this is next-time restricted to the six hours they begin on.
  *
@@ -65,6 +65,9 @@
  *     Seasons begin in months 3, 6, 9, and 12 respectively.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    BREAKING: next-time-of-day now takes moontide for the small hours and night for
+ *    the late evening, following the phase rename in J-TIME.
  * - 1.1.0
  *    BREAKING: calendar methods gained a next- prefix. time-of-day, day-of-week,
  *    month and season are now next-time-of-day, next-day-of-week, next-month
@@ -113,7 +116,7 @@ J.ABS.EXT.TIME = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.TIME.Metadata = new J_AbsTimePluginMetadata("J-ABS-Time", "1.1.0");
+J.ABS.EXT.TIME.Metadata = new J_AbsTimePluginMetadata("J-ABS-Time", "1.1.1");
 
 //#endregion
 //#region src/plugins/abs/ext/time/managers/JABS_TimeRespawnMethods.js

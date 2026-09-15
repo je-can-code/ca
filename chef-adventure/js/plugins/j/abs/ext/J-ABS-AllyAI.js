@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.1.0 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v3.1.1 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -94,6 +94,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.1.1
+ *    Followers pass through terrain while the party has them hidden, so an ally nobody
+ *    can see cannot strand itself on geometry nobody was shown.
  * - 3.1.0
  *    An ally backing away from its target now arcs around it toward the leader and
  *    stops on arrival, rather than marching down a single axis until it is out of
@@ -363,7 +366,7 @@ J.ABS.EXT.ALLYAI = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.1.0");
+J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1143,7 +1146,8 @@ JABS_AiManager.enforceFollowerThroughPolicy = function(allyBattler) {
 	if (!chr || !chr.isFollower()) return;
 	const followers = $gamePlayer.followers();
 	const isGathering = followers && followers.areGathering();
-	if (isGathering) {
+	const isHidden = followers.isVisible() === false;
+	if (isGathering || isHidden) {
 		chr.setThrough(true);
 		return;
 	}

@@ -695,7 +695,7 @@ recipe's output already works — River Smoothie and Jelli Hors d'Oeuvres do it 
 9. **Split the 31 existing recipes** across the component and cuisine layers. Most already sit naturally
    on one side.
 10. **Reach the six unreachable recipes** — Ghastly Goulash, River Smoothie, Slime Puree, Jelli Hors
-    d'Oeuvres, Blood-seared Asp and Grim Flankebobs are taught by nothing and are the six with `price: 0`.
+    d'Oeuvres, Blood-seared Asp and Grim Flankebobs are taught by nothing.
 11. **Fix Ghastly Goulash's ingredients rather than its tag.** Real goulash is a beef stew; the tag
     `protein` was right and the recipe — onions, oil and ghastly powder — is what is wrong.
 12. **Adopt the three unused pantry items** already in the database and used by nothing: **Lettuce**

@@ -3098,8 +3098,7 @@ var AutoApplyStateDisplay = class AutoApplyStateDisplay {
 			return `${sec} seconds`;
 		}
 		const rounded = Math.round(sec * 100) / 100;
-		const display = parseFloat(rounded.toFixed(2));
-		return `~${display} seconds`;
+		return `~${rounded} seconds`;
 	}
 	/**
 	* Wraps one highlight fragment with italic, bold, and color for drawTextEx.

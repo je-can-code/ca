@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.23.0 ABS] Enables combat to be carried out on the map.
+ * [v4.24.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,11 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.24.0
+ *    Action events keep the event id they were built with, so an action can find its
+ *    own data for its whole life rather than only while being constructed.
+ *    Game_Map#addEvent files an event at the slot its id names instead of hunting for
+ *    a free one, which is what the invariant on that method always claimed.
  * - 4.23.0
  *    Added the jabsSlotTransforms notetag to actors, classes, equipment and states,
  *    and Game_Battler#getSlotTransformSkillId to resolve one by slot.
@@ -4573,7 +4578,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.23.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.24.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -9907,6 +9912,25 @@ var JABS_AiManager = class JABS_AiManager {
 		return this.getAllBattlers().filter((battler) => battler.isEnemy());
 	}
 	/**
+	* Gets all battlers close enough to the camera that the player could plausibly see them.<br/>
+	* This is deliberately anchored to the view rather than to the player: on a map small enough not
+	* to scroll, the player can stand in a corner while the opposite corner remains fully visible, so
+	* a radius measured from the player would leave visible battlers outside it. The engine's own
+	* {@link Game_CharacterBase.isNearTheScreen} is the same predicate it uses to decide which events
+	* keep moving, and it derives its bounds from the resolution and tile size rather than a constant,
+	* so it stays correct at any screen size and on looping maps.
+	* @returns {JABS_Battler[]} The battlers near enough to the view to warrant updating.
+	*/
+	static getBattlersNearTheScreen() {
+		const nearTheScreen = [];
+		this.battlers.forEach((battler) => {
+			if (battler.getCharacter().isNearTheScreen() === true) {
+				nearTheScreen.push(battler);
+			}
+		});
+		return nearTheScreen;
+	}
+	/**
 	* Filters the battlers based on whether or not the battler is on an opposing
 	* team from the selected battler.
 	* @param {JABS_Battler[]} battlers The battlers to be filtered by team opposition.
@@ -13889,17 +13913,17 @@ var JABS_Battler = class JABS_Battler {
 		this._allyTarget = newAlliedTarget;
 	}
 	/**
-	* Determines the distance from this battler and the point.
+	* Determines the distance from this battler and the point.<br/>
+	* The result is full float precision on purpose - see the note in the body.
 	* @param {number|null} x2 The x coordinate to check.
 	* @param {number|null} y2 The y coordinate to check.
 	* @returns {number|null} The distance from the battler to the point.
 	*/
 	distanceToPoint(x2, y2) {
 		if ((x2 ?? y2) === null) return null;
-		const x1 = this.getX();
-		const y1 = this.getY();
-		const distance = Math.hypot(x2 - x1, y2 - y1).toFixed(2);
-		return parseFloat(distance);
+		const deltaX = x2 - this.getX();
+		const deltaY = y2 - this.getY();
+		return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 	}
 	/**
 	* Determines distance from this battler and the target.
@@ -19802,7 +19826,7 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	updateAiBattlers() {
 		if (!this.canUpdateAiBattlers()) return;
-		const onScreenBattlers = JABS_AiManager.getBattlersWithinRange(this.getPlayer1(), 30);
+		const onScreenBattlers = JABS_AiManager.getBattlersNearTheScreen();
 		onScreenBattlers.forEach(this.performAiBattlerUpdate, this);
 	}
 	/**
@@ -20586,7 +20610,6 @@ var JABS_Engine = class JABS_Engine {
 		const pageIndex = actionEventSprite.findProperPageIndex();
 		const { characterIndex, characterName } = actionEventData.pages[pageIndex].image;
 		actionEventSprite.setActionSpriteNeedsAdding();
-		actionEventSprite._eventId = actionEventData.id;
 		actionEventSprite._characterName = characterName;
 		actionEventSprite._characterIndex = characterIndex;
 		const pageData = actionEventData.pages[pageIndex];
@@ -24833,7 +24856,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.23.0";
+var PLUGIN_VERSION = "4.24.0";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
@@ -32711,33 +32734,24 @@ Game_Map.prototype.newBattlerEvents = function() {
 	return this.events().filter(filtering);
 };
 /**
-* Adds a provided event to the current map's event list.
+* Adds a provided event to the current map's event list, at the slot its own id names.
 *
-* INVARIANT- an event's INDEX IS ITS ID. Vanilla resolves events with `this._events[eventId]`, so
-* a slot can never shift; {@link Game_Map#removeEvent} nulls the slot rather than splicing, and
-* this method refills those nulls before appending.
+* INVARIANT- an event's INDEX IS ITS ID. Vanilla resolves events with `this._events[eventId]` and
+* builds that list as `this._events[event.id]`, so a slot is not a place an event happens to sit: it
+* is the event's identity, and the only thing that makes `$gameMap.event(id)` mean anything.
 *
-* That reuse is only safe because `removeEvent` is called exclusively on SPAWNED events- expired
-* JABS actions and expired loot. Editor-placed events are never removed, so every hole sits above
-* the real-event range and reuse can never steal a real event's id.
+* Every spawner reaches here having already chosen an index, written its data to
+* `$dataMap.events[index]`, and built the event with that same index - so honouring the id it hands
+* over is what keeps the runtime list and the data list describing the same world. Searching for a
+* free slot instead would file the event under a number unrelated to its data, and an event that
+* cannot find its own data cannot find its pages, its comments, or its name.
 *
-* Removing an editor-placed event would break that, and nothing here can stop you: the reused slot
-* would hand its id to an unrelated event, and every `$gameMap.event(id)` lookup for it would
-* silently resolve to the wrong thing.
+* {@link Game_Map#removeEvent} nulls a slot rather than splicing it out, which is what leaves those
+* indices free to be chosen again by the next spawn.
 * @param {Game_Event} event The `Game_Event` to add to this map.
 */
 Game_Map.prototype.addEvent = function(event) {
-	let inserted = false;
-	for (let i = 0; i < this.rawEvents().length; i++) {
-		if (!this.rawEvents()[i]) {
-			this.setEventByIndex(i, event);
-			inserted = true;
-			break;
-		}
-	}
-	if (!inserted) {
-		this.rawEvents().push(event);
-	}
+	this.setEventByIndex(event.eventId(), event);
 };
 /**
 * Removes a provided event from the current map's event list.

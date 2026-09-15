@@ -135,10 +135,10 @@
  * the player from adding an unreasonable number of traits onto an equip.
  *
  * TAG FORMAT
- *  <maxTraitCount:NUM>
+ *  <maxRefinedTraits:NUM>
  *
  * TAG EXAMPLES
- *  <maxTraitCount:3>
+ *  <maxRefinedTraits:3>
  * An equip with this can only have a total of 3 unique traits.
  *
  * NOTE ABOUT LIMITS
@@ -332,72 +332,6 @@ var JAFTING_Trait = class {
 	*/
 	convertToRmTrait() {
 		return RPG_Trait.fromValues(this.code(), this.dataId(), this._value);
-	}
-};
-
-//#endregion
-//#region src/plugins/jafting/ext/refine/__models/JAFT_RefinementData.js
-/**
-* A class containing all the various data points extracted from notes.
-*/
-var JAFTING_RefinementData = class {
-	/**
-	* Gets the notes.
-	* @returns {string[]} The notes.
-	*/
-	notes() {
-		return this._notes;
-	}
-	/**
-	* @constructor
-	* @param {string} notes The raw note box as a string.
-	* @param {any} meta The `meta` object containing prebuilt note metadata.
-	*/
-	constructor(notes, meta) {
-		this._notes = notes.split(/[\r\n]+/);
-		this._meta = meta;
-		this.refinedCount = 0;
-		this.maxRefineCount = this.getMaxRefineCount();
-		this.maxTraitCount = this.getMaxTraitCount();
-		this.notRefinementMaterial = this.isNotRefinableAsMaterial();
-		this.notRefinementBase = this.isNotRefinableAsBase();
-		this.unrefinable = this.isNotRefinable();
-	}
-	/**
-	* The number of times this piece of equipment can be refined.
-	* @returns {number}
-	*/
-	getMaxRefineCount() {
-		return RPGManager.getNumberFromNoteByRegex({ note: this.notes() }, J.JAFTING.EXT.REFINE.MaxRefineCount);
-	}
-	/**
-	* The number of transferable traits that this piece of equipment can have at any one time.
-	* @returns {number}
-	*/
-	getMaxTraitCount() {
-		return RPGManager.getNumberFromNoteByRegex({ note: this.notes() }, J.JAFTING.EXT.REFINE.MaxRefinedTraits);
-	}
-	/**
-	* Gets whether or not this piece of equipment can be used in refinement as a material.
-	* @returns {boolean}
-	*/
-	isNotRefinableAsMaterial() {
-		return RPGManager.checkForBooleanFromNoteByRegex({ note: this.notes() }, J.JAFTING.EXT.REFINE.NotRefinementMaterial);
-	}
-	/**
-	* Gets whether or not this piece of equipment can be used in refinement as a base.
-	* @returns {boolean}
-	*/
-	isNotRefinableAsBase() {
-		return RPGManager.checkForBooleanFromNoteByRegex({ note: this.notes() }, J.JAFTING.EXT.REFINE.NotRefinementBase);
-	}
-	/**
-	* Gets whether or not this piece of equipment can be used in refinement.
-	* If this is true, this will mean this cannot be used in refinement as base or material.
-	* @returns
-	*/
-	isNotRefinable() {
-		return RPGManager.checkForBooleanFromNoteByRegex({ note: this.notes() }, J.JAFTING.EXT.REFINE.Unrefinable);
 	}
 };
 
@@ -1263,7 +1197,6 @@ J.JAFTING.EXT.REFINE.RegExp.NotRefinementMaterial = /<notRefinementMaterial>/i;
 J.JAFTING.EXT.REFINE.RegExp.Unrefinable = /<noRefine>/i;
 J.JAFTING.EXT.REFINE.RegExp.MaxRefineCount = /<maxRefineCount:[ ]?(\d+)>/i;
 J.JAFTING.EXT.REFINE.RegExp.MaxRefinedTraits = /<maxRefinedTraits:[ ]?(\d+)>/i;
-J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
 /**
 * Marks the point in a note past which effects are refinement payload.
 *
@@ -1379,7 +1312,7 @@ Object.defineProperty(RPG_EquipItem.prototype, "jaftingMaxRefineCount", { get: f
 * @type {number}
 */
 Object.defineProperty(RPG_EquipItem.prototype, "jaftingMaxTraitCount", { get: function() {
-	return RPGManager.getNumberFromNoteByRegex(this, J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount);
+	return RPGManager.getNumberFromNoteByRegex(this, J.JAFTING.EXT.REFINE.RegExp.MaxRefinedTraits);
 } });
 
 //#endregion

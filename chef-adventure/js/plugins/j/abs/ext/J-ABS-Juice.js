@@ -37,6 +37,38 @@
  * name too. The weapon swing overlay is the exception: it is a sprite this
  * plugin creates and owns, so it is driven directly rather than composed.
  *
+ * ============================================================================
+ * OVERLAYS OUTSIDE COMBAT
+ * The overlay presets are available to events through the Apply Overlay plugin
+ * command, which shows any IconSet cell over any character in any of the nine
+ * presets. Naming an item, weapon, armor or skill reads that row's icon, which
+ * keeps a cutscene pointing at the right picture after the database is edited;
+ * a raw cell index is there for icons that belong to no row.
+ *
+ * Set Hold to true and the icon reaches its pose and stays there until Remove
+ * Overlay withdraws it, which is what "the hero raises the amulet" looks like
+ * when the scene is not ready to move on yet. The `present` preset lifts the
+ * icon straight up over the character's head and is facing-agnostic.
+ *
+ * A held overlay survives everything that rebuilds the map's sprites — opening
+ * and closing the menu, a map transfer, a scene change — because what is stored
+ * is the request rather than the sprite, and sprites collect their overlays as
+ * they are built. It follows the character, so a held icon on the player stays
+ * with them across maps.
+ *
+ * It does NOT survive loading a save file, which matches how J-Motion's own
+ * motions behave; nothing about the character's decoration is written to the
+ * savefile by either plugin. A cutscene that holds something up should take it
+ * down before it ends.
+ *
+ * Overlays are keyed by a source, exactly as J-Motion's motions are. Two
+ * different sources can hold two icons on one character, and withdrawing one
+ * leaves the other alone. Leave the source alone unless you need that.
+ *
+ * For the motions a character makes with its own BODY — squish, tilt, flip and
+ * charge — use J-Motion's Apply Motion command instead. Those are registered
+ * motion types and are already addressable by name from any event page.
+ *
  * Coexistence with J-ABS-Poses:
  * Poses swap character sheets / patterns for readable attacks, which is a
  * different layer entirely from the transform J-Motion composes. Keep juice
@@ -240,6 +272,122 @@
  * - 1.0.0
  *    Initial release.
  * ============================================================================
+ *
+ * @command applyOverlay
+ * @text Apply Overlay
+ * @desc Shows an icon over a character in one of the overlay presets.
+ *
+ * @arg target
+ * @type select
+ * @option Player
+ * @option Follower
+ * @option Event
+ * @option This Event
+ * @default This Event
+ * @text Target
+ * @desc Which character shows the icon.
+ *
+ * @arg targetId
+ * @type number
+ * @min 1
+ * @default 1
+ * @text Target ID
+ * @desc The follower's party slot or the event's id. Ignored for the player and this event.
+ *
+ * @arg iconSource
+ * @type select
+ * @option Item
+ * @option Weapon
+ * @option Armor
+ * @option Skill
+ * @option Icon Index
+ * @default Item
+ * @text Icon Source
+ * @desc Where the icon comes from. Naming a database row survives that row's icon being changed later.
+ *
+ * @arg iconId
+ * @type number
+ * @min 0
+ * @default 1
+ * @text Icon ID
+ * @desc The database id of the row, or the IconSet cell index when the source is Icon Index.
+ *
+ * @arg motion
+ * @type select
+ * @option present
+ * @option arc
+ * @option arc-reverse
+ * @option arc-oscillate
+ * @option spin
+ * @option spin-reverse
+ * @option stab-forward
+ * @option bash
+ * @option recoil
+ * @default present
+ * @text Motion
+ * @desc Which preset to pose the icon in. `present` lifts it straight up over the head.
+ *
+ * @arg duration
+ * @type number
+ * @min 1
+ * @default 20
+ * @text Duration
+ * @desc How many frames the motion takes. When held, this is how long reaching the pose takes.
+ *
+ * @arg repeats
+ * @type number
+ * @min 1
+ * @max 8
+ * @default 1
+ * @text Repeats
+ * @desc How many times the motion repeats within the duration. Rotations, for the spin presets.
+ *
+ * @arg spanDegrees
+ * @type number
+ * @min 30
+ * @max 300
+ * @default 120
+ * @text Arc Span
+ * @desc How wide the arc sweeps, in degrees. Only the arc presets read this.
+ *
+ * @arg hold
+ * @type boolean
+ * @default false
+ * @text Hold
+ * @desc Park at the final pose and stay there until Remove Overlay withdraws it.
+ *
+ * @arg sourceKey
+ * @type string
+ * @default command
+ * @text Source
+ * @desc Who owns this overlay. Removing a source only removes what that source applied.
+ *
+ * @command removeOverlay
+ * @text Remove Overlay
+ * @desc Takes down whatever a source was holding up on a character.
+ *
+ * @arg target
+ * @type select
+ * @option Player
+ * @option Follower
+ * @option Event
+ * @option This Event
+ * @default This Event
+ * @text Target
+ * @desc Which character to take the icon from.
+ *
+ * @arg targetId
+ * @type number
+ * @min 1
+ * @default 1
+ * @text Target ID
+ * @desc The follower's party slot or the event's id. Ignored for the player and this event.
+ *
+ * @arg sourceKey
+ * @type string
+ * @default command
+ * @text Source
+ * @desc Who is withdrawing. Only overlays applied under this same source are removed.
  */
 //endregion annotations
 
@@ -398,6 +546,7 @@ J.ABS.EXT.JUICE.Aliased = {};
 J.ABS.EXT.JUICE.Aliased.JABS_Engine = new Map();
 J.ABS.EXT.JUICE.Aliased.JABS_Battler = new Map();
 J.ABS.EXT.JUICE.Aliased.Scene_Map = new Map();
+J.ABS.EXT.JUICE.Aliased.Sprite_Character = new Map();
 /**
 * All regular expressions used by this plugin.
 */
@@ -501,6 +650,91 @@ J.ABS.EXT.JUICE.RegExp = {
 var PLUGIN_NAME = "J-ABS-Juice";
 var PLUGIN_VERSION = "1.2.1";
 var PLUGIN_DESC_TAG = "ABS-JUICE";
+
+//#endregion
+//#region src/plugins/abs/ext/juice/core/JuiceIconResolver.js
+/**
+* Works out which IconSet cell a plugin command is talking about.
+*
+* An event author thinks in "the amulet" rather than "cell 195", and the database already knows
+* which icon the amulet uses. Naming the row is also the only version of this that survives editing
+* the icon later — a raw index typed into a command in chapter two keeps pointing at whatever moves
+* into that cell afterwards.
+*
+* The raw index is still offered, because an icon that belongs to no row at all is a real thing to
+* want and there is nowhere else to say it.
+*
+* This is the one place in the ship that treats database ids as untrusted, and deliberately: every
+* other id in the codebase comes from a notetag the JMZ editor wrote, while these are typed by hand
+* into a command dialog and land in a cutscene that may not be played for another six months.
+*/
+var JuiceIconResolver = class JuiceIconResolver {
+	/**
+	* An item from `$dataItems`.
+	* @type {string}
+	*/
+	static ITEM = "Item";
+	/**
+	* A weapon from `$dataWeapons`.
+	* @type {string}
+	*/
+	static WEAPON = "Weapon";
+	/**
+	* An armor from `$dataArmors`.
+	* @type {string}
+	*/
+	static ARMOR = "Armor";
+	/**
+	* A skill from `$dataSkills`.
+	* @type {string}
+	*/
+	static SKILL = "Skill";
+	/**
+	* The IconSet cell index, given directly.
+	* @type {string}
+	*/
+	static ICON_INDEX = "Icon Index";
+	/**
+	* Resolves a command's icon choice into an IconSet cell.
+	* @param {string} source Which kind of thing names the icon.
+	* @param {number} id The database id, or the cell index when the source is the index itself.
+	* @returns {number} The IconSet cell, or `0` when the choice does not name one.
+	*/
+	static resolve(source, id) {
+		if (source === JuiceIconResolver.ICON_INDEX) return id;
+		const table = JuiceIconResolver.tableFor(source);
+		if (table === null) {
+			Diagnostics.warn("J-ABS-Juice", `unknown icon source: [ ${source} ]`, {
+				source,
+				id
+			});
+			return 0;
+		}
+		const entry = table.at(id);
+		if (!entry) {
+			Diagnostics.warn("J-ABS-Juice", `no ${source} exists with id: [ ${id} ]`, {
+				source,
+				id
+			});
+			return 0;
+		}
+		return entry.iconIndex;
+	}
+	/**
+	* Gets the database table a given icon source reads from.
+	* @param {string} source Which kind of thing names the icon.
+	* @returns {RPG_BaseItem[]|null} The table, or null when the source names none.
+	*/
+	static tableFor(source) {
+		switch (source) {
+			case JuiceIconResolver.ITEM: return $dataItems;
+			case JuiceIconResolver.WEAPON: return $dataWeapons;
+			case JuiceIconResolver.ARMOR: return $dataArmors;
+			case JuiceIconResolver.SKILL: return $dataSkills;
+			default: return null;
+		}
+	}
+};
 
 //#endregion
 //#region src/plugins/abs/ext/juice/database/RPG_Skill.js
@@ -797,6 +1031,23 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	*/
 	baseY() {
 		return this._baseY;
+	}
+	/**
+	* Gets whether this overlay parks at its final pose instead of tearing itself down.
+	* @returns {boolean} The held.
+	*/
+	isHeld() {
+		return this._held;
+	}
+	/**
+	* Flags this overlay as one that parks at its final pose and waits to be withdrawn.
+	*
+	* Set after construction rather than passed in, because holding is a decision about how long the
+	* overlay lives rather than anything about the motion it plays — a held `present` and a one-shot
+	* `present` are the same thirteen arguments and the same arc, right up until the last frame.
+	*/
+	flagHeld() {
+		this._held = true;
 	}
 	/**
 	* Normalizes repeat count — floors to integer, defaults to 1 if invalid or below 1.
@@ -1121,6 +1372,49 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 		StabForward: "stab-forward"
 	};
 	/**
+	* Determines whether a key names one of the overlay presets.
+	*
+	* The preset list is closed — every motion an overlay can play is a case in {@link #tick} — so
+	* anything else is a typo, and a typo silently falling through to the `arc` default is how an
+	* author loses an afternoon to a swing that will not swing.
+	* @param {string} motionType The candidate preset key.
+	* @returns {boolean}
+	*/
+	static isKnownMotionType(motionType) {
+		const known = Object.values(JuiceWeaponSwingMotionEffect.MotionTypes);
+		return known.includes(motionType);
+	}
+	/**
+	* Determines whether a preset ignores which way the character is facing.
+	*
+	* Only `present` does. It lifts the icon straight up the screen and {@link JuiceWeaponSwingOverlay}
+	* builds it against a fixed north regardless of what was asked for, so the facing a `present` was
+	* spawned at is not information about it. That matters to anything holding one: a held overlay
+	* rebuilt on every turn restarts its own ease, and for the one motion where turning changes
+	* nothing that reads as the icon dropping and being raised again.
+	* @param {string} motionType The overlay preset in question.
+	* @returns {boolean}
+	*/
+	static isFacingAgnostic(motionType) {
+		return motionType === JuiceWeaponSwingMotionEffect.MotionTypes.Present;
+	}
+	/**
+	* Which way an untagged icon points, for the presets that align to a tip rather than an orbit.
+	*
+	* Two readings of the IconSet cell, and which one is right depends on what the motion is doing
+	* with it. A thrust presents the blade of a sword, drawn corner to corner; a bash or a recoil is
+	* built around a barrel, which sits along the cell's negative x. Nothing else consults this,
+	* because an arc orients itself from the direction it is travelling.
+	* @param {string} motionType The overlay preset about to play.
+	* @returns {number} Radians from +x to the tip at rotation 0.
+	*/
+	static defaultTipRadiansFor(motionType) {
+		if (motionType === JuiceWeaponSwingMotionEffect.MotionTypes.StabForward || motionType === JuiceWeaponSwingMotionEffect.MotionTypes.Present) {
+			return JuiceWeaponSwingMotionEffect.StabIconTipAngleRadians;
+		}
+		return JuiceWeaponSwingMotionEffect.BashRecoilIconTipAngleRadians;
+	}
+	/**
 	* Default IconSet cell rest: 45° CW so blade reads toward 12 o'clock before arc deltas (spec).
 	* @readonly
 	*/
@@ -1185,6 +1479,11 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 		* @type {number}
 		*/
 		this._scaleMag = Math.abs(overlay.scale.x);
+		/**
+		* Whether this overlay parks at its final pose rather than tearing itself down.
+		* @type {boolean}
+		*/
+		this._held = false;
 	}
 	/**
 	* Applies thrust-aligned rotation plus extras; updates mirror scale when {@link #_profileGun}.
@@ -1253,16 +1552,29 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 		}
 		this.#tickTrail();
 		if (this.frame() >= this.durationFrames()) {
-			this.parentSprite().removeChild(this.overlay());
-			this.overlay().destroy();
-			this.trail().forEach((trail) => {
-				this.parentSprite().removeChild(trail.sprite);
-				trail.sprite.destroy();
-			});
-			this.trail().length = 0;
+			if (this.isHeld() === true) return true;
+			this.restore();
 			return false;
 		}
 		return true;
+	}
+	/**
+	* Implements {@link JuiceBaseEffect#restore}.<br/>
+	* Detaches and destroys the overlay and everything trailing it.
+	*
+	* This is reached from two directions: a one-shot swing reaching the end of its duration, and
+	* something withdrawing a held overlay long after it stopped moving. Both have to leave the
+	* parent sprite exactly as they found it, so neither owns the teardown and both call this.
+	*/
+	restore() {
+		if (this.isSpriteAlive() === false) return;
+		this.parentSprite().removeChild(this.overlay());
+		this.overlay().destroy();
+		this.trail().forEach((trail) => {
+			this.parentSprite().removeChild(trail.sprite);
+			trail.sprite.destroy();
+		}, this);
+		this.trail().length = 0;
 	}
 	/**
 	* Clock-orbit arc preset (arc-table.md); arc = CCW on clock, arc-reverse = CW.
@@ -1319,9 +1631,23 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 		const juiceDy = J.ABS.EXT.JUICE.Metadata.spriteJuiceVerticalOffsetPixels;
 		this.overlay().x = centerX + frontX + Math.cos(theta) * orbit;
 		this.overlay().y = centerY + frontY + Math.sin(theta) * orbit + juiceDy;
-		if (this.frame() % 2 === 0) {
+		if (this.shouldSpawnTrail() === true) {
 			this.#spawnTrailAfterimage();
 		}
+	}
+	/**
+	* Determines whether this frame should leave an afterimage behind.
+	*
+	* A trail is a record of movement, and a held overlay stops moving the moment it arrives. Left
+	* ungated, a parked spin would keep stamping a ghost every other frame forever, on a spot the
+	* overlay has not left — no leak, since each expires on its own ttl, but a permanent shimmer of
+	* sprite churn around an icon that is supposed to be sitting still.
+	* @returns {boolean}
+	*/
+	shouldSpawnTrail() {
+		if (this.frame() % 2 !== 0) return false;
+		if (this.isHeld() === false) return true;
+		return this.frame() < this.durationFrames();
 	}
 	/**
 	* Spawns one afterimage based on the current overlay state.
@@ -1539,10 +1865,7 @@ var JuiceProfileResolver = class JuiceProfileResolver {
 		if (Number.isFinite(deg)) {
 			return deg * Math.PI / 180;
 		}
-		if (motionKey === JuiceWeaponSwingMotionEffect.MotionTypes.StabForward || motionKey === JuiceWeaponSwingMotionEffect.MotionTypes.Present) {
-			return JuiceWeaponSwingMotionEffect.StabIconTipAngleRadians;
-		}
-		return JuiceWeaponSwingMotionEffect.BashRecoilIconTipAngleRadians;
+		return JuiceWeaponSwingMotionEffect.defaultTipRadiansFor(motionKey);
 	}
 	/**
 	* Equipped weapon or armor row used for icon + multiplier inference.
@@ -1870,6 +2193,20 @@ var JuiceMotionManager = class JuiceMotionManager {
 		JuiceMotionManager.#effects.push(effect);
 	}
 	/**
+	* Tears one effect down and takes it off the queue ahead of its natural end.
+	*
+	* Only a held overlay ever needs this. Everything else in the queue ends by saying so from
+	* {@link JuiceBaseEffect#tick}, and an effect that parks forever has no such moment — so
+	* withdrawing one has to reach in from outside and finish it by hand.
+	* @param {JuiceBaseEffect} effect The effect to stop.
+	*/
+	static discardEffect(effect) {
+		effect.restore();
+		const index = JuiceMotionManager.#effects.indexOf(effect);
+		if (index === -1) return;
+		JuiceMotionManager.#effects.splice(index, 1);
+	}
+	/**
 	* Runs every frame while on the map, via the {@link Scene_Map#update} alias.
 	*/
 	static frameTick() {
@@ -1992,6 +2329,26 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 		};
 	}
 	/**
+	* Plays an overlay preset with nothing but a preset key to go on.
+	*
+	* {@link #play} is shaped for combat, where a skill and a weapon between them have already
+	* answered which way a barrel points and whether the art is drawn in profile. An overlay asked
+	* for by name has no weapon behind it, so the preset's own reading of the IconSet cell is all
+	* there is — and every caller in that position was otherwise assembling the same ten arguments.
+	* @param {Sprite_Character} parentSprite The character sprite receiving the overlay.
+	* @param {number} iconIndex Icon index on the IconSet sheet.
+	* @param {string} motionType Preset key (kebab-case).
+	* @param {number} durationFrames Duration of the motion in frames.
+	* @param {number} repeatCount Times the motion repeats within the duration.
+	* @param {number} arcSpanDegrees Arc span for the presets that orbit.
+	* @param {number} swingDirection RMMZ 8-dir the geometry is built against.
+	* @returns {JuiceWeaponSwingMotionEffect} The queued effect.
+	*/
+	static playPreset(parentSprite, iconIndex, motionType, durationFrames, repeatCount, arcSpanDegrees, swingDirection) {
+		const tipRadians = JuiceWeaponSwingMotionEffect.defaultTipRadiansFor(motionType);
+		return JuiceWeaponSwingOverlay.play(parentSprite, iconIndex, J.ABS.EXT.JUICE.Metadata.weaponSwingPeakRadians, durationFrames, motionType, arcSpanDegrees, swingDirection, tipRadians, repeatCount, false);
+	}
+	/**
 	* Plays a swing arc using an icon from IconSet, then removes the overlay.
 	* @param {Sprite_Character} parentSprite The character sprite receiving the overlay.
 	* @param {number} iconIndex Icon index on the IconSet sheet.
@@ -2007,6 +2364,7 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 	* @param {number} spinCount Full rotations for spin / spin-reverse
 	* ({@link JuiceProfileResolver.resolveJuiceSpinCount}).
 	* @param {boolean} profileGun Skill `<juiceProfileGun>` — horizontal mirror for side-profile gun icons (east/west).
+	* @returns {JuiceWeaponSwingMotionEffect} The queued effect, for callers that keep hold of it.
 	*/
 	static play(parentSprite, iconIndex, peakRotationRadians, durationFrames, motionType, arcSpanDegrees, swingDirection, weaponTipRadians, spinCount, profileGun) {
 		let spanDeg = arcSpanDegrees;
@@ -2114,6 +2472,7 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 		}
 		const motion = new JuiceWeaponSwingMotionEffect(parentSprite, overlay, baseRotation, peakRotationRadians, durationFrames, motionType, spanDeg, swingDirForMotion, weaponTipResolved, neutralForCtorX, neutralForCtorY, spinCountResolved, profileGunResolved);
 		JuiceMotionManager.pushExternalEffect(motion);
+		return motion;
 	}
 };
 
@@ -2591,6 +2950,188 @@ var JuiceFlipBodyMotionEffect = class extends MotionEffect {
 };
 
 //#endregion
+//#region src/plugins/abs/ext/juice/models/JuiceHeldOverlay.js
+/**
+* One icon a character is holding up, and everything needed to put it back.
+*
+* A held overlay outlives the sprite showing it. `Sprite_Character` objects are built and destroyed
+* every time the map scene is rebuilt — opening the menu is enough — while the character they draw
+* lives in the save data and persists. So what is stored here is the *request* rather than the
+* sprite work: who is holding something up, which icon, in what pose. The effect doing the actual
+* drawing is attached and detached as sprites come and go, which is what lets a held icon survive a
+* trip through the menu and reappear on the other side.
+*
+* This is the same split J-Motion draws between a `MotionDeclaration` and a `MotionEffect`, for the
+* same reason, and the pull in {@link Sprite_Character#updateHeldJuiceOverlays} mirrors the one
+* that composer does.
+*/
+var JuiceHeldOverlay = class {
+	/**
+	* The character holding the icon up.
+	* @type {Game_Character}
+	*/
+	#character = null;
+	/**
+	* Who asked for this, and therefore who is allowed to withdraw it.
+	* @type {string}
+	*/
+	#sourceKey = String.empty;
+	/**
+	* The IconSet cell being held up.
+	* @type {number}
+	*/
+	#iconIndex = 0;
+	/**
+	* The overlay preset the icon is posed in, ex: `present`.
+	* @type {string}
+	*/
+	#motionType = String.empty;
+	/**
+	* How many frames the pose takes to reach, before it parks there.
+	* @type {number}
+	*/
+	#durationFrames = 0;
+	/**
+	* How many times the motion repeats on its way to the final pose.
+	* @type {number}
+	*/
+	#repeatCount = 1;
+	/**
+	* Arc span in degrees, for the presets that orbit.
+	* @type {number}
+	*/
+	#arcSpanDegrees = 120;
+	/**
+	* The effect currently drawing this, or null when no sprite is showing it.
+	* @type {JuiceWeaponSwingMotionEffect|null}
+	*/
+	#effect = null;
+	/**
+	* The facing the live effect was built against.
+	*
+	* Overlay geometry is resolved once at spawn and never re-read, because a swing that changed
+	* direction halfway through would tear rather than swing. A held pose has the opposite problem:
+	* it lasts long enough for the character to turn under it, and a spear left pointing at where
+	* north used to be reads as a bug. Remembering the facing is what lets the pull notice.
+	* @type {number}
+	*/
+	#facing = 0;
+	/**
+	* Constructor.
+	* @param {Game_Character} character The character holding the icon up.
+	* @param {string} sourceKey Who asked for this.
+	* @param {number} iconIndex The IconSet cell to hold up.
+	* @param {string} motionType The overlay preset to pose it in.
+	* @param {number} durationFrames How many frames reaching the pose takes.
+	* @param {number} repeatCount How many times the motion repeats on the way there.
+	* @param {number} arcSpanDegrees Arc span in degrees, for the presets that orbit.
+	*/
+	constructor(character, sourceKey, iconIndex, motionType, durationFrames, repeatCount, arcSpanDegrees) {
+		this.#character = character;
+		this.#sourceKey = sourceKey;
+		this.#iconIndex = iconIndex;
+		this.#motionType = motionType;
+		this.#durationFrames = durationFrames;
+		this.#repeatCount = repeatCount;
+		this.#arcSpanDegrees = arcSpanDegrees;
+	}
+	/**
+	* Gets the character holding the icon up.
+	* @returns {Game_Character} The character.
+	*/
+	character() {
+		return this.#character;
+	}
+	/**
+	* Gets who asked for this overlay.
+	* @returns {string} The sourceKey.
+	*/
+	sourceKey() {
+		return this.#sourceKey;
+	}
+	/**
+	* Gets the IconSet cell being held up.
+	* @returns {number} The iconIndex.
+	*/
+	iconIndex() {
+		return this.#iconIndex;
+	}
+	/**
+	* Gets the overlay preset the icon is posed in.
+	* @returns {string} The motionType.
+	*/
+	motionType() {
+		return this.#motionType;
+	}
+	/**
+	* Gets how many frames reaching the pose takes.
+	* @returns {number} The durationFrames.
+	*/
+	durationFrames() {
+		return this.#durationFrames;
+	}
+	/**
+	* Gets how many times the motion repeats on the way to the pose.
+	* @returns {number} The repeatCount.
+	*/
+	repeatCount() {
+		return this.#repeatCount;
+	}
+	/**
+	* Gets the arc span in degrees.
+	* @returns {number} The arcSpanDegrees.
+	*/
+	arcSpanDegrees() {
+		return this.#arcSpanDegrees;
+	}
+	/**
+	* Gets the effect currently drawing this overlay.
+	* @returns {JuiceWeaponSwingMotionEffect|null} The effect, or null when nothing is drawing it.
+	*/
+	effect() {
+		return this.#effect;
+	}
+	/**
+	* Sets the effect currently drawing this overlay.
+	* @param {JuiceWeaponSwingMotionEffect|null} newEffect The new effect, or null to detach.
+	*/
+	setEffect(newEffect) {
+		this.#effect = newEffect;
+	}
+	/**
+	* Gets the facing the live effect was built against.
+	* @returns {number} The facing.
+	*/
+	facing() {
+		return this.#facing;
+	}
+	/**
+	* Sets the facing the live effect was built against.
+	* @param {number} newFacing The new facing.
+	*/
+	setFacing(newFacing) {
+		this.#facing = newFacing;
+	}
+	/**
+	* Determines whether a sprite is already showing this overlay as currently requested.
+	*
+	* Three things have to agree for the answer to be yes, and each false answer is a different way a
+	* held icon goes stale: nothing is drawing it at all, something is drawing it on a sprite that
+	* has since been replaced, or it is drawn correctly for a direction the character is no longer
+	* facing.
+	* @param {Sprite_Character} sprite The sprite asking whether it has work to do.
+	* @returns {boolean}
+	*/
+	isCurrentFor(sprite) {
+		const effect = this.effect();
+		if (effect === null) return false;
+		if (effect.parentSprite() !== sprite) return false;
+		if (JuiceWeaponSwingMotionEffect.isFacingAgnostic(this.motionType()) === true) return true;
+		return this.character().direction() === this.facing();
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/ext/juice/models/JuiceSquishMotionEffect.js
 /**
 * The body squash a battler gives when it hits something or gets hit.
@@ -2685,6 +3226,127 @@ var JuiceTiltMotionEffect = class extends MotionEffect {
 		const { peak } = this.parameters();
 		const envelope = Math.sin(this.progress() * Math.PI);
 		composition.contribute(this, MotionChannels.ROTATION, envelope * peak);
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/juice/managers/JuiceHeldOverlayManager.js
+/**
+* Keeps track of every icon a character is holding up, and puts them back on screen.
+*
+* The weapon swing overlay was built for something that happens and is over — a sword comes out,
+* arcs, and destroys itself a quarter of a second later, so nothing ever had to remember it. An
+* icon held up until a cutscene says otherwise is the same drawing with the opposite lifetime, and
+* a lifetime measured in minutes crosses everything that tears a spriteset down.
+*
+* So this class holds requests, not sprites, and sprites come and ask. {@link #materializeFor} runs
+* from `Sprite_Character#update`, which means a rebuilt map scene restores its held icons on the
+* first frame it draws without anybody having to notice the scene changed. The alternative — a
+* teardown hook that saves state and a startup hook that restores it — has to know every route out
+* of a map scene, and there are more of those than anyone remembers.
+*
+* State lives for as long as the characters do and no longer: a `WeakMap` keyed by character means
+* the events of a map the player has left are collected along with their held overlays, while
+* `$gamePlayer` and the followers persist and keep theirs. Nothing here is saved to file, which
+* matches how J-Motion's composer behaves and keeps one rule to remember instead of two.
+*/
+var JuiceHeldOverlayManager = class JuiceHeldOverlayManager {
+	/**
+	* Every held overlay, by character and then by who asked for it.
+	*
+	* Two sources can hold two different icons up on one character without either knowing about the
+	* other, which is the same guarantee a source key buys on the motion composer.
+	* @type {WeakMap<Game_Character, Map<string, JuiceHeldOverlay>>}
+	*/
+	static #byCharacter = new WeakMap();
+	/**
+	* Asks a character to hold an icon up until somebody says otherwise.
+	*
+	* A source asking twice replaces what it had rather than stacking, because "hold this up" is a
+	* statement about what the character is currently doing rather than another thing to add to it.
+	* @param {Game_Character} character The character to hold the icon up.
+	* @param {string} sourceKey Who is asking, and who may later withdraw it.
+	* @param {number} iconIndex The IconSet cell to hold up.
+	* @param {string} motionType The overlay preset to pose it in, ex: `present`.
+	* @param {number} durationFrames How many frames reaching the pose takes.
+	* @param {number} repeatCount How many times the motion repeats on the way there.
+	* @param {number} arcSpanDegrees Arc span in degrees, for the presets that orbit.
+	*/
+	static declare(character, sourceKey, iconIndex, motionType, durationFrames, repeatCount, arcSpanDegrees) {
+		JuiceHeldOverlayManager.withdraw(character, sourceKey);
+		const declaration = new JuiceHeldOverlay(character, sourceKey, iconIndex, motionType, durationFrames, repeatCount, arcSpanDegrees);
+		const declarations = JuiceHeldOverlayManager.#declarationsFor(character);
+		declarations.set(sourceKey, declaration);
+	}
+	/**
+	* Takes down whatever a source was holding up on a character.
+	*
+	* Silent when that source is holding nothing, because the honest use of this is "make sure the
+	* hero is not still brandishing the amulet", and an author should be able to say that at the end
+	* of a cutscene without first working out whether a branch earlier on ever started it.
+	* @param {Game_Character} character The character to take the icon from.
+	* @param {string} sourceKey Who is withdrawing.
+	*/
+	static withdraw(character, sourceKey) {
+		const declarations = JuiceHeldOverlayManager.#byCharacter.get(character);
+		if (declarations === undefined) return;
+		const declaration = declarations.get(sourceKey);
+		if (declaration === undefined) return;
+		JuiceHeldOverlayManager.#detach(declaration);
+		declarations.delete(sourceKey);
+	}
+	/**
+	* Puts every icon this sprite's character is holding up back on screen.
+	*
+	* Runs on every character on the map on every frame, so the first thing it does is establish that
+	* the overwhelming majority of them are holding nothing.
+	* @param {Sprite_Character} sprite The sprite about to draw.
+	*/
+	static materializeFor(sprite) {
+		const character = sprite.character();
+		const declarations = JuiceHeldOverlayManager.#byCharacter.get(character);
+		if (declarations === undefined) return;
+		declarations.forEach((declaration) => JuiceHeldOverlayManager.#materialize(declaration, sprite));
+	}
+	/**
+	* Builds the sprite work for one held overlay, if it is not already right.
+	* @param {JuiceHeldOverlay} declaration The overlay being held up.
+	* @param {Sprite_Character} sprite The sprite to draw it on.
+	*/
+	static #materialize(declaration, sprite) {
+		if (declaration.isCurrentFor(sprite) === true) return;
+		const isRebuild = declaration.effect() !== null;
+		JuiceHeldOverlayManager.#detach(declaration);
+		const facing = declaration.character().direction();
+		const effect = JuiceWeaponSwingOverlay.playPreset(sprite, declaration.iconIndex(), declaration.motionType(), declaration.durationFrames(), declaration.repeatCount(), declaration.arcSpanDegrees(), facing);
+		effect.flagHeld();
+		if (isRebuild === true) {
+			effect.setFrame(effect.durationFrames());
+		}
+		declaration.setEffect(effect);
+		declaration.setFacing(facing);
+	}
+	/**
+	* Stops whatever is currently drawing a held overlay, leaving the request itself intact.
+	* @param {JuiceHeldOverlay} declaration The overlay to stop drawing.
+	*/
+	static #detach(declaration) {
+		const effect = declaration.effect();
+		if (effect === null) return;
+		JuiceMotionManager.discardEffect(effect);
+		declaration.setEffect(null);
+	}
+	/**
+	* Gets the declaration table for a character, creating it the first time one is needed.
+	* @param {Game_Character} character The character to look up.
+	* @returns {Map<string, JuiceHeldOverlay>}
+	*/
+	static #declarationsFor(character) {
+		const existing = JuiceHeldOverlayManager.#byCharacter.get(character);
+		if (existing !== undefined) return existing;
+		const declarations = new Map();
+		JuiceHeldOverlayManager.#byCharacter.set(character, declarations);
+		return declarations;
 	}
 };
 
@@ -2862,6 +3524,122 @@ Scene_Map.prototype.terminate = function() {
 	JuiceMotionManager.clearAll();
 	J.ABS.EXT.JUICE.Aliased.Scene_Map.get("terminate").call(this);
 };
+
+//#endregion
+//#region src/plugins/abs/ext/juice/sprites/Sprite_Character.js
+/**
+* Extends {@link #update}.<br/>
+* Restores any icon this sprite's character is holding up.
+*
+* This runs on every frame rather than on some event announcing that a sprite was created, because
+* there is no such event that covers every route. A sprite appears when a map loads, when the menu
+* closes, when an event page turns, and when a follower joins the party; a held overlay has to
+* survive all four, and asking on every frame is what makes the question "is this drawn correctly
+* right now" instead of "did something happen that means it might not be".
+*
+* The cost of asking is one `WeakMap` miss for every character holding nothing, which is very
+* nearly all of them.
+*/
+J.ABS.EXT.JUICE.Aliased.Sprite_Character.set("update", Sprite_Character.prototype.update);
+Sprite_Character.prototype.update = function() {
+	J.ABS.EXT.JUICE.Aliased.Sprite_Character.get("update").call(this);
+	this.updateHeldJuiceOverlays();
+};
+/**
+* Restores any held juice overlays this sprite's character has outstanding.
+*/
+Sprite_Character.prototype.updateHeldJuiceOverlays = function() {
+	JuiceHeldOverlayManager.materializeFor(this);
+};
+
+//#endregion
+//#region src/plugins/abs/ext/juice/_metadata/pluginCommands.js
+/**
+* Reads one numeric command argument, falling back when the field was left blank.
+*
+* `Number.parseInt` answers `NaN` for an empty string, and a `NaN` duration is the one that cannot
+* be shrugged off: the overlay's own progress is computed against it, `frame >= NaN` is false
+* forever, and a one-shot that never finishes is also never tracked by anything that could take it
+* down again. The fallbacks are the defaults each argument declares in `_annotations.js`.
+* @param {string} raw The argument as the command handed it over.
+* @param {number} fallback The value to use when the field held nothing usable.
+* @returns {number}
+*/
+var readNumber = (raw, fallback) => {
+	const parsed = Number.parseInt(raw, 10);
+	return Number.isFinite(parsed) ? parsed : fallback;
+};
+/**
+* Shows an icon over a character, either as a single motion or held until withdrawn.
+*
+* Everything a battler does with its own body is already addressable from an event page, because
+* those motions register with J-Motion and `applyMotion` can ask for any of them by name. The
+* overlay is the half that could not be: it is a sprite this plugin builds rather than a channel on
+* one the engine draws, so it has no declaration for `applyMotion` to make.
+*
+* `MotionTargetResolver` is reached as a global rather than imported: it ships inside J-Motion's
+* bundle, which is a declared `@base` and is hoisted long before this one loads.
+*/
+PluginManager.registerCommand(J.ABS.EXT.JUICE.Metadata.name, "applyOverlay", function(args) {
+	const { target, targetId, iconSource, iconId, motion, duration, repeats, spanDegrees, hold, sourceKey } = args;
+	const parsedTargetId = Number.parseInt(targetId, 10);
+	const parsedIconId = Number.parseInt(iconId, 10);
+	const parsedDuration = readNumber(duration, 20);
+	const parsedRepeats = readNumber(repeats, 1);
+	const parsedSpanDegrees = readNumber(spanDegrees, 120);
+	const isHeld = hold === "true";
+	const resolvedSourceKey = sourceKey || "command";
+	const character = MotionTargetResolver.resolve(target, parsedTargetId, this);
+	if (!character) {
+		Diagnostics.warn("J-ABS-Juice", "apply overlay could not find its target", {
+			target,
+			targetId
+		});
+		return;
+	}
+	if (JuiceWeaponSwingMotionEffect.isKnownMotionType(motion) === false) {
+		Diagnostics.warn("J-ABS-Juice", `unknown overlay motion: [ ${motion} ]`, {
+			motion,
+			target
+		});
+		return;
+	}
+	const iconIndex = JuiceIconResolver.resolve(iconSource, parsedIconId);
+	if (isHeld === true) {
+		JuiceHeldOverlayManager.declare(character, resolvedSourceKey, iconIndex, motion, parsedDuration, parsedRepeats, parsedSpanDegrees);
+		return;
+	}
+	const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(character);
+	if (sprite === null) {
+		Diagnostics.warn("J-ABS-Juice", "apply overlay found no sprite for its target", {
+			target,
+			targetId
+		});
+		return;
+	}
+	const facing = character.direction();
+	JuiceWeaponSwingOverlay.playPreset(sprite, iconIndex, motion, parsedDuration, parsedRepeats, parsedSpanDegrees, facing);
+});
+/**
+* Takes down whatever a source was holding up on a character.
+*
+* Only reaches held overlays. A one-shot lasts a fraction of a second and takes itself down, so
+* there is never a moment when withdrawing one would mean anything.
+*/
+PluginManager.registerCommand(J.ABS.EXT.JUICE.Metadata.name, "removeOverlay", function(args) {
+	const { target, targetId, sourceKey } = args;
+	const parsedTargetId = Number.parseInt(targetId, 10);
+	const resolvedSourceKey = sourceKey || "command";
+	const character = MotionTargetResolver.resolve(target, parsedTargetId, this);
+	if (!character) {
+		Diagnostics.warn("J-ABS-Juice", "remove overlay could not find its target", {
+			target,
+			targetId
+		});
+		return;
+	}
+	JuiceHeldOverlayManager.withdraw(character, resolvedSourceKey);
+});
 
 //#endregion
 //# sourceMappingURL=J-ABS-Juice.js.map
