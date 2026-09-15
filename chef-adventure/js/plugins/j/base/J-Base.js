@@ -2187,9 +2187,15 @@ J.BASE.RegExp.HealAmplification = /<har:(-?\d+)>/gi;
 *    <someKeyWithStringValue:someValue>
 *    <someKeyWithRangeValue:startRange-endRange>
 *    <someKeyWithHexColorValue:#ffa0a0>
+*    <someKeyWithMessageTextCodes:she said \~this\~ and \=that\=>
 *  </pre>
+*
+* A comment failing this is dropped before any plugin is offered it, silently and with no
+* diagnostic - so the character class is worth widening deliberately rather than discovering. The
+* `~`, `%` and `=` entries are J-Message's effect codes: a tag carrying message text needs to be
+* able to say `\~` without the whole tag vanishing, which is what this cost before they were added.
 */
-J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\#]+>$/i;
+J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\#~%=]+>$/i;
 /**
 * The basic structure for retrieving summable max tech values.
 */
@@ -9696,7 +9702,7 @@ TextManager.rewardDescription = function(paramId) {
 };
 /**
 * Whether a given registry key is a known catalog parameter.<br/>
-* Public surface for other plugins (e.g. J-MessageTextCodes) to distinguish "unregistered key"
+* Public surface for other plugins (e.g. J-Message) to distinguish "unregistered key"
 * from a legitimately-falsy/zero result, since {@link TextManager.parameterLabel}/
 * {@link IconManager.parameterIcon}/{@link ColorManager.parameterColor} each fall back to a
 * plausible-looking default instead of surfacing the miss.

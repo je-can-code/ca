@@ -1,0 +1,48 @@
+{
+  "defaultProfile": {
+    "framesPerCharacter": 1,
+    "punctuationFrames": {},
+    "baselineEffects": []
+  },
+  "bySpeakerName": {
+    "\\N[1]": {
+      "voiceSeName": "Cursor3",
+      "voiceVolume": 55,
+      "voicePitch": 106,
+      "voicePan": 0,
+      "voiceStride": 4,
+      "framesPerCharacter": 1,
+      "punctuationFrames": {
+        ".": 4,
+        "!": 4,
+        "?": 4,
+        ",": 2,
+        ";": 3,
+        ":": 3,
+        "…": 10
+      },
+      "baselineEffects": [],
+      "voicePitchVariance": 7
+    },
+    "\\N[2]": {
+      "voiceSeName": "Cursor3",
+      "voiceVolume": 55,
+      "voicePitch": 94,
+      "voicePan": 0,
+      "voiceStride": 3,
+      "framesPerCharacter": 2,
+      "punctuationFrames": {
+        ".": 8,
+        "!": 8,
+        "?": 8,
+        ",": 4,
+        ";": 5,
+        ":": 5,
+        "…": 15
+      },
+      "baselineEffects": [],
+      "voicePitchVariance": 4
+    }
+  },
+  "byFace": {}
+}

@@ -77,7 +77,7 @@ var $plugins =
 {"name":"j/elem/J-Elementalistics","status":true,"description":"[v1.3.2 ELEM] Enables greater control over elements.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"others/HIME_LargeChoices","status":true,"description":"v1.2 - Combines multiple show choice commands into a single,\nlarge list.","parameters":{}},
-{"name":"j/message/J-MessageTextCodes","status":true,"description":"[v1.3.1 MESSAGE] Gives access to more message window functionality.","parameters":{}},
+{"name":"j/message/J-Message","status":true,"description":"[v1.3.1 MESSAGE] Gives access to more message window functionality.","parameters":{}},
 {"name":"j/log/J-Log","status":true,"description":"[v3.0.1 LOG] A log window for viewing on the map.","parameters":{"defaultInactivityTime":"300"}},
 {"name":"j/abs/ext/J-ABS-Shield","status":true,"description":"[v1.1.3 ABS-SHIELD] A JABS extension that provides state-based HP shields.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},

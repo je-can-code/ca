@@ -10,7 +10,7 @@
  * @orderAfter J-Base
  * @orderAfter J-Omnipedia
  * @orderAfter J-HUD
- * @orderAfter J-MessageTextCodes
+ * @orderAfter J-Message
  * @orderAfter J-ABS
  * @orderAfter J-ABS-InputManager
  * @help
@@ -99,7 +99,7 @@
  * QUEST-GATED EVENT PAGES AND CHOICES:
  * Beyond the JSON-authored quest data itself, this plugin adds tags that
  * gate event pages and "Show Choices" branches behind quest/objective
- * state, similar in spirit to J-MessageTextCodes' leader/switch choice
+ * state, similar in spirit to J-Message's leader/switch choice
  * conditionals.
  *
  * NOTE ABOUT THE THREE ARGUMENT SHAPES:

@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v2.2.1 DIFFICULTY] A layered difficulty system.
+ * @plugindesc [v2.2.2 DIFFICULTY] A layered difficulty system.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -24,6 +24,9 @@
  * All difficulties are defined in an external JSON file.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.2
+ *    Dropped a redundant round from the parameter and reward factors. The inputs are
+ *    whole percentages, so it never had anything to round.
  * - 2.2.1
  *    Routed the duplicate-key and lock/unlock/enable/disable warnings through
  *    J-Base's new Diagnostics, so each one names J-Difficulty in the console.
@@ -869,7 +872,7 @@ J.DIFFICULTY = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.2.1");
+J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.2.2");
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */

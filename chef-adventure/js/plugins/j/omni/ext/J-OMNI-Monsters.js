@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 OMNI-MONSTER] Extends the Omnipedia with a Monsterpedia entry.
+ * [v2.1.0 OMNI-MONSTER] Extends the Omnipedia with a Monsterpedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -59,6 +59,9 @@
  * one per tag, in the order they appear on the note.
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    Removed the region notetag and the regions-found line it fed. Neither was ever
+ *    used, and an observation nobody could earn only made the entry look incomplete.
  * - 2.0.0
  *    Renamed from J-Omni-Monsterpedia to J-OMNI-Monsters. The shipped file is
  *    renamed with it, so an existing plugins.js entry must be updated or the
@@ -163,7 +166,7 @@ J.OMNI.EXT.MONSTER = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.OMNI.EXT.MONSTER.Metadata = new J_OmniMonster_PluginMetadata("J-OMNI-Monsters", "2.0.0");
+J.OMNI.EXT.MONSTER.Metadata = new J_OmniMonster_PluginMetadata("J-OMNI-Monsters", "2.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

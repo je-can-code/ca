@@ -5,10 +5,10 @@
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
- * @base J-MessageTextCodes
+ * @base J-Message
  * @orderAfter J-Base
  * @orderAfter J-ABS
- * @orderAfter J-MessageTextCodes
+ * @orderAfter J-Message
  * @help
  * ============================================================================
  * OVERVIEW
@@ -32,7 +32,7 @@
  *
  * Depends on other plugins of mine:
  * - J-Base (used for drawing the logs properly onto the window)
- * - J-MessageTextCodes (used for translating text codes in logging)
+ * - J-Message (used for translating text codes in logging)
  *
  * Integrates with others of mine plugins:
  * - J-ABS; enables logging of the player/allies/enemies' actions.

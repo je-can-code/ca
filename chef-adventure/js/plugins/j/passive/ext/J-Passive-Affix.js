@@ -22,7 +22,7 @@
  * @orderAfter J-ABS-Shield
  * @orderAfter J-Extend
  * @orderAfter J-HUD-TargetFrame
- * @orderAfter J-MessageTextCodes
+ * @orderAfter J-Message
  * @orderAfter J-HUD
  * @orderAfter J-Resources-ABS
  * @help
