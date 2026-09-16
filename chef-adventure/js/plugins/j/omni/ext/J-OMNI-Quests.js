@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.3 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v2.0.4 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -140,6 +140,9 @@
  * This choice is only shown while objective 2 of that quest is completed.
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.4
+ *    Renamed the declared dependency on J-MessageTextCodes to J-Message, which
+ *    is what that plugin's file is called now.
  * - 2.0.3
  *    Fixed quest choice conditionals not hiding branches inside called common
  *    events. Dropped the dead commonEventId accessor.
@@ -2429,7 +2432,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "2.0.3");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "2.0.4");
 /**
 * A collection of all aliased methods for this plugin.
 */

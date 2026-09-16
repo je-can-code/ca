@@ -66,6 +66,7 @@
  *  <chatterDuration:FRAMES>
  *  <chatterSpeed:FRAMES>
  *  <chatterPosition:top|middle|bottom>
+ *  <chatterBackground:window|dim|transparent>
  *
  * TAG EXAMPLES:
  *  <chatterRadius:5>
@@ -95,6 +96,13 @@
  * The bubble floats above this character's head. Use bottom to hang it under
  * their feet instead, which is how two characters near each other avoid
  * stacking their bubbles in the same place. Middle behaves as top does.
+ *
+ *  <chatterBackground:dim>
+ * This character's chatter is greyed and half see-through, the way a thought
+ * is - so they read as muttering under their breath rather than speaking up.
+ * The three words are the Show Text Background dropdown's own three; window
+ * is the ordinary bubble and transparent leaves the words floating with no
+ * backdrop at all.
  * ============================================================================
  * PROJECT DEFAULTS:
  * The defaults every character starts from live in the "chatter" section of
@@ -215,7 +223,7 @@ globalThis.J ||= {};
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredMessageVersion = "1.3.1";
+	const requiredMessageVersion = "2.0.0";
 	const hasMessageRequirement = J.BASE.Helpers.satisfies(J.MESSAGE.Metadata.version.version(), requiredMessageVersion);
 	if (hasMessageRequirement === false) {
 		throw new Error(`Either missing J-Message or has a lower version than the required: ${requiredMessageVersion}`);
@@ -374,6 +382,26 @@ J.MESSAGE.EXT.CHATTER.RegExp.ChatterSpeed = /<chatterSpeed: ?(\d+)>/i;
 * @type {RegExp}
 */
 J.MESSAGE.EXT.CHATTER.RegExp.ChatterPosition = /<chatterPosition: ?(top|middle|bottom)>/i;
+/**
+* What this character's chatter is drawn on.
+*
+* <pre>
+* Structure:
+*  <chatterBackground:WHAT>
+*
+* Example:
+*  <chatterBackground:dim>
+*
+* Translation:
+*  this character's chatter is greyed and half see-through, the way a thought is.
+* </pre>
+*
+* The same three the Show Text Background dropdown has offered since MV, named rather than numbered.
+* A character set to `dim` is muttering under their breath permanently, which is a thing somebody
+* is rather than a thing they are doing on one line.
+* @type {RegExp}
+*/
+J.MESSAGE.EXT.CHATTER.RegExp.ChatterBackground = /<chatterBackground: ?(window|dim|transparent)>/i;
 
 //#endregion
 //#region src/plugins/message/ext/chatter/__models/ChatterProfile.js
@@ -957,7 +985,7 @@ var ChatterTagParser = class ChatterTagParser {
 		comments.forEach((comment) => {
 			ChatterTagParser.readLine(comment, values);
 			ChatterTagParser.readNumbers(comment, values);
-			ChatterTagParser.readPosition(comment, values);
+			ChatterTagParser.readWords(comment, values);
 		}, this);
 		return values;
 	}
@@ -994,15 +1022,19 @@ var ChatterTagParser = class ChatterTagParser {
 		});
 	}
 	/**
-	* Reads which side of the character their chatter sits on, if a comment says.
+	* Reads whichever of the worded knobs a comment carries.
 	* @param {string} comment The comment text to read.
 	* @param {object} values The values being assembled.
 	*/
-	static readPosition(comment, values) {
-		const match = J.MESSAGE.EXT.CHATTER.RegExp.ChatterPosition.exec(comment);
-		if (match === null) return;
-		const [, position] = match;
-		values.position = position.toLowerCase();
+	static readWords(comment, values) {
+		const patterns = J.MESSAGE.EXT.CHATTER.RegExp;
+		const wordedTags = [[patterns.ChatterPosition, "position"], [patterns.ChatterBackground, "background"]];
+		wordedTags.forEach(([pattern, field]) => {
+			const match = pattern.exec(comment);
+			if (match === null) return;
+			const [, word] = match;
+			values[field] = word.toLowerCase();
+		});
 	}
 };
 
@@ -1877,6 +1909,11 @@ var Sprite_ChatterBubbleLayer = class extends Sprite {
 		*/
 		this._j._bubbles = new Map();
 		/**
+		* The bubbles still on this plane but on their way off it.
+		* @type {FadingSprites}
+		*/
+		this._j._departing = new FadingSprites();
+		/**
 		* The window every chatter line is laid out against.
 		*
 		* Built on demand rather than here, because a project may well go a whole session without an
@@ -1891,6 +1928,13 @@ var Sprite_ChatterBubbleLayer = class extends Sprite {
 	*/
 	bubbles() {
 		return this._j._bubbles;
+	}
+	/**
+	* The bubbles on their way off this plane.
+	* @returns {FadingSprites}
+	*/
+	departingBubbles() {
+		return this._j._departing;
 	}
 	/**
 	* The window every chatter line is laid out against, building it if this is the first line.
@@ -1927,7 +1971,15 @@ var Sprite_ChatterBubbleLayer = class extends Sprite {
 	*/
 	update() {
 		this.syncChatterBubbles();
+		this.updateDepartingBubbles();
 		super.update();
+	}
+	/**
+	* Fades out whatever is leaving, and takes it off the plane once it has.
+	*/
+	updateDepartingBubbles() {
+		const finished = this.departingBubbles().update(MessageFade.alphaAt);
+		finished.forEach(({ sprite }) => this.removeChild(sprite));
 	}
 	/**
 	* Adds and removes bubbles until this plane shows exactly who the manager says is talking.
@@ -1947,7 +1999,7 @@ var Sprite_ChatterBubbleLayer = class extends Sprite {
 		const finished = drawn.filter((token) => stillTalking.includes(token) === false);
 		finished.forEach((token) => {
 			const sprite = this.bubbles().get(token);
-			this.removeChild(sprite);
+			this.departingBubbles().begin(token, sprite, MessageFade.frames());
 			this.bubbles().delete(token);
 		});
 	}
@@ -1959,6 +2011,10 @@ var Sprite_ChatterBubbleLayer = class extends Sprite {
 	addMissingBubble(token, session) {
 		const existing = this.bubbles().get(token);
 		if (existing !== undefined) return;
+		const interrupted = this.departingBubbles().take(token);
+		if (interrupted !== null) {
+			this.removeChild(interrupted);
+		}
 		const sprite = this.buildBubble(token, session);
 		this.bubbles().set(token, sprite);
 		this.addChild(sprite);

@@ -123,7 +123,7 @@ globalThis.J ||= {};
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredMessageVersion = "1.3.0";
+	const requiredMessageVersion = "2.0.0";
 	const hasMessageRequirement = J.BASE.Helpers.satisfies(J.MESSAGE.Metadata.version.version(), requiredMessageVersion);
 	if (hasMessageRequirement === false) {
 		throw new Error(`Either missing J-Message or has a lower version than the required: ${requiredMessageVersion}`);
@@ -2000,6 +2000,11 @@ var Sprite_SpentBubbleLayer = class extends Sprite {
 		* @type {Map<string, Sprite_SpentBubble>}
 		*/
 		this._j._bubbles = new Map();
+		/**
+		* The bubbles still on this plane but on their way off it.
+		* @type {FadingSprites}
+		*/
+		this._j._departing = new FadingSprites();
 	}
 	/**
 	* The bubbles currently on this plane.
@@ -2009,11 +2014,26 @@ var Sprite_SpentBubbleLayer = class extends Sprite {
 		return this._j._bubbles;
 	}
 	/**
+	* The bubbles on their way off this plane.
+	* @returns {FadingSprites}
+	*/
+	departingBubbles() {
+		return this._j._departing;
+	}
+	/**
 	* Extend the update to keep this plane agreeing with the conversation.
 	*/
 	update() {
 		this.syncSpentBubbles();
+		this.updateDepartingBubbles();
 		super.update();
+	}
+	/**
+	* Fades out whatever is leaving, and takes it off the plane once it has.
+	*/
+	updateDepartingBubbles() {
+		const finished = this.departingBubbles().update(MessageFade.alphaAt);
+		finished.forEach(({ sprite }) => this.removeChild(sprite));
 	}
 	/**
 	* Adds and removes bubbles until this plane shows exactly who the manager says has spoken.
@@ -2033,7 +2053,7 @@ var Sprite_SpentBubbleLayer = class extends Sprite {
 		const departed = drawn.filter((token) => stillSpeaking.includes(token) === false);
 		departed.forEach((token) => {
 			const sprite = this.bubbles().get(token);
-			this.removeChild(sprite);
+			this.departingBubbles().begin(token, sprite, MessageFade.frames());
 			this.bubbles().delete(token);
 		});
 	}
@@ -2045,6 +2065,10 @@ var Sprite_SpentBubbleLayer = class extends Sprite {
 	addMissingBubble(token, entry) {
 		const existing = this.bubbles().get(token);
 		if (existing !== undefined) return;
+		const interrupted = this.departingBubbles().take(token);
+		if (interrupted !== null) {
+			this.removeChild(interrupted);
+		}
 		const sprite = new Sprite_SpentBubble(token, entry);
 		this.bubbles().set(token, sprite);
 		this.addChild(sprite);
@@ -2364,13 +2388,6 @@ Window_Message.prototype.resizeMessageBubble = function(x, y, width, height) {
 	this.createContents();
 };
 /**
-* The plate the engine draws a speaker's name on.
-* @returns {Window_NameBox}
-*/
-Window_Message.prototype.nameBoxWindow = function() {
-	return this._nameBoxWindow;
-};
-/**
 * Extends {@link #updateSpeakerName}.<br/>
 * Also keeps the engine's name plate out of the way of the bubble's own legend.
 *
@@ -2427,6 +2444,23 @@ Window_Message.prototype.terminateMessage = function() {
 	this.setBubbleEntry(null);
 	this.bubbleSprite().visible = false;
 	this.restoreRestingRect();
+};
+/**
+* Extends {@link #beginMessageFade}.<br/>
+* Also declines the fade entirely for a message that floats.
+*
+* A floating message does not need fading out, because it is not going anywhere: the spent bubble
+* left behind in its place is the same words in the same spot, and the handover is already a drop
+* from full brightness to dimmed. Fading the live one as well would put two copies of one line on
+* top of each other for half a second, and the thing being crossfaded would be a bubble with itself.
+*/
+J.MESSAGE.EXT.BUBBLES.Aliased.Window_Message.set("beginMessageFade", Window_Message.prototype.beginMessageFade);
+Window_Message.prototype.beginMessageFade = function() {
+	if (this.isFloatingMessage() === true) {
+		this.finishMessageFade();
+		return;
+	}
+	J.MESSAGE.EXT.BUBBLES.Aliased.Window_Message.get("beginMessageFade").call(this);
 };
 /**
 * Leaves this message's bubble behind for the rest of the conversation.

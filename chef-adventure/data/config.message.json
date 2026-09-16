@@ -52,5 +52,8 @@
     "duration": 180,
     "speed": 2,
     "position": "top"
+  },
+  "fade": {
+    "frames": 30
   }
 }

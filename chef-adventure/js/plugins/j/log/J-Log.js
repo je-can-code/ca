@@ -1,7 +1,7 @@
 //region introduction
 /*:
  * @target MZ
- * @plugindesc [v3.0.1 LOG] A log window for viewing on the map.
+ * @plugindesc [v3.0.2 LOG] A log window for viewing on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -113,6 +113,10 @@
  * JABS integration (when installed) and by plugin commands.
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.2
+ *    Renamed the declared dependency on J-MessageTextCodes to J-Message, which
+ *    is what that plugin's file is called now. Left as it was, the base
+ *    declaration named a plugin no project would have installed.
  * - 3.0.1
  *    Routed the non-array DiaLog warning through J-Base's new Diagnostics. That
  *    channel is for developer console output and is unrelated to the log windows
@@ -282,7 +286,7 @@ J.LOG = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LOG.Metadata = new J_LogPluginMetadata("J-Log", "3.0.1");
+J.LOG.Metadata = new J_LogPluginMetadata("J-Log", "3.0.2");
 /**
 * A collection of all aliased methods for this plugin.
 */

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.16.0 BASE] The base class for all J plugins.
+ * [v3.16.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.16.1
+ *    ParsableComment now admits ~ % = ? ( ) and ; so an event comment may carry
+ *    message effect codes, and a sentence somebody says out loud rather than
+ *    only a parameter list. Previously such a comment failed the shape test and
+ *    was discarded before parsing, which read downstream as the tag simply not
+ *    being there.
  * - 3.16.0
  *    Added Spriteset_Map#weather, so a plugin can insert a display layer at a position
  *    relative to an engine-created child rather than wherever load order lands it.
@@ -2043,7 +2049,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.16.0";
+J.BASE.Metadata.Version = "3.16.1";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */

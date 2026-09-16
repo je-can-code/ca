@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.3.1 MESSAGE] Gives access to more message window functionality.
+ * @plugindesc [v2.0.0 MESSAGE] Gives access to more message window functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -207,6 +207,28 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    Renamed from J-MessageTextCodes. Update the entry in js/plugins.js and
+ *    delete the old file; nothing else in a project has to change.
+ *    Message text is now drawn as one sprite per character rather than baked
+ *    into the window's bitmap, which is what lets a letter move after it has
+ *    been drawn. Added \~ wave, \% jitter, \= rainbow and \+ pulse, which
+ *    nest with each other and with the engine's own codes.
+ *    Added speaker profiles, read from data/config.message.json and keyed by
+ *    the Name field or the face. A profile carries a voice, a pace, per-
+ *    punctuation beats and effects that act on everything that speaker says,
+ *    so dialogue already written gains a character without being edited.
+ *    Added layoutMessageGlyphs, which builds a message's glyphs before any of
+ *    them are revealed - the only way something drawing a container around
+ *    them can know its size on the frame it opens.
+ *    Effects now declare how far they travel, so a container can reserve room
+ *    for an effect it has never heard of.
+ *    Added a named-section accessor for the external config, so an extension
+ *    can read its own settings without opening the file a second time.
+ *    A finished message now fades out over about half a second rather than
+ *    blinking away. The engine's own close hides a window's client area on
+ *    its first frame, so the text always left instantly no matter how long
+ *    the frame took to collapse. Length is the "fade" section of the config.
  * - 1.3.1
  *    Fixed choice conditionals not hiding branches inside called common events.
  * - 1.3.0
@@ -589,7 +611,7 @@ J.MESSAGE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.MESSAGE.Metadata = new J_MessagePluginMetadata("J-Message", "1.3.1");
+J.MESSAGE.Metadata = new J_MessagePluginMetadata("J-Message", "2.0.0");
 /**
 * A collection of all base aliases.
 */
@@ -668,6 +690,166 @@ var BasicChoiceConditional = class BasicChoiceConditional {
 			case BasicChoiceConditional.Types.SwitchOff: return $gameSwitches.value(this.id) === false;
 		}
 		return true;
+	}
+};
+
+//#endregion
+//#region src/plugins/message/core/__models/FadingSprites.js
+/**
+* The sprites a layer is still showing on their way out.
+*
+* A plane that syncs itself against a list of records has one awkward moment: the record is gone and
+* the sprite is not, because the sprite has half a second of leaving left to do. Held in the same
+* map it was before, it would be found again by the next sync and read as still current; removed
+* outright, it would blink away, which is the thing being fixed. So it moves here instead - out of
+* the layer's living set and into one that is counting down.
+*
+* It holds sprites and does no drawing, which is what keeps the bookkeeping out of the layers. Two
+* different planes in two different plugins do exactly this, and they have to do it identically or a
+* conversation and the muttering behind it leave the screen at different rates.
+*/
+var FadingSprites = class {
+	/**
+	* Everything on its way out, by the key it used to be known under.
+	* @type {Map<string, {sprite: object, elapsed: number, frames: number}>}
+	*/
+	#departing = new Map();
+	/**
+	* Starts a sprite fading.
+	*
+	* The length is taken once, here, rather than asked for on each frame: a config reloaded while
+	* something is leaving must not change how long it has left.
+	* @param {string} key What the sprite was known as.
+	* @param {object} sprite The sprite to fade.
+	* @param {number} frames How many frames it should take.
+	*/
+	begin(key, sprite, frames) {
+		this.#departing.set(key, {
+			sprite,
+			elapsed: 0,
+			frames,
+			from: sprite.alpha
+		});
+	}
+	/**
+	* Whether a key is currently on its way out.
+	* @param {string} key The key in question.
+	* @returns {boolean}
+	*/
+	has(key) {
+		return this.#departing.has(key);
+	}
+	/**
+	* Stops a sprite fading and hands it back.
+	*
+	* What happens when somebody starts talking again halfway through having stopped. The sprite that
+	* was leaving is not reused - it is showing the previous line - so it is handed over to be taken
+	* off the plane, and the caller builds a new one.
+	* @param {string} key The key that came back.
+	* @returns {?object} The sprite that was leaving, or null if nothing was.
+	*/
+	take(key) {
+		const departing = this.#departing.get(key);
+		if (departing === undefined) return null;
+		this.#departing.delete(key);
+		return departing.sprite;
+	}
+	/**
+	* Advances every fade by one frame.
+	* @param {function(number, number): number} alphaAt How opaque a fade is at a given point.
+	* @returns {Array<{key: string, sprite: object}>} Everything that finished leaving this frame.
+	*/
+	update(alphaAt) {
+		const finished = [];
+		this.#departing.forEach((departing, key) => {
+			departing.elapsed += 1;
+			departing.sprite.alpha = departing.from * alphaAt(departing.elapsed, departing.frames);
+			if (departing.elapsed < departing.frames) return;
+			finished.push({
+				key,
+				sprite: departing.sprite
+			});
+		});
+		finished.forEach(({ key }) => this.#departing.delete(key));
+		return finished;
+	}
+	/**
+	* Everything currently on its way out.
+	* @returns {object[]}
+	*/
+	sprites() {
+		const all = [];
+		this.#departing.forEach((departing) => all.push(departing.sprite));
+		return all;
+	}
+};
+
+//#endregion
+//#region src/plugins/message/core/services/MessageFade.js
+/**
+* How a message leaves the screen.
+*
+* The engine's own answer is a vertical collapse over eight frames, and it has a flaw that is easy
+* to miss and impossible to unsee: a window's client area is hidden the instant its openness drops
+* below full, so the *text* disappears on the first frame of that animation and what plays out is an
+* empty frame folding up. On anything drawn without a frame - a bubble, say - there is nothing left
+* to watch at all, and a message simply blinks out of existence.
+*
+* So messages fade instead. The whole thing, letters included, goes translucent over about half a
+* second and is gone. Nothing about it is load-bearing; it is entirely about a line of dialogue
+* being allowed to finish rather than being switched off.
+*
+* **The length is a single knob, in one place, shared by everything that fades.** A bubble, the line
+* behind it in the same conversation, and an NPC muttering across the square all have to leave at
+* the same rate or the screen reads as three systems rather than one.
+*/
+var MessageFade = class MessageFade {
+	/**
+	* The section of J-Message's external config these settings live in.
+	* @type {string}
+	*/
+	static ConfigSection = "fade";
+	/**
+	* How many frames a message takes to fade, before any project has said otherwise.
+	*
+	* About half a second. Long enough to read as a deliberate exit rather than a dropped frame, short
+	* enough that somebody mashing through a conversation never waits on it.
+	* @type {number}
+	*/
+	static DefaultFrames = 30;
+	/**
+	* How many frames a message takes to fade in this project.
+	* @returns {number}
+	*/
+	static frames() {
+		const section = MessageConfig.section(MessageFade.ConfigSection);
+		return section.frames ?? MessageFade.DefaultFrames;
+	}
+	/**
+	* How opaque a fading message is after a given number of frames.
+	*
+	* Linear on purpose. An eased fade reads as a thing being animated, and the point of this is for
+	* nobody to notice anything happened at all beyond the message having finished.
+	* A fade configured to take no frames at all answers zero from its very first tick, which is the
+	* old instant behaviour and is what a project asking for no fade meant. Nothing special is done to
+	* arrange that; a fade with nothing left has nothing left however it got there.
+	* @param {number} elapsed How many frames the fade has been running.
+	* @param {number} frames How many frames the whole fade takes.
+	* @returns {number} The opacity, from one down to zero.
+	*/
+	static alphaAt(elapsed, frames) {
+		const remaining = frames - elapsed;
+		if (remaining <= 0) return 0;
+		return remaining / frames;
+	}
+	/**
+	* Whether a fade that has run this long is finished.
+	* @param {number} elapsed How many frames the fade has been running.
+	* @param {number} frames How many frames the whole fade takes.
+	* @returns {boolean}
+	*/
+	static isFinished(elapsed, frames) {
+		return elapsed >= frames;
 	}
 };
 
@@ -2703,6 +2885,19 @@ Window_Message.prototype.initMessageGlyphMembers = function() {
 	* @type {Sprite_MessageGlyphLayer}
 	*/
 	this._j._message._glyphLayer = new Sprite_MessageGlyphLayer();
+	/**
+	* How many frames this window has been fading out for, or -1 when it is not.
+	* @type {number}
+	*/
+	this._j._message._fadeElapsed = Window_Message.NotFading;
+	/**
+	* How many frames this window's fade runs for in total.
+	*
+	* Captured when the fade begins rather than asked for each frame, so a config reloaded mid-fade
+	* cannot change the length of one already running.
+	* @type {number}
+	*/
+	this._j._message._fadeFrames = 0;
 	this.addInnerChild(this._j._message._glyphLayer);
 };
 /**
@@ -2933,13 +3128,139 @@ Window_Message.prototype.newPage = function(textState) {
 	textState.spanEffects.clear();
 };
 /**
+* The elapsed value meaning this window is not fading out.
+* @type {number}
+*/
+Window_Message.NotFading = -1;
+/**
 * Extends {@link #terminateMessage}.<br/>
-* Also releases the glyphs the closing message was holding.
+* Also begins fading the finished message out rather than letting it blink away.
 */
 J.MESSAGE.Aliased.Window_Message.set("terminateMessage", Window_Message.prototype.terminateMessage);
 Window_Message.prototype.terminateMessage = function() {
 	J.MESSAGE.Aliased.Window_Message.get("terminateMessage").call(this);
+	this.beginMessageFade();
+};
+/**
+* How many frames this window has been fading out for.
+* @returns {number}
+*/
+Window_Message.prototype.fadeElapsed = function() {
+	return this._j._message._fadeElapsed;
+};
+/**
+* Sets how many frames this window has been fading out for.
+* @param {number} elapsed The frames elapsed, or {@link Window_Message.NotFading}.
+*/
+Window_Message.prototype.setFadeElapsed = function(elapsed) {
+	this._j._message._fadeElapsed = elapsed;
+};
+/**
+* How many frames this window's fade runs for in total.
+* @returns {number}
+*/
+Window_Message.prototype.fadeFrames = function() {
+	return this._j._message._fadeFrames;
+};
+/**
+* Sets how many frames this window's fade runs for in total.
+* @param {number} frames The length of the fade.
+*/
+Window_Message.prototype.setFadeFrames = function(frames) {
+	this._j._message._fadeFrames = frames;
+};
+/**
+* Whether this window is currently fading out.
+* @returns {boolean}
+*/
+Window_Message.prototype.isFadingMessage = function() {
+	return this.fadeElapsed() !== Window_Message.NotFading;
+};
+/**
+* Starts fading the finished message out.
+*
+* The original `terminateMessage` has just called `close()`, which begins the engine's own vertical
+* collapse - and the first frame of that collapse hides the window's client area, taking every
+* letter with it. So the collapse is undone here and replaced with a fade: the window is held fully
+* open and made progressively transparent instead, which is the only way the text is still on screen
+* to leave with it.
+*/
+Window_Message.prototype.beginMessageFade = function() {
+	const frames = MessageFade.frames();
+	this.setFadeFrames(frames);
+	this.setFadeElapsed(0);
+	if (frames <= 0) {
+		this.finishMessageFade();
+		return;
+	}
+	this.openness = 255;
+	this.open();
+};
+/**
+* Advances the fade by one frame, ending it when it has run its course.
+*/
+Window_Message.prototype.updateMessageFade = function() {
+	if (this.isFadingMessage() === false) return;
+	const frames = this.fadeFrames();
+	const elapsed = this.fadeElapsed() + 1;
+	this.setFadeElapsed(elapsed);
+	this.setMessageAlpha(MessageFade.alphaAt(elapsed, frames));
+	if (MessageFade.isFinished(elapsed, frames) === false) return;
+	this.finishMessageFade();
+};
+/**
+* Takes the faded message off the screen.
+*/
+Window_Message.prototype.finishMessageFade = function() {
+	this.setFadeElapsed(Window_Message.NotFading);
+	this.setMessageAlpha(1);
+	this.openness = 0;
 	this.messageGlyphLayer().clearGlyphs();
+};
+/**
+* Abandons a fade because the next message has arrived.
+*
+* The openness is deliberately left alone. Vanilla keeps the box seamlessly open when the following
+* text is already queued, and zeroing it here would make every line of a conversation re-open with
+* a little squeeze that the engine never had.
+*/
+Window_Message.prototype.cancelMessageFade = function() {
+	this.setFadeElapsed(Window_Message.NotFading);
+	this.setMessageAlpha(1);
+};
+/**
+* Sets how opaque the whole message is, plate included.
+*
+* The name plate is a window of its own that merely copies this one's openness, so left out of the
+* fade it would sit at full brightness over a message dissolving underneath it and then snap away.
+* @param {number} alpha The opacity, from one down to zero.
+*/
+Window_Message.prototype.setMessageAlpha = function(alpha) {
+	this.alpha = alpha;
+	this.nameBoxWindow().alpha = alpha;
+};
+/**
+* The plate the engine draws a speaker's name on.
+* @returns {Window_NameBox}
+*/
+Window_Message.prototype.nameBoxWindow = function() {
+	return this._nameBoxWindow;
+};
+/**
+* Extends {@link #update}.<br/>
+* Also runs the fade, and abandons it the moment another message is waiting.
+*
+* The abandoning happens before the original on purpose. The original is what starts the next
+* message, and a fade still running when it does would take the new message's own letters down with
+* it.
+*/
+J.MESSAGE.Aliased.Window_Message.set("update", Window_Message.prototype.update);
+Window_Message.prototype.update = function() {
+	if (this.isFadingMessage() === true && $gameMessage.isBusy() === true) {
+		this.cancelMessageFade();
+	}
+	J.MESSAGE.Aliased.Window_Message.get("update").call(this);
+	this.updateMessageFade();
 };
 /**
 * Extends {@link #processCharacter}.<br/>

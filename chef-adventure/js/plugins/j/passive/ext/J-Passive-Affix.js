@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 PASSIVE-AFFIX] Random passive affixes + tier presentation for JABS enemies.
+ * [v1.2.1 PASSIVE-AFFIX] Random passive affixes + tier presentation for JABS enemies.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -267,6 +267,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    Renamed the declared dependency on J-MessageTextCodes to J-Message, which
+ *    is what that plugin's file is called now.
  * - 1.2.0
  *    Random affix rolling can be held behind a switch, so a world can stay ordinary
  *    until the story says otherwise. Affixes written onto an event or an enemy are a
@@ -453,7 +456,7 @@ J.PASSIVE.EXT.AFFIX = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.AFFIX.Metadata = new JPassiveAffix_PluginMetadata("J-Passive-Affix", "1.2.0");
+J.PASSIVE.EXT.AFFIX.Metadata = new JPassiveAffix_PluginMetadata("J-Passive-Affix", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
