@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.16.0 BASE] The base class for all J plugins.
+ * [v3.16.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.16.1
+ *    ParsableComment now admits ~ % = ? ( ) and ; so an event comment may carry
+ *    message effect codes, and a sentence somebody says out loud rather than
+ *    only a parameter list. Previously such a comment failed the shape test and
+ *    was discarded before parsing, which read downstream as the tag simply not
+ *    being there.
  * - 3.16.0
  *    Added Spriteset_Map#weather, so a plugin can insert a display layer at a position
  *    relative to an engine-created child rather than wherever load order lands it.
@@ -2043,7 +2049,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.16.0";
+J.BASE.Metadata.Version = "3.16.1";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -2187,9 +2193,19 @@ J.BASE.RegExp.HealAmplification = /<har:(-?\d+)>/gi;
 *    <someKeyWithStringValue:someValue>
 *    <someKeyWithRangeValue:startRange-endRange>
 *    <someKeyWithHexColorValue:#ffa0a0>
+*    <someKeyWithMessageTextCodes:she said \~this\~ and \=that\=>
+*    <someKeyWithProseValue:Anything I can get you? Half price (today only); ask me.>
 *  </pre>
+*
+* A comment failing this is dropped before any plugin is offered it, silently and with no
+* diagnostic - so the character class is worth widening deliberately rather than discovering. The
+* `~`, `%` and `=` entries are J-Message's effect codes: a tag carrying message text needs to be
+* able to say `\~` without the whole tag vanishing, which is what this cost before they were added.
+* The sentence punctuation - `?`, `(`, `)` and `;` - is here for the same reason: a tag whose value
+* is prose a character says out loud is ordinary now, and a shopkeeper asking a question is the
+* single most likely line anybody writes.
 */
-J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\#]+>$/i;
+J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!?+\-*/\\#~%=();]+>$/i;
 /**
 * The basic structure for retrieving summable max tech values.
 */
@@ -9696,7 +9712,7 @@ TextManager.rewardDescription = function(paramId) {
 };
 /**
 * Whether a given registry key is a known catalog parameter.<br/>
-* Public surface for other plugins (e.g. J-MessageTextCodes) to distinguish "unregistered key"
+* Public surface for other plugins (e.g. J-Message) to distinguish "unregistered key"
 * from a legitimately-falsy/zero result, since {@link TextManager.parameterLabel}/
 * {@link IconManager.parameterIcon}/{@link ColorManager.parameterColor} each fall back to a
 * plausible-looking default instead of surfacing the miss.

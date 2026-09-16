@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.5.1 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
+ * [v1.6.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -149,6 +149,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.6.0
+ *    Renamed the maxTraitCount notetag to maxRefinedTraits, which says what it counts.
+ *    Removed the unused JAFTING_RefinementData model.
  * - 1.5.1
  *    Routed the uncapturable-equip error through J-Base's new Diagnostics, so
  *    it names J-JAFTING-Refinement and carries the equip as its detail rather
@@ -1086,7 +1089,7 @@ J.JAFTING.EXT.REFINE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.5.1");
+J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.6.0");
 /**
 * A helpful mapping of the various messages that we use in JAFTING.
 */

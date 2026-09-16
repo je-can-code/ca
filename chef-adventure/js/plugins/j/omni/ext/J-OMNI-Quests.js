@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.3 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v2.0.4 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -10,7 +10,7 @@
  * @orderAfter J-Base
  * @orderAfter J-Omnipedia
  * @orderAfter J-HUD
- * @orderAfter J-MessageTextCodes
+ * @orderAfter J-Message
  * @orderAfter J-ABS
  * @orderAfter J-ABS-InputManager
  * @help
@@ -99,7 +99,7 @@
  * QUEST-GATED EVENT PAGES AND CHOICES:
  * Beyond the JSON-authored quest data itself, this plugin adds tags that
  * gate event pages and "Show Choices" branches behind quest/objective
- * state, similar in spirit to J-MessageTextCodes' leader/switch choice
+ * state, similar in spirit to J-Message's leader/switch choice
  * conditionals.
  *
  * NOTE ABOUT THE THREE ARGUMENT SHAPES:
@@ -140,6 +140,9 @@
  * This choice is only shown while objective 2 of that quest is completed.
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.4
+ *    Renamed the declared dependency on J-MessageTextCodes to J-Message, which
+ *    is what that plugin's file is called now.
  * - 2.0.3
  *    Fixed quest choice conditionals not hiding branches inside called common
  *    events. Dropped the dead commonEventId accessor.
@@ -2429,7 +2432,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "2.0.3");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-OMNI-Quests", "2.0.4");
 /**
 * A collection of all aliased methods for this plugin.
 */

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.1 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
+ * [v1.3.2 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -311,6 +311,9 @@
  *    Taking even a single step immediately strips it and resets the stand timer.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.2
+ *    Dropped a redundant round from the remaining-seconds display, which was already
+ *    rounded by the time it got there.
  * - 1.3.1
  *    Adapted to the RPGManager array read signature.
  * - 1.3.0
@@ -452,7 +455,7 @@ J.PASSIVE.EXT.CONDITIONAL = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.3.1");
+J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.3.2");
 /**
 * A collection of all aliased methods for this plugin.
 */

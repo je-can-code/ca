@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.1 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
+ * [v1.3.0 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -228,6 +228,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Added the Apply Overlay and Remove Overlay plugin commands, showing any IconSet
+ *    cell over any character in one of nine presets, named by database row or by index.
+ *    A held overlay survives anything that rebuilds the map's sprites, because what is
+ *    stored is the request rather than the sprite.
  * - 1.2.1
  *    Corrected which hook the juice manager reads when resolving a motion.
  * - 1.2.0
@@ -538,7 +543,7 @@ J.ABS.EXT.JUICE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.JUICE.Metadata = new JAbsJuice_PluginMetadata("J-ABS-Juice", "1.2.1");
+J.ABS.EXT.JUICE.Metadata = new JAbsJuice_PluginMetadata("J-ABS-Juice", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -648,7 +653,7 @@ J.ABS.EXT.JUICE.RegExp = {
 //#endregion
 //#region src/plugins/abs/ext/juice/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS-Juice";
-var PLUGIN_VERSION = "1.2.1";
+var PLUGIN_VERSION = "1.3.0";
 var PLUGIN_DESC_TAG = "ABS-JUICE";
 
 //#endregion

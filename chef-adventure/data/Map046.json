@@ -9434,7 +9434,7 @@
               "code": 401,
               "indent": 0,
               "parameters": [
-                "\\pop[0]Left  : Subterranean Depths"
+                "\\pop[self]Left  : Subterranean Depths"
               ]
             },
             {
