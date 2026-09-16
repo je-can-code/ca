@@ -2188,14 +2188,18 @@ J.BASE.RegExp.HealAmplification = /<har:(-?\d+)>/gi;
 *    <someKeyWithRangeValue:startRange-endRange>
 *    <someKeyWithHexColorValue:#ffa0a0>
 *    <someKeyWithMessageTextCodes:she said \~this\~ and \=that\=>
+*    <someKeyWithProseValue:Anything I can get you? Half price (today only); ask me.>
 *  </pre>
 *
 * A comment failing this is dropped before any plugin is offered it, silently and with no
 * diagnostic - so the character class is worth widening deliberately rather than discovering. The
 * `~`, `%` and `=` entries are J-Message's effect codes: a tag carrying message text needs to be
 * able to say `\~` without the whole tag vanishing, which is what this cost before they were added.
+* The sentence punctuation - `?`, `(`, `)` and `;` - is here for the same reason: a tag whose value
+* is prose a character says out loud is ordinary now, and a shopkeeper asking a question is the
+* single most likely line anybody writes.
 */
-J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\#~%=]+>$/i;
+J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!?+\-*/\\#~%=();]+>$/i;
 /**
 * The basic structure for retrieving summable max tech values.
 */

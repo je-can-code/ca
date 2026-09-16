@@ -219,11 +219,11 @@ function showText(faceName, faceIndex, speaker, lines, background, position)
  * Copied from `J.BASE.RegExp.ParsableComment`. A comment that fails this is dropped before any
  * plugin sees it, silently and with no diagnostic - which is exactly how five escribe labels came
  * to be missing from this map's first build while the other seven worked. Worth reading the
- * character class carefully: parentheses are not in it, and neither are the three symbols this very
- * plugin uses as its effect codes.
+ * character class carefully: the angle brackets it anchors on are the one thing a tag's value can
+ * never contain, so a chatter line carrying either drops the whole tag and the NPC says nothing.
  * @type {RegExp}
  */
-const PARSABLE_COMMENT = /^<[[\]\w :"',.!+\-*/\\#]+>$/i;
+const PARSABLE_COMMENT = /^<[[\]\w :"',.!?+\-*/\\#~%=();]+>$/i;
 
 /**
  * Builds one escribe label comment, refusing a label the engine would quietly discard.
@@ -263,10 +263,31 @@ const signpost = (label, faceName, faceIndex, speaker, lines, background) => [
  * @param {string} pluginName The plugin's filename without its extension.
  * @param {string} commandName The registered command key.
  * @param {string} displayName What the editor shows in the event list.
+ * @param {object} args The command's arguments, which the editor stores as strings.
  * @returns {object}
  */
-const pluginCommand = (pluginName, commandName, displayName) => (
-  { code: 357, indent: 0, parameters: [ pluginName, commandName, displayName, {} ] });
+const pluginCommand = (pluginName, commandName, displayName, args = {}) => (
+  { code: 357, indent: 0, parameters: [ pluginName, commandName, displayName, args ] });
+
+/**
+ * Builds one chatter tag, refusing a value the engine would quietly discard.
+ *
+ * The refusal matters more here than anywhere else on this map. A chatter tag that fails the comment
+ * pattern produces a character who simply never speaks, which is indistinguishable from a character
+ * whose wait has not come up yet - so a dropped tag would be found by staring at an NPC rather than
+ * by anything reporting it.
+ * @param {string} tag The whole tag, brackets included.
+ * @returns {object}
+ */
+function chatterTag(tag)
+{
+  if (PARSABLE_COMMENT.test(tag) === false)
+  {
+    throw new Error(`tag would be dropped by ParsableComment, so the NPC would be silent: [${tag}]`);
+  }
+
+  return comment(tag);
+}
 
 /**
  * A signpost that runs several messages in a row and then declares the scene over.
@@ -465,6 +486,87 @@ const DEMOS = [
   },
 ];
 
+// the chatterers, who stand along the free row below the demo grid. Spread along one line on
+// purpose: chatter is a thing you walk past, so the demo has to be something you can walk past, and
+// a row of them at different distances is the only way to see a radius actually doing anything.
+const CHATTERERS = [
+  {
+    name: 'chatterShopkeeper',
+    x: 6,
+    lines: [
+      'Anything I can get you? Half price today.',
+      'Finest produce this side of the dunes!',
+      'You look like somebody who needs a melon.',
+    ],
+    tuning: [ '<chatterRadius:4>', '<chatterCooldown:240>' ],
+  },
+  {
+    name: 'chatterMutterer',
+    x: 10,
+    // a tight radius and a bubble under their feet, so this one only speaks when you are almost on
+    // top of them and does not collide with the signpost labels above.
+    lines: [ 'Mind the step; it is loose (and nobody will fix it).' ],
+    tuning: [ '<chatterRadius:2>', '<chatterPosition:bottom>' ],
+  },
+  {
+    name: 'chatterExcitable',
+    x: 16,
+    // fast, frequent and short: this is the one that shows the reveal typing itself out, and the one
+    // standing close enough to start talking before you have taken a step.
+    lines: [
+      'Did you see that? Did you SEE that?',
+      'I have been \\~waiting\\~ all day for something to happen!',
+    ],
+    tuning: [ '<chatterSpeed:1>', '<chatterDelay:60>', '<chatterCooldown:180>' ],
+  },
+  {
+    name: 'chatterWeary',
+    x: 22,
+    // the other end of every dial, so the two of them are visibly different characters rather than
+    // the same NPC twice.
+    lines: [ 'Some days... I do wonder why I bothered getting up.' ],
+    tuning: [ '<chatterSpeed:6>', '<chatterDelay:600>', '<chatterDuration:300>' ],
+  },
+];
+
+/**
+ * A chattering NPC who also has something to say when spoken to.
+ *
+ * Three rules at once, and they are the three worth watching. Starting a conversation stops this
+ * character's idle muttering, because a real message above somebody is not something they should be
+ * talking over. The player is made to mutter back, which is chatter being used the way a cutscene
+ * would use it. And the character holds a *thought* through the whole exchange - a dim bubble over
+ * their head while their spoken line sits at their feet, which is the one arrangement the ambient
+ * rules would otherwise take apart.
+ * @returns {object[]}
+ */
+const talkableChatterer = () => [
+  chatterTag('<chatter:Go on then, say something. I will wait.>'),
+  chatterTag('<chatterRadius:4>'),
+  // the thought first, so it is already on screen when the spoken line arrives underneath it.
+  pluginCommand('J-Message-Chatter', 'chatter-now', 'Chatter Now', {
+    target: 'self',
+    text: 'He has no idea, does he.',
+    duration: '600',
+    position: 'top',
+    background: 'dim',
+    persist: 'true',
+  }),
+  ...showText('', 0, 'The Patient One', [
+    '\\pop[self]There. I have stopped muttering, because now I am',
+    'actually talking to you.',
+  ], 0, POSITION_BOTTOM),
+  pluginCommand('J-Message-Chatter', 'chatter-now', 'Chatter Now', {
+    target: 'player',
+    text: 'I did not ask for this.',
+    duration: '240',
+    position: 'bottom',
+    background: '',
+    persist: 'false',
+  }),
+  end(),
+];
+
 /**
  * The autorun setup event, carried over from the other sandboxes verbatim.
  * @param {number} id The event id.
@@ -601,6 +703,41 @@ DEMOS.forEach((demo, index) =>
   });
 });
 
+// the chatterers go on the free row below the grid, which is the one strip of floor wide enough to
+// walk the whole length of without stepping into the demo columns.
+const CHATTER_ROW = bounds.maxY;
+
+CHATTERERS.forEach(chatterer =>
+{
+  const spot = claim(chatterer.x, CHATTER_ROW);
+  const lines = chatterer.lines.map(line => chatterTag(`<chatter:${line}>`));
+  const tuning = chatterer.tuning.map(tag => chatterTag(tag));
+
+  map.events.push({
+    id: map.events.length,
+    name: chatterer.name,
+    note: '',
+    x: spot.x,
+    y: spot.y,
+    // the action button, with nothing but comments to run. These are people standing around talking
+    // rather than things to interact with, and an empty action-button page is how an event does
+    // nothing - autorun, the other reading of "it acts on its own", holds the interpreter open
+    // forever and stops the whole map dead.
+    pages: [ page([ ...lines, ...tuning, end() ], 0) ],
+  });
+});
+
+// the one chatterer who is also worth talking to, at the far end of the same row.
+const talkableSpot = claim(bounds.maxX, CHATTER_ROW);
+map.events.push({
+  id: map.events.length,
+  name: 'chatterTalkable',
+  note: '',
+  x: talkableSpot.x,
+  y: talkableSpot.y,
+  pages: [ page(talkableChatterer()) ],
+});
+
 // the init event is the one deliberate exception to everything above. It has no sprite, it is an
 // autorun that switches itself off on the first frame, and nothing ever walks up to it - so it
 // neither needs to be reachable nor wants to occupy a square of floor that a demo could use. It is
@@ -624,7 +761,8 @@ const serialized = `{\n${headerLine},\n"data":${JSON.stringify(data)},\n"events"
 
 fs.writeFileSync(path.join(DATA, `Map${NEW_MAP_ID}.json`), serialized);
 
-console.log(`wrote Map${NEW_MAP_ID}.json - ${DEMOS.length} demo events, init, ${map.width}x${map.height}`);
+console.log(`wrote Map${NEW_MAP_ID}.json - ${DEMOS.length} demo events, ${CHATTERERS.length + 1} chatterers, `
+  + `init, ${map.width}x${map.height}`);
 console.log(`reachable floor from ${start.x},${start.y}: x ${bounds.minX}..${bounds.maxX}, y ${bounds.minY}..${bounds.maxY} (${reachable.size} squares)`);
 console.log(`columns: ${COLUMNS.join(', ')}  rows: ${ROWS.join(', ')}`);
 console.log('every event square proved reachable on foot, not merely standable');

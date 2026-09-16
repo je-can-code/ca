@@ -1155,12 +1155,14 @@ var BubbleStyle = class BubbleStyle {
 	/**
 	* How a bubble should be drawn for a given Background value.
 	* @param {number} background The Show Text command's Background value.
-	* @returns {{drawn: boolean, fillColor: number, fillAlpha: number, borderColor: number, legendColor: string}}
+	* @returns {{drawn: boolean, bordered: boolean, fillColor: number, fillAlpha: number, borderColor: number,
+	* legendColor: string}}
 	*/
 	static forBackground(background) {
 		if (background === BubbleStyle.DimBackground) {
 			return {
 				drawn: true,
+				bordered: false,
 				fillColor: BubbleStyle.DimFillColor,
 				fillAlpha: BubbleStyle.DimFillAlpha,
 				borderColor: BubbleStyle.DimBorderColor,
@@ -1170,6 +1172,7 @@ var BubbleStyle = class BubbleStyle {
 		const drawn = background === BubbleStyle.WindowBackground;
 		return {
 			drawn,
+			bordered: true,
 			fillColor: BubbleStyle.FillColor,
 			fillAlpha: BubbleStyle.FillAlpha,
 			borderColor: BubbleStyle.BorderColor,
@@ -1523,6 +1526,11 @@ var Sprite_MessageBubble = class Sprite_MessageBubble extends Sprite {
 		*/
 		this._j._borderColor = Sprite_MessageBubble.DefaultBorderColor;
 		/**
+		* Whether this bubble is outlined at all.
+		* @type {boolean}
+		*/
+		this._j._bordered = true;
+		/**
 		* The speaker's name, set into the border the way a legend is set into a fieldset.
 		* @type {Sprite_BaseText}
 		*/
@@ -1642,6 +1650,20 @@ var Sprite_MessageBubble = class Sprite_MessageBubble extends Sprite {
 		this._j._borderColor = color;
 	}
 	/**
+	* Whether this bubble is outlined at all.
+	* @returns {boolean}
+	*/
+	isBordered() {
+		return this._j._bordered;
+	}
+	/**
+	* Sets whether this bubble is outlined at all.
+	* @param {boolean} bordered Whether to stroke an outline.
+	*/
+	flagBordered(bordered) {
+		this._j._bordered = bordered;
+	}
+	/**
 	* Draws this bubble at the given size, pointing wherever it is pointing right now.
 	*
 	* Redrawn whole rather than in pieces, and redrawn on every frame the caller asks for. The tail
@@ -1703,6 +1725,7 @@ var Sprite_MessageBubble = class Sprite_MessageBubble extends Sprite {
 	* @param {?object} legendGap The stretch of border to leave out, or null for an unbroken one.
 	*/
 	strokeBorder(graphics, bounds, tail, legendGap) {
+		if (this.isBordered() === false) return;
 		const path = BubbleShape.outlinePath(bounds, tail, legendGap);
 		graphics.lineStyle(Sprite_MessageBubble.BorderWidth, this.borderColor(), 1);
 		this.tracePath(graphics, path);
@@ -1870,6 +1893,7 @@ var Sprite_SpentBubble = class Sprite_SpentBubble extends Sprite {
 		bubble.setFillColor(style.fillColor);
 		bubble.setFillAlpha(style.fillAlpha);
 		bubble.setBorderColor(style.borderColor);
+		bubble.flagBordered(style.bordered);
 		bubble.setLegendColor(style.legendColor);
 		bubble.setSpeakerName(speakerName);
 		bubble.visible = style.drawn;
@@ -2277,6 +2301,7 @@ Window_Message.prototype.refreshMessageBubble = function() {
 	sprite.setFillColor(style.fillColor);
 	sprite.setFillAlpha(style.fillAlpha);
 	sprite.setBorderColor(style.borderColor);
+	sprite.flagBordered(style.bordered);
 	sprite.setLegendColor(style.legendColor);
 	this.nameBoxWindow().close();
 	const glyphs = this.layoutMessageGlyphs($gameMessage.allText());

@@ -44,5 +44,13 @@
       "voicePitchVariance": 4
     }
   },
-  "byFace": {}
+  "byFace": {},
+  "chatter": {
+    "radius": 5,
+    "cooldown": 600,
+    "delay": 300,
+    "duration": 180,
+    "speed": 2,
+    "position": "top"
+  }
 }

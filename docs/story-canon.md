@@ -561,12 +561,13 @@ insultingly mundane. A trapdoor and a spring trap, sprung mid-sentence, before a
 - **It solves "why can't they just walk back" for free.** No sealed door, no barrier, no exposition, no rule
   anyone has to state: one fell, one flew. Gravity did the writing.
 
-**Assignment** `PROPOSED (per the draft above)`: **Jerald falls to the basement (Lust); Rupert springs to the
-tower (Envy).** The casting is meaningful and should be chosen, not randomized — the basement is the sin
-something was *done to*, the tower is the sin someone *did to herself by wanting*. Counter-argument on file
-`OPEN`: sending **Jerald** up to Envy is the funnier and possibly stronger option, because he is the least
-envious character in the game — a man genuinely thrilled about a mushroom. Envy would reach into him for a
-grievance and find nothing to hold. That version trades the clean mirror for a statement about who he is.
+**Assignment** `LOCKED (2026-09-16)`: **Rupert falls to the basement (Lust); Jerald springs to the tower
+(Envy).** Decided by drafting all four protagonist-and-sin scenes and comparing them; the drafts and the
+reasoning live in [`maps/fortress.md`](maps/fortress.md). The short version: each man meets the sin that
+touches his own wound. Rupert did the genocide, so he meets its victim and begins to question the shape of
+the plot (the Lust section below was right all along). Jerald swallowed the Raving Lunatic, so he meets the
+sin of wanting to be someone else, wearing the gift she never got. The ambush draft above should read with
+Jerald launched and Rupert dropped.
 
 #### The dead cycle button `PROPOSED (mechanics)`
 
