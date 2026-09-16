@@ -101,8 +101,8 @@ kin also survived; see Lust and Sloth. They are siblings **to each other**, kin 
 - **His signature technology: limiter/junction scrambling** — the same axis as the elemental limiter
   (max → rage, zero → stasis; on non-elementals the effect is weaker: woozy, degraded — not transformation).
 - **His TIME power is regression** — un-happening. He can **age a place to death** (the Erocian Kingdom: it
-  fell *recently*; it only reads as ancient) and **pause a place mid-moment** (the Frozen Fortress: Skye's
-  stolen summit castle, displaced to Lakeside Road **still wearing the winter of the day it was taken** —
+  fell *recently*; it only reads as ancient) and **pause a place mid-moment** (the Frozen Fortress: the
+  empty summit castle Skye napped in, displaced to Lakeside Road **still wearing the winter of the day it was taken** —
   the snow on a lush green road isn't weather, it's a preserved timestamp). **Loops are explicitly not used.**
 - **He is the shady dude from the intro.** `LOCKED` The cloaked figure who hands Jerald and Rupert their Node
   Junctions in scene one — arming his own raid bosses so the fight he's spent centuries preparing would be
@@ -515,7 +515,8 @@ pointedly skip the "review the facts" recap they perform after every *notable* p
 and `design-contract.md` chapter references accordingly — housekeeping.)*
 
 - **The Frozen Fortress** — always name it that; canon has two castles (Lucian's fallen one and this) —
-  opened by the Technohypercube. It is Skye's stolen summit castle, **paused mid-moment**, still wearing the
+  opened by the Technohypercube. It is the empty summit castle Skye napped in (never Skye's own; see
+  the timeline and the `Map320` post-boss scene), **paused mid-moment**, still wearing the
   winter of the day it was taken. `PROPOSED (texture)`: its interior is a preserved time-slice — walking in
   is walking into the era it left; the gent's centuries of operation without aging, explained by an address
   outside of time.

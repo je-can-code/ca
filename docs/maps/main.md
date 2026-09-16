@@ -11,6 +11,8 @@ Here you can dig into specific regions and learn more about them.
   chain, the split, the palace, Gloria's fight, and what has moved since it was designed.
 - [The Subterranean][5] — the chapter 4 Sloth dungeon, barely started. The look, the snake-shaped
   descent, the two entrances, the heartbeat, and the rosters it needs. Much of it is still open.
+- [The Frozen Fortress][6] — the chapter 5 finale, nothing built. Being designed now; the page is
+  written as the conversation happens.
 
 ## Progression
 
@@ -35,3 +37,5 @@ Here you can dig into specific regions and learn more about them.
 [4]: nimbus.md
 
 [5]: subterranean.md
+
+[6]: fortress.md

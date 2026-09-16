@@ -183,16 +183,31 @@ const commentMore = text => ({ code: 408, indent: 0, parameters: [ text ] });
 const end = () => ({ code: 0, indent: 0, parameters: [] });
 
 /**
+ * The Position dropdown's "top", which a floating message reads as "sit above your speaker".
+ * @type {number}
+ */
+const POSITION_TOP = 0;
+
+/**
+ * The Position dropdown's "bottom", which a floating message reads as "hang below your speaker".
+ * @type {number}
+ */
+const POSITION_BOTTOM = 2;
+
+/**
  * A Show Text command and its lines.
  * @param {string} faceName The face sheet, or empty for none.
  * @param {number} faceIndex The index within that sheet.
  * @param {string} speaker The literal contents of the Name field.
  * @param {string[]} lines The message lines.
+ * @param {number} background The Background dropdown: 0 window, 1 dim, 2 transparent.
+ * @param {number} position The Position dropdown: 0 top, 1 middle, 2 bottom.
  * @returns {object[]}
  */
-function showText(faceName, faceIndex, speaker, lines)
+function showText(faceName, faceIndex, speaker, lines, background, position)
 {
-  const commands = [ { code: 101, indent: 0, parameters: [ faceName, faceIndex, 0, 2, speaker ] } ];
+  const commands = [
+    { code: 101, indent: 0, parameters: [ faceName, faceIndex, background, position, speaker ] } ];
   lines.forEach(line => commands.push({ code: 401, indent: 0, parameters: [ line ] }));
 
   return commands;
@@ -234,11 +249,45 @@ function escribeLabel(label)
  * @param {number} faceIndex The index within that sheet.
  * @param {string} speaker The Name field for its message.
  * @param {string[]} lines The message lines.
+ * @param {number} background The Background dropdown: 0 window, 1 dim, 2 transparent.
  * @returns {object[]}
  */
-const signpost = (label, faceName, faceIndex, speaker, lines) => [
+const signpost = (label, faceName, faceIndex, speaker, lines, background) => [
   escribeLabel(label),
-  ...showText(faceName, faceIndex, speaker, lines),
+  ...showText(faceName, faceIndex, speaker, lines, background, POSITION_TOP),
+  end(),
+];
+
+/**
+ * A plugin command call, as the editor writes one.
+ * @param {string} pluginName The plugin's filename without its extension.
+ * @param {string} commandName The registered command key.
+ * @param {string} displayName What the editor shows in the event list.
+ * @returns {object}
+ */
+const pluginCommand = (pluginName, commandName, displayName) => (
+  { code: 357, indent: 0, parameters: [ pluginName, commandName, displayName, {} ] });
+
+/**
+ * A signpost that runs several messages in a row and then declares the scene over.
+ *
+ * Each beat is its own Show Text, so each gets its own bubble - which is the whole thing being
+ * demonstrated: the earlier ones stay on screen, dimmed and frozen, until the command at the end
+ * clears them.
+ * @param {string} label What floats above it.
+ * @param {object[]} beats The messages, in order.
+ * @returns {object[]}
+ */
+const conversation = (label, beats) => [
+  escribeLabel(label),
+  ...beats.flatMap(beat => showText(
+    beat.faceName ?? '',
+    beat.faceIndex ?? 0,
+    beat.speaker ?? '',
+    beat.lines,
+    beat.background ?? 0,
+    beat.position ?? POSITION_TOP)),
+  pluginCommand('J-Message-Bubbles', 'end-conversation', 'End Conversation'),
   end(),
 ];
 
@@ -342,6 +391,76 @@ const DEMOS = [
     lines: [
       'And this is what it looks like when a word \\+swells and settles\\+ again.',
       'It reads as breathing, where the wave reads as motion.',
+    ],
+  },
+  {
+    name: 'bubbleSelf',
+    label: 'bubble - over this sign',
+    speaker: 'The Signpost',
+    lines: [
+      '\\pop[self]I am speaking for myself, from here.',
+      'My name is set into my own border.',
+    ],
+  },
+  {
+    name: 'bubbleTalk',
+    label: 'bubble - a conversation',
+    // four messages rather than one, so four bubbles exist in turn and the first three are still on
+    // screen - dimmed and frozen - while the fourth is being read. The command at the end is what
+    // clears them; without it they would wait for the map to change.
+    // the sign takes the top of each exchange and the player takes the bottom, which is what keeps
+    // two characters standing a tile apart from stacking their dialogue in the same place. That is
+    // the Show Text Position dropdown doing it, not anything new.
+    beats: [
+      {
+        speaker: 'The Signpost',
+        position: POSITION_TOP,
+        lines: [ '\\pop[self]Do you ever wonder what is over the wall?' ],
+      },
+      {
+        position: POSITION_BOTTOM,
+        lines: [
+          '\\pop[player]Nobody is named on this one, so its border runs',
+          'unbroken all the way around.',
+        ],
+      },
+      {
+        speaker: 'The Signpost',
+        position: POSITION_TOP,
+        background: 1,
+        lines: [ '\\pop[self]He is not going to answer, is he.' ],
+      },
+      {
+        speaker: '\\N[1]',
+        position: POSITION_BOTTOM,
+        // the same target as the beat above rather than the equivalent `a1`, so this replaces the
+        // player's own earlier bubble instead of standing a second one on top of it. Two aliases
+        // for one character are two speakers as far as a conversation is concerned.
+        lines: [ '\\pop[player]I am absolutely going to answer. Eventually.' ],
+      },
+    ],
+  },
+  {
+    name: 'bubbleActor',
+    label: 'bubble - actor a1',
+    speaker: '\\N[1]',
+    lines: [
+      // a1 is whoever is leading, and the leader walks as the player sprite rather than as a
+      // follower - so this and the one above should land in the same place.
+      '\\pop[a1]Actor one is Jerald, and Jerald is leading, so this is me.',
+    ],
+  },
+  {
+    name: 'bubblePoint',
+    label: 'bubble - dim, fixed point',
+    speaker: 'A Voice From Nowhere',
+    // background 1 is the editor's Dim, which on a bubble means greyed and half see-through rather
+    // than the gradient plate it draws behind an ordinary window. Doubled up with the fixed-point
+    // target because the room only holds sixteen signs and this form has no real uses to protect.
+    background: 1,
+    lines: [
+      '\\pop[300,240]This one is nailed to a spot on the screen, and it is',
+      'dimmed, which is what an inner thought should look like.',
     ],
   },
 ];
@@ -450,12 +569,13 @@ function spread(min, max, count)
   return Array.from({ length: count }, (_, index) => Math.round(first + (step * index)));
 }
 
-// three rows of four, spread across whatever the room actually turned out to be rather than across
+// four rows of four, spread across whatever the room actually turned out to be rather than across
 // numbers written down by hand. Four columns rather than six because each signpost carries a
 // floating label wider than the tuft under it, and six across this room puts "no profile - default
-// voice" straight through its neighbour.
+// voice" straight through its neighbour. The rows are two apart rather than three because a fourth
+// row of demos has to fit in the same room, and two tiles still clears a one-line label.
 const COLUMNS = spread(bounds.minX, bounds.maxX, 4);
-const ROWS = [ bounds.minY + 1, bounds.minY + 4, bounds.maxY - 1 ];
+const ROWS = [ bounds.minY + 1, bounds.minY + 3, bounds.minY + 5, bounds.maxY - 1 ];
 
 DEMOS.forEach((demo, index) =>
 {
@@ -469,12 +589,15 @@ DEMOS.forEach((demo, index) =>
     note: '',
     x: spot.x,
     y: spot.y,
-    pages: [ page(signpost(
-      demo.label,
-      demo.faceName ?? '',
-      demo.faceIndex ?? 0,
-      demo.speaker ?? '',
-      demo.lines)) ],
+    pages: [ page(demo.beats === undefined
+      ? signpost(
+        demo.label,
+        demo.faceName ?? '',
+        demo.faceIndex ?? 0,
+        demo.speaker ?? '',
+        demo.lines,
+        demo.background ?? 0)
+      : conversation(demo.label, demo.beats)) ],
   });
 });
 

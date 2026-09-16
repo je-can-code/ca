@@ -2031,24 +2031,63 @@ var MessageEffectRegistry = class MessageEffectRegistry {
 	static JitterVerticalSalt = 2246822507;
 	/**
 	* Every registered effect, by the name a glyph carries.
-	* @type {Map<string, function(number, number): MessageGlyphModulation>}
+	*
+	* Each entry pairs what the effect *does* on a given frame with how far it is ever willing to go.
+	* The second half exists because something eventually has to draw a container around moving text -
+	* a bubble, a panel, a frame - and sizing that container from where the glyphs are resting clips
+	* them the moment they move. Asking each effect for its own worst case is the only version of that
+	* question which keeps working when somebody registers a fifth effect.
+	* @type {Map<string, {modulate: function(number, number): MessageGlyphModulation, excursion: MessageGlyphModulation}>}
 	*/
 	static #effects = new Map([
-		["wave", MessageEffectRegistry.wave],
-		["jitter", MessageEffectRegistry.jitter],
-		["rainbow", MessageEffectRegistry.rainbow],
-		["pulse", MessageEffectRegistry.pulse]
+		["wave", {
+			modulate: MessageEffectRegistry.wave,
+			excursion: new MessageGlyphModulation(0, MessageEffectRegistry.WaveAmplitude, null, 1)
+		}],
+		["jitter", {
+			modulate: MessageEffectRegistry.jitter,
+			excursion: new MessageGlyphModulation(MessageEffectRegistry.JitterRadius, MessageEffectRegistry.JitterRadius, null, 1)
+		}],
+		["rainbow", {
+			modulate: MessageEffectRegistry.rainbow,
+			excursion: MessageGlyphModulation.none()
+		}],
+		["pulse", {
+			modulate: MessageEffectRegistry.pulse,
+			excursion: new MessageGlyphModulation(0, 0, null, 1 + MessageEffectRegistry.PulseAmplitude)
+		}]
 	]);
 	/**
 	* Teaches the pipeline a new effect.
 	*
 	* The extension seam. A plugin loading after J-Message registers its name here and adds the text
 	* code that toggles it; nothing in core needs to learn the name.
+	*
+	* The excursion is optional and defaults to "this effect never moves the glyph", which is both the
+	* safe answer for a purely colour-based effect and the honest answer for an author who has not
+	* thought about it. An effect that does move and does not say so will be drawn correctly and
+	* *measured* as though it were still, so anything sizing a container around it will clip it.
 	* @param {string} name The name a glyph will carry to request this effect.
 	* @param {function(number, number): MessageGlyphModulation} effect The modulation function.
+	* @param {MessageGlyphModulation} excursion The furthest this effect ever displaces or swells a
+	* glyph, as absolute magnitudes rather than as a displacement to apply.
 	*/
-	static register(name, effect) {
-		MessageEffectRegistry.#effects.set(name, effect);
+	static register(name, effect, excursion = MessageGlyphModulation.none()) {
+		MessageEffectRegistry.#effects.set(name, {
+			modulate: effect,
+			excursion
+		});
+	}
+	/**
+	* Takes an effect back out of the registry.
+	*
+	* The counterpart to the seam above, and the only honest way to undo a registration: the map is
+	* private, so an effect registered over the top of with a placeholder would still answer
+	* {@link isRegistered} with true and would still be reached for on every glyph carrying its name.
+	* @param {string} name The name to forget.
+	*/
+	static unregister(name) {
+		MessageEffectRegistry.#effects.delete(name);
 	}
 	/**
 	* Whether a name has an effect behind it.
@@ -2075,9 +2114,32 @@ var MessageEffectRegistry = class MessageEffectRegistry {
 		effectNames.forEach((name) => {
 			const effect = MessageEffectRegistry.#effects.get(name);
 			if (effect === undefined) return;
-			modulations.push(effect(glyphIndex, frame));
+			modulations.push(effect.modulate(glyphIndex, frame));
 		});
 		return MessageGlyphModulation.compose(modulations);
+	}
+	/**
+	* The furthest everything acting on one glyph can ever throw or swell it.
+	*
+	* Not a modulation to apply - nothing should ever hand the result of this to a sprite. It is the
+	* envelope those modulations live inside, for whoever has to reserve room for them: the offsets
+	* are magnitudes in both directions rather than a signed displacement, and the scale is the
+	* largest the glyph ever gets rather than the size it is right now.
+	*
+	* Composed the same way a frame's modulations are, and for the same reasons - offsets sum because
+	* a glyph that waves *and* trembles reaches the sum of the two, and scales multiply because they
+	* are ratios. Tint is meaningless here and is left wherever composition puts it.
+	* @param {string[]} effectNames The effects the glyph carries.
+	* @returns {MessageGlyphModulation}
+	*/
+	static excursionOf(effectNames) {
+		const excursions = [];
+		effectNames.forEach((name) => {
+			const effect = MessageEffectRegistry.#effects.get(name);
+			if (effect === undefined) return;
+			excursions.push(effect.excursion);
+		});
+		return MessageGlyphModulation.compose(excursions);
 	}
 	/**
 	* Rides the glyph up and down on a sine, offset per glyph so the word rolls.
@@ -2618,7 +2680,22 @@ Window_Message.prototype.setMessageProfile = function(profile) {
 * @param {number} frames How many frames to add.
 */
 Window_Message.prototype.addMessageWait = function(frames) {
-	this._waitCount += frames;
+	const waiting = this.waitCount();
+	this.setWaitCount(waiting + frames);
+};
+/**
+* How many frames this window is still waiting before it reveals anything more.
+* @returns {number}
+*/
+Window_Message.prototype.waitCount = function() {
+	return this._waitCount;
+};
+/**
+* Sets how many frames this window waits before it reveals anything more.
+* @param {number} frames The frames remaining.
+*/
+Window_Message.prototype.setWaitCount = function(frames) {
+	this._waitCount = frames;
 };
 /**
 * Whether this window is currently racing to the end of the page.
@@ -2710,7 +2787,84 @@ Window_Message.prototype.createTextState = function(text, x, y, width) {
 	* @type {number}
 	*/
 	textState.glyphIndex = 0;
+	/**
+	* Where this state's glyphs go instead of onto the window's plane, if anywhere.
+	*
+	* Null for the message actually being read, which emits onto the plane the player is looking at.
+	* An array for a measuring pass, which wants the same glyphs handed back rather than displayed.
+	* @type {?MessageGlyph[]}
+	*/
+	textState.glyphSink = null;
 	return textState;
+};
+/**
+* Builds a message's glyphs without showing any of them.
+*
+* The reason this exists: glyphs are emitted *as the text reveals*, a tick at a time, so on the frame
+* a message opens there are none of them yet. Anything that needs to know how much room the message
+* will occupy - a bubble sized to its own text, most obviously - is asking that question at the one
+* moment the answer does not exist. This runs the entire pipeline ahead of time and collects what it
+* produces, so the question has an answer before the first character appears.
+*
+* It is the whole pipeline on purpose rather than a cheaper estimate. Line breaking, face offsets,
+* every escape code, font size changes mid-line and the database substitution codes all move glyphs
+* around, and a measurement that reimplemented any of that would agree with the real thing right up
+* until it did not.
+* @param {string} text The message text, exactly as it will be revealed.
+* @returns {MessageGlyph[]} Every glyph the message will produce, positioned.
+*/
+Window_Message.prototype.layoutMessageGlyphs = function(text) {
+	const heldWaitCount = this.waitCount();
+	const heldPause = this.pause;
+	const textState = this.buildMessageLayoutState(text);
+	this.processAllText(textState);
+	this.setWaitCount(heldWaitCount);
+	this.pause = heldPause;
+	return textState.glyphSink;
+};
+/**
+* Prepares a text state for measuring, set up exactly as the real one will be.
+*
+* Mirrors what `startMessage` and `newPage` do between them, because anything they do that moves a
+* glyph has to have happened before the glyphs are counted: the face pushes the first line right,
+* and the font settings decide how wide every character measures.
+* @param {string} text The message text, exactly as it will be revealed.
+* @returns {RPG_TextState}
+*/
+Window_Message.prototype.buildMessageLayoutState = function(text) {
+	const textState = this.createTextState(text, 0, 0, this.innerWidth);
+	textState.x = this.newLineX(textState);
+	textState.startX = textState.x;
+	textState.y = 0;
+	textState.glyphSink = [];
+	this.resetFontSettings();
+	textState.height = this.calcTextHeight(textState);
+	return textState;
+};
+/**
+* Whether a text state should produce glyphs rather than pixels.
+*
+* Two kinds qualify: the message being read aloud, and a measuring pass that has somewhere to put
+* what it builds. Everything else on this window - `drawTextEx` from a subclass, `textSizeEx` from
+* the engine - is ordinary drawing and keeps landing in `contents` exactly as it always has.
+* @param {RPG_TextState} textState The text state in question.
+* @returns {boolean}
+*/
+Window_Message.prototype.isEmittingGlyphs = function(textState) {
+	if (this.isRevealingTextState(textState) === true) return true;
+	return textState.glyphSink !== null;
+};
+/**
+* Files one glyph wherever the state it came from wants its glyphs.
+* @param {MessageGlyph} glyph The glyph to file.
+* @param {RPG_TextState} textState The text state that produced it.
+*/
+Window_Message.prototype.addMessageGlyph = function(glyph, textState) {
+	if (textState.glyphSink !== null) {
+		textState.glyphSink.push(glyph);
+		return;
+	}
+	this.messageGlyphLayer().addGlyph(glyph);
 };
 /**
 * Extends {@link #newPage}.<br/>
@@ -2780,7 +2934,7 @@ Window_Message.prototype.playMessageVoice = function(textState, character, profi
 */
 J.MESSAGE.Aliased.Window_Message.set("flushTextState", Window_Base.prototype.flushTextState);
 Window_Message.prototype.flushTextState = function(textState) {
-	if (this.isRevealingTextState(textState) === false) {
+	if (this.isEmittingGlyphs(textState) === false) {
 		J.MESSAGE.Aliased.Window_Message.get("flushTextState").call(this, textState);
 		return;
 	}
@@ -2826,8 +2980,7 @@ Window_Message.prototype.emitMessageGlyphRun = function(run, x, y, textState) {
 	};
 	const measure = (text) => this.textWidth(text);
 	const glyphs = MessageGlyphRunSplitter.split(run, origin, style, measure);
-	const layer = this.messageGlyphLayer();
-	glyphs.forEach((glyph) => layer.addGlyph(glyph));
+	glyphs.forEach((glyph) => this.addMessageGlyph(glyph, textState));
 	textState.glyphIndex += glyphs.length;
 };
 /**
@@ -2852,7 +3005,7 @@ Window_Message.prototype.buildMessageGlyphStyle = function(textState) {
 */
 J.MESSAGE.Aliased.Window_Message.set("processDrawIcon", Window_Base.prototype.processDrawIcon);
 Window_Message.prototype.processDrawIcon = function(iconIndex, textState) {
-	if (this.isRevealingTextState(textState) === false) {
+	if (this.isEmittingGlyphs(textState) === false) {
 		J.MESSAGE.Aliased.Window_Message.get("processDrawIcon").call(this, iconIndex, textState);
 		return;
 	}
@@ -2872,7 +3025,7 @@ Window_Message.prototype.emitMessageIconGlyph = function(iconIndex, textState) {
 		const y = textState.y + deltaY / 2 + 2;
 		const style = this.buildMessageGlyphStyle(textState);
 		const glyph = MessageGlyph.forIcon(iconIndex, x, y, advance, textState.glyphIndex, style);
-		this.messageGlyphLayer().addGlyph(glyph);
+		this.addMessageGlyph(glyph, textState);
 		textState.glyphIndex += 1;
 	}
 	textState.x += advance;
