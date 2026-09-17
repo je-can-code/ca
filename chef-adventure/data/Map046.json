@@ -11469,7 +11469,7 @@
               "code": 357,
               "indent": 0,
               "parameters": [
-                "j/J-Log",
+                "j/log/J-Log",
                 "addDiaLog",
                 "Add DiaLog",
                 {

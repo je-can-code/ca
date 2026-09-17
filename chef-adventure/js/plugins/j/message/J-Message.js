@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.0.0 MESSAGE] Gives access to more message window functionality.
+ * @plugindesc [v2.1.0 MESSAGE] Gives access to more message window functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -138,6 +138,50 @@
  * waving, and a colour code inside a wave keeps its colour while it moves.
  *
  * ============================================================================
+ * COMBINING MESSAGES
+ * A long speech is uncomfortable to author as a single Show Text command. The
+ * editor offers four lines, the box holds four lines, and a paragraph broken
+ * across several commands reaches the player as several boxes with a button
+ * press between each one.
+ *
+ * The text code below welds a message onto the one written directly after it.
+ * The two are revealed as a single message, in a single window that grows to
+ * hold all of it. The code itself is removed before anything is drawn.
+ *
+ * TEXT CODE FORMAT:
+ *  \more
+ *
+ * Put it anywhere in a Show Text command whose text should run on into the next
+ * one. The end of the last line is the tidiest place; a line holding nothing
+ * but the code leaves an empty line behind in the message.
+ *
+ * TEXT CODE EXAMPLES:
+ *  Show Text: "I have been thinking about this for a while.\more"
+ *  Show Text: "And I still do not know what to tell you."
+ * Both lines appear together in one window, and the player presses the confirm
+ * button once rather than twice.
+ *
+ *  Show Text: "First.\more"
+ *  Show Text: "Second.\more"
+ *  Show Text: "Third."
+ * All three are welded into a single message. A chain runs for as long as each
+ * message in it carries the code; the message that ends the chain does not.
+ *
+ * WHAT THE COMBINED MESSAGE LOOKS LIKE:
+ * The first message of a chain decides everything about presentation- the face
+ * image, the Name field, the Background and Position dropdowns, and the \pop
+ * target if J-Message-Bubbles is installed. Every message welded onto it
+ * contributes its text and nothing else.
+ *
+ * The window grows downward to fit, up to the height of the screen. A chain
+ * that would outgrow the screen stops before the message that would overflow
+ * it, and that message is shown as an ordinary separate message instead.
+ *
+ * A chain only ever reaches the Show Text command written immediately after it.
+ * Anything sitting in between- a conditional branch closing, a set of choices,
+ * the end of the page- ends the chain, whether or not more was asked for.
+ *
+ * ============================================================================
  * SPEAKER VOICES
  * Every message already knows who is speaking- either from the Name field of
  * the Show Text command, or from the face image it carries. That is enough to
@@ -207,6 +251,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    Added the \more text code, which welds a message onto the one written
+ *    after it. The box grows to hold whatever they add up to.
  * - 2.0.0
  *    Renamed from J-MessageTextCodes. Update the entry in js/plugins.js and
  *    delete the old file; nothing else in a project has to change.
@@ -611,7 +658,7 @@ J.MESSAGE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.MESSAGE.Metadata = new J_MessagePluginMetadata("J-Message", "2.0.0");
+J.MESSAGE.Metadata = new J_MessagePluginMetadata("J-Message", "2.1.0");
 /**
 * A collection of all base aliases.
 */
@@ -643,6 +690,26 @@ J.MESSAGE.RegExp.LeaderChoiceConditional = /<leaderChoiceCondition:[ ]?(\d+)>/i;
 J.MESSAGE.RegExp.NotLeaderChoiceConditional = /<notLeaderChoiceCondition:[ ]?(\d+)>/i;
 J.MESSAGE.RegExp.SwitchOnChoiceConditional = /<switchOnChoiceCondition:[ ]?(\d+)>/i;
 J.MESSAGE.RegExp.SwitchOffChoiceConditional = /<switchOffChoiceCondition:[ ]?(\d+)>/i;
+/**
+* The text code welding a message to the one written after it.
+*
+* <pre>
+* Structure:
+*  \more
+*
+* Example:
+*  I have been thinking about this for a while.\more
+*
+* Translation:
+*  reveal this message and the next one together, as a single window.
+* </pre>
+*
+* The trailing word boundary is what keeps this from matching the front of a longer code. Without
+* it a `\moreover` somebody invents later would be silently eaten here, and the half of it left
+* behind would be drawn to the screen for a player to read.
+* @type {RegExp}
+*/
+J.MESSAGE.RegExp.MoreLink = /\\more\b/i;
 
 //#endregion
 //#region src/plugins/message/core/__models/BasicChoiceConditional.js
@@ -857,7 +924,7 @@ var MessageFade = class MessageFade {
 //#region src/plugins/message/core/objects/Game_Message.js
 /**
 * Extends {@link clear}.<br/>
-* Also clears the custom choice data.
+* Also clears the custom choice data and forgets that the last message welded to another.
 */
 J.MESSAGE.Aliased.Game_Message.set("clear", Game_Message.prototype.clear);
 Game_Message.prototype.clear = function() {
@@ -872,6 +939,42 @@ Game_Message.prototype.clear = function() {
 	* @type {string[]}
 	*/
 	this.setOldChoices([]);
+	/**
+	* Whether the message being assembled continues into the one written after it.
+	* @type {boolean}
+	*/
+	this.flagMoreLink(false);
+};
+/**
+* Extends {@link add}.<br/>
+* Also lifts the weld code out of the line before the line becomes something a player reads.
+*
+* Taken out here rather than while the message is being drawn, because by then the text has been
+* measured, broken into lines and handed to a window - and a code still sitting in it has occupied
+* width and, if nothing happened to consume it, been rendered to the screen. The line that reaches
+* the message should already be the line the player sees.
+* @param {string} text One line of the message.
+*/
+J.MESSAGE.Aliased.Game_Message.set("add", Game_Message.prototype.add);
+Game_Message.prototype.add = function(text) {
+	const spoken = this.extractMoreLink(text);
+	J.MESSAGE.Aliased.Game_Message.get("add").call(this, spoken);
+};
+/**
+* Reads the weld code out of a line, remembering that it was there.
+*
+* The flag is raised here and never lowered here. A message is several lines and the code may sit on
+* any one of them, so a later line finding nothing says nothing about what an earlier line found.
+* Lowering it belongs to the interpreter, which is the only thing that knows where one message ends
+* and the next begins.
+* @param {string} text One line of the message.
+* @returns {string} The line without its weld code, or the line unchanged when it had none.
+*/
+Game_Message.prototype.extractMoreLink = function(text) {
+	const match = J.MESSAGE.RegExp.MoreLink.exec(text);
+	if (match === null) return text;
+	this.flagMoreLink(true);
+	return text.replace(match.at(0), String.empty);
 };
 /**
 * Clones the original choice data into a backup for later use.
@@ -933,9 +1036,249 @@ Game_Message.prototype.oldChoices = function() {
 Game_Message.prototype.setOldChoices = function(newOldChoices) {
 	this._oldChoices = newOldChoices;
 };
+/**
+* The lines of the message being assembled.
+*
+* The engine keeps these in a private field and offers only `allText` and `hasText` against it, so
+* anything wanting to know how many lines a message holds has had nowhere to ask until now.
+* @returns {string[]} The texts.
+*/
+Game_Message.prototype.texts = function() {
+	return this._texts;
+};
+/**
+* Whether the message being assembled continues into the one written after it.
+* @returns {boolean} True when an author welded it to the next message.
+*/
+Game_Message.prototype.hasMoreLink = function() {
+	return this._moreLinked;
+};
+/**
+* Sets whether the message being assembled continues into the one written after it.
+* @param {boolean} moreLinked The new moreLinked.
+*/
+Game_Message.prototype.flagMoreLink = function(moreLinked) {
+	this._moreLinked = moreLinked;
+};
+
+//#endregion
+//#region src/plugins/message/core/services/MessageChain.js
+/**
+* The rules governing how many messages weld into one window, and how tall that window becomes.
+*
+* A message carrying `\more` is not finished when its Show Text command is - the next one joins it,
+* and the pair reveals as a single uninterrupted utterance. Welding continues for as long as each
+* message in turn asks for it, which lets a long speech be authored as the short, separate Show Text
+* commands the editor is comfortable with while the player reads one continuous thing.
+*
+* **The ceiling is the screen, and it is computed rather than configured.** A welded message has to
+* fit somewhere, and the only honest answer to "how much is too much" is "more than there is room
+* for". A number instead would be a number that is wrong at the first resolution nobody tested, and
+* an author who hit it would have no way to tell a deliberate limit from a bug.
+*
+* Everything here is arithmetic on rows and pixels, and it deliberately holds no opinion about where
+* those numbers came from. The interpreter measures a chain before welding one; the window sizes
+* itself once the welding is done; both ask the same questions of this. That shared answer is what
+* stops the cap the interpreter enforced and the height the window built from disagreeing.
+*/
+var MessageChain = class {
+	/**
+	* How many whole rows of text a window of a given height can show.
+	* @param {number} height The window's full height, frame included.
+	* @param {number} lineHeight How tall a single row of text is.
+	* @param {number} padding How much space the frame occupies along one edge.
+	* @returns {number} The number of rows that fit.
+	*/
+	static rowsFor(height, lineHeight, padding) {
+		const available = height - padding * 2;
+		return Math.floor(available / lineHeight);
+	}
+	/**
+	* How tall a window must be to show a given number of rows.
+	*
+	* Grown from the height the scene built rather than recalculated from the row count, because that
+	* height is not simply four rows and a frame - the scene adds a handful of pixels of its own on
+	* top. A window rebuilt from arithmetic would quietly lose them and sit a hair tighter than every
+	* other message in the game.
+	* @param {number} rows How many rows the message needs.
+	* @param {number} defaultHeight The height the scene built the window at.
+	* @param {number} defaultRows How many rows that height already shows.
+	* @param {number} lineHeight How tall a single row of text is.
+	* @returns {number} The height the window should be.
+	*/
+	static heightFor(rows, defaultHeight, defaultRows, lineHeight) {
+		if (rows <= defaultRows) return defaultHeight;
+		return defaultHeight + (rows - defaultRows) * lineHeight;
+	}
+	/**
+	* How many rows a welded message may hold before it runs out of screen.
+	*
+	* Derived from the same growing the window performs rather than from the bare screen height, and
+	* that is the entire point of it. Rows counted one way and grown another agree only where the
+	* arithmetic happens to leave slack, and at a great many resolutions it leaves none: counting rows
+	* straight off a 816 pixel screen answers twenty-two, and twenty-two rows grown from a 176 pixel
+	* box stand 824 pixels tall. Asked this way instead, the height for this many rows is never taller
+	* than the screen, by construction rather than by luck.
+	* @param {number} screenHeight How tall the screen is.
+	* @param {number} defaultHeight The height the scene built the window at.
+	* @param {number} defaultRows How many rows that height already shows.
+	* @param {number} lineHeight How tall a single row of text is.
+	* @returns {number} The most rows a welded message may hold.
+	*/
+	static maxRows(screenHeight, defaultHeight, defaultRows, lineHeight) {
+		const growth = screenHeight - defaultHeight;
+		return defaultRows + Math.floor(growth / lineHeight);
+	}
+	/**
+	* Whether a chain can take another message without outgrowing the room it has.
+	*
+	* Asked before a message is welded rather than after, so a chain stops one message short of the
+	* ceiling instead of crossing it and being trimmed back. A message half-welded is a message whose
+	* author wrote lines the player never sees.
+	* @param {number} currentRows How many rows the chain holds already.
+	* @param {number} incomingRows How many rows the next message would add.
+	* @param {number} maxRows How many rows there is room for.
+	* @returns {boolean}
+	*/
+	static fits(currentRows, incomingRows, maxRows) {
+		return currentRows + incomingRows <= maxRows;
+	}
+};
 
 //#endregion
 //#region src/plugins/message/core/objects/Game_Interpreter.js
+/**
+* Extends {@link command101}.<br/>
+* Also welds the messages written after this one onto it, for as long as they ask to be welded.
+*
+* Done from the interpreter because the interpreter is the only thing that can see what comes next.
+* By the time a window is involved the message has been handed over as finished text, and the event
+* commands it was assembled from are no longer part of the conversation.
+* @param {Array} params The parameters of the Show Text command.
+* @returns {boolean} True if the message was started.
+*/
+J.MESSAGE.Aliased.Game_Interpreter.set("command101", Game_Interpreter.prototype.command101);
+Game_Interpreter.prototype.command101 = function(params) {
+	const started = J.MESSAGE.Aliased.Game_Interpreter.get("command101").call(this, params);
+	if (started === false) return false;
+	const welded = this.weldLinkedMessages();
+	if (welded === false) return true;
+	this.setupMessageFollowUp();
+	return true;
+};
+/**
+* Swallows the messages written after this one, for as long as each in turn asks to be swallowed.
+* @returns {boolean} True if at least one message was welded on.
+*/
+Game_Interpreter.prototype.weldLinkedMessages = function() {
+	let welded = false;
+	while (this.canWeldNextMessage()) {
+		this.weldNextMessage();
+		welded = true;
+	}
+	return welded;
+};
+/**
+* Whether the message written after this one should join it.
+* @returns {boolean}
+*/
+Game_Interpreter.prototype.canWeldNextMessage = function() {
+	if ($gameMessage.hasMoreLink() === false) return false;
+	if (this.nextEventCode() !== 101) return false;
+	return this.willLinkedMessageFit();
+};
+/**
+* Whether the message written after this one still has room on screen to be shown in.
+* @returns {boolean}
+*/
+Game_Interpreter.prototype.willLinkedMessageFit = function() {
+	const currentRows = $gameMessage.texts().length;
+	const incomingRows = this.countLinkedMessageRows();
+	const maxRows = this.maxWeldedMessageRows();
+	return MessageChain.fits(currentRows, incomingRows, maxRows);
+};
+/**
+* How many lines the message written after this one holds.
+* @returns {number}
+*/
+Game_Interpreter.prototype.countLinkedMessageRows = function() {
+	const commands = this.list();
+	let index = this.index() + 2;
+	let rows = 0;
+	while (commands.at(index).code === 401) {
+		rows += 1;
+		index += 1;
+	}
+	return rows;
+};
+/**
+* How many rows of text the screen has room to show at once.
+*
+* Every number here is read off a prototype, because an interpreter has neither a window nor a scene
+* to ask - and because that is how the engine itself does it, `calcWindowHeight` reaching for
+* `fittingHeight` on exactly these terms while building the very window being measured.
+*
+* The scene's own rectangle is asked for rather than assumed, because the cap has to be derived from
+* the same box the window grows out of. A ceiling counted straight off the screen and a height grown
+* from the message box agree only where the arithmetic leaves slack, which at most resolutions it
+* does not.
+* @returns {number}
+*/
+Game_Interpreter.prototype.maxWeldedMessageRows = function() {
+	const lineHeight = Window_Base.prototype.lineHeight();
+	const padding = $gameSystem.windowPadding();
+	const defaultRect = Scene_Message.prototype.messageWindowRect();
+	const defaultHeight = defaultRect.height;
+	const defaultRows = MessageChain.rowsFor(defaultHeight, lineHeight, padding);
+	return MessageChain.maxRows(Graphics.boxHeight, defaultHeight, defaultRows, lineHeight);
+};
+/**
+* Swallows the Show Text written after this one, adding its lines to the message being assembled.
+*/
+Game_Interpreter.prototype.weldNextMessage = function() {
+	$gameMessage.flagMoreLink(false);
+	this.setIndex(this.index() + 1);
+	while (this.nextEventCode() === 401) {
+		this.setIndex(this.index() + 1);
+		const command = this.currentCommand();
+		const line = command.parameters.at(0);
+		$gameMessage.add(line);
+	}
+};
+/**
+* Offers the command sitting after the welded message to the handlers that can claim it.
+*
+* A mirror of the dispatch the original performs, and it exists because the original performed it
+* against the wrong command: it looked at the Show Text this message has since swallowed. Without
+* this, a chain ending in a "Show Choices" would reach the player as a message with no choices
+* beneath it, and the branch the author wrote would never run.
+*/
+Game_Interpreter.prototype.setupMessageFollowUp = function() {
+	const code = this.nextEventCode();
+	if (this.isMessageFollowUpCode(code) === false) return;
+	this.setIndex(this.index() + 1);
+	const command = this.currentCommand();
+	const { parameters } = command;
+	switch (code) {
+		case 102:
+			this.setupChoices(parameters);
+			break;
+		case 103:
+			this.setupNumInput(parameters);
+			break;
+		case 104:
+			this.setupItemChoice(parameters);
+			break;
+	}
+};
+/**
+* Whether an event command code is one that a message hands off to as it finishes.
+* @param {number} code The event command code in question.
+* @returns {boolean}
+*/
+Game_Interpreter.prototype.isMessageFollowUpCode = function(code) {
+	return code === 102 || code === 103 || code === 104;
+};
 /**
 * Extends {@link setupChoices}.<br/>
 * Backs up the original choices identified by the completed setup.
@@ -2898,6 +3241,15 @@ Window_Message.prototype.initMessageGlyphMembers = function() {
 	* @type {number}
 	*/
 	this._j._message._fadeFrames = 0;
+	/**
+	* The rectangle the scene built this window at.
+	*
+	* Captured rather than recomputed, because a message that welds several Show Text commands
+	* together grows the window to hold all of them, and the ordinary message after it has to find
+	* the window at the size the project laid out.
+	* @type {Rectangle}
+	*/
+	this._j._message._defaultRect = new Rectangle(this.x, this.y, this.width, this.height);
 	this.addInnerChild(this._j._message._glyphLayer);
 };
 /**
@@ -2906,6 +3258,55 @@ Window_Message.prototype.initMessageGlyphMembers = function() {
 */
 Window_Message.prototype.messageGlyphLayer = function() {
 	return this._j._message._glyphLayer;
+};
+/**
+* The rectangle the scene built this window at.
+* @returns {Rectangle}
+*/
+Window_Message.prototype.defaultMessageRect = function() {
+	return this._j._message._defaultRect;
+};
+/**
+* The rectangle this window should occupy for the message it is about to reveal.
+*
+* Everything but the height is the scene's answer passed straight back. A message is only ever
+* allowed to grow downward, because how wide the box is and where it sits are the project's layout
+* - not something any one line of dialogue gets an opinion about.
+* @returns {Rectangle}
+*/
+Window_Message.prototype.messageRestingRect = function() {
+	const rect = this.defaultMessageRect();
+	const height = this.messageRestingHeight();
+	return new Rectangle(rect.x, rect.y, rect.width, height);
+};
+/**
+* How tall this window has to be to hold the message it is about to reveal.
+*
+* Deliberately not clamped to the screen. The ceiling is enforced where the decision to weld another
+* Show Text onto this one is made, which is the only place that can stop before crossing it rather
+* than trimming afterward - and the editor gives a single Show Text four lines, so a message that
+* never welded cannot outgrow the box on its own.
+* @returns {number}
+*/
+Window_Message.prototype.messageRestingHeight = function() {
+	const rect = this.defaultMessageRect();
+	const lineHeight = this.lineHeight();
+	const defaultRows = MessageChain.rowsFor(rect.height, lineHeight, this.padding);
+	const rows = $gameMessage.texts().length;
+	return MessageChain.heightFor(rows, rect.height, defaultRows, lineHeight);
+};
+/**
+* Puts this window at the size the message it is showing calls for.
+*
+* Named for restoring rather than resizing because that is what it does the overwhelming majority of
+* the time: the message before this one grew the box, or floated it somewhere, and this is the box
+* coming home. A message long enough to need more room is the rare case, not the ordinary one.
+*/
+Window_Message.prototype.restoreMessageRect = function() {
+	const resting = this.messageRestingRect();
+	if (this.width === resting.width && this.height === resting.height) return;
+	this.move(resting.x, resting.y, resting.width, resting.height);
+	this.createContents();
 };
 /**
 * The profile of whoever is speaking the current message.
@@ -2995,11 +3396,13 @@ Window_Message.prototype.isRevealingTextState = function(textState) {
 };
 /**
 * Extends {@link #startMessage}.<br/>
-* Also works out who is speaking, before anything is built that needs to know.
+* Also works out who is speaking and how much room they need, before anything is built that needs
+* to know either.
 */
 J.MESSAGE.Aliased.Window_Message.set("startMessage", Window_Message.prototype.startMessage);
 Window_Message.prototype.startMessage = function() {
 	this.resolveMessageProfile();
+	this.restoreMessageRect();
 	J.MESSAGE.Aliased.Window_Message.get("startMessage").call(this);
 };
 /**
