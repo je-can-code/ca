@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 MESSAGE-BUBBLES] A J-Message extension that floats messages above whoever is speaking.
+ * [v1.1.0 MESSAGE-BUBBLES] A J-Message extension that floats messages above whoever is speaking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -69,18 +69,33 @@
  * ============================================================================
  * CONVERSATIONS:
  * A bubble does not disappear the moment its message closes. It stays where it
- * is, dimmed and frozen, until the conversation is declared over- so two
- * characters trading lines both stay on screen and a player who blinks does not
- * lose half of an exchange.
+ * is, dimmed and frozen, until the conversation is over- so two characters
+ * trading lines both stay on screen and a player who blinks does not lose half
+ * of an exchange.
  *
  * A speaker who talks again replaces their own bubble rather than stacking a
  * second one, so a character delivering four lines in a row leaves one behind.
  *
- * Use the End Conversation plugin command when the scene is finished. Changing
- * map, entering a battle and opening the menu all end one too, because the
- * characters those bubbles were pointing at have stopped existing.
+ * A conversation ends by itself the frame the player has control back, and the
+ * bubbles fade out rather than vanishing. An event that is still running- still
+ * pausing, still walking its characters around between lines- has not handed
+ * control back yet, so pacing about mid-scene costs nothing and no event needs
+ * anything written into it for this to be right.
+ *
+ * Use the End Conversation plugin command for a scene where the talking stops
+ * well before the event does, and the last line would otherwise hang over
+ * somebody's head for the rest of it.
+ *
+ * Changing map, entering a battle and opening the menu all end one too, because
+ * the characters those bubbles were pointing at have stopped existing.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    A conversation now ends by itself once the player has control back, and
+ *    the bubbles fade out rather than vanishing.
+ *    Portraits are drawn at half size inside a bubble and are no longer cropped
+ *    to whatever height the words happened to need.
+ *    A spent bubble keeps the portrait the message was drawn with.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -140,7 +155,7 @@ J.MESSAGE.EXT.BUBBLES = {};
 /**
 * The metadata associated with this plugin.
 */
-J.MESSAGE.EXT.BUBBLES.Metadata = new J_MessageBubblesPluginMetadata("J-Message-Bubbles", "1.0.0");
+J.MESSAGE.EXT.BUBBLES.Metadata = new J_MessageBubblesPluginMetadata("J-Message-Bubbles", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -513,6 +528,165 @@ var BubbleTargetResolver = class BubbleTargetResolver {
 };
 
 //#endregion
+//#region src/plugins/message/ext/bubbles/services/BubbleConversation.js
+/**
+* When a conversation is over, and everyone's last line can stop hanging in the air.
+*
+* A bubble outliving the message that drew it is the entire point of a spent bubble: two characters
+* trading lines should both be readable, and a player who blinked should not have missed half of an
+* exchange. That only works while somebody is still talking. Once nobody is, the last thing anybody
+* said is a speech bubble sitting over an empty map.
+*
+* The boundary is **the player getting control back**, which is a state transition rather than a
+* guess at one. It costs a scene nothing: an event pacing its characters around between lines is
+* still running, so the conversation it is in the middle of is still open. The frame the player can
+* move again is the frame the scene is over, and it is the same frame in every event ever written -
+* including the several thousand that were authored years before any of this existed.
+*
+* Nothing here reads the engine. The three things it judges are handed in, which is what lets the
+* whole policy be checked without a map, an event or a message.
+*/
+var BubbleConversation = class {
+	/**
+	* Whether everyone's last line should be let go of.
+	* @param {boolean} isHoldingBubbles Whether anybody has spoken yet in this conversation.
+	* @param {boolean} isEventRunning Whether an event is currently running on the map.
+	* @param {boolean} isMessageBusy Whether a message is currently being read.
+	* @returns {boolean}
+	*/
+	static shouldRelease(isHoldingBubbles, isEventRunning, isMessageBusy) {
+		if (isHoldingBubbles === false) return false;
+		if (isEventRunning === true) return false;
+		if (isMessageBusy === true) return false;
+		return true;
+	}
+};
+
+//#endregion
+//#region src/plugins/message/ext/bubbles/services/BubbleFace.js
+/**
+* Everything about fitting a speaker's portrait into a floating message.
+*
+* The engine draws a face by cropping rather than scaling. `Window_Base.drawFace` takes the height it
+* is given, clamps it against the source tile with `Math.min`, and blits that many rows straight
+* across - centred on the tile, so a window shorter than a face shows a horizontal band out of the
+* middle of it. In the bottom box that never surfaces, because the box is 152 pixels of inner height
+* against a 144 pixel face and the clamp never bites. A bubble is as tall as the words inside it, so a
+* two-line bubble shows a speaker from eyebrows to chin and a one-line bubble shows their eyes.
+*
+* So a bubble draws its own portrait, scaled down to {@link BubbleFace.DrawSize} rather than cropped,
+* and the whole message is laid out around that size: the text is indented past it, the bubble is
+* floored at it, and a message too short to reach it is nudged down to sit level with it.
+*
+* Nothing here touches a window or a sprite. The live message and the spent bubble it leaves behind
+* are both callers, and they have to agree exactly - a portrait that moved by four pixels at the
+* moment a character stopped talking would read as the bubble twitching.
+*/
+var BubbleFace = class BubbleFace {
+	/**
+	* How large a portrait is drawn inside a bubble, in logical pixels.
+	*
+	* Half the source tile, which is exactly two lines of text at the engine's 36 pixel line height.
+	* That is what keeps the floor below from ever mattering in practice: almost nothing anybody writes
+	* is a single line, so a bubble is already taller than this before the portrait has any say, and
+	* the sizes above are the rare case rather than the normal one.
+	* @type {number}
+	*/
+	static DrawSize = 72;
+	/**
+	* How much clear space sits between the portrait and the first letter beside it.
+	*
+	* The engine's own gap, kept rather than rescaled alongside the portrait. It is breathing room
+	* between two things, not part of either of them.
+	* @type {number}
+	*/
+	static Spacing = 20;
+	/**
+	* How far in from the contents edge the portrait is drawn.
+	* @type {number}
+	*/
+	static EdgeMargin = 4;
+	/**
+	* How many portraits sit across one face sheet.
+	* @type {number}
+	*/
+	static SheetColumns = 4;
+	/**
+	* Whether this message has a portrait at all.
+	*
+	* Most messages in any project do not, and an idle chatterer never does. Everything below answers
+	* with a zero for those, so a bubble with no face is sized by its text and nothing else.
+	* @param {string} faceName The face image the message named, or empty when it named none.
+	* @returns {boolean}
+	*/
+	static isPresent(faceName) {
+		return faceName !== String.empty;
+	}
+	/**
+	* Where the first letter of a line starts, measured from the inside of the contents.
+	* @param {string} faceName The face image the message named, or empty when it named none.
+	* @returns {number} The indent, in logical pixels.
+	*/
+	static indent(faceName) {
+		if (BubbleFace.isPresent(faceName) === false) return BubbleFace.EdgeMargin;
+		return BubbleFace.DrawSize + BubbleFace.Spacing;
+	}
+	/**
+	* The least tall a bubble's contents may be, so the portrait inside it is never cut off.
+	* @param {string} faceName The face image the message named, or empty when it named none.
+	* @returns {number} The floor, in logical pixels, or zero when there is no portrait to clear.
+	*/
+	static floor(faceName) {
+		if (BubbleFace.isPresent(faceName) === false) return 0;
+		return BubbleFace.DrawSize;
+	}
+	/**
+	* How far down a message's letters move to sit level with the portrait beside them.
+	*
+	* Text starts at the top of the contents, so a single line next to a portrait twice its height
+	* would sit against the speaker's hairline with the rest of the bubble empty underneath. Half the
+	* leftover puts the line across the middle of the portrait instead.
+	* @param {string} faceName The face image the message named, or empty when it named none.
+	* @param {number} textHeight How tall the message's own text is, in logical pixels.
+	* @returns {number} The offset, in logical pixels, or zero when the text is already the taller one.
+	*/
+	static slack(faceName, textHeight) {
+		const floor = BubbleFace.floor(faceName);
+		if (textHeight >= floor) return 0;
+		return (floor - textHeight) / 2;
+	}
+	/**
+	* How far down the portrait moves to sit level with the words beside it.
+	*
+	* The other half of {@link BubbleFace.slack}, and the same rule read the other way round: whichever
+	* of the portrait and the text is shorter centres against the taller. A three line message is half
+	* again the height of the portrait, so leaving the portrait at the top of it strands it against the
+	* first line with a band of empty bubble underneath.
+	* @param {string} faceName The face image the message named, or empty when it named none.
+	* @param {number} contentHeight How tall the bubble's contents are, in logical pixels.
+	* @returns {number} The offset, in logical pixels, or zero when the portrait already fills it.
+	*/
+	static faceOffset(faceName, contentHeight) {
+		if (BubbleFace.isPresent(faceName) === false) return 0;
+		if (contentHeight <= BubbleFace.DrawSize) return 0;
+		return (contentHeight - BubbleFace.DrawSize) / 2;
+	}
+	/**
+	* Where in a face sheet the given portrait begins.
+	* @param {number} faceIndex Which portrait on the sheet the message named.
+	* @returns {{x: number, y: number}} The top-left of that portrait's tile, in source pixels.
+	*/
+	static sourceOrigin(faceIndex) {
+		const column = faceIndex % BubbleFace.SheetColumns;
+		const row = Math.floor(faceIndex / BubbleFace.SheetColumns);
+		return {
+			x: column * ImageManager.faceWidth,
+			y: row * ImageManager.faceHeight
+		};
+	}
+};
+
+//#endregion
 //#region src/plugins/message/ext/bubbles/services/BubbleGeometry.js
 /**
 * Measures how much room a message's text actually needs.
@@ -553,6 +727,24 @@ var BubbleGeometry = class BubbleGeometry {
 			bounds.union(BubbleGeometry.glyphBounds(glyph));
 		});
 		return bounds;
+	}
+	/**
+	* Grows the given box downward until the speaker's portrait fits inside it.
+	*
+	* Applied to the measured text rather than folded into the measurement, because the two answers
+	* are both wanted: how tall the words are decides how far they move to sit level with the
+	* portrait, and how tall the box is decides how far the bubble is drawn around them.
+	*
+	* Only the bottom edge moves. The far edges are what a bubble is sized from - the near ones are
+	* slack the window's padding already covers - so a portrait that starts at the top of the contents
+	* needs room beneath the text and nowhere else.
+	* @param {BubbleBounds} bounds The box the text occupies, modified in place.
+	* @param {string} faceName The face image the message named, or empty when it named none.
+	*/
+	static applyFaceFloor(bounds, faceName) {
+		const floor = BubbleFace.floor(faceName);
+		if (bounds.bottom >= floor) return;
+		bounds.bottom = floor;
 	}
 	/**
 	* The box one glyph occupies, at rest and at full reach.
@@ -1283,8 +1475,10 @@ var SpentBubbleManager = class SpentBubbleManager {
 	/**
 	* Ends the conversation.
 	*
-	* Authored rather than timed. An author knows when a scene is over and a timeout only guesses -
-	* and guessing is what would stop two characters being able to pace around between lines.
+	* Reached two ways. Ordinarily the map ends it, the frame the player has control back - an event
+	* still moving its characters around between lines is still running, so that boundary costs a
+	* scene nothing and needs nothing written into one. An author can also end one early, mid-event,
+	* for a scene that keeps going after the talking stops.
 	*/
 	static clear() {
 		SpentBubbleManager.#spent.clear();
@@ -1796,6 +1990,7 @@ var Sprite_SpentBubble = class Sprite_SpentBubble extends Sprite {
 		this.setToken(token);
 		this.setEntry(entry);
 		this.createBubble();
+		this.createFace();
 		this.createGlyphs();
 		this.alpha = Sprite_SpentBubble.SpentAlpha;
 	}
@@ -1827,6 +2022,11 @@ var Sprite_SpentBubble = class Sprite_SpentBubble extends Sprite {
 		* @type {Sprite}
 		*/
 		this._j._glyphPlane = null;
+		/**
+		* The speaker's portrait, for a message that named one.
+		* @type {?Sprite}
+		*/
+		this._j._face = null;
 	}
 	/**
 	* The target the message named.
@@ -1901,17 +2101,56 @@ var Sprite_SpentBubble = class Sprite_SpentBubble extends Sprite {
 		this.addChild(bubble);
 	}
 	/**
+	* The speaker's portrait.
+	* @returns {?Sprite} The portrait, or null for a message that named no face.
+	*/
+	face() {
+		return this._j._face;
+	}
+	/**
+	* Sets the speaker's portrait.
+	* @param {Sprite} face The portrait.
+	*/
+	setFace(face) {
+		this._j._face = face;
+	}
+	/**
+	* Redraws the speaker's portrait beside the words they said.
+	*
+	* The live message drew this into its own contents, which belong to a window that has since been
+	* resized for whoever spoke next - so it is rebuilt here from the same two values the message was
+	* carrying rather than copied from anything.
+	*/
+	createFace() {
+		const { faceName, faceIndex, padding, content } = this.entry();
+		if (BubbleFace.isPresent(faceName) === false) return;
+		const bitmap = ImageManager.loadFace(faceName);
+		const origin = BubbleFace.sourceOrigin(faceIndex);
+		const sprite = new Sprite(bitmap);
+		sprite.setFrame(origin.x, origin.y, ImageManager.faceWidth, ImageManager.faceHeight);
+		const scale = BubbleFace.DrawSize / ImageManager.faceWidth;
+		sprite.scale.set(scale, scale);
+		const offsetY = BubbleFace.faceOffset(faceName, content.bottom);
+		sprite.x = padding + BubbleFace.EdgeMargin;
+		sprite.y = padding + offsetY;
+		this.setFace(sprite);
+		this.addChild(sprite);
+	}
+	/**
 	* Rebuilds the message's letters, each caught at the moment its speaker stopped.
 	*
 	* The plane is offset by the window's padding because glyph coordinates were measured from the
 	* inside of the message window's contents, and the bubble around them is drawn from its outer
 	* edge. Without it every letter lands one padding up and to the left of the box it belongs in.
+	*
+	* The slack on top of that is the nudge the live message applied to sit level with its portrait,
+	* carried across rather than recomputed - the glyph coordinates never held it in the first place.
 	*/
 	createGlyphs() {
-		const { glyphs, padding, frame } = this.entry();
+		const { glyphs, padding, slack, frame } = this.entry();
 		const plane = new Sprite();
 		plane.x = padding;
-		plane.y = padding;
+		plane.y = padding + slack;
 		glyphs.forEach((glyph) => {
 			const sprite = new Sprite_MessageGlyph(glyph);
 			const modulation = MessageEffectRegistry.modulate(glyph.effects, glyph.index, frame);
@@ -2026,7 +2265,29 @@ var Sprite_SpentBubbleLayer = class extends Sprite {
 	update() {
 		this.syncSpentBubbles();
 		this.updateDepartingBubbles();
+		this.releaseFinishedConversation();
 		super.update();
+	}
+	/**
+	* Lets go of everyone's last line once the conversation they were having is over.
+	*
+	* **Asked here rather than from the scene, and the ordering is the whole reason.** This plane is
+	* added during `createSpriteset`, so it updates before the window layer does - which means the
+	* frame a final message terminates, this plane has already compared itself against the manager and
+	* the bubble that message left behind does not exist yet. A release decided anywhere later in that
+	* same frame would delete the entry before it was ever drawn, and a bubble that was never built
+	* cannot depart: the last line of every conversation would blink out instead of fading.
+	*
+	* Deciding it here means a retained bubble is always realized by the sync above before this can
+	* take it away, so it leaves the way every other bubble does.
+	*/
+	releaseFinishedConversation() {
+		const isHoldingBubbles = SpentBubbleManager.isEmpty() === false;
+		const isEventRunning = $gameMap.isEventRunning();
+		const isMessageBusy = $gameMessage.isBusy();
+		const shouldRelease = BubbleConversation.shouldRelease(isHoldingBubbles, isEventRunning, isMessageBusy);
+		if (shouldRelease === false) return;
+		SpentBubbleManager.clear();
 	}
 	/**
 	* Fades out whatever is leaving, and takes it off the plane once it has.
@@ -2317,6 +2578,7 @@ Window_Message.prototype.refreshMessageBubble = function() {
 	const sprite = this.bubbleSprite();
 	if (this.isFloatingMessage() === false) {
 		sprite.visible = false;
+		this.applyMessageFaceSlack(0);
 		this.restoreRestingRect();
 		return;
 	}
@@ -2330,6 +2592,10 @@ Window_Message.prototype.refreshMessageBubble = function() {
 	this.nameBoxWindow().close();
 	const glyphs = this.layoutMessageGlyphs($gameMessage.allText());
 	const content = BubbleGeometry.contentBounds(glyphs);
+	const faceName = $gameMessage.faceName();
+	const slack = BubbleFace.slack(faceName, content.bottom);
+	this.applyMessageFaceSlack(slack);
+	BubbleGeometry.applyFaceFloor(content, faceName);
 	this.setBubbleContent(content);
 	const speakerName = this.convertEscapeCharacters($gameMessage.speakerName());
 	sprite.setSpeakerName(speakerName);
@@ -2341,9 +2607,70 @@ Window_Message.prototype.refreshMessageBubble = function() {
 		style,
 		padding: this.padding,
 		preferBelow: this.bubblePrefersBelow(),
+		faceName,
+		faceIndex: $gameMessage.faceIndex(),
+		slack,
 		frame: 0
 	});
 	this.updateMessageBubble();
+};
+/**
+* Moves this message's letters down to sit level with the portrait beside them.
+*
+* The whole plane rather than the glyphs themselves, because the glyph records are also what the
+* spent bubble is rebuilt from later - shifting the coordinates would bake this message's offset
+* into values that outlive it, and a bubble carries its own.
+* @param {number} slack How far down the letters go, in logical pixels.
+*/
+Window_Message.prototype.applyMessageFaceSlack = function(slack) {
+	this.messageGlyphLayer().y = slack;
+};
+/**
+* Extends {@link #newLineX}.<br/>
+* Also indents a floating message past the smaller portrait a bubble draws.
+*
+* The engine indents by the size of the source tile, which is the size it draws faces at everywhere
+* else. A bubble draws them at half that, so keeping the engine's answer would strand every line of
+* dialogue seventy pixels clear of the speaker it belongs to.
+* @param {RPG_TextState} textState The text state being laid out.
+* @returns {number}
+*/
+J.MESSAGE.EXT.BUBBLES.Aliased.Window_Message.set("newLineX", Window_Message.prototype.newLineX);
+Window_Message.prototype.newLineX = function(textState) {
+	if (this.isFloatingMessage() === false) {
+		return J.MESSAGE.EXT.BUBBLES.Aliased.Window_Message.get("newLineX").call(this, textState);
+	}
+	const faceName = $gameMessage.faceName();
+	return BubbleFace.indent(faceName);
+};
+/**
+* Extends {@link #drawMessageFace}.<br/>
+* Also draws a floating message's portrait scaled down rather than cropped.
+*/
+J.MESSAGE.EXT.BUBBLES.Aliased.Window_Message.set("drawMessageFace", Window_Message.prototype.drawMessageFace);
+Window_Message.prototype.drawMessageFace = function() {
+	if (this.isFloatingMessage() === false) {
+		J.MESSAGE.EXT.BUBBLES.Aliased.Window_Message.get("drawMessageFace").call(this);
+		return;
+	}
+	this.drawBubbleMessageFace();
+};
+/**
+* Draws this message's portrait at the size a bubble wants it.
+*
+* The distinction from the engine's own is entirely in the last two arguments. `drawFace` hands
+* `blt` no destination size, so the source rows it selected land one for one and a short window
+* simply receives fewer of them; naming a destination size shrinks the whole portrait into it
+* instead.
+*/
+Window_Message.prototype.drawBubbleMessageFace = function() {
+	const faceName = $gameMessage.faceName();
+	const faceIndex = $gameMessage.faceIndex();
+	const bitmap = ImageManager.loadFace(faceName);
+	const origin = BubbleFace.sourceOrigin(faceIndex);
+	const drawSize = BubbleFace.DrawSize;
+	const offsetY = BubbleFace.faceOffset(faceName, this.innerHeight);
+	this.contents.blt(bitmap, origin.x, origin.y, ImageManager.faceWidth, ImageManager.faceHeight, BubbleFace.EdgeMargin, offsetY, drawSize, drawSize);
 };
 /**
 * Puts the window back the size and shape the scene built it.
@@ -2479,11 +2806,12 @@ Window_Message.prototype.retainMessageBubble = function() {
 //#endregion
 //#region src/plugins/message/ext/bubbles/_metadata/pluginCommands.js
 /**
-* Ends the current conversation, clearing every bubble left behind by it.
+* Ends the current conversation early, clearing every bubble left behind by it.
 *
-* Authored rather than timed on purpose. Only the person writing the scene knows when it is over,
-* and a timeout would have to guess - which would also mean characters could not pace around
-* between their lines without their own dialogue evaporating behind them.
+* A conversation already ends on its own the moment the player has control back, which covers every
+* ordinary scene without anything being written into it. This is for the ones where the talking
+* finishes well before the event does - a long cutscene that keeps moving people around afterwards,
+* where leaving the last line hanging over somebody's head for another minute would read as stuck.
 */
 PluginManager.registerCommand(J.MESSAGE.EXT.BUBBLES.Metadata.name, "end-conversation", () => {
 	SpentBubbleManager.clear();
