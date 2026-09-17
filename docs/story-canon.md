@@ -577,7 +577,8 @@ pressed ten thousand hours' worth of times, and nothing happens. That is the pla
 with their thumb, before either character says a word. It cannot be done in a cutscene; it can only be
 purchased by having trained the reflex for twenty-five hours first.
 
-> *(basement, dark and quiet)*
+> *(basement, dark and quiet. Drafted before the 2026-09-16 assignment swap: Rupert is below and
+> Jerald above now, so read the two halves reversed.)*
 > J: hey uhh... Rupert? *(tries to party cycle; nothing happens)*
 > J: hmm... okay... *(visibly nervous)*
 > *(a hundred meters up)*
@@ -617,7 +618,8 @@ Fortress, **the button is gone.** Nimbus therefore does not need to be frighteni
 happen, so the reflex is trained and the Fortress has something to take away.
 
 **Unspent, available:** Jerald *volunteered* for the Nimbus split, as a favor, to be nice about level design.
-`PROPOSED`: in the Fortress basement, alone, he gets exactly one line about that. Not a joke.
+`PROPOSED`: alone in his lane (the tower, since the 2026-09-16 assignment swap), he gets exactly one line
+about that. Not a joke. Where on the climb it lands is open in `maps/fortress.md`.
 
 **And in the Fortress, nobody makes the joke.** They lampshaded the dev separating them once. The second time,
 the trapdoor opens on a pun and then there is silence. The callback the player is braced for is the one that
@@ -626,8 +628,8 @@ never comes.
 #### The sigils — shifting control `PROPOSED (mechanics)`
 
 Control passes between the two lanes at **plentiful checkpoints**: mysterious statues/sigils on **enemy-free
-maps** (a JABS constraint, not a flavor choice — re-entering a populated map respawns everything unless every
-enemy is individually self-switched). They do **not** let the two communicate. They only move the player.
+maps** (by convention, as rest rooms; corrected 2026-09-17: JABS enemies respawn on their own independent
+timers, not on map re-entry, so this was never an engine constraint). They do **not** let the two communicate. They only move the player.
 
 - **Not an escape hatch.** Neither protagonist can clear the other's lane, so shifting never avoids work — it
   only advances the other half of the same job. This is what makes free control-order affordable: the player
@@ -696,8 +698,9 @@ see.
 The Fortress has its own unspent vocabulary: **it is a paused moment.** A preserved time-slice still wearing
 the winter of the day it was taken. Not blindness — **stillness.** Snow that hangs. Motion that never
 completes. A room visible in full detail that has not changed since the day it was taken. Which is the crueler
-pairing with the scene above: what Jerald notices in that basement is not that he cannot see, but that
-nothing is moving — including him, until he decides to.
+pairing with the scene above: what the man alone in that basement notices (drafted for Jerald; Rupert,
+since the 2026-09-16 assignment swap) is not that he cannot see, but that nothing is moving — including
+him, until he decides to.
 
 ### The Basement — Lust `LOCKED`
 
@@ -731,7 +734,9 @@ The final fight of the main story. The shape:
 1. **The reveal**: the shady dude's cloak comes off. The armorer, the warner, the saboteur, the castle thief,
    the kingdom's executioner — one being, the last free void clown, at a level no clown has ever reached
    (~150, ballpark), at the end of a 400-year revenge epic. `PROPOSED` callback: *"I gave you your power. I TOLD you I was coming. You laughed."*
-2. **The scramble** `LOCKED (mechanics)`: he attacks what he believes is their one true source of power —
+2. **The scramble** `LOCKED (mechanics) / mechanism revised 2026-09-17`: the ailments and the Treis gate
+   stand; the delivery is now a machine in the room on a repeating cycle, per
+   [`maps/fortress.md`](maps/fortress.md). He attacks what he believes is their one true source of power —
    the junctions he handed them himself. In practice: an aura/skill suite inflicting the core JABS ailments
    (**mute / disarm / root / paralysis**), plus a mid-battle story beat — a **15-second full SDP disable**.
    On non-elementals, that is as far as junction interference goes (Earthie was right: woozy, not
