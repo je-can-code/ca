@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 MESSAGE-BUBBLES] A J-Message extension that floats messages above whoever is speaking.
+ * [v1.2.0 MESSAGE-BUBBLES] A J-Message extension that floats messages above whoever is speaking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -90,6 +90,10 @@
  * the characters those bubbles were pointing at have stopped existing.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    A floating message now sits exactly on its speaker, and stops shifting
+ *    when it hands over to the bubble it leaves behind.
+ *    The first \pop in a message names the speaker; any later one is ignored.
  * - 1.1.0
  *    A conversation now ends by itself once the player has control back, and
  *    the bubbles fade out rather than vanishing.
@@ -138,7 +142,7 @@ globalThis.J ||= {};
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredMessageVersion = "2.0.0";
+	const requiredMessageVersion = "2.1.0";
 	const hasMessageRequirement = J.BASE.Helpers.satisfies(J.MESSAGE.Metadata.version.version(), requiredMessageVersion);
 	if (hasMessageRequirement === false) {
 		throw new Error(`Either missing J-Message or has a lower version than the required: ${requiredMessageVersion}`);
@@ -155,7 +159,7 @@ J.MESSAGE.EXT.BUBBLES = {};
 /**
 * The metadata associated with this plugin.
 */
-J.MESSAGE.EXT.BUBBLES.Metadata = new J_MessageBubblesPluginMetadata("J-Message-Bubbles", "1.1.0");
+J.MESSAGE.EXT.BUBBLES.Metadata = new J_MessageBubblesPluginMetadata("J-Message-Bubbles", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1397,6 +1401,24 @@ var BubbleLayout = class BubbleLayout {
 	*/
 	static BorderInset = 2;
 	/**
+	* How far the engine's window layer starts inside the screen, on one axis.
+	*
+	* Windows are laid out in a box inset from the screen by a few pixels on every side, so that a
+	* window sitting flush against the edge still has room for the frame art that rings its rectangle.
+	* Anything parented to that layer therefore draws that far in from where its own coordinates claim;
+	* anything parented to the scene draws exactly where it says.
+	*
+	* A floating message is placed against a character, and characters are drawn on the map - which is
+	* scene-parented and knows nothing about the box. So a message window has to hand the inset back,
+	* or every bubble in the game sits that far off the speaker it is pointing at.
+	* @param {number} screenSize How big the screen is on this axis.
+	* @param {number} boxSize How big the window box is on the same axis.
+	* @returns {number} How far in the window layer begins.
+	*/
+	static windowInset(screenSize, boxSize) {
+		return (screenSize - boxSize) / 2;
+	}
+	/**
 	* Where a bubble goes and what shape it is, given its text and who it belongs to.
 	* @param {BubbleBounds} content How much room the text needs, measured from the contents origin.
 	* @param {number} padding How much clear space sits between the contents and the window edge.
@@ -1582,7 +1604,7 @@ Game_Message.prototype.add = function(text) {
 	J.MESSAGE.EXT.BUBBLES.Aliased.Game_Message.get("add").call(this, spoken);
 };
 /**
-* Reads the pop code out of a line, remembering what it named.
+* Reads the pop code out of a line, remembering what the first one named.
 * @param {string} text One line of the message.
 * @returns {string} The line without its pop code, or the line unchanged when it had none.
 */
@@ -1590,7 +1612,9 @@ Game_Message.prototype.extractBubbleTarget = function(text) {
 	const match = J.MESSAGE.EXT.BUBBLES.RegExp.PopTarget.exec(text);
 	if (match === null) return text;
 	const [whole, target] = match;
-	this.setBubbleTarget(target);
+	if (this.bubbleTarget() === String.empty) {
+		this.setBubbleTarget(target);
+	}
 	return text.replace(whole, String.empty);
 };
 /**
@@ -2196,7 +2220,7 @@ var Sprite_SpentBubble = class Sprite_SpentBubble extends Sprite {
 		const { content, padding, preferBelow } = this.entry();
 		const anchorX = target.screenX();
 		const anchorY = target.bubbleAnchorY(preferBelow);
-		const solved = BubbleLayout.solve(content, padding, anchorX, anchorY, Graphics.boxWidth, Graphics.boxHeight, preferBelow);
+		const solved = BubbleLayout.solve(content, padding, anchorX, anchorY, Graphics.width, Graphics.height, preferBelow);
 		this.x = solved.x;
 		this.y = solved.y;
 		this.bubble().refresh(solved.bounds, solved.tail);
@@ -2436,14 +2460,6 @@ Window_Message.prototype.initMessageBubbleMembers = function() {
 	*/
 	this._j._bubbles._entry = null;
 	/**
-	* The rectangle this window occupies when it is not floating anywhere.
-	*
-	* Captured rather than recomputed, because a floating message resizes the window to fit its own
-	* text and the next ordinary message has to find it the size the scene built it.
-	* @type {Rectangle}
-	*/
-	this._j._bubbles._restingRect = new Rectangle(this.x, this.y, this.width, this.height);
-	/**
 	* The backdrop a floating message is drawn on.
 	* @type {Sprite_MessageBubble}
 	*/
@@ -2505,13 +2521,6 @@ Window_Message.prototype.bubbleContent = function() {
 */
 Window_Message.prototype.setBubbleContent = function(content) {
 	this._j._bubbles._content = content;
-};
-/**
-* The rectangle this window occupies when it is not floating anywhere.
-* @returns {Rectangle}
-*/
-Window_Message.prototype.bubbleRestingRect = function() {
-	return this._j._bubbles._restingRect;
 };
 /**
 * The backdrop a floating message is drawn on.
@@ -2579,7 +2588,7 @@ Window_Message.prototype.refreshMessageBubble = function() {
 	if (this.isFloatingMessage() === false) {
 		sprite.visible = false;
 		this.applyMessageFaceSlack(0);
-		this.restoreRestingRect();
+		this.restoreMessageRect();
 		return;
 	}
 	const style = BubbleStyle.forBackground($gameMessage.background());
@@ -2673,15 +2682,6 @@ Window_Message.prototype.drawBubbleMessageFace = function() {
 	this.contents.blt(bitmap, origin.x, origin.y, ImageManager.faceWidth, ImageManager.faceHeight, BubbleFace.EdgeMargin, offsetY, drawSize, drawSize);
 };
 /**
-* Puts the window back the size and shape the scene built it.
-*/
-Window_Message.prototype.restoreRestingRect = function() {
-	const resting = this.bubbleRestingRect();
-	if (this.width === resting.width && this.height === resting.height) return;
-	this.move(resting.x, resting.y, resting.width, resting.height);
-	this.createContents();
-};
-/**
 * Places the floating window over its target and redraws the bubble around it.
 *
 * Run every frame rather than once, because the target walks. `updatePlacement` fires exactly once
@@ -2694,8 +2694,10 @@ Window_Message.prototype.updateMessageBubble = function() {
 	const preferBelow = this.bubblePrefersBelow();
 	const anchorX = target.screenX();
 	const anchorY = target.bubbleAnchorY(preferBelow);
-	const solved = BubbleLayout.solve(content, this.padding, anchorX, anchorY, Graphics.boxWidth, Graphics.boxHeight, preferBelow);
-	this.resizeMessageBubble(solved.x, solved.y, solved.width, solved.height);
+	const solved = BubbleLayout.solve(content, this.padding, anchorX, anchorY, Graphics.width, Graphics.height, preferBelow);
+	const insetX = BubbleLayout.windowInset(Graphics.width, Graphics.boxWidth);
+	const insetY = BubbleLayout.windowInset(Graphics.height, Graphics.boxHeight);
+	this.resizeMessageBubble(solved.x - insetX, solved.y - insetY, solved.width, solved.height);
 	this.bubbleSprite().refresh(solved.bounds, solved.tail);
 };
 /**
@@ -2770,7 +2772,7 @@ Window_Message.prototype.terminateMessage = function() {
 	this.setBubbleToken(String.empty);
 	this.setBubbleEntry(null);
 	this.bubbleSprite().visible = false;
-	this.restoreRestingRect();
+	this.restoreMessageRect();
 };
 /**
 * Extends {@link #beginMessageFade}.<br/>

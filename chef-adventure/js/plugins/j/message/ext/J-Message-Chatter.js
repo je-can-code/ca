@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 MESSAGE-CHATTER] A J-Message extension that gives idle NPCs something to say.
+ * [v1.0.1 MESSAGE-CHATTER] A J-Message extension that gives idle NPCs something to say.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -136,6 +136,9 @@
  * spoken line at bottom, or the reverse.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    A chatter bubble near the edge is held against the screen rather than the
+ *    slightly smaller area windows are laid out in.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -246,7 +249,7 @@ J.MESSAGE.EXT.CHATTER = {};
 /**
 * The metadata associated with this plugin.
 */
-J.MESSAGE.EXT.CHATTER.Metadata = new J_MessageChatterPluginMetadata("J-Message-Chatter", "1.0.0");
+J.MESSAGE.EXT.CHATTER.Metadata = new J_MessageChatterPluginMetadata("J-Message-Chatter", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1865,7 +1868,7 @@ var Sprite_ChatterBubble = class extends Sprite {
 		const preferBelow = this.session().profile().prefersBelow();
 		const anchorX = target.screenX();
 		const anchorY = target.bubbleAnchorY(preferBelow);
-		const solved = BubbleLayout.solve(this.content(), this.padding(), anchorX, anchorY, Graphics.boxWidth, Graphics.boxHeight, preferBelow);
+		const solved = BubbleLayout.solve(this.content(), this.padding(), anchorX, anchorY, Graphics.width, Graphics.height, preferBelow);
 		this.x = solved.x;
 		this.y = solved.y;
 		this.bubble().refresh(solved.bounds, solved.tail);

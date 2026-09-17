@@ -147,8 +147,9 @@ drafting under the canon's [THE SPLIT](../story-canon.md#the-split--the-duo-runs
    sightline-breaking pillars are the palace's combat identity. The intro cave taught guard-the-fireball;
    this is the graduate course.
 3. **Stairs up.**
-4. **Save map.** Enemy-free, which is a JABS rule rather than flavor: re-entering a populated map
-   respawns everything. Save sigil plus the **teleportal**, per the convention every shipped dungeon
+4. **Save map.** Enemy-free by convention, as every rest map is (corrected 2026-09-17: JABS enemies
+   respawn on their own timers, not on map re-entry, so this is not an engine rule). Save sigil plus
+   the **teleportal**, per the convention every shipped dungeon
    follows (Volcanis Rest Area, the castle's Custodial Closet, Peak Rest). The hub side is parked; see
    open items.
 5. **The final door.**
