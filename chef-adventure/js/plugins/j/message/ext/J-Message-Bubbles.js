@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 MESSAGE-BUBBLES] A J-Message extension that floats messages above whoever is speaking.
+ * [v1.2.1 MESSAGE-BUBBLES] A J-Message extension that floats messages above whoever is speaking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -90,6 +90,9 @@
  * the characters those bubbles were pointing at have stopped existing.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    A plugin that walks the scene calling refresh() on everything it finds no
+ *    longer crashes on a message bubble.
  * - 1.2.0
  *    A floating message now sits exactly on its speaker, and stops shifting
  *    when it hands over to the bubble it leaves behind.
@@ -159,7 +162,7 @@ J.MESSAGE.EXT.BUBBLES = {};
 /**
 * The metadata associated with this plugin.
 */
-J.MESSAGE.EXT.BUBBLES.Metadata = new J_MessageBubblesPluginMetadata("J-Message-Bubbles", "1.2.0");
+J.MESSAGE.EXT.BUBBLES.Metadata = new J_MessageBubblesPluginMetadata("J-Message-Bubbles", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1889,10 +1892,17 @@ var Sprite_MessageBubble = class Sprite_MessageBubble extends Sprite {
 	* splitting them so the body could be cached would put a seam across the tail's mouth, which is
 	* the one join in the whole shape that has to be invisible. A dozen path commands per frame for a
 	* single object is not the cost worth paying for that.
+	*
+	* **Deliberately not called `refresh`, and not called `redraw` either.** Both of those are engine
+	* conventions and both are no-arg everywhere the engine uses them, which makes them names that
+	* tools walk a scene tree calling blindly - VisuStella's debug menu does exactly that on close,
+	* and a no-arg call into a method that needs two arguments lands as `undefined` where geometry
+	* was expected. Giving a method that requires arguments a conventional no-arg name is an invitation
+	* for somebody else's reasonable assumption to detonate inside our code.
 	* @param {BubbleBounds} bounds The box the border encloses.
 	* @param {?object} tail Where the tail leaves and points, or null to draw no tail.
 	*/
-	refresh(bounds, tail) {
+	drawBubble(bounds, tail) {
 		const legendGap = BubbleShape.legendGapFor(bounds, this.legendWidth());
 		const graphics = this.graphics();
 		graphics.clear();
@@ -2223,7 +2233,7 @@ var Sprite_SpentBubble = class Sprite_SpentBubble extends Sprite {
 		const solved = BubbleLayout.solve(content, padding, anchorX, anchorY, Graphics.width, Graphics.height, preferBelow);
 		this.x = solved.x;
 		this.y = solved.y;
-		this.bubble().refresh(solved.bounds, solved.tail);
+		this.bubble().drawBubble(solved.bounds, solved.tail);
 	}
 };
 
@@ -2698,7 +2708,7 @@ Window_Message.prototype.updateMessageBubble = function() {
 	const insetX = BubbleLayout.windowInset(Graphics.width, Graphics.boxWidth);
 	const insetY = BubbleLayout.windowInset(Graphics.height, Graphics.boxHeight);
 	this.resizeMessageBubble(solved.x - insetX, solved.y - insetY, solved.width, solved.height);
-	this.bubbleSprite().refresh(solved.bounds, solved.tail);
+	this.bubbleSprite().drawBubble(solved.bounds, solved.tail);
 };
 /**
 * Moves the window, rebuilding its contents only when it actually changed size.

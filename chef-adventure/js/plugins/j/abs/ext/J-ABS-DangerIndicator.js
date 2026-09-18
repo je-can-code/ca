@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.4 ABS-DANGER] Enable danger indicators on foes on the map.
+ * [v1.0.5 ABS-DANGER] Enable danger indicators on foes on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -49,6 +49,9 @@
  * default is enabled.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.5
+ *    The danger indicator now draws with the rest of a battler's captions, so the
+ *    time of day no longer tints it.
  * - 1.0.4
  *    Fixed the NaN check on power level running before the line that produces the
  *    NaN, and answering with a warning rather than a usable sentinel.
@@ -144,7 +147,7 @@ var J_DangerPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/danger/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "3.10.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -183,7 +186,7 @@ J.ABS.EXT.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons = (obj) => 
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.DANGER.Metadata = new J_DangerPluginMetadata("J-ABS-DangerIndicator", "1.0.4");
+J.ABS.EXT.DANGER.Metadata = new J_DangerPluginMetadata("J-ABS-DangerIndicator", "1.0.5");
 /**
 * A collection of icons that represent the danger level of a given enemy relative to the player.
 */
@@ -464,7 +467,7 @@ Sprite_Character.prototype.setupDangerIndicator = function() {
 		this.dangerIndicator().setIconIndex(dangerIndicatorIcon);
 	} else {
 		this.setDangerIndicator(this.createDangerIndicatorSprite(dangerIndicatorIcon));
-		this.addChild(this.dangerIndicator());
+		this.characterOverlay().addChild(this.dangerIndicator());
 	}
 };
 /**

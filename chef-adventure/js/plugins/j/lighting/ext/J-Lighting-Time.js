@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 LIGHTING-TIME] The day and night cycle, as colour and as darkness.
+ * [v1.0.1 LIGHTING-TIME] The day and night cycle, as colour and as darkness.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -76,6 +76,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    The sky is now right on the first frame after a save load, a transfer or a
+ *    closed menu, rather than spending five seconds fading in from daylight.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -177,7 +180,7 @@ J.LIGHTING.EXT.TIME = {};
 /**
 * The metadata associated with this plugin.
 */
-J.LIGHTING.EXT.TIME.Metadata = new J_LIGHTING_TIME_PluginMetadata("J-Lighting-Time", "1.0.0");
+J.LIGHTING.EXT.TIME.Metadata = new J_LIGHTING_TIME_PluginMetadata("J-Lighting-Time", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -321,6 +324,22 @@ var TimeLightingCoordinator = class TimeLightingCoordinator {
 	*/
 	static TRANSITION_FRAMES = 300;
 	/**
+	* How many frames the sky takes to appear when the player arrives somewhere.
+	*
+	* None, and the reason is that there is nothing to travel *from*. A journey is the right answer
+	* for an hour turning over, because the player was already looking at the previous hour. An
+	* arrival is not that: a save loaded at midnight, a transfer, a menu closing - in every one of
+	* them the screen is being built from nothing, so a journey starts at whatever neutral colour the
+	* composer happens to hold and spends five seconds drifting toward the truth. What that looks
+	* like is a game that boots into a crisp, bright afternoon and then visibly sinks into night over
+	* the first few seconds, which reads as a bug because it is one.
+	*
+	* The composer floors a journey at one frame, so zero here means the first composed frame is
+	* already correct rather than the second.
+	* @type {number}
+	*/
+	static ARRIVAL_FRAMES = 0;
+	/**
 	* Whether the map the player is standing on has opted out of the day/night cycle.
 	* @type {boolean}
 	*/
@@ -348,9 +367,32 @@ var TimeLightingCoordinator = class TimeLightingCoordinator {
 	* falls back to whatever else has a claim - a cutscene's tint if one is running, and nothing at
 	* all otherwise - so an event that deliberately tinted an interior keeps its tint, and a plain
 	* cave simply has no sky rather than inheriting the last map's midnight.
+	*
+	* The sky takes its time getting here, because this is the hour turning over underneath a player
+	* who is already watching. {@link TimeLightingCoordinator.declareForArrival} is the same statement
+	* made instantly, for when they are not.
 	* @param {Game_Time} clock The clock announcing the time.
 	*/
 	static declareForCurrentTime(clock) {
+		TimeLightingCoordinator.#declare(clock, TimeLightingCoordinator.TRANSITION_FRAMES);
+	}
+	/**
+	* Declares what the sky should look like the moment the player arrives somewhere.
+	*
+	* Identical to {@link TimeLightingCoordinator.declareForCurrentTime} except that the sky is simply
+	* already there. See {@link TimeLightingCoordinator.ARRIVAL_FRAMES} for why an arrival is not a
+	* journey.
+	* @param {Game_Time} clock The clock announcing the time.
+	*/
+	static declareForArrival(clock) {
+		TimeLightingCoordinator.#declare(clock, TimeLightingCoordinator.ARRIVAL_FRAMES);
+	}
+	/**
+	* States what the sky is doing, over however many frames the caller thinks it should take.
+	* @param {Game_Time} clock The clock announcing the time.
+	* @param {number} frames How many frames the sky should take to get there.
+	*/
+	static #declare(clock, frames) {
 		const sourceKey = TimeLightingCoordinator.SOURCE_KEY;
 		if (TimeLightingCoordinator.isActive() === false) {
 			ScreenLightingComposer.removeDeclarations(sourceKey);
@@ -358,7 +400,6 @@ var TimeLightingCoordinator = class TimeLightingCoordinator {
 		}
 		const hours = TimeLightingCoordinator.currentHour(clock);
 		const metadata = J.LIGHTING.EXT.TIME.Metadata;
-		const frames = TimeLightingCoordinator.TRANSITION_FRAMES;
 		const tone = TimeToneResolver.toneOfHour(hours, metadata.toneSequence);
 		const darkness = TimeToneResolver.darknessOfHour(hours, metadata.darknessSequence);
 		const toneDeclaration = new ToneDeclaration(tone, frames, sourceKey);
@@ -452,7 +493,7 @@ Game_Time.prototype.onTimeChanged = function() {
 J.LIGHTING.EXT.TIME.Aliased.Scene_Map.set("onMapLoaded", Scene_Map.prototype.onMapLoaded);
 Scene_Map.prototype.onMapLoaded = function() {
 	TimeLightingCoordinator.refreshMapSuppression();
-	TimeLightingCoordinator.declareForCurrentTime($gameTime);
+	TimeLightingCoordinator.declareForArrival($gameTime);
 	J.LIGHTING.EXT.TIME.Aliased.Scene_Map.get("onMapLoaded").call(this);
 };
 

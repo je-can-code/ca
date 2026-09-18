@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 MESSAGE-CHATTER] A J-Message extension that gives idle NPCs something to say.
+ * [v1.0.3 MESSAGE-CHATTER] A J-Message extension that gives idle NPCs something to say.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -136,6 +136,8 @@
  * spoken line at bottom, or the reverse.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Keeps up with a rename in J-Message-Bubbles. Nothing changes for a player.
  * - 1.0.2
  *    A character handed a new line while still saying one no longer keeps the
  *    old line on screen indefinitely.
@@ -234,7 +236,7 @@ globalThis.J ||= {};
 	if (hasMessageRequirement === false) {
 		throw new Error(`Either missing J-Message or has a lower version than the required: ${requiredMessageVersion}`);
 	}
-	const requiredBubblesVersion = "1.0.0";
+	const requiredBubblesVersion = "1.2.1";
 	const bubblesVersion = J.MESSAGE.EXT.BUBBLES.Metadata.version.version();
 	const hasBubblesRequirement = J.BASE.Helpers.satisfies(bubblesVersion, requiredBubblesVersion);
 	if (hasBubblesRequirement === false) {
@@ -252,7 +254,7 @@ J.MESSAGE.EXT.CHATTER = {};
 /**
 * The metadata associated with this plugin.
 */
-J.MESSAGE.EXT.CHATTER.Metadata = new J_MessageChatterPluginMetadata("J-Message-Chatter", "1.0.2");
+J.MESSAGE.EXT.CHATTER.Metadata = new J_MessageChatterPluginMetadata("J-Message-Chatter", "1.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1875,7 +1877,7 @@ var Sprite_ChatterBubble = class extends Sprite {
 		const solved = BubbleLayout.solve(this.content(), this.padding(), anchorX, anchorY, Graphics.width, Graphics.height, preferBelow);
 		this.x = solved.x;
 		this.y = solved.y;
-		this.bubble().refresh(solved.bounds, solved.tail);
+		this.bubble().drawBubble(solved.bounds, solved.tail);
 	}
 };
 
