@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 MESSAGE-CHATTER] A J-Message extension that gives idle NPCs something to say.
+ * [v1.0.2 MESSAGE-CHATTER] A J-Message extension that gives idle NPCs something to say.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -136,6 +136,9 @@
  * spoken line at bottom, or the reverse.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    A character handed a new line while still saying one no longer keeps the
+ *    old line on screen indefinitely.
  * - 1.0.1
  *    A chatter bubble near the edge is held against the screen rather than the
  *    slightly smaller area windows are laid out in.
@@ -249,7 +252,7 @@ J.MESSAGE.EXT.CHATTER = {};
 /**
 * The metadata associated with this plugin.
 */
-J.MESSAGE.EXT.CHATTER.Metadata = new J_MessageChatterPluginMetadata("J-Message-Chatter", "1.0.1");
+J.MESSAGE.EXT.CHATTER.Metadata = new J_MessageChatterPluginMetadata("J-Message-Chatter", "1.0.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1847,11 +1850,12 @@ var Sprite_ChatterBubble = class extends Sprite {
 		const frame = this.glyphLayer().frame();
 		const speed = session.profile().speed();
 		const revealed = ChatterScheduler.revealedCount(frame, speed, sprites.length);
-		if (revealed === this.revealed()) return;
-		sprites.slice(this.revealed(), revealed).forEach((sprite) => {
-			sprite.visible = true;
-		});
-		this.setRevealed(revealed);
+		if (revealed !== this.revealed()) {
+			sprites.slice(this.revealed(), revealed).forEach((sprite) => {
+				sprite.visible = true;
+			});
+			this.setRevealed(revealed);
+		}
 		if (revealed < sprites.length) return;
 		session.flagRevealed();
 	}
@@ -1990,7 +1994,7 @@ var Sprite_ChatterBubbleLayer = class extends Sprite {
 	syncChatterBubbles() {
 		const live = ChatterManager.liveSessions();
 		this.removeFinishedBubbles(live);
-		live.forEach(([token, session]) => this.addMissingBubble(token, session));
+		live.forEach(([token, session]) => this.ensureBubble(token, session));
 	}
 	/**
 	* Takes away the bubbles of anyone who has stopped talking.
@@ -2007,13 +2011,17 @@ var Sprite_ChatterBubbleLayer = class extends Sprite {
 		});
 	}
 	/**
-	* Gives a talker a bubble if they do not already have one on this plane.
+	* Makes sure a talker has a bubble on this plane showing the line they are currently saying.
 	* @param {string} token The target token of whoever is talking.
 	* @param {ChatterSession} session The line they are saying.
 	*/
-	addMissingBubble(token, session) {
+	ensureBubble(token, session) {
 		const existing = this.bubbles().get(token);
-		if (existing !== undefined) return;
+		if (existing !== undefined && existing.session() === session) return;
+		if (existing !== undefined) {
+			this.removeChild(existing);
+			this.bubbles().delete(token);
+		}
 		const interrupted = this.departingBubbles().take(token);
 		if (interrupted !== null) {
 			this.removeChild(interrupted);
