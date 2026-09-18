@@ -147,7 +147,7 @@ var J_DangerPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/danger/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "3.10.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);

@@ -236,7 +236,7 @@ globalThis.J ||= {};
 	if (hasMessageRequirement === false) {
 		throw new Error(`Either missing J-Message or has a lower version than the required: ${requiredMessageVersion}`);
 	}
-	const requiredBubblesVersion = "1.0.0";
+	const requiredBubblesVersion = "1.2.1";
 	const bubblesVersion = J.MESSAGE.EXT.BUBBLES.Metadata.version.version();
 	const hasBubblesRequirement = J.BASE.Helpers.satisfies(bubblesVersion, requiredBubblesVersion);
 	if (hasBubblesRequirement === false) {
