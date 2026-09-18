@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.16.1 BASE] The base class for all J plugins.
+ * [v3.17.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.17.0
+ *    Character captions now draw on a plane above the world, so the time of day no
+ *    longer tints a nameplate or a health bar. They still go dark with the ambient
+ *    light, which is what keeps an unlit corner hiding whoever stands in it.
  * - 3.16.1
  *    ParsableComment now admits ~ % = ? ( ) and ; so an event comment may carry
  *    message effect codes, and a sentence somebody says out loud rather than
@@ -2049,7 +2053,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.16.1";
+J.BASE.Metadata.Version = "3.17.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -2450,6 +2454,7 @@ J.BASE.Aliased = {
 	Sprite_Animation: new Map(),
 	Sprite_Character: new Map(),
 	Sprite_Damage: new Map(),
+	Spriteset_Map: new Map(),
 	Window_Base: new Map(),
 	Window_Command: new Map(),
 	Window_Selectable: new Map()
@@ -3729,6 +3734,76 @@ var TextRasterMetrics = class {
 	*/
 	static snap(value, scale) {
 		return Math.round(value * scale) / scale;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/core/CaptionPlaneRoster.js
+/**
+* The bookkeeping behind the caption plane: who belongs on it, and in what order they draw.
+*
+* The plane itself is a sprite, and a sprite is the one place in this codebase where logic is
+* hardest to get a test around. So the two decisions it makes live here instead, as pure functions
+* over plain arrays, and the plane is left doing nothing but adding and removing children.
+*
+* Both decisions exist because captions stopped being children of the characters they describe.
+* A child is kept in step by its parent for free - it appears when the character does, leaves when
+* the character is destroyed, and draws in whatever order the tilemap sorted its parent into. A
+* caption on a flat plane has none of that, and these are the two halves of paying it back.
+*/
+var CaptionPlaneRoster = class {
+	/**
+	* Works out which captions have joined the map and which have left it since the last frame.
+	*
+	* The live character sprites are the authority, deliberately: J-ABS alone adds and removes them
+	* from eight different places - actions, generated battlers, loot, party cycling - and every one
+	* of those pushes to or splices from that one array. Reading the array is a single seam that
+	* cannot be forgotten, where aliasing the eight call sites would be eight seams and a ninth bug
+	* the first time somebody adds another.
+	*
+	* Eviction is driven by the sprite being gone rather than by anything the sprite tells us,
+	* because by the time we notice, it is usually destroyed - J-ABS splices an expired action out of
+	* tracking and calls `destroy()` on it in the same breath. A destroyed sprite cannot be asked
+	* anything, so the question has to be answerable without it.
+	* @param {Sprite_Character[]} characterSprites Every character sprite currently on the map.
+	* @param {Sprite_CharacterOverlay[]} rosteredCaptions The captions the plane is holding today.
+	* @returns {{additions: Sprite_CharacterOverlay[], evictions: Sprite_CharacterOverlay[]}}
+	*/
+	static reconcile(characterSprites, rosteredCaptions) {
+		const rostered = new Set(rosteredCaptions);
+		const liveSprites = new Set(characterSprites);
+		const additions = characterSprites.map((characterSprite) => characterSprite.characterOverlay()).filter((caption) => rostered.has(caption) === false);
+		const evictions = rosteredCaptions.filter((caption) => liveSprites.has(caption.characterSprite()) === false);
+		return {
+			additions,
+			evictions
+		};
+	}
+	/**
+	* Orders two captions the way the tilemap would have ordered the characters they describe.
+	*
+	* This is `Tilemap._compareChildOrder` rewritten against captions, and it is a copy on purpose.
+	* Depth used to come free: a caption rode inside its character sprite, the tilemap sorted that
+	* sprite by y every frame, and a nearer character's nameplate landed over a farther one's without
+	* anybody arranging it. Lifting captions onto a flat plane throws that away, and the only way the
+	* two planes cannot drift apart is for them to be sorting by the same rule.
+	*
+	* Sorting by the caption's own mirrored fields rather than by reaching back through to the
+	* character sprite is what keeps this a pure comparison of two plain objects - and the tie-break
+	* still holds, because a caption is constructed immediately after the sprite it belongs to, so
+	* caption ids run in the same order sprite ids do.
+	* @param {Sprite_CharacterOverlay} a The caption on the left of the comparison.
+	* @param {Sprite_CharacterOverlay} b The caption on the right of the comparison.
+	* @returns {number}
+	*/
+	static compareCaptionOrder(a, b) {
+		if (a.z !== b.z) {
+			return a.z - b.z;
+		}
+		if (a.y !== b.y) {
+			return a.y - b.y;
+		}
+		return a.spriteId - b.spriteId;
 	}
 };
 
@@ -14660,62 +14735,214 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 };
 
 //#endregion
+//#region src/plugins/_base/core/sprites/Sprite_CaptionPlane.js
+/**
+* The plane every character's captions are drawn on, above the world but still inside the dark.
+*
+* A caption - a nameplate, an HP gauge, a shield bar, a danger rating - is information *about* the
+* world rather than a thing in it, and the engine had no place to put that. Everything the map
+* draws goes inside `_baseSprite`, `_baseColorFilter` is attached to `_baseSprite`, and a PIXI
+* filter repaints its own subtree and nothing else. So a nameplate parented to its character
+* inherited the screen tone: at midnight an enemy's name went blue and its health bar desaturated
+* along with the rock it was standing next to. Nothing about the hour should change how legible a
+* number is.
+*
+* **The tone is not the only thing that darkens a map, and this plane deliberately escapes only
+* the one.** J-Lighting's ambient mask is not a colour grade - it multiplies the scene against a
+* sheet of darkness with holes punched in it for every light, which makes it a statement about what
+* can be *seen* rather than about what colour things are. So the plane is slotted underneath that
+* mask while sitting above the tone, and the split is the whole design: a caption ignores the hour
+* and obeys the dark. An enemy standing in torchlight is named. The one in the unlit corner is not,
+* and finding it is the player's problem, which is the point of an unlit corner.
+*
+* Damage popups deliberately do **not** live here, and J-Popups parents them to a plane of its own
+* above the mask. Being hit is felt rather than seen: you can tell how hard you connected with
+* something in the dark without being able to make out what you connected with.
+*/
+var Sprite_CaptionPlane = class extends Sprite {
+	/**
+	* Brings the plane's contents into line with the character sprites currently on the map.
+	*
+	* The live character sprites are the authority because every route that puts a character on a map
+	* or takes one off goes through that array, and the plane's own children are the roster because
+	* a caption is here if and only if the plane put it here. Two lists, one of them maintained by
+	* somebody else, and the difference between them is the work.
+	*
+	* **This is deliberately not driven from this sprite's own update.** RMMZ walks a spriteset's
+	* children before anything else happens in a frame, so by the time this plane updated itself the
+	* captions hanging off it would already have run - including one whose character sprite was
+	* destroyed since the last frame, which throws the moment it reads a position off it. The
+	* spriteset calls this before that walk begins instead, which is the only point in a frame where
+	* the roster can be corrected while every caption on it is still safe to touch.
+	* @param {Sprite_Character[]} characterSprites Every character sprite currently on the map.
+	*/
+	reconcileCaptions(characterSprites) {
+		const { additions, evictions } = CaptionPlaneRoster.reconcile(characterSprites, this.children);
+		evictions.forEach(this.evictCaption, this);
+		additions.forEach(this.admitCaption, this);
+	}
+	/**
+	* Takes responsibility for a caption and draws it from now on.
+	* @param {Sprite_CharacterOverlay} caption The caption arriving on the map.
+	*/
+	admitCaption(caption) {
+		this.addChild(caption);
+	}
+	/**
+	* Gives up responsibility for a caption whose character has left the map.
+	*
+	* Detached and forgotten rather than destroyed, which is exactly what used to happen to it: a
+	* caption was a child of its character sprite, and J-ABS destroys those without destroying their
+	* children, so the whole caption went unreachable and was collected. Destroying it here would
+	* instead be a new behavior, and it would reach into gauges and nameplates that other plugins
+	* built and still consider theirs.
+	* @param {Sprite_CharacterOverlay} caption The caption leaving the map.
+	*/
+	evictCaption(caption) {
+		this.removeChild(caption);
+	}
+	/**
+	* Overrides {@link Sprite.updateTransform}.<br/>
+	* Sorts the captions into depth order before any of them compose their transforms.
+	*
+	* The sort sits here rather than in an update hook because it reads positions that captions set
+	* for themselves, and an update hook would be ordering them by where they were a frame ago. By
+	* the time PIXI asks this plane for its transform every caption has already followed its
+	* character for the frame, so the values being sorted are the ones about to be drawn.
+	*
+	* It runs every frame unconditionally, exactly as `Tilemap` does for the characters themselves,
+	* and costs about what that costs: the same number of elements, over an array that is already in
+	* order almost every frame because characters move a pixel at a time.
+	*/
+	updateTransform() {
+		this.children.sort(CaptionPlaneRoster.compareCaptionOrder);
+		super.updateTransform();
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/core/sprites/Sprite_CharacterOverlay.js
 /**
 * The layer a character's interface furniture sits on, insulated from what the character is doing.
 *
 * A nameplate, an HP gauge, a floating label - these are captions *about* a character rather than
-* parts of it, and the moment they are added as children of the character's own sprite they inherit
-* everything that sprite does. That is invisible while a character stands still, and wrong the
-* instant one does not: a hit reaction squashes the nameplate along with the body, a spin attack
-* whirls the HP bar around with it, and a character scaled to twice its size gets its name magnified
-* from a raster drawn for half that, which is a blurrier name rather than a bigger one.
+* parts of it, and for a long time they were added as children of the character's own sprite, which
+* meant they inherited everything that sprite did. That was invisible while a character stood still
+* and wrong the instant one did not: a hit reaction squashed the nameplate along with the body, a
+* spin attack whirled the HP bar around with it, and a character scaled to twice its size got its
+* name magnified from a raster drawn for half that, which is a blurrier name rather than a bigger
+* one.
 *
-* So this layer cancels the parent's scale and rotation outright, and everything parented to it
-* lives in a space where the character is always its resting size and upright.
+* It also meant a caption was painted by whatever painted the world. The screen tone is a filter on
+* `_baseSprite` and a PIXI filter owns its whole subtree, so at midnight an enemy's nameplate went
+* blue along with the rock behind it.
 *
-* The tempting refinement is to let *positions* keep inheriting the scale, so a caption drifts
-* outward to clear a body that has grown. Do not: captions are not independent of each other. A
-* nameplate at y 0 and its tier stripe at y 16 are one object drawn in two pieces, and scaling those
-* two offsets separately pulls them apart - at 1.5x the stripe lands eight pixels below where it
-* belongs, which reads as a misaligned badge rather than as anything to do with scale. Relative
-* layout has to survive, and the only way it survives is if nothing about the caption space stretches.
+* So this layer no longer hangs off the character at all. It lives on {@link Sprite_CaptionPlane},
+* above the world and outside the tone, and follows its character by copying what matters -
+* position, opacity, visibility - rather than by inheriting a transform. Nothing about the
+* character's own scale or rotation is in that list, which is what makes the squash and the spin
+* simply not arrive, instead of arriving and being cancelled out afterward.
 *
-* **A caption that genuinely needs to clear a resized body measures that body itself.** J-Escriptions
-* does exactly this: it hangs off the character's height and multiplies that height by the
-* character's own scale. That keeps the knowledge where the requirement is, instead of applying a
-* blanket stretch to captions that never asked for one.
+* The tempting refinement is to let *positions* scale with a character that has grown, so a caption
+* drifts outward to clear a bigger body. Do not: captions are not independent of each other. A
+* nameplate at y 0 and its tier stripe at y 16 are one object drawn in two pieces, and scaling
+* those two offsets separately pulls them apart - at 1.5x the stripe lands eight pixels below where
+* it belongs, which reads as a misaligned badge rather than as anything to do with scale. Relative
+* layout has to survive, and the only way it survives is if nothing about the caption space
+* stretches.
 *
-* The cancellation is exact for a uniform scale, and shears very slightly when a non-uniform squash
-* and a rotation animate at the same instant, because those two operations do not commute. That case
-* is a spinning character mid-squish, it lasts a few frames, and the alternative is rebuilding the
-* matrix by hand for a distortion nobody can see.
+* **A caption that genuinely needs to clear a resized body measures that body itself.**
+* J-Escriptions does exactly this: it hangs off the character's height and multiplies that height
+* by the character's own scale. That keeps the knowledge where the requirement is, instead of
+* applying a blanket stretch to captions that never asked for one.
 *
 * Extending {@link Sprite} rather than a bare container is what keeps the furniture alive: RMMZ's
 * `Sprite.update` walks its children calling theirs, and a gauge that stops being updated stops
-* telling the truth about anyone's health.
+* telling the truth about anyone's health. That walk now reaches here by way of the caption plane
+* rather than the character sprite, and it is the reason the plane is a `Sprite` too.
 */
 var Sprite_CharacterOverlay = class extends Sprite {
 	/**
+	* Extends {@link Sprite.initialize}.<br/>
+	* Also prepares the link back to the character this layer captions.
+	*/
+	initialize() {
+		super.initialize();
+		this.initMembers();
+	}
+	/**
+	* Initialize all properties of this class.
+	*/
+	initMembers() {
+		/**
+		* The shared root namespace for all of J's plugin data.
+		*/
+		this._j ||= {};
+		/**
+		* The character sprite this layer draws captions for.
+		*
+		* Held as a reference because this layer is no longer parented to it, and everything this
+		* layer does each frame is a question about where that sprite currently is.
+		* @type {Sprite_Character}
+		*/
+		this._j._characterSprite = null;
+	}
+	/**
+	* Gets the character sprite this layer draws captions for.
+	* @returns {Sprite_Character} The characterSprite.
+	*/
+	characterSprite() {
+		return this._j._characterSprite;
+	}
+	/**
+	* Sets the character sprite this layer draws captions for.
+	* @param {Sprite_Character} newCharacterSprite The new characterSprite.
+	*/
+	setCharacterSprite(newCharacterSprite) {
+		this._j._characterSprite = newCharacterSprite;
+	}
+	/**
+	* Extends {@link Sprite.update}.<br/>
+	* Also follows the character this layer captions.
+	*/
+	update() {
+		super.update();
+		this.updateFromCharacterSprite();
+	}
+	/**
+	* Copies across everything this layer used to inherit by being a child of its character.
+	*
+	* Four properties, and each one is a thing that would otherwise have quietly stopped working.
+	* Position is the obvious one. Opacity and visibility are the ones that are easy to forget and
+	* loud when missed: a transparent event or a character fading out used to take its nameplate with
+	* it, and a caption that ignores them is a name floating over nothing.
+	*
+	* Depth is copied rather than used directly, because the plane sorts captions among themselves
+	* and has to sort them by the same rule the tilemap sorts their characters by.
+	*
+	* Conspicuously absent: scale and rotation. Those are what this layer exists to *not* inherit.
+	*/
+	updateFromCharacterSprite() {
+		const characterSprite = this.characterSprite();
+		this.x = characterSprite.x;
+		this.y = characterSprite.y;
+		this.z = characterSprite.z;
+		this.visible = characterSprite.visible;
+		this.opacity = characterSprite.opacity;
+	}
+	/**
 	* Overrides {@link Sprite.updateTransform}.<br/>
-	* Cancels the parent's scale and rotation, then lands the whole layer on a whole device pixel.
+	* Lands the whole layer on a whole device pixel before anything hanging off it composes.
 	*
-	* This runs during the render walk rather than in an update hook, which matters: by the time PIXI
-	* asks a node for its transform, everything above it has already settled for the frame. An update
-	* hook would be reading whatever the parent's scale was *last* frame, and a caption that lags a
-	* squash by a frame is its own kind of wrong.
-	*
-	* The base class's own composition is spelled out here rather than delegated to, and the reason is
-	* ordering. `Container.updateTransform` composes this node against its parent and then immediately
-	* walks its children, so a correction applied *after* calling it would arrive a full frame too
-	* late for everything hanging off this layer - the children would already have inherited the
-	* uncorrected matrix. The snap has to sit between those two steps, which means owning both. The
-	* engine reaches for the same pattern in `Tilemap` and `Window` for the same reason.
+	* The base class's own composition is spelled out here rather than delegated to, and the reason
+	* is ordering. `Container.updateTransform` composes this node against its parent and then
+	* immediately walks its children, so a correction applied *after* calling it would arrive a full
+	* frame too late for everything hanging off this layer - the children would already have
+	* inherited the uncorrected matrix. The snap has to sit between those two steps, which means
+	* owning both. The engine reaches for the same pattern in `Tilemap` and `Window` for the same
+	* reason.
 	*/
 	updateTransform() {
-		const parentScale = this.parent.scale;
-		this.scale.set(1 / parentScale.x, 1 / parentScale.y);
-		this.rotation = -this.parent.rotation;
 		this.setBoundsID();
 		this.transform.updateTransform(this.parent.transform);
 		this.snapToDevicePixels();
@@ -14798,7 +15025,7 @@ Sprite_Character.prototype.initMembers = function() {
 	* @type {Sprite_CharacterOverlay}
 	*/
 	this._j._characterOverlay = new Sprite_CharacterOverlay();
-	this.addChild(this._j._characterOverlay);
+	this._j._characterOverlay.setCharacterSprite(this);
 };
 /**
 * The layer that this character's interface furniture is drawn on.
@@ -15681,6 +15908,76 @@ Spriteset_Map.prototype.characterSprites = function() {
 */
 Spriteset_Map.prototype.setCharacterSprites = function(newCharacterSprites) {
 	this._characterSprites = newCharacterSprites;
+};
+/**
+* Extends {@link Spriteset_Map.createLowerLayer}.<br/>
+* Also builds the plane that every character's captions are drawn on.
+*/
+J.BASE.Aliased.Spriteset_Map.set("createLowerLayer", Spriteset_Map.prototype.createLowerLayer);
+Spriteset_Map.prototype.createLowerLayer = function() {
+	J.BASE.Aliased.Spriteset_Map.get("createLowerLayer").call(this);
+	this.createCaptionPlane();
+};
+/**
+* Builds the plane that every character's captions are drawn on.
+*
+* Added to the spriteset rather than into the tilemap, and that is the entire point: everything
+* painted into `_baseSprite` is inside `_baseColorFilter`, so the tilemap and everything in it takes
+* the screen tone. A caption is not part of the world and should not be graded like one.
+*
+* **Slotted directly beneath the weather, and that index is doing real work.** J-Lighting inserts
+* its ambient mask at the weather's index plus one, so taking the weather's own index puts this
+* plane underneath the mask no matter which of the two plugins runs first. That is deliberate:
+* unlike the tone, the mask is not a colour grade - it multiplies the scene against darkness with
+* holes cut for each light, which is a statement about what can be seen. Captions are meant to obey
+* that. A named enemy in torchlight and an unnamed one in an unlit corner is the behavior, and it
+* costs nothing but the choice of index.
+*
+* Damage popups are the exception and do not come here; J-Popups gives them a plane of their own
+* above the mask, because being hit is felt rather than seen.
+*/
+Spriteset_Map.prototype.createCaptionPlane = function() {
+	/**
+	* The shared root namespace for all of J's plugin data.
+	*/
+	this._j ||= {};
+	/**
+	* The plane that every character's captions are drawn on.
+	* @type {Sprite_CaptionPlane}
+	*/
+	this.setCaptionPlane(new Sprite_CaptionPlane());
+	const weatherIndex = this.getChildIndex(this.weather());
+	this.addChildAt(this.captionPlane(), weatherIndex);
+};
+/**
+* Gets the plane that every character's captions are drawn on.
+* @returns {Sprite_CaptionPlane} The captionPlane.
+*/
+Spriteset_Map.prototype.captionPlane = function() {
+	return this._j._captionPlane;
+};
+/**
+* Sets the plane that every character's captions are drawn on.
+* @param {Sprite_CaptionPlane} newCaptionPlane The new captionPlane.
+*/
+Spriteset_Map.prototype.setCaptionPlane = function(newCaptionPlane) {
+	this._j._captionPlane = newCaptionPlane;
+};
+/**
+* Extends {@link Spriteset_Map.update}.<br/>
+* Also brings the caption plane's roster in line with who is actually on the map.
+*
+* The reconcile happens *before* the original runs, and that ordering is load-bearing. The original
+* is what walks the spriteset's children, which is what updates every caption on the plane - and a
+* caption whose character sprite was destroyed since the last frame throws the moment it reads a
+* position off it. J-ABS destroys expired action and loot sprites routinely, so this is the normal
+* case rather than an unlucky one. Correcting the roster first means every caption that gets walked
+* still has a character to ask.
+*/
+J.BASE.Aliased.Spriteset_Map.set("update", Spriteset_Map.prototype.update);
+Spriteset_Map.prototype.update = function() {
+	this.captionPlane().reconcileCaptions(this.characterSprites());
+	J.BASE.Aliased.Spriteset_Map.get("update").call(this);
 };
 
 //#endregion

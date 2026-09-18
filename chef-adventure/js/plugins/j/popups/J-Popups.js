@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.1 POPUPS] Map text popups for JABS and beyond.
+ * [v2.2.0 POPUPS] Map text popups for JABS and beyond.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -45,6 +45,9 @@
  * Resources) build popups on top of.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Damage popups now draw above everything that takes light away, so a hit
+ *    always reports itself even when whatever was hit cannot be seen.
  * - 2.1.1
  *    Routed the rejected-text-pop warning through J-Base's new Diagnostics. The
  *    prefix is now a literal rather than read from J.POPUPS.Metadata.name, so it
@@ -111,7 +114,7 @@ J.POPUPS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.POPUPS.Metadata = new J_PopupsPluginMetadata("J-Popups", "2.1.1");
+J.POPUPS.Metadata = new J_PopupsPluginMetadata("J-Popups", "2.2.0");
 /**
 * Namespace for optional first-party extensions (J-Popups-ABS, J-Popups-APT, …).
 */
@@ -2084,6 +2087,18 @@ Sprite_Character.prototype.createIncomingTextPops = function() {
 	}
 };
 /**
+* The plane that this character's popups are drawn on.
+*
+* A sprite cannot reach it by walking up its own parents, because it is deliberately not one of
+* them - a popup is parented above the world rather than inside it. The scene is asked instead,
+* which is the same route this plugin already takes to find a character's sprite in the first
+* place.
+* @returns {Sprite}
+*/
+Sprite_Character.prototype.popupPlane = function() {
+	return SceneManager._scene._spriteset.popupPlane();
+};
+/**
 * Creates a single incoming text pop.
 * @param {Map_TextPop} popup The popup data.
 */
@@ -2098,7 +2113,7 @@ Sprite_Character.prototype.createIncomingTextPop = function(popup) {
 	} else {
 		this.nonDamagePopSprites().push(sprite);
 	}
-	this.parent.addChild(sprite);
+	this.popupPlane().addChild(sprite);
 	J.POPUPS.notifyPopupSpriteSpawned(character, popup, sprite);
 };
 /**
@@ -2113,7 +2128,7 @@ Sprite_Character.prototype.attachConvertedDamagePopupSprite = function(sprite, p
 	} else {
 		this.nonDamagePopSprites().push(sprite);
 	}
-	this.parent.addChild(sprite);
+	this.popupPlane().addChild(sprite);
 	J.POPUPS.notifyPopupSpriteSpawned(this.character(), popup, sprite);
 };
 /**
@@ -2162,7 +2177,7 @@ Sprite_Character.prototype._updateTrackedPopupBucket = function(bucket, updateLo
 */
 Sprite_Character.prototype._removeTrackedPopSprite = function(sprite) {
 	const character = this.character();
-	this.parent.removeChild(sprite);
+	this.popupPlane().removeChild(sprite);
 	J.POPUPS.notifyPopupSpriteFinished(character, sprite._j._popups._sourcePopup, sprite);
 	sprite.destroy();
 };
@@ -2216,6 +2231,59 @@ Sprite_Character.prototype.nonDamagePopSprites = function() {
 */
 Sprite_Character.prototype.setNonDamagePopSprites = function(newNonDamagePopSprites) {
 	this._j._popups._nonDamagePopSprites = newNonDamagePopSprites;
+};
+
+//#endregion
+//#region src/plugins/popups/core/sprites/Spriteset_Map.js
+/**
+* Extends {@link Spriteset_Map.createLowerLayer}.<br/>
+* Also builds the plane that map popups are drawn on.
+*/
+J.POPUPS.Aliased.Spriteset_Map.set("createLowerLayer", Spriteset_Map.prototype.createLowerLayer);
+Spriteset_Map.prototype.createLowerLayer = function() {
+	J.POPUPS.Aliased.Spriteset_Map.get("createLowerLayer").call(this);
+	this.createPopupPlane();
+};
+/**
+* Builds the plane that map popups are drawn on.
+*
+* Appended to the spriteset, which is what puts it above everything: above `_baseSprite` and its
+* screen tone, above the caption plane, and above J-Lighting's ambient mask - the mask is inserted
+* at the weather's index plus one, so anything appended afterward is beyond its reach whichever
+* plugin ran first.
+*
+* **A popup is the one readout that is never taken away.** Captions obey the dark deliberately,
+* because a nameplate is something you see and an unlit corner is meant to hide what is in it. A
+* damage number is not that: it is the report of a hit that already landed, and a hit is felt
+* rather than seen. You can tell how hard you connected with something in the dark without being
+* able to make out what you connected with, and a player who cannot tell whether they are
+* connecting at all is not being challenged, only deprived.
+*/
+Spriteset_Map.prototype.createPopupPlane = function() {
+	/**
+	* The shared root namespace for all of J's plugin data.
+	*/
+	this._j ||= {};
+	/**
+	* The plane that map popups are drawn on.
+	* @type {Sprite}
+	*/
+	this.setPopupPlane(new Sprite());
+	this.addChild(this.popupPlane());
+};
+/**
+* Gets the plane that map popups are drawn on.
+* @returns {Sprite} The popupPlane.
+*/
+Spriteset_Map.prototype.popupPlane = function() {
+	return this._j._popupPlane;
+};
+/**
+* Sets the plane that map popups are drawn on.
+* @param {Sprite} newPopupPlane The new popupPlane.
+*/
+Spriteset_Map.prototype.setPopupPlane = function(newPopupPlane) {
+	this._j._popupPlane = newPopupPlane;
 };
 
 //#endregion
