@@ -1463,6 +1463,31 @@ Game_CharacterBase.prototype.occupiedTileY = function() {
 	return Math.floor(this.y + Math.min(this.getCollisionPivotY(), 1 - 1e-6));
 };
 /**
+* Overwrites {@link Game_CharacterBase.setPosition}.<br/>
+* Places a character at a continuous position instead of snapping its logical coordinates onto the
+* tile grid.
+*
+* Vanilla rounds `_x`/`_y` here because a tile-based character only ever stands on a whole tile, and
+* `_realX`/`_realY` are the pair that carry the in-between while a step animates. Pixel movement
+* inverts that relationship: `_x` is itself the continuous position, and every frame of movement
+* writes `_realX` to match it exactly. Rounding one of the pair and not the other therefore leaves
+* them disagreeing by up to half a tile with nothing still in flight to reconcile them, and nothing
+* closes the gap until the character walks far enough to be placed by movement again.
+*
+* A standing disagreement between the two is read as motion by anything measuring how far a
+* character travelled this frame, and as a body trailing its own sprite by anything drawing from the
+* collision pivot. Both are wrong the instant a character is placed anywhere other than a whole tile
+* - which under pixel movement is almost everywhere.
+* @param {number} x The x coordinate to place this character at, in tiles.
+* @param {number} y The y coordinate to place this character at, in tiles.
+*/
+Game_CharacterBase.prototype.setPosition = function(x, y) {
+	this.setX(x);
+	this.setY(y);
+	this.setRealX(x);
+	this.setRealY(y);
+};
+/**
 * Overwrites {@link Game_CharacterBase.pos}.<br/>
 * Compares against this character's occupied tile (the collision pivot's tile) rather than
 * vanilla's exact fractional equality or a naive round-to-nearest. Vanilla `pos` assumes integer

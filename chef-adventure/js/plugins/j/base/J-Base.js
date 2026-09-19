@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.17.0 BASE] The base class for all J plugins.
+ * [v3.18.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.18.0
+ *    Added Spriteset_Base#baseSprite, so a plugin can parent something inside the
+ *    screen tone rather than over it without reaching for the field directly.
  * - 3.17.0
  *    Character captions now draw on a plane above the world, so the time of day no
  *    longer tints a nameplate or a health bar. They still go dark with the ambient
@@ -2053,7 +2056,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.17.0";
+J.BASE.Metadata.Version = "3.18.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -15873,6 +15876,23 @@ Sprite_Gauge.prototype.maxValue = function() {
 */
 Sprite_Gauge.prototype.setMaxValue = function(newMaxValue) {
 	this._maxValue = newMaxValue;
+};
+
+//#endregion
+//#region src/plugins/_base/core/sprites/Spriteset_Base.js
+/**
+* Gets the sprite everything belonging to the world is drawn into.
+*
+* Worth having a name for because it is a boundary rather than merely a container: `_baseColorFilter`
+* is attached here, and a PIXI filter repaints its own subtree and nothing else. So whether something
+* is parented inside this sprite is exactly the question of whether the screen tone reaches it -
+* whether it is part of the world or a layer floating over one.
+*
+* Rain belongs inside. A nameplate does not.
+* @returns {Sprite} The baseSprite.
+*/
+Spriteset_Base.prototype.baseSprite = function() {
+	return this._baseSprite;
 };
 
 //#endregion

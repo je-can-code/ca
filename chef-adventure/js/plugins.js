@@ -118,6 +118,7 @@ var $plugins =
 {"name":"j/abs/ext/J-ABS-Time","status":true,"description":"[v1.1.0 ABS-TIME] Calendar-based respawn methods for JABS.","parameters":{}},
 {"name":"j/lighting/J-Lighting","status":true,"description":"[v1.0.0 LIGHTING] Declarative darkness and light sources for the map.","parameters":{}},
 {"name":"j/lighting/ext/J-Lighting-Time","status":true,"description":"[v1.0.0 LIGHTING-TIME] The day and night cycle, as colour and as darkness.","parameters":{}},
+{"name":"j/weather/J-Weather","status":true,"description":"[v1.0.0 WEATHER] Named ambience and weather, declared per map.","parameters":{}},
 {"name":"j/map/J-Map","status":true,"description":"[v1.2.1 MAP] Renders a passability-driven minimap on the screen.","parameters":{"BASEconfigs":"","minimapX":"-1","minimapY":"-1","startVisible":"true","respectHudHide":"true","overlapOpacityPercent":"40"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/popups/J-Popups","status":true,"description":"[v2.1.1 POPUPS] Map text popups for JABS and beyond.","parameters":{"disablePopups":"false"}},
