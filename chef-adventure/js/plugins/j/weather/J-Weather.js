@@ -315,8 +315,22 @@ var WeatherMotion = class WeatherMotion {
 			pulsePhase: WeatherMotion.pulsePhaseFor(params, rolls.pulse),
 			stage: 0,
 			life: WeatherMotion.lifespanFor(params, rolls.life),
-			stagger: Math.floor(params.staggerFrames * rolls.stagger)
+			stagger: Math.floor(params.staggerFrames * rolls.stagger),
+			done: false
 		};
+	}
+	/**
+	* Whether every particle of a population has finished for good.
+	*
+	* Asked of a retiring layer, once per frame, to find out whether it can be thrown away. A layer
+	* empties at the pace its own motion travels, so this is a slow yes for some of them: rain and
+	* leaves clear in seconds, and fog crawls at a third of a pixel a frame through a queue over a
+	* thousand deep and takes a minute or two.
+	* @param {object[]} particles The population being asked about.
+	* @returns {boolean}
+	*/
+	static isDrained(particles) {
+		return particles.every((particle) => particle.done === true);
 	}
 	/**
 	* Points one axis of a velocity inward from the edge the particle entered by.
@@ -1727,6 +1741,18 @@ var WeatherDirector = class WeatherDirector {
 	*/
 	static #travel = new PlayerTravel();
 	/**
+	* How many times the weather has actually become something else.
+	*
+	* **A counter rather than a flag, and the difference is a visible bug.** Something has to clear a
+	* flag, and the only thing positioned to is the emitter's own update - which runs *after* the
+	* spriteset is built. So on every ordinary arrival the sky is declared, the flag goes up, the
+	* plane is built correctly from the new weather, and then the first frame tears it down and
+	* rebuilds it again. A generation recorded at build time and compared afterwards has no such
+	* window: the number the plane was built against is the number it compares to.
+	* @type {number}
+	*/
+	static #generation = 0;
+	/**
 	* Re-reads the weather for the map the player has just arrived on.
 	*
 	* Called on arrival rather than on a timer, because everything it reads - the map's note, the sky -
@@ -1736,7 +1762,11 @@ var WeatherDirector = class WeatherDirector {
 	static refresh() {
 		WeatherDirector.#travel.forget();
 		const declaration = MapWeatherResolver.declarationFor($dataMap);
-		WeatherDirector.#current = MapWeatherResolver.resolve(declaration, WeatherDirector.#sky);
+		const resolved = MapWeatherResolver.resolve(declaration, WeatherDirector.#sky);
+		if (WeatherDirector.isSameWeather(WeatherDirector.#current, resolved) === false) {
+			WeatherDirector.#generation++;
+		}
+		WeatherDirector.#current = resolved;
 		const { weatherConfig } = J.WEATHER.Metadata;
 		WeatherVariables.sync(weatherConfig, WeatherDirector.#current);
 		WeatherAudioChannel.play(weatherConfig, WeatherDirector.#current);
@@ -1747,6 +1777,40 @@ var WeatherDirector = class WeatherDirector {
 	*/
 	static current() {
 		return WeatherDirector.#current;
+	}
+	/**
+	* Whether two resolutions describe the same weather.
+	*
+	* **Compared by value, and that is load-bearing.** `MapWeatherResolver.resolve` builds a fresh
+	* object every call, so an identity check is always false and the emitter would tear itself down
+	* and rebuild sixty times a second.
+	* @param {?{preset: string, intensity: string}} left One resolution, or null for none.
+	* @param {?{preset: string, intensity: string}} right The other, or null for none.
+	* @returns {boolean}
+	*/
+	static isSameWeather(left, right) {
+		if (left === null) return right === null;
+		if (right === null) return false;
+		if (left.preset !== right.preset) return false;
+		return left.intensity === right.intensity;
+	}
+	/**
+	* How many times the weather has become something else.
+	*
+	* Recorded by the emitter when it builds, and compared afterwards. See the field's own note for
+	* why this is a number rather than a flag.
+	* @returns {number}
+	*/
+	static generation() {
+		return WeatherDirector.#generation;
+	}
+	/**
+	* Whether the weather has become something else since a given generation was recorded.
+	* @param {number} generation The generation the asker last built against.
+	* @returns {boolean}
+	*/
+	static hasChangedSince(generation) {
+		return generation !== WeatherDirector.#generation;
 	}
 	/**
 	* Tells the director what the sky is doing.
@@ -1840,13 +1904,20 @@ var Sprite_WeatherLayer = class Sprite_WeatherLayer extends Sprite {
 	/**
 	* Extends {@link Sprite.initialize}.<br/>
 	* Also builds this layer's entire particle population.
+	*
+	* **An arrival and a change are not the same event.** Arriving somewhere should look like weather
+	* that has already been going, which costs a settling pass; that pass is affordable exactly
+	* because the map is loading anyway. A change of weather under a player who is already standing
+	* there cannot afford it - see {@link Sprite_WeatherLayer.settle} - and does not want it either,
+	* because there is a whole population already on screen for the new one to arrive through.
 	* @param {object} layer A layer resolved by `WeatherPresets.resolveLayer`.
+	* @param {boolean} isArrival Whether the player is arriving, rather than the sky having moved.
 	*/
-	initialize(layer) {
+	initialize(layer, isArrival) {
 		super.initialize();
 		this.initMembers();
 		this.setLayer(layer);
-		this.createParticles();
+		this.createParticles(isArrival);
 	}
 	/**
 	* Initialize all properties of this class.
@@ -1870,6 +1941,15 @@ var Sprite_WeatherLayer = class Sprite_WeatherLayer extends Sprite {
 		* @type {object[]}
 		*/
 		this._j._weather._particles = [];
+		/**
+		* Whether this layer is on its way out.
+		*
+		* A retired layer stops replacing particles that finish and simply empties, which is what makes
+		* a change of weather a crossfade rather than a cut. Nothing else about it changes - the ones
+		* still alive go on exactly as they were, and a raindrop still leaves its ripple.
+		* @type {boolean}
+		*/
+		this._j._weather._retired = false;
 	}
 	/**
 	* Gets what this layer draws and how it moves.
@@ -1893,13 +1973,37 @@ var Sprite_WeatherLayer = class Sprite_WeatherLayer extends Sprite {
 		return this._j._weather._particles;
 	}
 	/**
+	* Gets whether this layer is on its way out.
+	* @returns {boolean} Whether it has been retired.
+	*/
+	isRetired() {
+		return this._j._weather._retired;
+	}
+	/**
+	* Stops this layer replacing the particles that finish.
+	*
+	* Everything already alive carries on to its own end, including turning into whatever it becomes,
+	* so the last raindrops of a shower still land with ripples rather than blinking out mid-air.
+	*/
+	retire() {
+		this._j._weather._retired = true;
+	}
+	/**
+	* Whether this layer has finished emptying and can be thrown away.
+	* @returns {boolean}
+	*/
+	isDrained() {
+		return WeatherMotion.isDrained(this.particles());
+	}
+	/**
 	* Builds the sprites and the states for this layer's whole population.
 	*
 	* One bitmap is shared by every particle, because they are all the same picture - a thousand rain
 	* drops are a thousand draws of one 18x36 image, and loading it a thousand times would be a
 	* thousand copies of it in texture memory.
+	* @param {boolean} isArrival Whether the player is arriving, rather than the sky having moved.
 	*/
-	createParticles() {
+	createParticles(isArrival) {
 		const layer = this.layer();
 		const bitmap = ImageManager.loadWeather(layer.asset);
 		const blendMode = Sprite_WeatherLayer.Blends[layer.blend];
@@ -1912,6 +2016,7 @@ var Sprite_WeatherLayer = class Sprite_WeatherLayer extends Sprite {
 			this.addChild(sprite);
 			this.particles().push(this.buildParticle());
 		}
+		if (isArrival === false) return;
 		this.settle();
 	}
 	/**
@@ -2058,6 +2163,7 @@ var Sprite_WeatherLayer = class Sprite_WeatherLayer extends Sprite {
 	updateParticles() {
 		const bounds = Sprite_WeatherLayer.screenBounds();
 		this.particles().forEach((particle, index) => {
+			if (particle.done === true) return;
 			const params = this.paramsFor(index);
 			WeatherMotion.advance(particle, params);
 			if (this.isFinished(particle, params, bounds) === true) {
@@ -2095,6 +2201,11 @@ var Sprite_WeatherLayer = class Sprite_WeatherLayer extends Sprite {
 			const bounds = Sprite_WeatherLayer.screenBounds();
 			this.particles()[index] = WeatherMotion.succeed(particle, successor, bounds, Sprite_WeatherLayer.rolls());
 			this.children[index].bitmap = ImageManager.loadWeather(successor.asset);
+			return;
+		}
+		if (this.isRetired() === true) {
+			particle.done = true;
+			this.children[index].opacity = 0;
 			return;
 		}
 		const replacement = this.buildParticle();
@@ -2188,8 +2299,27 @@ Spriteset_Map.prototype.createWeatherPlane = function() {
 	* @type {Sprite}
 	*/
 	this.setWeatherPlane(new Sprite());
+	/**
+	* Which generation of the weather this plane was last built against.
+	* @type {number}
+	*/
+	this.setWeatherGeneration(0);
 	this.baseSprite().addChild(this.weatherPlane());
 	this.refreshWeatherLayers();
+};
+/**
+* Gets the generation of the weather this plane was last built against.
+* @returns {number} The weatherGeneration.
+*/
+Spriteset_Map.prototype.weatherGeneration = function() {
+	return this._j._weatherGeneration;
+};
+/**
+* Sets the generation of the weather this plane was last built against.
+* @param {number} newGeneration The new weatherGeneration.
+*/
+Spriteset_Map.prototype.setWeatherGeneration = function(newGeneration) {
+	this._j._weatherGeneration = newGeneration;
 };
 /**
 * Gets the plane the weather is drawn on.
@@ -2216,7 +2346,55 @@ Spriteset_Map.prototype.setWeatherPlane = function(newWeatherPlane) {
 Spriteset_Map.prototype.refreshWeatherLayers = function() {
 	const plane = this.weatherPlane();
 	plane.removeChildren();
-	WeatherDirector.layers().forEach((layer) => plane.addChild(new Sprite_WeatherLayer(layer)));
+	this.setWeatherGeneration(WeatherDirector.generation());
+	WeatherDirector.layers().forEach((layer) => plane.addChild(new Sprite_WeatherLayer(layer, true)));
+};
+/**
+* Extends {@link Spriteset_Base.update}.<br/>
+* Also crossfades the weather when the sky has moved underneath it.
+*
+* **Nothing else would ever notice.** The plane is populated once, when the spriteset is built, so
+* without this a phase turning over mid-play changes the variables and the audio and leaves the
+* screen showing the previous weather until the player next opens a menu.
+*/
+J.WEATHER.Aliased.Spriteset_Map.set("update", Spriteset_Map.prototype.update);
+Spriteset_Map.prototype.update = function() {
+	J.WEATHER.Aliased.Spriteset_Map.get("update").call(this);
+	this.updateWeatherLayers();
+};
+/**
+* Brings the plane into line with whatever the weather has become.
+*
+* Clearing out the emptied layers happens first and unconditionally, because a layer retired by an
+* earlier change is still draining while a later one arrives - three changes inside one fog's
+* drain would otherwise leave three dead populations on the plane.
+*/
+Spriteset_Map.prototype.updateWeatherLayers = function() {
+	this.dropDrainedWeatherLayers();
+	if (WeatherDirector.hasChangedSince(this.weatherGeneration()) === false) return;
+	this.crossfadeWeatherLayers();
+};
+/**
+* Starts the outgoing weather emptying and the incoming weather arriving.
+*
+* **Both populations are on the plane at once**, which is what makes this a crossfade rather than
+* a cut - and it is also the ceiling on how heavy this can get, since for the length of one drain
+* the screen is carrying roughly double the heaviest preset. Rain and leaves clear in seconds; fog
+* takes a minute or two.
+*/
+Spriteset_Map.prototype.crossfadeWeatherLayers = function() {
+	const plane = this.weatherPlane();
+	this.setWeatherGeneration(WeatherDirector.generation());
+	plane.children.forEach((layer) => layer.retire());
+	WeatherDirector.layers().forEach((layer) => plane.addChild(new Sprite_WeatherLayer(layer, false)));
+};
+/**
+* Throws away the retired layers that have finished emptying.
+*/
+Spriteset_Map.prototype.dropDrainedWeatherLayers = function() {
+	const plane = this.weatherPlane();
+	const spent = plane.children.filter((layer) => layer.isRetired() === true && layer.isDrained() === true);
+	spent.forEach((layer) => plane.removeChild(layer));
 };
 
 //#endregion

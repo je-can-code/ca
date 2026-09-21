@@ -272,6 +272,54 @@
                       { "motion": "streak",  "asset": "Star_01A", "density": 3,  "speed": 100, "scale": 70, "scaleJitter": 30, "opacity": 90, "blend": "additive",
                                     "becomesAsset": "Star_03A", "becomesScale": 30, "becomesScaleJitter": 16, "becomesOpacity": 80, "becomesTint": "#e8f6ff" } ]
       }
+    },
+
+    "_comment_faces": [
+      "The three below are not skies of their own - they are what 'clear' and 'breezy' wear in a",
+      "particular season. J-Weather-Time picks them by (type, season, phase) and hands the name",
+      "straight to layersFor, which is why they have to be real presets rather than overrides."
+    ],
+
+    "scorcher": {
+      "description": "NEW - the summer daytime face of a clear sky. Same shafts as 'clear' but pushed hot, with a slow warm shimmer rising through them. Light_01C is an orange core in a red glow, which is what heat looks like when it is standing still in the air.",
+      "stops": {
+        "light":    [ { "motion": "ray",  "asset": "SunLight_03A", "density": 2,  "speed": 100, "scale": 130, "scaleJitter": 90, "opacity": 30, "tint": "#ffe9b0", "blend": "additive" },
+                      { "motion": "wisp", "asset": "Light_01C",    "density": 6,  "speed": 60,  "scale": 30,  "scaleJitter": 20, "opacity": 16, "blend": "additive" } ],
+        "moderate": [ { "motion": "ray",  "asset": "SunLight_01A", "density": 3,  "speed": 100, "scale": 115, "scaleJitter": 70, "opacity": 38, "tint": "#ffdf95", "blend": "additive" },
+                      { "motion": "wisp", "asset": "Light_01C",    "density": 12, "speed": 60,  "scale": 32,  "scaleJitter": 22, "opacity": 20, "blend": "additive" } ],
+        "heavy":    [ { "motion": "ray",  "asset": "SunLight_01A", "density": 5,  "speed": 100, "scale": 135, "scaleJitter": 90, "opacity": 48, "tint": "#ffd070", "blend": "additive" },
+                      { "motion": "wisp", "asset": "Light_01C",    "density": 22, "speed": 60,  "scale": 34,  "scaleJitter": 24, "opacity": 24, "blend": "additive" } ]
+      }
+    },
+
+    "frigid": {
+      "description": "NEW - the winter daytime face of a clear sky. A cold sun throws weaker, bluer shafts than a summer one, and the air itself glitters: on a still freezing day the moisture in it hangs as suspended ice rather than falling. That is what the twinkling snowflakes are - diamond dust, not snowfall.",
+      "stops": {
+        "light":    [ { "motion": "ray",     "asset": "SunLight_03A", "density": 2,  "speed": 100, "scale": 120, "scaleJitter": 80, "opacity": 20, "tint": "#dbe9ff", "blend": "additive" },
+                      { "motion": "twinkle", "asset": "Snow_01",      "density": 14, "speed": 100, "scale": 18,  "scaleJitter": 8,  "opacity": 55, "tint": "#eaf4ff", "blend": "normal" } ],
+        "moderate": [ { "motion": "ray",     "asset": "SunLight_03A", "density": 3,  "speed": 100, "scale": 110, "scaleJitter": 70, "opacity": 24, "tint": "#d2e4ff", "blend": "additive" },
+                      { "motion": "twinkle", "asset": "Snow_01",      "density": 30, "speed": 100, "scale": 20,  "scaleJitter": 9,  "opacity": 65, "tint": "#eaf4ff", "blend": "normal" } ],
+        "heavy":    [ { "motion": "ray",     "asset": "SunLight_03A", "density": 4,  "speed": 100, "scale": 125, "scaleJitter": 85, "opacity": 28, "tint": "#c8dcff", "blend": "additive" },
+                      { "motion": "twinkle", "asset": "Snow_01",      "density": 55, "speed": 100, "scale": 22,  "scaleJitter": 10, "opacity": 75, "tint": "#eaf4ff", "blend": "normal" } ]
+      }
+    },
+
+    "maple": {
+      "description": "NEW - the autumn face of a breeze. The same motions as 'leaves' wearing a different tree. Leaf_03C is already painted red and Leaf_03B is the unturned green one, so a heavy wind carries both; Leaf_03A is the same shape in grey and takes an amber tint. These are 210px where Leaf_04A is 31px, which is the whole reason the scales look so different from the preset this was copied from.",
+      "stops": {
+        "light":    [ { "motion": "fall-drift", "asset": "Leaf_03C", "density": 12, "speed": 80,  "scale": 11, "scaleJitter": 5, "blend": "normal" } ],
+        "moderate": [ { "motion": "fall-drift", "asset": "Leaf_03C", "density": 26, "speed": 100, "scale": 11, "scaleJitter": 5, "blend": "normal" },
+                      { "motion": "fall-drift", "asset": "Leaf_03A", "density": 10, "speed": 95,  "scale": 10, "scaleJitter": 5, "tint": "#d98f3c", "blend": "normal" } ],
+        "heavy":    [ { "motion": "fall-drift", "asset": "Leaf_03C", "density": 55, "speed": 150, "scale": 11, "scaleJitter": 6, "blend": "normal" },
+                      { "motion": "fall-drift", "asset": "Leaf_03A", "density": 22, "speed": 140, "scale": 10, "scaleJitter": 6, "tint": "#c9762e", "blend": "normal" },
+                      { "motion": "drift",      "asset": "Leaf_03B", "density": 30, "speed": 180, "scale": 8,  "scaleJitter": 4, "blend": "normal" } ]
+      },
+      "_comment_sounds": "Autumn wind is still wind, so this borrows the leaves ladder unchanged.",
+      "sounds": {
+        "light":    { "name": "Wind1", "volume": 30, "pitch": 100 },
+        "moderate": { "name": "Wind1", "volume": 50, "pitch": 100 },
+        "heavy":    { "name": "Wind4", "volume": 70, "pitch": 100 }
+      }
     }
   },
 
@@ -295,7 +343,10 @@
     "clear": 9,
     "sakura": 10,
     "fireflies": 11,
-    "starfall": 12
+    "starfall": 12,
+    "scorcher": 13,
+    "frigid": 14,
+    "maple": 15
   },
 
   "intensityIds": {
@@ -306,7 +357,250 @@
 
   "variables": {
     "enabled": true,
-    "weatherType": 0,
-    "weatherIntensity": 0
+    "weatherType": 131,
+    "weatherIntensity": 132
+  },
+
+  "_comment_sky": [
+    "Everything below belongs to J-Weather-Time. J-Weather itself never reads it.",
+    "",
+    "A TYPE is a condition the sky walks between. A FACE is the preset that type is drawn with at a",
+    "given season and hour - a clear summer afternoon and a clear winter afternoon are one state and",
+    "two completely different pictures, and folding that into the graph would double every edge.",
+    "",
+    "Transition weights are relative and need not sum to anything. Seasons hard-gate which types are",
+    "possible at all, because 'it never snows in summer' is a fact about the world where a weight of",
+    "zero is only a fact about dice."
+  ],
+
+  "sky": {
+    "types": {
+      "clear": {
+        "preset": "clear",
+        "intensities": [ "light", "moderate", "heavy" ],
+        "_comment": "Order matters - the first rule whose keys all match wins, so the summer night rule must sit above the general night rule.",
+        "faces": [
+          { "phases": [ 0, 5 ], "seasons": [ "summer" ], "preset": "fireflies" },
+          { "phases": [ 0, 5 ], "preset": "starfall" },
+          { "phases": [ 1, 2, 3, 4 ], "seasons": [ "summer" ], "preset": "scorcher" },
+          { "phases": [ 1, 2, 3, 4 ], "seasons": [ "winter" ], "preset": "frigid" }
+        ]
+      },
+      "overcast": { "preset": "clouds", "intensities": [ "light", "moderate", "heavy" ] },
+      "breezy": {
+        "preset": "leaves",
+        "intensities": [ "light", "moderate", "heavy" ],
+        "_comment": "In autumn all wind is maple wind - there is no plain leaf breeze between months 9 and 11, deliberately.",
+        "faces": [ { "seasons": [ "autumn" ], "preset": "maple" } ]
+      },
+      "rain": { "preset": "rain", "intensities": [ "light", "moderate", "heavy" ] },
+      "mist": {
+        "_comment": "Caps at moderate on purpose: a heavy mist is just fog, and fog is a place rather than a sky.",
+        "preset": "fog",
+        "intensities": [ "light", "moderate" ]
+      },
+      "sakura": { "preset": "sakura", "intensities": [ "light", "moderate" ] },
+      "monsoon": {
+        "_comment": "A separate type rather than 'rain at heavy' so the strength drift cannot argue it down.",
+        "preset": "rain",
+        "intensities": [ "heavy" ]
+      },
+      "snow": { "preset": "snow", "intensities": [ "light", "moderate", "heavy" ] }
+    },
+
+    "seasons": {
+      "spring": {
+        "_comment": "Mild and showery. Sakura is the season's signature and reachable only from calm weather.",
+        "allowed": [ "clear", "overcast", "breezy", "rain", "mist", "sakura" ],
+        "transitions": {
+          "clear":    { "clear": 42, "breezy": 28, "overcast": 20, "sakura": 10 },
+          "overcast": { "overcast": 18, "clear": 26, "rain": 36, "mist": 20 },
+          "breezy":   { "breezy": 32, "clear": 28, "overcast": 20, "sakura": 20 },
+          "rain":     { "rain": 42, "overcast": 28, "mist": 18, "breezy": 12 },
+          "mist":     { "mist": 34, "clear": 34, "overcast": 14, "breezy": 18 },
+          "sakura":   { "sakura": 45, "breezy": 30, "clear": 25 }
+        }
+      },
+      "summer": {
+        "_comment": "Clear-biased and dry. Rain when it comes arrives through overcast and leaves the same way.",
+        "allowed": [ "clear", "overcast", "breezy", "rain" ],
+        "transitions": {
+          "clear":    { "clear": 52, "breezy": 30, "overcast": 18 },
+          "overcast": { "overcast": 16, "clear": 38, "rain": 36, "breezy": 10 },
+          "breezy":   { "breezy": 30, "clear": 48, "overcast": 22 },
+          "rain":     { "rain": 34, "overcast": 30, "breezy": 24, "clear": 12 }
+        }
+      },
+      "autumn": {
+        "_comment": "Windy and wet. A monsoon can only be entered from rain and can only leave back into it, which is what keeps it an event rather than a mood.",
+        "allowed": [ "clear", "overcast", "breezy", "rain", "mist", "monsoon" ],
+        "transitions": {
+          "clear":    { "clear": 32, "breezy": 44, "overcast": 24 },
+          "overcast": { "overcast": 18, "clear": 24, "rain": 38, "mist": 20 },
+          "breezy":   { "breezy": 36, "clear": 26, "overcast": 20, "rain": 18 },
+          "rain":     { "rain": 34, "overcast": 24, "monsoon": 22, "breezy": 20 },
+          "monsoon":  { "monsoon": 42, "rain": 58 },
+          "mist":     { "mist": 32, "clear": 36, "overcast": 14, "breezy": 18 }
+        }
+      },
+      "winter": {
+        "_comment": "Cold. Snow is reachable from everywhere because the Negative Peaks should not have to wait three phases for it.",
+        "allowed": [ "clear", "overcast", "breezy", "rain", "snow" ],
+        "transitions": {
+          "clear":    { "clear": 38, "overcast": 20, "breezy": 22, "snow": 20 },
+          "overcast": { "overcast": 16, "clear": 26, "snow": 44, "rain": 14 },
+          "breezy":   { "breezy": 30, "clear": 30, "overcast": 16, "snow": 24 },
+          "rain":     { "rain": 24, "overcast": 30, "snow": 30, "breezy": 16 },
+          "snow":     { "snow": 46, "overcast": 18, "clear": 18, "breezy": 18 }
+        }
+      }
+    },
+
+    "_comment_months": [
+      "A season says what is POSSIBLE. A month says what is LIKELY, within that.",
+      "",
+      "Each number multiplies that condition's weight while rolling into it, so 1 is 'leave the",
+      "graph alone', 4 is 'four times as wanted as authored', and 0 is 'not this month'. A month",
+      "names only the conditions it has an opinion about.",
+      "",
+      "This is what makes sakura a fortnight in April rather than a whole spring, August the",
+      "uncomfortable stretch, October the monsoon month, and the deep snow December and January",
+      "with February visibly letting go of it.",
+      "",
+      "Zero is safe and is how sakura ENDS rather than fades - a sky still blossoming on the last",
+      "day of month 4 steps straight out of it on the next phase. What is not safe is zeroing",
+      "every exit from one condition; config validation reports that at boot."
+    ],
+
+    "months": {
+      "3":  { "sakura": 2.5 },
+      "4":  { "sakura": 4.0, "rain": 1.3 },
+      "5":  { "sakura": 0, "rain": 1.3 },
+
+      "6":  { "clear": 1.2 },
+      "7":  { "clear": 1.6 },
+      "8":  { "clear": 2.5, "rain": 0.5 },
+
+      "9":  { "breezy": 1.2, "rain": 2.0, "monsoon": 0.3 },
+      "10": { "monsoon": 3.5, "rain": 1.5 },
+      "11": { "monsoon": 0.4, "mist": 1.8 },
+
+      "12": { "snow": 2.5 },
+      "1":  { "snow": 3.0 },
+      "2":  { "snow": 0.5, "rain": 1.5 }
+    },
+
+    "intensityDrift": { "hold": 50, "up": 25, "down": 25 },
+    "settleTo": "clear",
+    "forecastPhases": 2160,
+    "visibleDays": 3,
+
+    "_comment_voices": [
+      "What somebody travelling with you says about the weather, on the 'Right Now' view.",
+      "",
+      "Keyed by PRESET, then optionally by strength. A preset that writes only 'any' uses those",
+      "lines whatever the strength is, so you owe fifteen states rather than forty-five - split a",
+      "preset into light/moderate/heavy only where a drizzle and a downpour want different words.",
+      "'none' covers standing somewhere with no weather at all.",
+      "",
+      "'who' is an ACTOR ID. The name and the face both come from the database, so renaming",
+      "somebody in the editor renames them here - and only actors currently in the party are ever",
+      "picked, so nobody remarks on the weather before you have met them. Jerald is 1, Rupert 2.",
+      "",
+      "One line is chosen at random each time the view is opened. Write at least two per state or",
+      "it stops feeling like a person and starts feeling like a tooltip.",
+      "",
+      "EVERYTHING BELOW IS PLACEHOLDER, written to prove the mechanism. Replace it."
+    ],
+
+    "voices": {
+      "none": {
+        "any": [
+          { "who": 1, "says": "Nothing coming down in here. Small mercies." },
+          { "who": 2, "says": "Dry, at least. I'll take dry." }
+        ]
+      },
+      "rain": {
+        "any": [
+          { "who": 1, "says": "Wet one. Hope you packed something that dries fast." },
+          { "who": 2, "says": "It's raining. I have opinions about that, none of them good." }
+        ],
+        "heavy": [
+          { "who": 1, "says": "This is less rain and more the sky emptying itself." },
+          { "who": 2, "says": "I can't see ten paces. Whatever we're doing, let's do it tomorrow." }
+        ]
+      },
+      "clear": {
+        "any": [
+          { "who": 1, "says": "Not a thing up there. Good day to be going somewhere." },
+          { "who": 2, "says": "Clear as anything. Enjoy it, it never lasts." }
+        ]
+      },
+      "scorcher": {
+        "any": [
+          { "who": 1, "says": "It is absolutely cooking out here. Drink something." },
+          { "who": 2, "says": "I am going to melt. I want that noted." }
+        ]
+      },
+      "snow": {
+        "any": [
+          { "who": 1, "says": "Snow's coming down. Watch your footing up high." },
+          { "who": 2, "says": "Cold. Wet. Cold and wet. Wonderful." }
+        ]
+      },
+      "starfall": {
+        "any": [
+          { "who": 1, "says": "Whole sky's awake tonight. Worth stopping for a minute." },
+          { "who": 2, "says": "You don't get skies like this in a city. That's the one thing." }
+        ]
+      }
+    },
+
+    "_comment_places": [
+      "The destinations the DIAGNOSTIC forecast reports on - the one behind the showDebugForecast",
+      "plugin command, not anything a player sees. Naming places in a player-facing screen would",
+      "tell them the Negative Peaks exist before they have found them.",
+      "",
+      "A place is a NAME and a MAP ID and nothing else. The forecast reads that map's own note off",
+      "disk and runs it through the same resolver the game uses on arrival, so retagging a map",
+      "updates the forecast and the two can never disagree. Nothing about a place's weather is",
+      "restated here.",
+      "",
+      "Rows appear in the order listed. A map id that does not exist is reported and dropped."
+    ],
+
+    "places": [
+      { "name": "Raevula",          "mapId": 19 },
+      { "name": "Outer Cliffs",     "mapId": 117 },
+      { "name": "Deluge Valley",    "mapId": 125 },
+      { "name": "Negative Peaks",   "mapId": 120 },
+      { "name": "Forest of Dreams", "mapId": 24 }
+    ]
+  },
+
+  "_comment_climates": [
+    "A climate is how one KIND OF PLACE answers the sky rather than following it. It only bends a",
+    "look the map already authored with <weather:...>; a map with no weather of its own follows the",
+    "sky directly and a climate tag on it does nothing.",
+    "",
+    "byType and byIntensity are alternatives, not layers - declare one. `default` is the fallback for",
+    "whichever was declared."
+  ],
+
+  "climates": {
+    "dreaming": {
+      "_comment": "Forest of Dreams. The fog thickens as the sky clears, which is the one thing a map tag cannot say.",
+      "byType": {
+        "clear": "heavy",
+        "breezy": "moderate",
+        "overcast": "light",
+        "rain": "light",
+        "monsoon": "light",
+        "mist": "heavy",
+        "snow": "moderate",
+        "sakura": "moderate"
+      },
+      "default": "moderate"
+    }
   }
 }
