@@ -1493,61 +1493,6 @@ MapWeatherResolver.intensityFor = function(declaration, sky) {
 };
 
 //#endregion
-//#region src/plugins/weather/ext/time/core/ForecastIcons.js
-/**
-* The picture a forecast draws for each look, when there is one.
-*
-* **Absence is the normal case and must stay legible.** Fifteen presets need artwork and the game
-* has a handful, so a screen that broke, blanked, or drew a placeholder box for the rest would be
-* unusable for as long as it takes to draw the others - which is exactly the period this has to
-* work through. A preset without an icon falls back to its own name, so the forecast is complete
-* from the first day and gets prettier rather than gaining features.
-*/
-var ForecastIcons = class ForecastIcons {
-	/**
-	* The icon index meaning "nothing drawn".
-	*
-	* Zero rather than a negative, because zero is what an unset numeric field reads as in the
-	* editor and in hand-written config alike.
-	* @type {number}
-	*/
-	static None = 0;
-	/**
-	* The icon a given look is drawn with.
-	* @param {object} config The parsed contents of `config.weather.json`.
-	* @param {string} presetName The look being drawn.
-	* @returns {number} The icon index, or {@link ForecastIcons.None} when it has no artwork yet.
-	*/
-	static indexFor(config, presetName) {
-		const preset = config.presets[presetName];
-		if (preset === undefined) return ForecastIcons.None;
-		if (preset.iconIndex === undefined) return ForecastIcons.None;
-		return preset.iconIndex;
-	}
-	/**
-	* Whether a given look has artwork yet.
-	* @param {object} config The parsed contents of `config.weather.json`.
-	* @param {string} presetName The look being drawn.
-	* @returns {boolean}
-	*/
-	static hasIcon(config, presetName) {
-		return ForecastIcons.indexFor(config, presetName) !== ForecastIcons.None;
-	}
-	/**
-	* Every look still waiting on artwork.
-	*
-	* Reported at boot rather than discovered by opening the forecast and squinting at which cells
-	* are words. Not a fault - a game that never draws one is perfectly playable - so this is
-	* informational and says so.
-	* @param {object} config The parsed contents of `config.weather.json`.
-	* @returns {string[]}
-	*/
-	static missing(config) {
-		return Object.keys(config.presets).filter((name) => name.startsWith("_") === false).filter((name) => ForecastIcons.hasIcon(config, name) === false);
-	}
-};
-
-//#endregion
 //#region src/plugins/weather/ext/time/core/ForecastVoice.js
 /**
 * Somebody's opinion of the weather, instead of a readout of it.
@@ -2873,6 +2818,14 @@ var Window_ForecastCommand = class Window_ForecastCommand extends Window_Command
 	*/
 	static WeekSymbol = "forecast-week";
 	/**
+	* How many views this window offers.
+	*
+	* Declared so the scene can size the window to its contents without building it first. Three is
+	* the whole of what a forecast is asked, and it is not a number that grows with content.
+	* @type {number}
+	*/
+	static ViewCount = 3;
+	/**
 	* Overwrites {@link #makeCommandList}.<br/>
 	* Builds the three views.
 	*/
@@ -2959,14 +2912,14 @@ var Window_ForecastNow = class extends Window_Base {
 	*/
 	drawWeather(reading) {
 		const { weather } = reading;
+		const config = J.WEATHER.Metadata.weatherConfig;
 		if (weather === null) {
-			this.drawText("Sheltered.", 0, 0, this.innerWidth, "left");
+			this.drawText(WeatherLabel.nothingFalling(config), 0, 0, this.innerWidth, "left");
 			return;
 		}
-		const config = J.WEATHER.Metadata.weatherConfig;
-		const iconIndex = ForecastIcons.indexFor(config, weather.preset);
-		const label = `${weather.preset}, ${weather.intensity}`;
-		if (iconIndex === ForecastIcons.None) {
+		const iconIndex = WeatherIcons.indexFor(config, weather.preset);
+		const label = WeatherLabel.words(config, weather.preset, weather.intensity);
+		if (iconIndex === WeatherIcons.None) {
 			this.drawText(label, 0, 0, this.innerWidth, "left");
 			return;
 		}
@@ -3079,7 +3032,7 @@ var Window_ForecastToday = class extends Window_Base {
 	* @returns {number}
 	*/
 	rowHeight() {
-		return this.lineHeight() * 2;
+		return this.lineHeight();
 	}
 	/**
 	* How wide the phase-name column is.
@@ -3139,16 +3092,16 @@ var Window_ForecastToday = class extends Window_Base {
 			return;
 		}
 		const config = J.WEATHER.Metadata.weatherConfig;
-		const iconIndex = ForecastIcons.indexFor(config, sky.preset);
+		const iconIndex = WeatherIcons.indexFor(config, sky.preset);
 		let textX = x;
-		if (iconIndex !== ForecastIcons.None) {
+		if (iconIndex !== WeatherIcons.None) {
 			this.drawIcon(iconIndex, x, y);
 			textX = x + ImageManager.iconWidth + this.itemPadding();
 		}
+		const words = WeatherLabel.words(config, sky.preset, sky.intensity);
 		this.changeTextColor(isNow ? ColorManager.powerUpColor() : ColorManager.normalColor());
-		this.drawText(sky.preset, textX, y, width, "left");
+		this.drawText(words, textX, y, width, "left");
 		this.resetTextColor();
-		this.drawText(sky.intensity, textX, y + this.lineHeight(), width, "left");
 	}
 };
 
@@ -3281,13 +3234,15 @@ var Window_ForecastWeek = class extends Window_Base {
 			return;
 		}
 		const config = J.WEATHER.Metadata.weatherConfig;
-		const iconIndex = ForecastIcons.indexFor(config, preset);
-		if (iconIndex === ForecastIcons.None) {
+		const iconIndex = WeatherIcons.indexFor(config, preset);
+		if (iconIndex === WeatherIcons.None) {
 			this.drawText(preset, x, y, width, "center");
 			return;
 		}
-		const centred = x + Math.floor((width - ImageManager.iconWidth) / 2);
-		this.drawIcon(iconIndex, centred, y);
+		const words = WeatherLabel.words(config, preset, String.empty);
+		const textWidth = width - ImageManager.iconWidth - this.itemPadding();
+		this.drawIcon(iconIndex, x, y);
+		this.drawText(words, x + ImageManager.iconWidth + this.itemPadding(), y, textWidth, "left");
 	}
 };
 
@@ -3619,7 +3574,8 @@ var Scene_Forecast = class Scene_Forecast extends Scene_MenuFacetBase {
 	*/
 	forecastCommandRect() {
 		const area = this.facetAreaRect();
-		return new Rectangle(area.x, area.y, this.commandColumnWidth(), area.height);
+		const height = this.calcWindowHeight(Window_ForecastCommand.ViewCount, true);
+		return new Rectangle(area.x, area.y, this.commandColumnWidth(), height);
 	}
 	/**
 	* The bounds the showing view fills.

@@ -82,6 +82,37 @@
  *
  * It outranks everything, including a <weather:> tag on the same map.
  * ============================================================================
+ * NAMING THE WEATHER IN TEXT:
+ * Use anywhere text is shown- a message, a choice, a help line, a scene:
+ *
+ * TEXT CODE FORMAT:
+ *  \weather[TYPE, INTENSITY]
+ *
+ * It becomes the weather's icon, its name, and its strength in brackets:
+ *
+ *  \weather[rain, heavy]     ->  <icon> rain (heavy)
+ *  \weather[snow]            ->  <icon> snow
+ *  \weather[1, 3]            ->  <icon> rain (heavy)
+ *  \weather[]                ->  whatever is falling on the player right now
+ *
+ * TYPE is a preset name or the number it reports as; INTENSITY is light,
+ * moderate or heavy, or its number. Both come from the same presetIds and
+ * intensityIds the map tags and the game variables already use, so a name
+ * that works in a notetag works here.
+ *
+ * INTENSITY is optional. Leave it out to name the weather on its own.
+ *
+ * THE EMPTY FORM IS THE USEFUL ONE. \weather[] reads whatever is actually
+ * falling where the player is standing, at the moment the line is drawn- so a
+ * line written once stays true forever, rather than being a guess about what
+ * the sky is doing whenever the player finally gets there. It reads the same
+ * resolution the map does, so it says fog in a foggy forest and snow on a
+ * snowy peak rather than reporting the sky over town.
+ *
+ * Somewhere nothing is falling, it says whatever `labels.nothing` in the
+ * configuration says- because the sentence it was dropped into still has to
+ * finish.
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.0
  *    The initial release.
@@ -170,6 +201,7 @@ J.WEATHER.Aliased = {};
 J.WEATHER.Aliased.Game_Map = new Map();
 J.WEATHER.Aliased.Scene_Map = new Map();
 J.WEATHER.Aliased.Spriteset_Map = new Map();
+J.WEATHER.Aliased.Window_Base = new Map();
 /**
 * All regular expressions used by this plugin.
 */
@@ -1382,6 +1414,33 @@ var WeatherVariables = class WeatherVariables {
 		return declared;
 	}
 	/**
+	* The look a declared id refers to.
+	*
+	* The mirror read backwards, for the places that receive a number and have to say what it means -
+	* a text code written by hand, or an event that computed one into a variable and wants it spelled
+	* out. Nothing about the sky is decided here; this only reads the same table {@link
+	* WeatherVariables.typeIdFor} writes from.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @param {number} id The declared id being named.
+	* @returns {string} The preset's name, or {@link String.empty} when no preset claims that id.
+	*/
+	static typeNameFor(config, id) {
+		const found = Object.keys(config.presetIds).find((presetName) => config.presetIds[presetName] === id);
+		if (found === undefined) return String.empty;
+		return found;
+	}
+	/**
+	* The strength a declared id refers to.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @param {number} id The declared id being named.
+	* @returns {string} The rung's name, or {@link String.empty} when no rung claims that id.
+	*/
+	static intensityNameFor(config, id) {
+		const found = Object.keys(config.intensityIds).find((intensity) => config.intensityIds[intensity] === id);
+		if (found === undefined) return String.empty;
+		return found;
+	}
+	/**
 	* Writes the current weather into the variables events read.
 	*
 	* Silent when the mirror is switched off, which is how a game that does not branch on weather
@@ -1395,6 +1454,192 @@ var WeatherVariables = class WeatherVariables {
 		const ids = WeatherVariables.idsFor(config, resolution);
 		$gameVariables.setValue(variables.weatherType, ids.weatherType);
 		$gameVariables.setValue(variables.weatherIntensity, ids.weatherIntensity);
+	}
+};
+
+//#endregion
+//#region src/plugins/weather/core/core/WeatherIcons.js
+/**
+* The picture that stands for each look, wherever one is written down.
+*
+* **Absence is the normal case and must stay legible.** Fifteen presets need artwork and the game
+* has a handful, so anything that broke, blanked, or drew a placeholder box for the rest would be
+* unusable for exactly as long as it takes to draw the others - which is the period this has to
+* work through. A preset without an icon falls back to its own name, so every screen and every
+* line of dialogue is complete from the first day and gets prettier rather than gaining features.
+*/
+var WeatherIcons = class WeatherIcons {
+	/**
+	* The icon index meaning "nothing drawn".
+	*
+	* Zero rather than a negative, because zero is what an unset numeric field reads as in the
+	* editor and in hand-written config alike.
+	* @type {number}
+	*/
+	static None = 0;
+	/**
+	* The icon a given look is drawn with.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @param {string} presetName The look being drawn.
+	* @returns {number} The icon index, or {@link WeatherIcons.None} when it has no artwork yet.
+	*/
+	static indexFor(config, presetName) {
+		const preset = config.presets[presetName];
+		if (preset === undefined) return WeatherIcons.None;
+		if (preset.iconIndex === undefined) return WeatherIcons.None;
+		return preset.iconIndex;
+	}
+	/**
+	* Whether a given look has artwork yet.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @param {string} presetName The look being drawn.
+	* @returns {boolean}
+	*/
+	static hasIcon(config, presetName) {
+		return WeatherIcons.indexFor(config, presetName) !== WeatherIcons.None;
+	}
+	/**
+	* Every look still waiting on artwork.
+	*
+	* Reported at boot rather than discovered by opening the forecast and squinting at which cells
+	* are words. Not a fault - a game that never draws one is perfectly playable - so this is
+	* informational and says so.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @returns {string[]}
+	*/
+	static missing(config) {
+		return Object.keys(config.presets).filter((name) => name.startsWith("_") === false).filter((name) => WeatherIcons.hasIcon(config, name) === false);
+	}
+};
+
+//#endregion
+//#region src/plugins/weather/core/core/WeatherLabel.js
+/**
+* The one way weather is written down, wherever it is written down.
+*
+* **`<icon> type (intensity)`, and nowhere gets to disagree.** A forecast row, a text code in a
+* line of dialogue and anything added later all come through here, so the format is enforced
+* rather than remembered - the failure this avoids is the ordinary one where four screens drift
+* into four spellings of the same fact over a year of small edits.
+*
+* The output is ordinary RMMZ text codes rather than drawing instructions, which is what lets one
+* implementation serve both a window drawing a row and a message box rendering a sentence. Every
+* window in the engine already knows how to read `\I[]`.
+*/
+var WeatherLabel = class WeatherLabel {
+	/**
+	* The word used for no weather when the configuration names none of its own.
+	* @type {string}
+	*/
+	static DefaultNothing = "clear";
+	/**
+	* The word standing in for weather when there is none.
+	*
+	* Authored rather than fixed, because "nothing is falling on you" is a different sentence in
+	* different games and this one has to read naturally in the middle of somebody's dialogue.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @returns {string}
+	*/
+	static nothingFalling(config) {
+		if (config.labels === undefined) return WeatherLabel.DefaultNothing;
+		if (config.labels.nothing === undefined) return WeatherLabel.DefaultNothing;
+		return config.labels.nothing;
+	}
+	/**
+	* One weather in words, without its picture.
+	*
+	* **This is where the format actually lives.** A window that wants to colour the words itself
+	* cannot go through {@link WeatherLabel.for}, because `drawTextEx` resets font settings before
+	* it draws - so it draws the icon itself and asks for this. Both paths therefore agree on the
+	* wording by construction rather than by two authors remembering the same thing.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @param {string} presetName The look being written.
+	* @param {string} intensityName The strength, or {@link String.empty} to omit it.
+	* @returns {string} The words alone.
+	*/
+	static words(config, presetName, intensityName) {
+		if (presetName === String.empty) return String.empty;
+		if (intensityName === String.empty) return presetName;
+		return `${presetName} (${intensityName})`;
+	}
+	/**
+	* One weather, spelled the standard way, picture and all.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @param {string} presetName The look being written.
+	* @param {string} intensityName The strength, or {@link String.empty} to omit it.
+	* @returns {string} Text codes ready for any window to render.
+	*/
+	static for(config, presetName, intensityName) {
+		const words = WeatherLabel.words(config, presetName, intensityName);
+		if (words === String.empty) return String.empty;
+		const iconIndex = WeatherIcons.indexFor(config, presetName);
+		if (iconIndex === WeatherIcons.None) return words;
+		return `\\I[${iconIndex}]${words}`;
+	}
+	/**
+	* One weather named however the author found convenient.
+	*
+	* Names and numbers are both accepted because both are already in circulation: a map notetag
+	* takes either, so a text code that took only one of them would be the odd one out. Hand-written
+	* dialogue wants `rain`; an event that computed the id into a variable has a number.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @param {string} token What the author wrote for the look.
+	* @returns {string} The preset's name, or {@link String.empty} when nothing claims that token.
+	*/
+	static presetFrom(config, token) {
+		if (config.presetIds[token] !== undefined) return token;
+		const asNumber = Number(token);
+		if (Number.isFinite(asNumber) === false) return String.empty;
+		return WeatherVariables.typeNameFor(config, asNumber);
+	}
+	/**
+	* One strength named however the author found convenient.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @param {string} token What the author wrote for the strength.
+	* @returns {string} The rung's name, or {@link String.empty} when nothing claims that token.
+	*/
+	static intensityFrom(config, token) {
+		if (config.intensityIds[token] !== undefined) return token;
+		const asNumber = Number(token);
+		if (Number.isFinite(asNumber) === false) return String.empty;
+		return WeatherVariables.intensityNameFor(config, asNumber);
+	}
+	/**
+	* What a text code's arguments amount to.
+	*
+	* Three shapes, and the empty one is the useful one: `\weather[]` means whatever is falling on
+	* the player as the line is drawn, so a line written once stays true for the life of the game
+	* rather than being a guess about what the sky is doing when the player finally gets there.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @param {string} rawArguments Whatever sat between the brackets.
+	* @param {?{preset: string, intensity: string}} here What is falling on the player, or null.
+	* @returns {string} Text codes ready for any window to render.
+	*/
+	static fromArguments(config, rawArguments, here) {
+		const tokens = rawArguments.split(",").map((token) => token.trim()).filter((token) => token !== String.empty);
+		if (tokens.length === 0) return WeatherLabel.here(config, here);
+		const [presetToken, intensityToken] = tokens;
+		const presetName = WeatherLabel.presetFrom(config, presetToken);
+		if (presetName === String.empty) {
+			Diagnostics.warn("J-Weather", `no weather is named by: [ ${presetToken} ]!`, { declared: Object.keys(config.presetIds) });
+			return String.empty;
+		}
+		if (intensityToken === undefined) return WeatherLabel.for(config, presetName, String.empty);
+		const intensityName = WeatherLabel.intensityFrom(config, intensityToken);
+		if (intensityName === String.empty) {
+			Diagnostics.warn("J-Weather", `no weather strength is named by: [ ${intensityToken} ]!`, { declared: Object.keys(config.intensityIds) });
+		}
+		return WeatherLabel.for(config, presetName, intensityName);
+	}
+	/**
+	* What is falling on the player, spelled the standard way.
+	* @param {object} config The parsed contents of `config.weather.json`.
+	* @param {?{preset: string, intensity: string}} here What is falling on the player, or null.
+	* @returns {string} Text codes ready for any window to render.
+	*/
+	static here(config, here) {
+		if (here === null) return WeatherLabel.nothingFalling(config);
+		return WeatherLabel.for(config, here.preset, here.intensity);
 	}
 };
 
@@ -1849,6 +2094,50 @@ var WeatherDirector = class WeatherDirector {
 		if (current === null) return [];
 		return WeatherPresets.layersFor(J.WEATHER.Metadata.weatherConfig, current.preset, current.intensity);
 	}
+};
+
+//#endregion
+//#region src/plugins/weather/core/windows/Window_Base.js
+/**
+* Extends {@link #convertEscapeCharacters}.<br/>
+* Adds handling for the weather text code.
+*
+* Aliasing the base window rather than the message window is what makes this work everywhere at
+* once - a message box, a speech bubble, a help line, a forecast row. The code expands into the
+* engine's own `\I[]`, so nothing downstream has to learn that weather exists, and no other plugin
+* needs a change to display it.
+*/
+J.WEATHER.Aliased.Window_Base.set("convertEscapeCharacters", Window_Base.prototype.convertEscapeCharacters);
+Window_Base.prototype.convertEscapeCharacters = function(text) {
+	const converted = this.translateWeatherTextCode(text);
+	return J.WEATHER.Aliased.Window_Base.get("convertEscapeCharacters").call(this, converted);
+};
+/**
+* Translates the weather text code into the icon and words for that weather.
+*
+* <pre>
+* Structure:
+*  \weather[TYPE, INTENSITY]
+*
+* Examples:
+*  \weather[rain, heavy]
+*  \weather[1, 3]
+*  \weather[snow]
+*  \weather[]
+*
+* Translation:
+*  the icon, name and strength of that weather - and for the empty form, of whatever is
+*  currently falling on the player.
+* </pre>
+* @param {string} text The text that may have a text code in it.
+* @returns {string} The text with any weather codes spelled out.
+*/
+Window_Base.prototype.translateWeatherTextCode = function(text) {
+	const config = J.WEATHER.Metadata.weatherConfig;
+	return text.replace(/\\weather\[([^\]]*)]/gi, (_, rawArguments) => {
+		const here = WeatherDirector.current();
+		return WeatherLabel.fromArguments(config, rawArguments, here);
+	});
 };
 
 //#endregion
