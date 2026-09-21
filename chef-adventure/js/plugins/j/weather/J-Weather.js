@@ -1076,6 +1076,7 @@ var WeatherPresets = class WeatherPresets {
 			life: motion.life,
 			lifeJitter: motion.lifeJitter,
 			fadeOut: motion.fadeOut,
+			drag: motion.drag,
 			tilt: motion.tilt,
 			stretch: motion.stretch,
 			lean: motion.lean,
