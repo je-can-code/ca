@@ -280,6 +280,13 @@
  * @desc The y coordinate of the overarching TIME window.
  * @default 0
  *
+ * @param clockIcon
+ * @parent BASEconfigs
+ * @type icon
+ * @text Clock Icon
+ * @desc The icon drawn beside the clock. The other rows take their icons from data; this one does not.
+ * @default 220
+ *
  * @param startVisible
  * @parent BASEconfigs
  * @type boolean
@@ -632,6 +639,7 @@ var J_TIME_PluginMetadata = class extends PluginMetadata {
 		const pp = this.parsedPluginParameters;
 		this.TimeWindowX = Number(pp["timeWindowX"]);
 		this.TimeWindowY = Number(pp["timeWindowY"]);
+		this.ClockIcon = Number(pp["clockIcon"]);
 		this.StartVisible = pp["startVisible"] === "true";
 		this.StartActivated = pp["startActivated"] === "true";
 		this.UseRealTime = pp["useRealTime"] === "true";
@@ -2475,15 +2483,6 @@ var Window_Time = class Window_Time extends Window_Base {
 	*/
 	static ContentWidth = 200;
 	/**
-	* The icon drawn beside the clock.
-	*
-	* RMMZ's stock hourglass, deliberately. The other two rows take their icons from data - the
-	* phase from the snapshot, the weather from its configuration - so this is the one that goes
-	* stale silently when the icon sheet is rearranged, and a named constant is somewhere to look.
-	* @type {number}
-	*/
-	static ClockIcon = 220;
-	/**
 	* @constructor
 	* @param {Rectangle} rect The shape representing this window.
 	*/
@@ -2612,7 +2611,7 @@ var Window_Time = class Window_Time extends Window_Base {
 		const seconds = this.time.seconds.padZero(2);
 		const minutes = this.time.minutes.padZero(2);
 		const hours = this.time.hours.padZero(2);
-		const icon = Window_Time.ClockIcon;
+		const icon = J.TIME.Metadata.ClockIcon;
 		const clock = `\\I[${icon}]${hours}${colon1}${minutes}${colon2}${seconds} \\}${ampm}`;
 		this.drawTextEx(clock, 0, this.contentLineY(0), this.contentWidth());
 	}
