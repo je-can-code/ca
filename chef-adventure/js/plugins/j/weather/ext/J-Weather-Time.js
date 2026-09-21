@@ -707,6 +707,11 @@ var SkyForecast = class SkyForecast {
 	*/
 	static PhasesPerDay = 6;
 	/**
+	* Days in a week, matching the seven `Time_Snapshot` names them.
+	* @type {number}
+	*/
+	static DaysPerWeek = 7;
+	/**
 	* The answer handed back for a date that is not on the clock.
 	*
 	* `TimePhases.phaseOfHour` reports an hour off the 24-hour face as `-1`, and the clock can
@@ -795,6 +800,20 @@ var SkyForecast = class SkyForecast {
 	static dayIndexOf(absolutePhase) {
 		const day = Math.floor(absolutePhase / SkyForecast.PhasesPerDay);
 		return day % SkyForecast.daysPerYear();
+	}
+	/**
+	* Which day of the week an absolute phase falls on.
+	*
+	* Counted from the absolute day rather than the day of the *year*, so the week runs on through
+	* new year's day instead of restarting - three hundred and sixty days is not a whole number of
+	* weeks, and a calendar that quietly repeated a weekday every December would be the sort of
+	* thing somebody notices a year after it shipped.
+	* @param {number} absolutePhase The phase being asked about.
+	* @returns {number} 0 through 6, counting from Monday as `Time_Snapshot` does.
+	*/
+	static dayOfWeekIdOf(absolutePhase) {
+		const day = Math.floor(absolutePhase / SkyForecast.PhasesPerDay);
+		return day % SkyForecast.DaysPerWeek;
 	}
 	/**
 	* Which month an absolute phase falls in.
@@ -1371,6 +1390,96 @@ J.WEATHER.EXT.TIME.RegExp.WeatherIntensityPage = /<weatherIntensityPage:[ ]?([a-
 * @type {RegExp}
 */
 J.WEATHER.EXT.TIME.RegExp.WeatherIntensityRangePage = /<weatherIntensityRangePage:[ ]?([a-zA-Z0-9]+)-([a-zA-Z0-9]+)>/i;
+
+//#endregion
+//#region src/plugins/weather/ext/time/core/ForecastWhen.js
+/**
+* How the forecast says *when* it is talking about.
+*
+* Three screens each need a slightly different amount of the same answer - the week wants a
+* weekday and a date, today wants the season too, and here-and-now wants the clock on top of all
+* of it. Building the strings here rather than in each window is what stops those three drifting
+* into three date formats, and it is the only way any of this gets tested: `windows/**` is not
+* measured, and a date format is exactly the sort of thing that is wrong by one somewhere.
+*
+* Seasons come back as the `\seasonOfYear[]` text code rather than a word, so the season arrives
+* with the icon and colour J-TIME already gives it everywhere else in the game. The two plugins
+* happen to number the seasons identically - spring is zero in both `SkyStates.Seasons` and
+* `Time_Snapshot.SeasonsName` - so the forecast's own id can be handed straight over.
+*/
+var ForecastWhen = class ForecastWhen {
+	/**
+	* What day of the week a phase falls on.
+	* @param {number} absolutePhase The phase being described.
+	* @returns {string} The weekday's name.
+	*/
+	static weekdayOf(absolutePhase) {
+		const dayOfWeekId = SkyForecast.dayOfWeekIdOf(absolutePhase);
+		return Time_Snapshot.DaysOfWeekName(dayOfWeekId);
+	}
+	/**
+	* A phase's date, without its season.
+	* @param {number} absolutePhase The phase being described.
+	* @returns {string} Something like `Thursday, Day 30 of Month 5`.
+	*/
+	static dateOf(absolutePhase) {
+		const weekday = ForecastWhen.weekdayOf(absolutePhase);
+		const day = SkyForecast.dayOfMonthOf(absolutePhase);
+		const month = SkyForecast.monthOf(absolutePhase);
+		return `${weekday}, Day ${day} of Month ${month}`;
+	}
+	/**
+	* A phase's season, as the text code that draws it with its own icon.
+	* @param {number} absolutePhase The phase being described.
+	* @returns {string} A `\seasonOfYear[]` code.
+	*/
+	static seasonOf(absolutePhase) {
+		const seasonId = SkyForecast.seasonIdOf(absolutePhase);
+		return `\\seasonOfYear[${seasonId}]`;
+	}
+	/**
+	* A phase's date and season together, ready for `drawTextEx`.
+	* @param {number} absolutePhase The phase being described.
+	* @returns {string} Something like `Thursday, Day 30 of Month 5 - \seasonOfYear[0]`.
+	*/
+	static dateLineOf(absolutePhase) {
+		return `${ForecastWhen.dateOf(absolutePhase)} - ${ForecastWhen.seasonOf(absolutePhase)}`;
+	}
+	/**
+	* A phase's time of day, as the text code that draws it with its own icon.
+	* @param {number} absolutePhase The phase being described.
+	* @returns {string} A `\timeOfDay[]` code.
+	*/
+	static phaseOf(absolutePhase) {
+		return `\\timeOfDay[${SkyForecast.phaseOfDay(absolutePhase)}]`;
+	}
+	/**
+	* The clock, as two padded figures.
+	*
+	* Padded because an unpadded clock reads as a decimal - `9:5` is not five past nine to anybody
+	* glancing at it - and this is a line somebody glances at.
+	* @param {number} hours The hour being shown.
+	* @param {number} minutes The minute being shown.
+	* @returns {string} Something like `09:05`.
+	*/
+	static clockOf(hours, minutes) {
+		const paddedHours = String(hours).padStart(2, "0");
+		const paddedMinutes = String(minutes).padStart(2, "0");
+		return `${paddedHours}:${paddedMinutes}`;
+	}
+	/**
+	* Everything the here-and-now view says about when it is, on one line.
+	* @param {number} absolutePhase The phase being described.
+	* @param {number} hours The hour being shown.
+	* @param {number} minutes The minute being shown.
+	* @returns {string} Ready for `drawTextEx`.
+	*/
+	static nowLineOf(absolutePhase, hours, minutes) {
+		const clock = ForecastWhen.clockOf(hours, minutes);
+		const phase = ForecastWhen.phaseOf(absolutePhase);
+		return `${ForecastWhen.dateLineOf(absolutePhase)} - ${clock} ${phase}`;
+	}
+};
 
 //#endregion
 //#region src/plugins/weather/ext/time/core/ClimateCurves.js
@@ -2155,14 +2264,28 @@ var ForecastDirector = class ForecastDirector {
 	*
 	* The remark is null until somebody has written lines for this weather, and the window draws
 	* the plain reading in that case rather than an empty space.
-	* @returns {{weather: ?{preset: string, intensity: string}, remark: ?object}}
+	* @param {Game_Time} clock The clock being read.
+	* @returns {{weather: ?{preset: string, intensity: string}, when: string, remark: ?object}}
 	*/
-	static readingHere() {
+	static readingHere(clock) {
 		const weather = WeatherDirector.current();
 		return {
 			weather,
+			when: ForecastDirector.whenLine(clock),
 			remark: ForecastVoice.remarkFor(ForecastDirector.voices(), weather, ForecastDirector.partyActorIds(), Math.random())
 		};
+	}
+	/**
+	* When "now" is, in words.
+	*
+	* Built here rather than in the window so the format is testable, and so the three views cannot
+	* drift into three ways of writing a date.
+	* @returns {string} Ready for `drawTextEx`, or {@link String.empty} off the clock.
+	*/
+	static whenLine(clock) {
+		const phase = ForecastDirector.phaseOf(clock);
+		if (phase === SkyForecast.OffClock) return String.empty;
+		return ForecastWhen.nowLineOf(phase, clock.hours(), clock.minutes());
 	}
 	/**
 	* Every line anybody has written about the weather.
@@ -2830,9 +2953,9 @@ var Window_ForecastCommand = class Window_ForecastCommand extends Window_Command
 	* Builds the three views.
 	*/
 	makeCommandList() {
-		const now = new WindowCommandBuilder("Right Now").setSymbol(Window_ForecastCommand.NowSymbol).setHelpText("What the weather is doing where you are standing.").build();
+		const now = new WindowCommandBuilder("Here and Now").setSymbol(Window_ForecastCommand.NowSymbol).setHelpText("What the weather is doing where you are standing.").build();
 		const today = new WindowCommandBuilder("Today").setSymbol(Window_ForecastCommand.TodaySymbol).setHelpText("How the sky over Raevula moves through the rest of the day.").build();
-		const week = new WindowCommandBuilder("The Week").setSymbol(Window_ForecastCommand.WeekSymbol).setHelpText("The days ahead over Raevula, at a glance.").build();
+		const week = new WindowCommandBuilder("Next Seven Days").setSymbol(Window_ForecastCommand.WeekSymbol).setHelpText("The days ahead over Raevula, at a glance.").build();
 		[
 			now,
 			today,
@@ -2903,8 +3026,21 @@ var Window_ForecastNow = class extends Window_Base {
 		this.contents.clear();
 		const reading = this.reading();
 		if (reading === null) return;
+		this.drawWhen(reading);
 		this.drawWeather(reading);
 		this.drawRemark(reading);
+	}
+	/**
+	* Draws when "now" is.
+	*
+	* `drawTextEx` rather than `drawText`, because the line carries the season and the time of day
+	* as J-TIME's own text codes - so both arrive with the icon and colour they have everywhere
+	* else in the game rather than being spelled out a second way here.
+	* @param {object} reading What the weather is, when it is, and who is remarking on it.
+	*/
+	drawWhen(reading) {
+		const { when } = reading;
+		this.drawTextEx(when, 0, 0, this.innerWidth);
 	}
 	/**
 	* Draws what the weather actually is, as icon and words.
@@ -2913,18 +3049,19 @@ var Window_ForecastNow = class extends Window_Base {
 	drawWeather(reading) {
 		const { weather } = reading;
 		const config = J.WEATHER.Metadata.weatherConfig;
+		const y = this.lineHeight();
 		if (weather === null) {
-			this.drawText(WeatherLabel.nothingFalling(config), 0, 0, this.innerWidth, "left");
+			this.drawText(WeatherLabel.nothingFalling(config), 0, y, this.innerWidth, "left");
 			return;
 		}
 		const iconIndex = WeatherIcons.indexFor(config, weather.preset);
 		const label = WeatherLabel.words(config, weather.preset, weather.intensity);
 		if (iconIndex === WeatherIcons.None) {
-			this.drawText(label, 0, 0, this.innerWidth, "left");
+			this.drawText(label, 0, y, this.innerWidth, "left");
 			return;
 		}
-		this.drawIcon(iconIndex, 0, 0);
-		this.drawText(label, ImageManager.iconWidth + this.itemPadding(), 0, this.innerWidth, "left");
+		this.drawIcon(iconIndex, 0, y);
+		this.drawText(label, ImageManager.iconWidth + this.itemPadding(), y, this.innerWidth, "left");
 	}
 	/**
 	* Draws whatever somebody travelling with the player had to say about it.
@@ -2938,7 +3075,7 @@ var Window_ForecastNow = class extends Window_Base {
 		const { remark } = reading;
 		if (remark === null) return;
 		const speaker = $gameActors.actor(remark.who);
-		const top = this.lineHeight() * 2;
+		const top = this.lineHeight() * 3;
 		this.drawFace(speaker.faceName(), speaker.faceIndex(), 0, top);
 		const textX = ImageManager.faceWidth + this.itemPadding() * 2;
 		const textWidth = this.innerWidth - textX;
@@ -3057,12 +3194,7 @@ var Window_ForecastToday = class extends Window_Base {
 	*/
 	drawDate(digest) {
 		const { startPhase } = digest;
-		const month = SkyForecast.monthOf(startPhase);
-		const day = SkyForecast.dayOfMonthOf(startPhase);
-		const season = SkyForecast.seasonNameOf(startPhase);
-		this.changeTextColor(ColorManager.systemColor());
-		this.drawText(`Day ${day}, Month ${month} - ${season}`, 0, 0, this.innerWidth, "left");
-		this.resetTextColor();
+		this.drawTextEx(ForecastWhen.dateLineOf(startPhase), 0, 0, this.innerWidth);
 	}
 	/**
 	* Draws one phase of the day.
@@ -3162,15 +3294,36 @@ var Window_ForecastWeek = class extends Window_Base {
 	* @returns {number}
 	*/
 	dateWidth() {
-		return Math.floor(this.innerWidth * .28);
+		return this.textWidth("Wednesday 12/30") + this.itemPadding() * 2;
 	}
 	/**
 	* How wide one sampled phase's column is.
+	*
+	* **Measured from what goes in it rather than from the window.** Splitting the full width three
+	* ways puts a hundred-pixel icon-and-word in the middle of a four-hundred-pixel column, which
+	* reads as three lonely things rather than as a table - and it pushes each heading so far from
+	* the next column's contents that the eye stops connecting them.
 	* @param {object} digest The week being drawn.
 	* @returns {number}
 	*/
 	cellWidth(digest) {
-		return Math.floor((this.innerWidth - this.dateWidth()) / digest.phases.length);
+		const widest = this.widestLookWidth();
+		const natural = widest + ImageManager.iconWidth + this.itemPadding() * 3;
+		const available = Math.floor((this.innerWidth - this.dateWidth()) / digest.phases.length);
+		return Math.min(natural, available);
+	}
+	/**
+	* How much room the longest weather name needs.
+	*
+	* Every name is measured rather than the longest being guessed at, because the names are
+	* authored in the configuration and a new one longer than any of these would otherwise be the
+	* one that overlaps its neighbour.
+	* @returns {number}
+	*/
+	widestLookWidth() {
+		const config = J.WEATHER.Metadata.weatherConfig;
+		const names = Object.keys(config.presets).filter((name) => name.startsWith("_") === false);
+		return names.reduce((widest, name) => Math.max(widest, this.textWidth(name)), 0);
 	}
 	/**
 	* Redraws the week.
@@ -3190,7 +3343,7 @@ var Window_ForecastWeek = class extends Window_Base {
 		this.changeTextColor(ColorManager.systemColor());
 		digest.phases.forEach((phaseOfDay, column) => {
 			const x = this.dateWidth() + column * this.cellWidth(digest);
-			this.drawText(Time_Snapshot.TimesOfDayName(phaseOfDay), x, 0, this.cellWidth(digest), "center");
+			this.drawText(Time_Snapshot.TimesOfDayName(phaseOfDay), x, 0, this.cellWidth(digest), "left");
 		});
 		this.resetTextColor();
 	}
@@ -3216,10 +3369,11 @@ var Window_ForecastWeek = class extends Window_Base {
 	* @returns {string}
 	*/
 	dateLabel(day) {
-		if (day.dayOffset === 0) return "Today";
 		const month = SkyForecast.monthOf(day.startPhase);
 		const date = SkyForecast.dayOfMonthOf(day.startPhase);
-		return `${month}/${date}`;
+		if (day.dayOffset === 0) return `Today ${month}/${date}`;
+		const weekday = ForecastWhen.weekdayOf(day.startPhase);
+		return `${weekday} ${month}/${date}`;
 	}
 	/**
 	* Draws one sampled phase of one day.
@@ -3650,7 +3804,7 @@ var Scene_Forecast = class Scene_Forecast extends Scene_MenuFacetBase {
 			this.weekWindow().setDigest(ForecastDirector.weekFor($gameTime));
 			return;
 		}
-		this.nowWindow().setReading(ForecastDirector.readingHere());
+		this.nowWindow().setReading(ForecastDirector.readingHere($gameTime));
 	}
 	/**
 	* Overwrites {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>
