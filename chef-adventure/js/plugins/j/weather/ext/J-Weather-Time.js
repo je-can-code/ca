@@ -1309,6 +1309,7 @@ J.WEATHER.EXT.TIME.Aliased.Game_System = new Map();
 J.WEATHER.EXT.TIME.Aliased.Game_Time = new Map();
 J.WEATHER.EXT.TIME.Aliased.MapWeatherResolver = new Map();
 J.WEATHER.EXT.TIME.Aliased.Scene_Map = new Map();
+J.WEATHER.EXT.TIME.Aliased.Window_Time = new Map();
 /**
 * All regular expressions used by this plugin.
 */
@@ -2756,6 +2757,37 @@ J.WEATHER.EXT.TIME.Aliased.Scene_Map.set("update", Scene_Map.prototype.update);
 Scene_Map.prototype.update = function() {
 	J.WEATHER.EXT.TIME.Aliased.Scene_Map.get("update").call(this);
 	ForecastDirector.pushIfPending($gameTime);
+};
+
+//#endregion
+//#region src/plugins/weather/ext/time/windows/Window_Time.js
+/**
+* Extends {@link #drawContent}.<br/>
+* Also draws what the weather is doing.
+*
+* **The weather line lives here rather than in J-TIME**, because J-TIME has never heard of weather
+* and must keep working without it. A `\weather[]` written into J-TIME's own window would render
+* as those nine literal characters for anybody running the clock on its own.
+*
+* `Window_Time` is a hoisted global by the time this runs; J-TIME is a declared dependency of this
+* ship, so the class is there to be extended.
+*/
+Window_Time.RowCount += 1;
+J.WEATHER.EXT.TIME.Aliased.Window_Time.set("drawContent", Window_Time.prototype.drawContent);
+Window_Time.prototype.drawContent = function() {
+	J.WEATHER.EXT.TIME.Aliased.Window_Time.get("drawContent").call(this);
+	this.drawWeather();
+};
+/**
+* Draws what the weather is doing where the player is standing.
+*
+* The whole line is the text code, which is the point of having one: the icon, the name and the
+* strength are spelled the same way here as in the forecast and in anybody's dialogue, and this
+* window needs to know nothing about any of them.
+*/
+Window_Time.prototype.drawWeather = function() {
+	const row = Window_Time.RowCount - 1;
+	this.drawTextEx("\\weather[]", 0, this.contentLineY(row), this.contentWidth());
 };
 
 //#endregion

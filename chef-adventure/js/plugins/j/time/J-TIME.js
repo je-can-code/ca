@@ -2458,6 +2458,14 @@ Scene_Base.prototype.shouldUpdateTime = function() {
 */
 var Window_Time = class extends Window_Base {
 	/**
+	* How many rows of content this window draws.
+	*
+	* Declared so the scene can size the window without building it first, and so an extension
+	* adding a row has one number to raise rather than a height to recalculate.
+	* @type {number}
+	*/
+	static RowCount = 2;
+	/**
 	* @constructor
 	* @param {Rectangle} rect The shape representing this window.
 	*/
@@ -2555,24 +2563,46 @@ var Window_Time = class extends Window_Base {
 	* Renders the TIME into the window.
 	*/
 	drawContent() {
+		this.drawTime();
+		this.drawTimePhase();
+	}
+	/**
+	* How wide a line of this window's content is.
+	* @returns {number}
+	*/
+	contentWidth() {
+		return 200;
+	}
+	/**
+	* Where a given row of content sits.
+	*
+	* Rows are numbered rather than positioned, so anything extending this window puts its line
+	* *after* the ones already there without having to know how tall they were.
+	* @param {number} row Which row, counting from zero.
+	* @returns {number}
+	*/
+	contentLineY(row) {
+		return this.lineHeight() * row;
+	}
+	/**
+	* Draws the clock.
+	*/
+	drawTime() {
 		const colon1 = this.isAlternating() ? ":" : " ";
 		const colon2 = this.isAlternating() ? " " : ":";
 		const ampm = this.time.hours > 11 ? "PM" : "AM";
-		const lh = this.lineHeight();
 		const seconds = this.time.seconds.padZero(2);
 		const minutes = this.time.minutes.padZero(2);
 		const hours = this.time.hours.padZero(2);
-		const { timeOfDayName } = this.time;
-		const { timeOfDayIcon } = this.time;
-		const seasonName = this.time.seasonOfTheYearName;
-		const seasonIcon = this.time.seasonOfTheYearIcon;
-		const days = this.time.days.padZero(2);
-		const months = this.time.months.padZero(2);
-		const years = this.time.years.padZero(4);
-		this.drawTextEx(`\\I[2784]${hours}${colon1}${minutes}${colon2}${seconds} \\}${ampm}`, 0, lh * 0, 200);
-		this.drawTextEx(`\\I[${timeOfDayIcon}]${timeOfDayName}`, 0, lh * 1, 200);
-		this.drawTextEx(`\\I[${seasonIcon}]${seasonName}`, 0, lh * 2, 200);
-		this.drawTextEx(`${years}/${months}/${days}`, 0, lh * 3, 200);
+		const clock = `\\I[2784]${hours}${colon1}${minutes}${colon2}${seconds} \\}${ampm}`;
+		this.drawTextEx(clock, 0, this.contentLineY(0), this.contentWidth());
+	}
+	/**
+	* Draws which part of the day it is.
+	*/
+	drawTimePhase() {
+		const { timeOfDayName, timeOfDayIcon } = this.time;
+		this.drawTextEx(`\\I[${timeOfDayIcon}]${timeOfDayName}`, 0, this.contentLineY(1), this.contentWidth());
 	}
 };
 
@@ -2633,7 +2663,7 @@ Scene_Map.prototype.buildTimeWindow = function() {
 */
 Scene_Map.prototype.timeWindowRect = function() {
 	const width = 200;
-	const height = 180;
+	const height = this.calcWindowHeight(Window_Time.RowCount, false);
 	const x = J.TIME.Metadata.TimeWindowX;
 	const y = J.TIME.Metadata.TimeWindowY;
 	return new Rectangle(x, y, width, height);
