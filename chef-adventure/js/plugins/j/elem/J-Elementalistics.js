@@ -364,6 +364,26 @@ J.ELEM.RegExp.StrictElementIds = /<strictElements:[ ]?(\[[\d, ]+])>/i;
 J.ELEM.RegExp.BoostElement = /<boostElement:[ ]?(\[\d+,[ ]?-?\+?\d+])>/gi;
 J.ELEM.RegExp.PierceElement = /<pierceElement:[ ]?(\[\d+,[ ]?\d+])>/gi;
 J.ELEM.RegExp.ThisPierceElement = /<thisPierceElement:[ ]?(\[\d+,[ ]?\d+])>/gi;
+/**
+* A bonus to damage dealt against targets belonging to a particular elemental family.
+*
+* Unlike every other tag in this table, this one is keyed on **what the target is** rather than on
+* what the attack is made of. The attacker never has to carry the element to benefit- studying
+* undead makes you better at killing undead regardless of what you are swinging.
+*
+* <pre>
+* Structure:
+*  <slayer:[ELEMENT_ID, PERCENT]>
+*
+* Example:
+*  <slayer:[11, 50]>
+*
+* Translation:
+*  Deal 50% more damage to targets weak to element 11.
+* </pre>
+* @type {RegExp}
+*/
+J.ELEM.RegExp.Slayer = /<slayer:[ ]?(\[\d+,[ ]?-?\+?\d+])>/gi;
 
 //#endregion
 //#region src/plugins/elem/core/objects/Game_Battler.js
@@ -439,6 +459,51 @@ Game_Battler.prototype.elementRateBoost = function(elementId) {
 Game_Battler.prototype.extractElementRateBoosts = function(referenceData) {
 	if (!referenceData.note) return [];
 	return RPGManager.getArraysFromNotesByRegex(referenceData, J.ELEM.RegExp.BoostElement);
+};
+/**
+* The slayer bonuses this battler has learned, as raw `[ELEMENT_ID, PERCENT]` tuples.
+*
+* Read from every note-bearing source on the battler, so a bonus can be granted by a state, a piece
+* of equipment, a class or the battler's own row without any of those needing to know about the
+* others. In practice these land on states and accessories.
+* @returns {[number, number][]}
+*/
+Game_Battler.prototype.slayerBonuses = function() {
+	return RPGManager.getArraysFromAllNotesByRegex(this.getAllNotes(), J.ELEM.RegExp.Slayer);
+};
+/**
+* Whether a target belongs to the elemental family named by an element id.
+*
+* Membership is read off the target's own innate element rates: something that takes extra damage
+* from `vs Undead` is, by that fact, undead. Neutral is a rate of exactly one, so any authored
+* weakness at all counts and no tuning threshold is needed to decide what something *is*.
+* @param {Game_Actor|Game_Enemy} target The target whose family is in question.
+* @param {number} elementId The element id naming the family.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isTargetInElementalFamily = function(target, elementId) {
+	const rates = target.databaseData().elementRates();
+	return rates[elementId] > 1;
+};
+/**
+* The combined slayer multiplier this battler applies when striking a particular target.
+*
+* Every learned bonus whose family the target belongs to contributes, and they compound- two
+* separate 50% sources against the same target produce 2.25x rather than 2x. That matches how
+* {@link Game_Battler#elementRateBoost} and the elemental rates themselves already stack, so a
+* player who has studied a family from two directions is never surprised by the arithmetic.
+*
+* Answers exactly `1` when nothing applies, which is the identity for the multiplication it feeds.
+* @param {Game_Actor|Game_Enemy} target The target being struck.
+* @returns {number} The multiplier to apply on top of all other damage math.
+*/
+Game_Battler.prototype.slayerMultiplierAgainst = function(target) {
+	const bonuses = this.slayerBonuses();
+	return bonuses.reduce((multiplier, [elementId, percent]) => {
+		if (this.isTargetInElementalFamily(target, elementId) === false) return multiplier;
+		const bonusFactor = 1 + percent / 100;
+		return multiplier * bonusFactor;
+	}, 1);
 };
 
 //#endregion
@@ -839,6 +904,25 @@ Game_Action.prototype.evalDamageFormula = function(target) {
 Game_Action.prototype.healingFactor = function(targetAbsorbs) {
 	const isHealingAction = [3, 4].includes(this.item().damage.type);
 	return isHealingAction && !targetAbsorbs ? -1 : 1;
+};
+/**
+* Extends {@link #makeDamageValue}.<br/>
+* Also applies the attacker's slayer bonus against the target's elemental family.
+*
+* This deliberately sits outside every other piece of damage math rather than inside the elemental
+* calculation, because a slayer bonus is not an elemental rate: it is keyed on what the target *is*,
+* not on what the attack is made of, and the attacker never has to carry the element to earn it.
+* Wrapping the finished number means it scales the whole result- elemental rates, critical, variance
+* and guard alike- which is what "I have studied these things and I am simply better at killing
+* them" should mean.
+*/
+J.ELEM.Aliased.Game_Action.set("makeDamageValue", Game_Action.prototype.makeDamageValue);
+Game_Action.prototype.makeDamageValue = function(target, critical) {
+	const baseDamage = J.ELEM.Aliased.Game_Action.get("makeDamageValue").call(this, target, critical);
+	const attacker = this.subject();
+	const slayerMultiplier = attacker.slayerMultiplierAgainst(target);
+	const slainDamage = baseDamage * slayerMultiplier;
+	return Math.round(slainDamage);
 };
 
 //#endregion
