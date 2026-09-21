@@ -3294,7 +3294,24 @@ var Window_ForecastWeek = class extends Window_Base {
 	* @returns {number}
 	*/
 	dateWidth() {
-		return this.textWidth("Wednesday 12/30") + this.itemPadding() * 2;
+		return this.dayNameWidth() + this.dayNumberWidth();
+	}
+	/**
+	* How wide the weekday column is.
+	*
+	* Measured from the longest weekday there is, so every date underneath starts at the same x
+	* regardless of whether the day is a Monday or a Wednesday.
+	* @returns {number}
+	*/
+	dayNameWidth() {
+		return this.textWidth("Wednesday") + this.itemPadding() * 2;
+	}
+	/**
+	* How wide the numeric date column is.
+	* @returns {number}
+	*/
+	dayNumberWidth() {
+		return this.textWidth("12/30") + this.itemPadding() * 2;
 	}
 	/**
 	* How wide one sampled phase's column is.
@@ -3343,7 +3360,7 @@ var Window_ForecastWeek = class extends Window_Base {
 		this.changeTextColor(ColorManager.systemColor());
 		digest.phases.forEach((phaseOfDay, column) => {
 			const x = this.dateWidth() + column * this.cellWidth(digest);
-			this.drawText(Time_Snapshot.TimesOfDayName(phaseOfDay), x, 0, this.cellWidth(digest), "left");
+			this.drawText(Time_Snapshot.TimesOfDayName(phaseOfDay), x, 0, this.cellWidth(digest), "center");
 		});
 		this.resetTextColor();
 	}
@@ -3356,7 +3373,8 @@ var Window_ForecastWeek = class extends Window_Base {
 	drawDay(day, index, digest) {
 		const y = this.lineHeight() * (index + 1);
 		this.changeTextColor(index === 0 ? ColorManager.powerUpColor() : ColorManager.systemColor());
-		this.drawText(this.dateLabel(day), 0, y, this.dateWidth(), "left");
+		this.drawText(this.dayName(day), 0, y, this.dayNameWidth(), "left");
+		this.drawText(this.dayNumber(day), this.dayNameWidth(), y, this.dayNumberWidth(), "left");
 		this.resetTextColor();
 		day.cells.forEach((preset, column) => {
 			const x = this.dateWidth() + column * this.cellWidth(digest);
@@ -3368,12 +3386,19 @@ var Window_ForecastWeek = class extends Window_Base {
 	* @param {object} day The day being labelled.
 	* @returns {string}
 	*/
-	dateLabel(day) {
+	dayName(day) {
+		if (day.dayOffset === 0) return "Today";
+		return ForecastWhen.weekdayOf(day.startPhase);
+	}
+	/**
+	* The date a row falls on, as figures.
+	* @param {object} day The day being labelled.
+	* @returns {string}
+	*/
+	dayNumber(day) {
 		const month = SkyForecast.monthOf(day.startPhase);
 		const date = SkyForecast.dayOfMonthOf(day.startPhase);
-		if (day.dayOffset === 0) return `Today ${month}/${date}`;
-		const weekday = ForecastWhen.weekdayOf(day.startPhase);
-		return `${weekday} ${month}/${date}`;
+		return `${month}/${date}`;
 	}
 	/**
 	* Draws one sampled phase of one day.
