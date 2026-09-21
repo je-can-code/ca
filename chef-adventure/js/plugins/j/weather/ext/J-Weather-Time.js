@@ -2773,6 +2773,7 @@ Scene_Map.prototype.update = function() {
 * ship, so the class is there to be extended.
 */
 Window_Time.RowCount += 1;
+Window_Time.ContentWidth = Math.max(Window_Time.ContentWidth, 340);
 J.WEATHER.EXT.TIME.Aliased.Window_Time.set("drawContent", Window_Time.prototype.drawContent);
 Window_Time.prototype.drawContent = function() {
 	J.WEATHER.EXT.TIME.Aliased.Window_Time.get("drawContent").call(this);

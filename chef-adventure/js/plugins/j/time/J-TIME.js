@@ -2456,7 +2456,7 @@ Scene_Base.prototype.shouldUpdateTime = function() {
 /**
 * A window class for displaying the time.
 */
-var Window_Time = class extends Window_Base {
+var Window_Time = class Window_Time extends Window_Base {
 	/**
 	* How many rows of content this window draws.
 	*
@@ -2465,6 +2465,15 @@ var Window_Time = class extends Window_Base {
 	* @type {number}
 	*/
 	static RowCount = 2;
+	/**
+	* How wide a row of this window's content is.
+	*
+	* Declared for the same reason as {@link Window_Time.RowCount}: the scene sizes the window from
+	* it before any window exists to measure text with, and an extension whose line runs longer has
+	* one number to raise.
+	* @type {number}
+	*/
+	static ContentWidth = 200;
 	/**
 	* @constructor
 	* @param {Rectangle} rect The shape representing this window.
@@ -2571,7 +2580,7 @@ var Window_Time = class extends Window_Base {
 	* @returns {number}
 	*/
 	contentWidth() {
-		return 200;
+		return Window_Time.ContentWidth;
 	}
 	/**
 	* Where a given row of content sits.
@@ -2662,7 +2671,7 @@ Scene_Map.prototype.buildTimeWindow = function() {
 * @returns {Rectangle}
 */
 Scene_Map.prototype.timeWindowRect = function() {
-	const width = 200;
+	const width = Window_Time.ContentWidth + $gameSystem.windowPadding() * 2;
 	const height = this.calcWindowHeight(Window_Time.RowCount, false);
 	const x = J.TIME.Metadata.TimeWindowX;
 	const y = J.TIME.Metadata.TimeWindowY;
