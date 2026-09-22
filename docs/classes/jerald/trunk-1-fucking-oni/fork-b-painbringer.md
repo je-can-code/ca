@@ -52,4 +52,4 @@
 | P9 | Equip Armor | Unlock. Grants access to heavy armor. |
 | P10 | Melting 🫠🫠🫠 | `<bonusDamageForMyStateCount:PCT>`. +50% bonus damage per distinct state Jerald currently has active on the target. Null Acid, Tangling Shadows, Corroding Resistance — they're all his. |
 | P11 | Equip Tome | Unlock. Grants access to the Tome weapon subgroup. |
-| P12 | Pandemic | Any poison state Jerald applies spreads autonomously to nearby enemies. On Painbringer, this distributes the prerequisite for the entire debuff chain. |
+| P12 | Misery | Any poison state Jerald applies spreads autonomously to nearby enemies. On Painbringer, this distributes the prerequisite for the entire debuff chain. |
