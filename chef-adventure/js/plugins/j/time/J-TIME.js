@@ -2624,7 +2624,7 @@ var Window_Time = class Window_Time extends Window_Base {
 		const minutes = this.time.minutes.padZero(2);
 		const hours = this.time.hours.padZero(2);
 		const icon = J.TIME.Metadata.ClockIcon;
-		return `\\I[${icon}]${hours}${colon}${minutes} \\}${ampm}`;
+		return `\\I[${icon}]${hours}${colon}${minutes} \\}${ampm}\\{`;
 	}
 	/**
 	* Which part of the day it is, as text codes.
