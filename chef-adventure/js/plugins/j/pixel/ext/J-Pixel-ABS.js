@@ -439,6 +439,12 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
 	const dist = Math.sqrt(dx * dx + dy * dy);
 	if (dist <= tolerance) {
 		chr.stopPixelMoving();
+		allyBattler.clearFormationApproach();
+		return;
+	}
+	allyBattler.observeFormationApproach(dist, desiredX, desiredY);
+	if (allyBattler.hasGivenUpOnFormationSlot()) {
+		chr.stopPixelMoving();
 		return;
 	}
 	const nearThreshold = tolerance + hysteresis;

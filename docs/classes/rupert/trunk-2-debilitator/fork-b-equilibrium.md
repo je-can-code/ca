@@ -39,7 +39,7 @@
 | P6 | Equip Warstaff | Unlock. Grants access to the Warstaff weapon subgroup. |
 | P7 | Overclock | MP costs +50%, cast time −50%. |
 | P8 | Resist +30% | +30% magic defense. |
-| P9 | Overcharge | MP costs +50%, damage +50%. |
+| P9 | Hypercharge | MP costs +50%, damage +50%. |
 | P10 | Aggro +30% | +30% aggro. |
 | P11 | Max Life +60% | +60% max HP. |
 | P12 | Equip Breaker | Unlock. Grants access to the Breaker weapon subgroup. Unwrapping them for the party is the whole point of the equation. |

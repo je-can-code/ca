@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.17.0 BASE] The base class for all J plugins.
+ * [v3.18.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.18.0
+ *    Added Spriteset_Base#baseSprite, so a plugin can parent something inside the
+ *    screen tone rather than over it without reaching for the field directly.
  * - 3.17.0
  *    Character captions now draw on a plane above the world, so the time of day no
  *    longer tints a nameplate or a health bar. They still go dark with the ambient
@@ -2053,7 +2056,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.17.0";
+J.BASE.Metadata.Version = "3.18.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -8145,7 +8148,14 @@ var RPG_EnemyAction = class {
 * A class representing the groundwork for what all battlers
 * database data look like.
 */
-var RPG_BaseBattler = class extends RPG_Traited {
+var RPG_BaseBattler = class RPG_BaseBattler extends RPG_Traited {
+	/**
+	* The engine's trait code for an element rate modifier.<br/>
+	* Mirrored here so element inference does not depend on {@link Game_BattlerBase} being defined,
+	* which matters because database objects are hydrated before the battler classes are touched.
+	* @type {number}
+	*/
+	static TRAIT_ELEMENT_RATE = 11;
 	/**
 	* The name of the battler while in battle.
 	* @type {string}
@@ -8167,6 +8177,47 @@ var RPG_BaseBattler = class extends RPG_Traited {
 	*/
 	implementationType() {
 		return `${super.implementationType()}:battler`;
+	}
+	/**
+	* Computes this battler's element rates from its own database traits alone.<br/>
+	* Runtime states, equipment and class are deliberately NOT considered- this is the battler's
+	* innate elemental profile as authored, which is what identity inference needs. A battler that
+	* is only resistant to fire because it is standing in a buff is not a fire creature.
+	*
+	* The result is indexed by element id and defaults to `1.0` for every element the battler has
+	* no trait for. Multiple rate traits on the same element multiply together, matching how the
+	* engine itself accumulates {@link Game_BattlerBase.TRAIT_ELEMENT_RATE}.
+	* @returns {number[]} Element rates indexed by element id.
+	*/
+	elementRates() {
+		const rates = new Array($dataSystem.elements.length).fill(1);
+		this.traits.filter((trait) => trait.code === RPG_BaseBattler.TRAIT_ELEMENT_RATE).forEach((trait) => {
+			rates[trait.dataId] = rates[trait.dataId] * Number(trait.value);
+		});
+		return rates;
+	}
+	/**
+	* Infers which elements characterize this battler, by reading how sharply it deviates from
+	* neutral on each one. An element the battler strongly resists, or is strongly weak to, is
+	* treated as telling you something about what the battler *is*.
+	*
+	* This is deliberately numeric and knows nothing about element naming conventions. A caller
+	* that cares only about a particular family of elements- a taxonomy prefix, an id range- is
+	* expected to filter the returned ids itself.
+	* @param {number} resistThreshold Rates strictly below this count as an alignment.
+	* @param {number} weaknessThreshold Rates strictly above this count as a vulnerability.
+	* @returns {number[]} The inferred element ids, ascending, without duplicates.
+	*/
+	inferredElementIds(resistThreshold, weaknessThreshold) {
+		const rates = this.elementRates();
+		const inferred = [];
+		rates.forEach((rate, elementId) => {
+			if (elementId === 0) return;
+			if (rate < resistThreshold || rate > weaknessThreshold) {
+				inferred.push(elementId);
+			}
+		});
+		return inferred;
 	}
 };
 
@@ -15873,6 +15924,23 @@ Sprite_Gauge.prototype.maxValue = function() {
 */
 Sprite_Gauge.prototype.setMaxValue = function(newMaxValue) {
 	this._maxValue = newMaxValue;
+};
+
+//#endregion
+//#region src/plugins/_base/core/sprites/Spriteset_Base.js
+/**
+* Gets the sprite everything belonging to the world is drawn into.
+*
+* Worth having a name for because it is a boundary rather than merely a container: `_baseColorFilter`
+* is attached here, and a PIXI filter repaints its own subtree and nothing else. So whether something
+* is parented inside this sprite is exactly the question of whether the screen tone reaches it -
+* whether it is part of the world or a layer floating over one.
+*
+* Rain belongs inside. A nameplate does not.
+* @returns {Sprite} The baseSprite.
+*/
+Spriteset_Base.prototype.baseSprite = function() {
+	return this._baseSprite;
 };
 
 //#endregion

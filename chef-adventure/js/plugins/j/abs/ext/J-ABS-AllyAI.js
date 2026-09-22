@@ -286,6 +286,8 @@ var J_AllyAiPluginMetadata = class extends PluginMetadata {
 		this.AllyFormationsCommandName = this.parsedPluginParameters["allyFormationsCommandName"] || "Ally Formations";
 		this.AllyFormationsCommandIconIndex = Number(this.parsedPluginParameters["allyFormationsCommandIconIndex"] || 289);
 		this.FormationTolerance = .5;
+		this.FormationProgressEpsilon = .05;
+		this.FormationStallFrames = 60;
 		/**
 		* All available formations that a party can take.
 		* @type {JABS_Formation[]}
@@ -948,6 +950,115 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 SerializableRegistry.register(JABS_AllyAI);
 
 //#endregion
+//#region src/plugins/abs/ext/allyai/_models/JABS_FormationStall.js
+/**
+* Tracks how an ally is faring at reaching one formation slot, so that one it cannot reach can be
+* abandoned instead of chased forever.
+*
+* An ally that cannot occupy its slot does not fail quietly. The pathfinder rounds a character's
+* position to a whole tile before searching, so an ally standing near a tile boundary gets a
+* different first step depending on which side of that boundary it is on. It takes the step, lands
+* back on the other side, and is handed the opposite answer next frame. Because a move command
+* faces its character whether or not the move succeeds, the result reads as a character vibrating
+* in place rather than as one that is stuck.
+*
+* **Progress is measured, not time.** Giving up after a fixed number of frames would abandon a long
+* but perfectly good walk around a wall, which is the common case and the one that must not break.
+* What is tracked instead is the closest the ally has ever come to the slot during this attempt, and
+* how long it has been since that improved. A detour that is genuinely working keeps beating its own
+* record and never stalls; the two-step shuffle above never beats it once.
+*/
+var JABS_FormationStall = class {
+	/**
+	* Whether an attempt on a slot is currently underway.
+	*
+	* Kept as its own flag rather than inferred from the coordinates below, because `0,0` is a real
+	* place on a map and an ally assigned a slot there would otherwise inherit the history of an
+	* attempt that never happened.
+	* @type {boolean}
+	*/
+	#attempting = false;
+	/**
+	* The x coordinate of the slot this attempt is aimed at.
+	* @type {number}
+	*/
+	#targetX = 0;
+	/**
+	* The y coordinate of the slot this attempt is aimed at.
+	* @type {number}
+	*/
+	#targetY = 0;
+	/**
+	* The closest this ally has come to the slot during the current attempt.
+	* @type {number}
+	*/
+	#bestDistance = 0;
+	/**
+	* How many consecutive frames have passed without improving on {@link #bestDistance}.
+	* @type {number}
+	*/
+	#framesWithoutProgress = 0;
+	/**
+	* Records how this frame's approach went.
+	*
+	* A slot that has moved since last frame starts a fresh attempt, because the leader walking or
+	* turning relocates every slot behind them and the old attempt's history says nothing about the
+	* new one. That also means an ally is never stalled while its leader is on the move, which is the
+	* behaviour worth protecting - standing still is only ever the answer to a slot that is genuinely
+	* unreachable from where the ally is.
+	* @param {number} distance How far this ally currently is from the slot.
+	* @param {number} targetX The x coordinate of the slot.
+	* @param {number} targetY The y coordinate of the slot.
+	* @param {number} epsilon How much closer counts as having made progress.
+	*/
+	observe(distance, targetX, targetY, epsilon) {
+		const isNewAttempt = this.#attempting === false || targetX !== this.#targetX || targetY !== this.#targetY;
+		if (isNewAttempt) {
+			this.#beginAttempt(distance, targetX, targetY);
+			return;
+		}
+		if (distance < this.#bestDistance - epsilon) {
+			this.#bestDistance = distance;
+			this.#framesWithoutProgress = 0;
+			return;
+		}
+		this.#framesWithoutProgress += 1;
+	}
+	/**
+	* Starts measuring a fresh attempt from wherever the ally happens to be standing.
+	* @param {number} distance How far this ally currently is from the slot.
+	* @param {number} targetX The x coordinate of the slot.
+	* @param {number} targetY The y coordinate of the slot.
+	*/
+	#beginAttempt(distance, targetX, targetY) {
+		this.#attempting = true;
+		this.#targetX = targetX;
+		this.#targetY = targetY;
+		this.#bestDistance = distance;
+		this.#framesWithoutProgress = 0;
+	}
+	/**
+	* Whether this ally has spent long enough getting no closer to give up on the slot.
+	* @param {number} stallFrames How many frames without progress are tolerated.
+	* @returns {boolean} True if the ally should stop trying, false otherwise.
+	*/
+	isStalled(stallFrames) {
+		return this.#framesWithoutProgress >= stallFrames;
+	}
+	/**
+	* Abandons the current attempt, so the next one is measured from scratch.
+	*
+	* Called when an ally is standing in its slot, which is the one outcome that says everything
+	* recorded so far is spent - the next time it is out of position it is a new problem, even if the
+	* slot has not moved an inch.
+	*/
+	reset() {
+		this.#attempting = false;
+		this.#framesWithoutProgress = 0;
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/ext/allyai/_models/JABS_Battler.js
 /**
 * Generates a `JABS_Battler` for an actor ally bound to a follower character.
@@ -1029,6 +1140,62 @@ JABS_Battler.prototype.getFarDistance = function() {
 	const allyAI = this.getAllyAiMode();
 	if (!allyAI) return JABS_Battler.farDistance;
 	return allyAI.getFarDistance();
+};
+/**
+* Extends {@link JABS_Battler.initIdleInfo}.<br/>
+* Also prepares this battler to keep track of how it is faring at reaching a formation slot.
+*
+* Seeded alongside the rest of the idle state because that is exactly when it applies: formation
+* keeping is what an ally does when it has nothing to fight, and the measurement is meaningless
+* while it is engaged.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.set("initIdleInfo", JABS_Battler.prototype.initIdleInfo);
+JABS_Battler.prototype.initIdleInfo = function() {
+	J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get("initIdleInfo").call(this);
+	/**
+	* How this battler is faring at reaching its formation slot.
+	* @type {JABS_FormationStall}
+	*/
+	this._formationStall = new JABS_FormationStall();
+};
+/**
+* Gets how this battler is faring at reaching its formation slot.
+* @returns {JABS_FormationStall} The tracker for this battler's current attempt.
+*/
+JABS_Battler.prototype.getFormationStall = function() {
+	return this._formationStall;
+};
+/**
+* Records how this frame's approach toward a formation slot went.
+*
+* Exposed on the battler rather than left inside the AI manager because more than one manager
+* steers an ally into formation - the pixel movement bridge replaces the tile-based mover outright
+* - and a give-up implemented in only one of them is a give-up that never happens. Ally AI owns the
+* knobs, so it owns the seam; whoever is doing the moving calls it.
+* @param {number} distance How far this battler currently is from the slot.
+* @param {number} slotX The x coordinate of the slot.
+* @param {number} slotY The y coordinate of the slot.
+*/
+JABS_Battler.prototype.observeFormationApproach = function(distance, slotX, slotY) {
+	const epsilon = J.ABS.EXT.ALLYAI.Metadata.FormationProgressEpsilon;
+	this.getFormationStall().observe(distance, slotX, slotY, epsilon);
+};
+/**
+* Whether this battler has spent long enough getting no closer to abandon its formation slot.
+* @returns {boolean} True if the battler should stop trying to reach the slot, false otherwise.
+*/
+JABS_Battler.prototype.hasGivenUpOnFormationSlot = function() {
+	const stallFrames = J.ABS.EXT.ALLYAI.Metadata.FormationStallFrames;
+	return this.getFormationStall().isStalled(stallFrames);
+};
+/**
+* Abandons this battler's current attempt at a formation slot.
+*
+* Called on arrival, which is the one outcome that spends an attempt outright - the next time this
+* battler is out of position it is a new problem, even against the very same slot.
+*/
+JABS_Battler.prototype.clearFormationApproach = function() {
+	this.getFormationStall().reset();
 };
 /**
 * Gets the leash range for this ally battler.
@@ -1297,7 +1464,13 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
 		return;
 	}
 	const tolerance = J.ABS.EXT.ALLYAI.Metadata.FormationTolerance;
-	if (this.isWithinTolerance(allyBattler, desiredX, desiredY, tolerance)) return;
+	if (this.isWithinTolerance(allyBattler, desiredX, desiredY, tolerance)) {
+		allyBattler.clearFormationApproach();
+		return;
+	}
+	const distance = this.distanceToSlot(allyBattler, desiredX, desiredY);
+	allyBattler.observeFormationApproach(distance, desiredX, desiredY);
+	if (allyBattler.hasGivenUpOnFormationSlot()) return;
 	const character = allyBattler.getCharacter();
 	if (character.isMoving()) return;
 	if (allyBattler.canBattlerMove()) {
@@ -1313,11 +1486,25 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
 * @returns {boolean} True if within tolerance, false otherwise.
 */
 JABS_AiManager.isWithinTolerance = function(allyBattler, targetX, targetY, tolerance) {
-	const chr = allyBattler.getCharacter();
-	const dx = chr.x - targetX;
-	const dy = chr.y - targetY;
-	const dist = Math.sqrt(dx * dx + dy * dy);
-	return dist <= tolerance;
+	const distance = this.distanceToSlot(allyBattler, targetX, targetY);
+	return distance <= tolerance;
+};
+/**
+* Measures how far an ally is from a formation slot.
+*
+* Euclidean over the fractional coordinates rather than over tiles, so that an ally a hair out of
+* position is not reported as a whole tile away - and so the number shrinks smoothly as the ally
+* walks, which is what makes it usable as a measure of progress rather than merely of arrival.
+* @param {JABS_Battler} allyBattler The ally battler.
+* @param {number} targetX The target x tile.
+* @param {number} targetY The target y tile.
+* @returns {number} The distance between the ally and the slot.
+*/
+JABS_AiManager.distanceToSlot = function(allyBattler, targetX, targetY) {
+	const character = allyBattler.getCharacter();
+	const dx = character.x - targetX;
+	const dy = character.y - targetY;
+	return Math.sqrt(dx * dx + dy * dy);
 };
 /**
 * Extends {@link #maintainSafeDistance}.<br/>

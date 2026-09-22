@@ -1,0 +1,1878 @@
+{
+  "motions": {
+    "fall": {
+      "edge": "top",
+      "speedX": 0,
+      "speedY": 4,
+      "jitterX": 0,
+      "jitterY": 3,
+      "roll": 0,
+      "growth": 0,
+      "fadeIn": 25,
+      "staggerFrames": 120
+    },
+    "raindrop": {
+      "_comment": "Rain that lands. Kept apart from plain fall because a lifetime is what makes a drop land, and snow borrows fall and must not. Drops vary in speed, so a shared lifetime lands them across a wide band rather than along a waterline.",
+      "edge": "top",
+      "speedX": 0,
+      "speedY": 4,
+      "jitterX": 0,
+      "jitterY": 3,
+      "becomes": "ripple",
+      "life": 30,
+      "lifeJitter": 132,
+      "fadeIn": 25,
+      "fadeOut": 40,
+      "roll": 0,
+      "growth": 0,
+      "staggerFrames": 120
+    },
+    "ripple": {
+      "_comment": "Where a raindrop landed. Particles.png is a hollow ring, so a ripple is simply one of those spawned small and grown outward while it fades - which is what a ring on water does. It goes nowhere: its position is inherited from the drop that made it.",
+      "edge": "anywhere",
+      "speedX": 0,
+      "speedY": 0,
+      "jitterX": 0,
+      "jitterY": 0,
+      "life": 26,
+      "fadeIn": 60,
+      "fadeOut": 12,
+      "roll": 0,
+      "growth": 0.011,
+      "staggerFrames": 0
+    },
+    "fall-drift": {
+      "_comment": "A leaf turns over more lazily than a petal and swings wider doing it - it is bigger, flatter, and catches more air. It also keeps spinning in the picture plane while it does, which is the difference between a leaf falling and a leaf being dropped.",
+      "edge": "leading",
+      "speedX": 1.5,
+      "speedY": 1,
+      "jitterX": 3,
+      "jitterY": 3,
+      "sway": 26,
+      "swayRate": 0.028,
+      "tilt": 1,
+      "flip": 0.03,
+      "roll": 0.02,
+      "growth": 0,
+      "fadeIn": 25,
+      "staggerFrames": 120
+    },
+    "drift": {
+      "edge": "leading",
+      "speedX": 2.5,
+      "speedY": 0,
+      "jitterX": 3,
+      "jitterY": 0,
+      "roll": 0.01,
+      "growth": 0,
+      "fadeIn": 25,
+      "staggerFrames": 120
+    },
+    "float": {
+      "edge": "leading",
+      "speedX": 0.4,
+      "speedY": 0.3,
+      "jitterX": 0.8,
+      "jitterY": 0.8,
+      "roll": 0.004,
+      "growth": 0,
+      "fadeIn": 8,
+      "staggerFrames": 180
+    },
+    "rise": {
+      "_comment": "Horizontal wander stays a fraction of the climb, or the sparks read as wind. Vertical jitter stays well under speedY for the same reason - it subtracts from an upward speed, so a large one lets particles stall in mid-air.",
+      "edge": "bottom",
+      "speedX": 0.15,
+      "speedY": -1.2,
+      "jitterX": 0.5,
+      "jitterY": 0.5,
+      "sway": 30,
+      "swayRate": 0.04,
+      "roll": 0.006,
+      "growth": 0,
+      "fadeIn": 10,
+      "staggerFrames": 150
+    },
+    "wisp": {
+      "_comment": "Appears in place rather than entering, rises a little, and is gone. Most of its life is spent fading, which is what makes it read as a wisp rather than a dot with a timer.",
+      "edge": "anywhere",
+      "speedX": 0.1,
+      "speedY": -0.35,
+      "jitterX": 0.3,
+      "jitterY": 0.25,
+      "sway": 12,
+      "swayRate": 0.03,
+      "life": 210,
+      "fadeIn": 4,
+      "fadeOut": 4,
+      "roll": 0,
+      "growth": 0,
+      "staggerFrames": 200
+    },
+    "bubble": {
+      "_comment": "Climbs a long way from the floor and pops at the end. The fade is quick where the wisp is slow, because a bubble bursting is an event and a wisp guttering out is not.",
+      "edge": "bottom",
+      "speedX": 0.1,
+      "speedY": -1.3,
+      "jitterX": 0.3,
+      "jitterY": 0.7,
+      "sway": 26,
+      "swayRate": 0.05,
+      "life": 900,
+      "fadeIn": 8,
+      "fadeOut": 14,
+      "margin": 40,
+      "roll": 0,
+      "growth": 0.0008,
+      "staggerFrames": 200
+    },
+    "twinkle": {
+      "_comment": "A star does not go anywhere; it sits and varies. Barely any speed at all, a long life so it stays put rather than shuffling the sky every few seconds, and a shallow pulse - a star that blinks out is a firefly.",
+      "edge": "anywhere",
+      "speedX": 0.015,
+      "speedY": 0.01,
+      "jitterX": 0.03,
+      "jitterY": 0.02,
+      "pulse": 0.55,
+      "pulseRate": 0.018,
+      "life": 1500,
+      "fadeIn": 1,
+      "fadeOut": 1,
+      "roll": 0,
+      "growth": 0,
+      "staggerFrames": 400
+    },
+    "streak": {
+      "_comment": "A shooting star, and an event rather than weather - one or two on screen at a time, gone in under two seconds. Star_01A is drawn with its trail already running up-left, so the motion travels down-right at the matching angle and needs no lean of its own.",
+      "edge": "top",
+      "speedX": 11,
+      "speedY": 10.2,
+      "jitterX": 3,
+      "jitterY": 2.8,
+      "drag": 0.013,
+      "becomes": "spark",
+      "life": 130,
+      "fadeIn": 18,
+      "fadeOut": 11,
+      "margin": 120,
+      "roll": 0,
+      "growth": 0,
+      "staggerFrames": 900
+    },
+    "spark": {
+      "_comment": "What a shooting star leaves behind where it burned out. It goes nowhere - its position is inherited from the streak that made it - and spends its whole short life swelling and fading.",
+      "edge": "anywhere",
+      "speedX": 0.02,
+      "speedY": 0.02,
+      "jitterX": 0.06,
+      "jitterY": 0.05,
+      "life": 70,
+      "fadeIn": 14,
+      "fadeOut": 7,
+      "roll": 0,
+      "growth": 0.004,
+      "staggerFrames": 0
+    },
+    "firefly": {
+      "_comment": "Blinks deeply but never all the way out, so one can be followed across the dark between flashes rather than lost and swapped for another. Lives in a patch of air rather than crossing the map - it appears, mills about for ten seconds or so, and is gone.",
+      "edge": "anywhere",
+      "speedX": 0.1,
+      "speedY": -0.06,
+      "jitterX": 0.35,
+      "jitterY": 0.3,
+      "sway": 34,
+      "swayRate": 0.022,
+      "pulse": 0.85,
+      "pulseRate": 0.055,
+      "life": 660,
+      "fadeIn": 2,
+      "fadeOut": 2,
+      "roll": 0,
+      "growth": 0,
+      "staggerFrames": 260
+    },
+    "petal": {
+      "_comment": "A petal falls the way a leaf does but turns over as it goes, edge-on and back, which is what a flat light thing does in air. Kept separate from fall-drift so the leaves keep the motion they were tuned with.",
+      "edge": "leading",
+      "speedX": 1.2,
+      "speedY": 0.9,
+      "jitterX": 2.2,
+      "jitterY": 2.2,
+      "sway": 18,
+      "swayRate": 0.035,
+      "tilt": 1,
+      "flip": 0.045,
+      "roll": 0.008,
+      "growth": 0,
+      "fadeIn": 25,
+      "staggerFrames": 120
+    },
+    "ray": {
+      "_comment": "Shafts of light. They all lean the same way because they all come from one sun; the tilt is only enough to read as light through moving leaves. Most of a shaft life is spent fading, so the population breathes - one swells, holds, ebbs, and another opens somewhere else.",
+      "edge": "anywhere",
+      "speedX": 0.12,
+      "speedY": 0.05,
+      "jitterX": 0.1,
+      "jitterY": 0.04,
+      "lean": 0.16,
+      "tilt": 0.02,
+      "stretch": 0.3,
+      "life": 600,
+      "fadeIn": 0.5,
+      "fadeOut": 0.5,
+      "roll": 0,
+      "growth": 0,
+      "staggerFrames": 300
+    },
+    "overcast": {
+      "_comment": "Cloud shadows. Free to face any direction and to be pulled out of shape, because a cloud has no correct orientation and no correct proportions - and a screen of identically-oriented ones reads as a stamped sprite. Shallow queue compared to fog: there are few enough of these that most of them need to be on screen.",
+      "edge": "leading",
+      "speedX": 1.1,
+      "speedY": 0,
+      "jitterX": 0.9,
+      "jitterY": 0.1,
+      "tilt": 1,
+      "stretch": 0.4,
+      "roll": 0,
+      "growth": 0,
+      "fadeIn": 3,
+      "staggerFrames": 60,
+      "margin": 320,
+      "entryDepth": 620
+    },
+    "crawl": {
+      "_comment": "Margin clears half a drawn sprite, so it tracks the scale the layers use. Jitter is a large share of the speed on purpose - fog drifting in lockstep reads as a sliding texture rather than as weather.",
+      "edge": "leading",
+      "speedX": 1.2,
+      "speedY": 0,
+      "jitterX": 1.1,
+      "jitterY": 0.15,
+      "roll": 0,
+      "growth": 0,
+      "fadeIn": 4,
+      "staggerFrames": 60,
+      "margin": 280,
+      "entryDepth": 700
+    }
+  },
+  "presets": {
+    "rain": {
+      "description": "Deluge Plains. Seeded from 'weather: deluge'.",
+      "stops": {
+        "light": [
+          {
+            "motion": "raindrop",
+            "asset": "Rain_01A",
+            "density": 150,
+            "speed": 140,
+            "scale": 100,
+            "blend": "normal",
+            "becomesAsset": "Particles",
+            "becomesScale": 8,
+            "becomesScaleJitter": 5,
+            "becomesOpacity": 30
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "raindrop",
+            "asset": "Rain_01A",
+            "density": 450,
+            "speed": 170,
+            "scale": 100,
+            "blend": "normal",
+            "becomesAsset": "Particles",
+            "becomesScale": 9,
+            "becomesScaleJitter": 5,
+            "becomesOpacity": 34
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "raindrop",
+            "asset": "Rain_01A",
+            "density": 1000,
+            "speed": 200,
+            "scale": 100,
+            "blend": "normal",
+            "becomesAsset": "Particles",
+            "becomesScale": 10,
+            "becomesScaleJitter": 6,
+            "becomesOpacity": 38
+          },
+          {
+            "motion": "raindrop",
+            "asset": "Rain_01A",
+            "density": 250,
+            "speed": 200,
+            "scale": 100,
+            "blend": "normal"
+          }
+        ]
+      },
+      "sounds": {
+        "_comment": "Weather is a bed, not an event. It has to lose to an axe swing.",
+        "light": {
+          "name": "Rain1",
+          "volume": 25,
+          "pitch": 100
+        },
+        "moderate": {
+          "name": "Rain3",
+          "volume": 40,
+          "pitch": 100
+        },
+        "heavy": {
+          "name": "Storm1",
+          "volume": 55,
+          "pitch": 100
+        }
+      },
+      "iconIndex": 894
+    },
+    "snow": {
+      "description": "Negative Peaks. Seeded from 'weather: light/moderate/heavy snow'.",
+      "stops": {
+        "light": [
+          {
+            "motion": "float",
+            "asset": "Light_01A",
+            "density": 60,
+            "speed": 50,
+            "scale": 60,
+            "blend": "normal"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "float",
+            "asset": "Light_01A",
+            "density": 500,
+            "speed": 70,
+            "scale": 50,
+            "blend": "normal"
+          },
+          {
+            "motion": "float",
+            "asset": "Light_01A",
+            "density": 200,
+            "speed": 60,
+            "scale": 50,
+            "blend": "normal"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "float",
+            "asset": "Light_01A",
+            "density": 800,
+            "speed": 70,
+            "scale": 50,
+            "blend": "normal"
+          },
+          {
+            "motion": "float",
+            "asset": "Light_01A",
+            "density": 200,
+            "speed": 60,
+            "scale": 50,
+            "blend": "normal"
+          },
+          {
+            "motion": "fall",
+            "asset": "Snow_01",
+            "density": 50,
+            "speed": 50,
+            "scale": 100,
+            "blend": "normal"
+          },
+          {
+            "motion": "drift",
+            "asset": "Snow_01",
+            "density": 1000,
+            "speed": 30,
+            "scale": 25,
+            "blend": "additive"
+          }
+        ]
+      },
+      "_comment_sounds": "Falling snow is silent. A whiteout is not - that noise is the wind driving it.",
+      "sounds": {
+        "heavy": {
+          "name": "Wind4",
+          "volume": 55,
+          "pitch": 100
+        }
+      },
+      "iconIndex": 890
+    },
+    "fog": {
+      "description": "Forest of Dreams. Seeded from 'weather: fog light/moderate/heavy' - identical but for density.",
+      "stops": {
+        "_comment": "Density is per 816x624 of screen, not a particle count - the plugin scales it by area. These read as roughly 30/55/95 visible at 1080p.",
+        "light": [
+          {
+            "motion": "crawl",
+            "asset": "Cloud_05A",
+            "density": 24,
+            "speed": 30,
+            "scale": 140,
+            "scaleJitter": 90,
+            "blend": "normal"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "crawl",
+            "asset": "Cloud_05A",
+            "density": 44,
+            "speed": 30,
+            "scale": 140,
+            "scaleJitter": 90,
+            "blend": "normal"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "crawl",
+            "asset": "Cloud_05A",
+            "density": 75,
+            "speed": 30,
+            "scale": 140,
+            "scaleJitter": 100,
+            "blend": "normal"
+          }
+        ]
+      },
+      "iconIndex": 893
+    },
+    "embers": {
+      "description": "Volcanis Grotto. Seeded from 'WEATHER: fire and sparks'. Light_01C throughout - its whiteish-orange core reads as a spark; the Fire_ assets are whole fireballs and the Rain_ ones are droplets.",
+      "stops": {
+        "light": [
+          {
+            "motion": "rise",
+            "asset": "Light_01C",
+            "density": 30,
+            "speed": 140,
+            "scale": 30,
+            "blend": "additive"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "rise",
+            "asset": "Light_01C",
+            "density": 80,
+            "speed": 140,
+            "scale": 30,
+            "blend": "additive"
+          },
+          {
+            "motion": "drift",
+            "asset": "Light_01C",
+            "density": 25,
+            "speed": 30,
+            "scale": 30,
+            "blend": "additive"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "rise",
+            "asset": "Light_01C",
+            "density": 200,
+            "speed": 140,
+            "scale": 40,
+            "blend": "additive"
+          },
+          {
+            "motion": "drift",
+            "asset": "Light_01C",
+            "density": 60,
+            "speed": 30,
+            "scale": 30,
+            "blend": "additive"
+          }
+        ]
+      },
+      "iconIndex": 2170
+    },
+    "leaves": {
+      "description": "Outer Cliffs. Seeded from 'weather: leaves in the breeze'.",
+      "stops": {
+        "light": [
+          {
+            "motion": "fall-drift",
+            "asset": "Leaf_04A",
+            "density": 12,
+            "speed": 80,
+            "scale": 100,
+            "blend": "normal"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "fall-drift",
+            "asset": "Leaf_04A",
+            "density": 30,
+            "speed": 100,
+            "scale": 100,
+            "blend": "normal"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "fall-drift",
+            "asset": "Leaf_04A",
+            "density": 70,
+            "speed": 150,
+            "scale": 100,
+            "blend": "normal"
+          },
+          {
+            "motion": "drift",
+            "asset": "Leaf_04B",
+            "density": 40,
+            "speed": 180,
+            "scale": 80,
+            "blend": "normal"
+          }
+        ]
+      },
+      "_comment_sounds": "The leaves are what the wind looks like, so the wind is what they sound like.",
+      "sounds": {
+        "light": {
+          "name": "Wind1",
+          "volume": 30,
+          "pitch": 100
+        },
+        "moderate": {
+          "name": "Wind1",
+          "volume": 50,
+          "pitch": 100
+        },
+        "heavy": {
+          "name": "Wind4",
+          "volume": 70,
+          "pitch": 100
+        }
+      },
+      "iconIndex": 889
+    },
+    "motes": {
+      "description": "Dim drifting lights in dark air. Seeded from 'weather: spirit darkness' - the most-used effect in the game, and every use of it is the Forlorn Basin.",
+      "stops": {
+        "light": [
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 10,
+            "speed": 50,
+            "scale": 55,
+            "blend": "additive"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 18,
+            "speed": 50,
+            "scale": 55,
+            "blend": "additive"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 38,
+            "speed": 50,
+            "scale": 55,
+            "blend": "additive"
+          }
+        ]
+      },
+      "iconIndex": 2213
+    },
+    "submerged": {
+      "description": "Motes plus rising bubbles, for a flooded room. Seeded from 'weather: bubble darkness' - Passage 13.",
+      "stops": {
+        "light": [
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 12,
+            "speed": 50,
+            "scale": 55,
+            "blend": "additive"
+          },
+          {
+            "motion": "bubble",
+            "asset": "Bubble_01A",
+            "density": 5,
+            "speed": 110,
+            "scale": 70,
+            "scaleJitter": 45,
+            "blend": "normal"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 12,
+            "speed": 50,
+            "scale": 55,
+            "blend": "additive"
+          },
+          {
+            "motion": "bubble",
+            "asset": "Bubble_01A",
+            "density": 8,
+            "speed": 110,
+            "scale": 70,
+            "scaleJitter": 45,
+            "blend": "normal"
+          },
+          {
+            "motion": "bubble",
+            "asset": "Bubble_01A",
+            "density": 14,
+            "speed": 70,
+            "scale": 40,
+            "scaleJitter": 30,
+            "blend": "normal"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 12,
+            "speed": 50,
+            "scale": 55,
+            "blend": "additive"
+          },
+          {
+            "motion": "bubble",
+            "asset": "Bubble_01A",
+            "density": 18,
+            "speed": 130,
+            "scale": 80,
+            "scaleJitter": 50,
+            "blend": "normal"
+          },
+          {
+            "motion": "bubble",
+            "asset": "Bubble_01A",
+            "density": 26,
+            "speed": 70,
+            "scale": 40,
+            "scaleJitter": 30,
+            "blend": "normal"
+          }
+        ]
+      },
+      "iconIndex": 2150
+    },
+    "clouds": {
+      "description": "NEW - not in CA today. Drifting cloud shadows for open sky. Untuned.",
+      "stops": {
+        "light": [
+          {
+            "motion": "overcast",
+            "asset": "Cloud_04C",
+            "density": 5,
+            "speed": 60,
+            "scale": 420,
+            "scaleJitter": 220,
+            "opacity": 15,
+            "blend": "multiply"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "overcast",
+            "asset": "Cloud_04C",
+            "density": 10,
+            "speed": 60,
+            "scale": 460,
+            "scaleJitter": 240,
+            "opacity": 21,
+            "blend": "multiply"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "overcast",
+            "asset": "Cloud_04C",
+            "density": 17,
+            "speed": 60,
+            "scale": 520,
+            "scaleJitter": 260,
+            "opacity": 29,
+            "blend": "multiply"
+          }
+        ]
+      },
+      "iconIndex": 893
+    },
+    "clear": {
+      "description": "Open sky with nothing in it. Shafts of light leaning across the world - warm from the sun, and the same shafts want a cooler tint under a moon.",
+      "stops": {
+        "light": [
+          {
+            "motion": "ray",
+            "asset": "SunLight_03A",
+            "density": 2,
+            "speed": 100,
+            "scale": 130,
+            "scaleJitter": 90,
+            "opacity": 26,
+            "tint": "#fff6d6",
+            "blend": "additive"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "ray",
+            "asset": "SunLight_01A",
+            "density": 3,
+            "speed": 100,
+            "scale": 110,
+            "scaleJitter": 70,
+            "opacity": 32,
+            "tint": "#fff0c2",
+            "blend": "additive"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "ray",
+            "asset": "SunLight_01A",
+            "density": 5,
+            "speed": 100,
+            "scale": 130,
+            "scaleJitter": 90,
+            "opacity": 40,
+            "tint": "#ffeaa8",
+            "blend": "additive"
+          }
+        ]
+      },
+      "iconIndex": 888
+    },
+    "sakura": {
+      "description": "NEW - not in CA today. Same motion as leaves, entirely different mood. Untuned.",
+      "stops": {
+        "_comment": "Sakura_02A is a single petal and Sakura_01A is a whole blossom, so the petals are the weather and a very few intact flowers come down with them.",
+        "light": [
+          {
+            "motion": "petal",
+            "asset": "Sakura_02A",
+            "density": 14,
+            "speed": 70,
+            "scale": 100,
+            "scaleJitter": 45,
+            "blend": "normal"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "petal",
+            "asset": "Sakura_02A",
+            "density": 34,
+            "speed": 90,
+            "scale": 100,
+            "scaleJitter": 45,
+            "blend": "normal"
+          },
+          {
+            "motion": "petal",
+            "asset": "Sakura_01A",
+            "density": 3,
+            "speed": 80,
+            "scale": 90,
+            "scaleJitter": 30,
+            "blend": "normal"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "petal",
+            "asset": "Sakura_02A",
+            "density": 75,
+            "speed": 130,
+            "scale": 100,
+            "scaleJitter": 50,
+            "blend": "normal"
+          },
+          {
+            "motion": "petal",
+            "asset": "Sakura_01A",
+            "density": 8,
+            "speed": 110,
+            "scale": 90,
+            "scaleJitter": 30,
+            "blend": "normal"
+          }
+        ]
+      },
+      "iconIndex": 167
+    },
+    "fireflies": {
+      "description": "NEW - not in CA today. Night-time forest. Light_01B tinted yellow-green, because a firefly is not a spirit-mote and the same asset serves both.",
+      "stops": {
+        "light": [
+          {
+            "motion": "firefly",
+            "asset": "Light_01B",
+            "density": 6,
+            "speed": 30,
+            "scale": 40,
+            "scaleJitter": 20,
+            "tint": "#c8ff6e",
+            "blend": "additive"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "firefly",
+            "asset": "Light_01B",
+            "density": 14,
+            "speed": 35,
+            "scale": 45,
+            "scaleJitter": 22,
+            "tint": "#c8ff6e",
+            "blend": "additive"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "firefly",
+            "asset": "Light_01B",
+            "density": 28,
+            "speed": 40,
+            "scale": 50,
+            "scaleJitter": 25,
+            "tint": "#d4ff7c",
+            "blend": "additive"
+          }
+        ]
+      },
+      "iconIndex": 127
+    },
+    "starfall": {
+      "description": "NEW - not in CA today. Clear night sky: a field of twinkles with the occasional streak through it. Star_03A is the twinkle and Star_01A is drawn already travelling down-right with its trail behind it; Star_02A is a solid yellow icon and belongs to no weather.",
+      "stops": {
+        "light": [
+          {
+            "motion": "twinkle",
+            "asset": "Star_03A",
+            "density": 10,
+            "speed": 100,
+            "scale": 22,
+            "scaleJitter": 16,
+            "opacity": 55,
+            "tint": "#dff2ff",
+            "blend": "additive"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "twinkle",
+            "asset": "Star_03A",
+            "density": 22,
+            "speed": 100,
+            "scale": 24,
+            "scaleJitter": 18,
+            "opacity": 65,
+            "tint": "#dff2ff",
+            "blend": "additive"
+          },
+          {
+            "motion": "streak",
+            "asset": "Star_01A",
+            "density": 1,
+            "speed": 100,
+            "scale": 60,
+            "scaleJitter": 25,
+            "opacity": 80,
+            "blend": "additive",
+            "becomesAsset": "Star_03A",
+            "becomesScale": 26,
+            "becomesScaleJitter": 14,
+            "becomesOpacity": 70,
+            "becomesTint": "#e8f6ff"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "twinkle",
+            "asset": "Star_03A",
+            "density": 40,
+            "speed": 100,
+            "scale": 26,
+            "scaleJitter": 20,
+            "opacity": 75,
+            "tint": "#e8f6ff",
+            "blend": "additive"
+          },
+          {
+            "motion": "streak",
+            "asset": "Star_01A",
+            "density": 3,
+            "speed": 100,
+            "scale": 70,
+            "scaleJitter": 30,
+            "opacity": 90,
+            "blend": "additive",
+            "becomesAsset": "Star_03A",
+            "becomesScale": 30,
+            "becomesScaleJitter": 16,
+            "becomesOpacity": 80,
+            "becomesTint": "#e8f6ff"
+          }
+        ]
+      },
+      "iconIndex": 125
+    },
+    "_comment_faces": [
+      "The three below are not skies of their own - they are what 'clear' and 'breezy' wear in a",
+      "particular season. J-Weather-Time picks them by (type, season, phase) and hands the name",
+      "straight to layersFor, which is why they have to be real presets rather than overrides."
+    ],
+    "scorcher": {
+      "description": "NEW - the summer daytime face of a clear sky. Same shafts as 'clear' but pushed hot, with a slow warm shimmer rising through them. Light_01C is an orange core in a red glow, which is what heat looks like when it is standing still in the air.",
+      "stops": {
+        "light": [
+          {
+            "motion": "ray",
+            "asset": "SunLight_03A",
+            "density": 2,
+            "speed": 100,
+            "scale": 130,
+            "scaleJitter": 90,
+            "opacity": 30,
+            "tint": "#ffe9b0",
+            "blend": "additive"
+          },
+          {
+            "motion": "wisp",
+            "asset": "Light_01C",
+            "density": 6,
+            "speed": 60,
+            "scale": 30,
+            "scaleJitter": 20,
+            "opacity": 16,
+            "blend": "additive"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "ray",
+            "asset": "SunLight_01A",
+            "density": 3,
+            "speed": 100,
+            "scale": 115,
+            "scaleJitter": 70,
+            "opacity": 38,
+            "tint": "#ffdf95",
+            "blend": "additive"
+          },
+          {
+            "motion": "wisp",
+            "asset": "Light_01C",
+            "density": 12,
+            "speed": 60,
+            "scale": 32,
+            "scaleJitter": 22,
+            "opacity": 20,
+            "blend": "additive"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "ray",
+            "asset": "SunLight_01A",
+            "density": 5,
+            "speed": 100,
+            "scale": 135,
+            "scaleJitter": 90,
+            "opacity": 48,
+            "tint": "#ffd070",
+            "blend": "additive"
+          },
+          {
+            "motion": "wisp",
+            "asset": "Light_01C",
+            "density": 22,
+            "speed": 60,
+            "scale": 34,
+            "scaleJitter": 24,
+            "opacity": 24,
+            "blend": "additive"
+          }
+        ]
+      },
+      "iconIndex": 2172
+    },
+    "frigid": {
+      "description": "NEW - the winter daytime face of a clear sky. A cold sun throws weaker, bluer shafts than a summer one, and the air itself glitters: on a still freezing day the moisture in it hangs as suspended ice rather than falling. That is what the twinkling snowflakes are - diamond dust, not snowfall.",
+      "stops": {
+        "light": [
+          {
+            "motion": "ray",
+            "asset": "SunLight_03A",
+            "density": 2,
+            "speed": 100,
+            "scale": 120,
+            "scaleJitter": 80,
+            "opacity": 20,
+            "tint": "#dbe9ff",
+            "blend": "additive"
+          },
+          {
+            "motion": "twinkle",
+            "asset": "Snow_01",
+            "density": 14,
+            "speed": 100,
+            "scale": 18,
+            "scaleJitter": 8,
+            "opacity": 55,
+            "tint": "#eaf4ff",
+            "blend": "normal"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "ray",
+            "asset": "SunLight_03A",
+            "density": 3,
+            "speed": 100,
+            "scale": 110,
+            "scaleJitter": 70,
+            "opacity": 24,
+            "tint": "#d2e4ff",
+            "blend": "additive"
+          },
+          {
+            "motion": "twinkle",
+            "asset": "Snow_01",
+            "density": 30,
+            "speed": 100,
+            "scale": 20,
+            "scaleJitter": 9,
+            "opacity": 65,
+            "tint": "#eaf4ff",
+            "blend": "normal"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "ray",
+            "asset": "SunLight_03A",
+            "density": 4,
+            "speed": 100,
+            "scale": 125,
+            "scaleJitter": 85,
+            "opacity": 28,
+            "tint": "#c8dcff",
+            "blend": "additive"
+          },
+          {
+            "motion": "twinkle",
+            "asset": "Snow_01",
+            "density": 55,
+            "speed": 100,
+            "scale": 22,
+            "scaleJitter": 10,
+            "opacity": 75,
+            "tint": "#eaf4ff",
+            "blend": "normal"
+          }
+        ]
+      },
+      "iconIndex": 2177
+    },
+    "maple": {
+      "description": "NEW - the autumn face of a breeze. The same motions as 'leaves' wearing a different tree. Leaf_03C is already painted red and Leaf_03B is the unturned green one, so a heavy wind carries both; Leaf_03A is the same shape in grey and takes an amber tint. These are 210px where Leaf_04A is 31px, which is the whole reason the scales look so different from the preset this was copied from.",
+      "stops": {
+        "light": [
+          {
+            "motion": "fall-drift",
+            "asset": "Leaf_03C",
+            "density": 12,
+            "speed": 80,
+            "scale": 11,
+            "scaleJitter": 5,
+            "blend": "normal"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "fall-drift",
+            "asset": "Leaf_03C",
+            "density": 26,
+            "speed": 100,
+            "scale": 11,
+            "scaleJitter": 5,
+            "blend": "normal"
+          },
+          {
+            "motion": "fall-drift",
+            "asset": "Leaf_03A",
+            "density": 10,
+            "speed": 95,
+            "scale": 10,
+            "scaleJitter": 5,
+            "tint": "#d98f3c",
+            "blend": "normal"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "fall-drift",
+            "asset": "Leaf_03C",
+            "density": 55,
+            "speed": 150,
+            "scale": 11,
+            "scaleJitter": 6,
+            "blend": "normal"
+          },
+          {
+            "motion": "fall-drift",
+            "asset": "Leaf_03A",
+            "density": 22,
+            "speed": 140,
+            "scale": 10,
+            "scaleJitter": 6,
+            "tint": "#c9762e",
+            "blend": "normal"
+          },
+          {
+            "motion": "drift",
+            "asset": "Leaf_03B",
+            "density": 30,
+            "speed": 180,
+            "scale": 8,
+            "scaleJitter": 4,
+            "blend": "normal"
+          }
+        ]
+      },
+      "_comment_sounds": "Autumn wind is still wind, so this borrows the leaves ladder unchanged.",
+      "sounds": {
+        "light": {
+          "name": "Wind1",
+          "volume": 30,
+          "pitch": 100
+        },
+        "moderate": {
+          "name": "Wind1",
+          "volume": 50,
+          "pitch": 100
+        },
+        "heavy": {
+          "name": "Wind4",
+          "volume": 70,
+          "pitch": 100
+        }
+      },
+      "iconIndex": 889
+    }
+  },
+  "_comment_ids": [
+    "These are what get written into game variables, so events can branch on the weather.",
+    "They are declared rather than derived from position on purpose: if they were positional,",
+    "inserting a preset above another would silently renumber it and every conditional branch",
+    "already written against the old number would quietly start meaning something else.",
+    "Add new presets with new numbers. Never renumber an existing one."
+  ],
+  "presetIds": {
+    "rain": 1,
+    "snow": 2,
+    "fog": 3,
+    "embers": 4,
+    "leaves": 5,
+    "motes": 6,
+    "submerged": 7,
+    "clouds": 8,
+    "clear": 9,
+    "sakura": 10,
+    "fireflies": 11,
+    "starfall": 12,
+    "scorcher": 13,
+    "frigid": 14,
+    "maple": 15
+  },
+  "intensityIds": {
+    "light": 1,
+    "moderate": 2,
+    "heavy": 3
+  },
+  "variables": {
+    "enabled": true,
+    "weatherType": 131,
+    "weatherIntensity": 132
+  },
+  "_comment_labels": [
+    "How weather is worded wherever it is written down - a forecast row, or the \\weather[] text",
+    "code dropped into somebody's dialogue. Only the word for having none is authored; the rest is",
+    "the preset's own name and its strength."
+  ],
+  "labels": {
+    "nothing": "clear"
+  },
+  "_comment_sky": [
+    "Everything below belongs to J-Weather-Time. J-Weather itself never reads it.",
+    "",
+    "A TYPE is a condition the sky walks between. A FACE is the preset that type is drawn with at a",
+    "given season and hour - a clear summer afternoon and a clear winter afternoon are one state and",
+    "two completely different pictures, and folding that into the graph would double every edge.",
+    "",
+    "Transition weights are relative and need not sum to anything. Seasons hard-gate which types are",
+    "possible at all, because 'it never snows in summer' is a fact about the world where a weight of",
+    "zero is only a fact about dice."
+  ],
+  "sky": {
+    "types": {
+      "clear": {
+        "preset": "clear",
+        "intensities": [
+          "light",
+          "moderate",
+          "heavy"
+        ],
+        "_comment": "Order matters - the first rule whose keys all match wins, so the summer night rule must sit above the general night rule.",
+        "faces": [
+          {
+            "phases": [
+              0,
+              5
+            ],
+            "seasons": [
+              "summer"
+            ],
+            "preset": "fireflies"
+          },
+          {
+            "phases": [
+              0,
+              5
+            ],
+            "preset": "starfall"
+          },
+          {
+            "phases": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "seasons": [
+              "summer"
+            ],
+            "preset": "scorcher"
+          },
+          {
+            "phases": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "seasons": [
+              "winter"
+            ],
+            "preset": "frigid"
+          }
+        ]
+      },
+      "overcast": {
+        "preset": "clouds",
+        "intensities": [
+          "light",
+          "moderate",
+          "heavy"
+        ]
+      },
+      "breezy": {
+        "preset": "leaves",
+        "intensities": [
+          "light",
+          "moderate",
+          "heavy"
+        ],
+        "_comment": "In autumn all wind is maple wind - there is no plain leaf breeze between months 9 and 11, deliberately.",
+        "faces": [
+          {
+            "seasons": [
+              "autumn"
+            ],
+            "preset": "maple"
+          }
+        ]
+      },
+      "rain": {
+        "preset": "rain",
+        "intensities": [
+          "light",
+          "moderate",
+          "heavy"
+        ]
+      },
+      "mist": {
+        "_comment": "Caps at moderate on purpose: a heavy mist is just fog, and fog is a place rather than a sky.",
+        "preset": "fog",
+        "intensities": [
+          "light",
+          "moderate"
+        ]
+      },
+      "sakura": {
+        "preset": "sakura",
+        "intensities": [
+          "light",
+          "moderate"
+        ]
+      },
+      "monsoon": {
+        "_comment": "A separate type rather than 'rain at heavy' so the strength drift cannot argue it down.",
+        "preset": "rain",
+        "intensities": [
+          "heavy"
+        ]
+      },
+      "snow": {
+        "preset": "snow",
+        "intensities": [
+          "light",
+          "moderate",
+          "heavy"
+        ]
+      }
+    },
+    "seasons": {
+      "spring": {
+        "_comment": "Mild and showery. Sakura is the season's signature and reachable only from calm weather.",
+        "allowed": [
+          "clear",
+          "overcast",
+          "breezy",
+          "rain",
+          "mist",
+          "sakura"
+        ],
+        "transitions": {
+          "clear": {
+            "clear": 42,
+            "breezy": 28,
+            "overcast": 20,
+            "sakura": 10
+          },
+          "overcast": {
+            "overcast": 18,
+            "clear": 26,
+            "rain": 36,
+            "mist": 20
+          },
+          "breezy": {
+            "breezy": 32,
+            "clear": 28,
+            "overcast": 20,
+            "sakura": 20
+          },
+          "rain": {
+            "rain": 42,
+            "overcast": 28,
+            "mist": 18,
+            "breezy": 12
+          },
+          "mist": {
+            "mist": 34,
+            "clear": 34,
+            "overcast": 14,
+            "breezy": 18
+          },
+          "sakura": {
+            "sakura": 45,
+            "breezy": 30,
+            "clear": 25
+          }
+        }
+      },
+      "summer": {
+        "_comment": "Clear-biased and dry. Rain when it comes arrives through overcast and leaves the same way.",
+        "allowed": [
+          "clear",
+          "overcast",
+          "breezy",
+          "rain"
+        ],
+        "transitions": {
+          "clear": {
+            "clear": 52,
+            "breezy": 30,
+            "overcast": 18
+          },
+          "overcast": {
+            "overcast": 16,
+            "clear": 38,
+            "rain": 36,
+            "breezy": 10
+          },
+          "breezy": {
+            "breezy": 30,
+            "clear": 48,
+            "overcast": 22
+          },
+          "rain": {
+            "rain": 34,
+            "overcast": 30,
+            "breezy": 24,
+            "clear": 12
+          }
+        }
+      },
+      "autumn": {
+        "_comment": "Windy and wet. A monsoon can only be entered from rain and can only leave back into it, which is what keeps it an event rather than a mood.",
+        "allowed": [
+          "clear",
+          "overcast",
+          "breezy",
+          "rain",
+          "mist",
+          "monsoon"
+        ],
+        "transitions": {
+          "clear": {
+            "clear": 32,
+            "breezy": 44,
+            "overcast": 24
+          },
+          "overcast": {
+            "overcast": 18,
+            "clear": 24,
+            "rain": 38,
+            "mist": 20
+          },
+          "breezy": {
+            "breezy": 36,
+            "clear": 26,
+            "overcast": 20,
+            "rain": 18
+          },
+          "rain": {
+            "rain": 34,
+            "overcast": 24,
+            "monsoon": 22,
+            "breezy": 20
+          },
+          "monsoon": {
+            "monsoon": 42,
+            "rain": 58
+          },
+          "mist": {
+            "mist": 32,
+            "clear": 36,
+            "overcast": 14,
+            "breezy": 18
+          }
+        }
+      },
+      "winter": {
+        "_comment": "Cold. Snow is reachable from everywhere because the Negative Peaks should not have to wait three phases for it.",
+        "allowed": [
+          "clear",
+          "overcast",
+          "breezy",
+          "rain",
+          "snow"
+        ],
+        "transitions": {
+          "clear": {
+            "clear": 38,
+            "overcast": 20,
+            "breezy": 22,
+            "snow": 20
+          },
+          "overcast": {
+            "overcast": 16,
+            "clear": 26,
+            "snow": 44,
+            "rain": 14
+          },
+          "breezy": {
+            "breezy": 30,
+            "clear": 30,
+            "overcast": 16,
+            "snow": 24
+          },
+          "rain": {
+            "rain": 24,
+            "overcast": 30,
+            "snow": 30,
+            "breezy": 16
+          },
+          "snow": {
+            "snow": 46,
+            "overcast": 18,
+            "clear": 18,
+            "breezy": 18
+          }
+        }
+      }
+    },
+    "_comment_months": [
+      "A season says what is POSSIBLE. A month says what is LIKELY, within that.",
+      "",
+      "Each number multiplies that condition's weight while rolling into it, so 1 is 'leave the",
+      "graph alone', 4 is 'four times as wanted as authored', and 0 is 'not this month'. A month",
+      "names only the conditions it has an opinion about.",
+      "",
+      "This is what makes sakura a fortnight in April rather than a whole spring, August the",
+      "uncomfortable stretch, October the monsoon month, and the deep snow December and January",
+      "with February visibly letting go of it.",
+      "",
+      "Zero is safe and is how sakura ENDS rather than fades - a sky still blossoming on the last",
+      "day of month 4 steps straight out of it on the next phase. What is not safe is zeroing",
+      "every exit from one condition; config validation reports that at boot."
+    ],
+    "months": {
+      "1": {
+        "snow": 3
+      },
+      "2": {
+        "snow": 0.5,
+        "rain": 1.5
+      },
+      "3": {
+        "sakura": 2.5
+      },
+      "4": {
+        "sakura": 4,
+        "rain": 1.3
+      },
+      "5": {
+        "sakura": 0,
+        "rain": 1.3
+      },
+      "6": {
+        "clear": 1.2
+      },
+      "7": {
+        "clear": 1.6
+      },
+      "8": {
+        "clear": 2.5,
+        "rain": 0.5
+      },
+      "9": {
+        "breezy": 1.2,
+        "rain": 2,
+        "monsoon": 0.3
+      },
+      "10": {
+        "monsoon": 3.5,
+        "rain": 1.5
+      },
+      "11": {
+        "monsoon": 0.4,
+        "mist": 1.8
+      },
+      "12": {
+        "snow": 2.5
+      }
+    },
+    "intensityDrift": {
+      "hold": 50,
+      "up": 25,
+      "down": 25
+    },
+    "settleTo": "clear",
+    "forecastPhases": 2160,
+    "visibleDays": 3,
+    "_comment_voices": [
+      "What somebody travelling with you says about the weather, on the 'Right Now' view.",
+      "",
+      "Keyed by PRESET, then optionally by strength. A preset that writes only 'any' uses those",
+      "lines whatever the strength is, so you owe fifteen states rather than forty-five - split a",
+      "preset into light/moderate/heavy only where a drizzle and a downpour want different words.",
+      "'none' covers standing somewhere with no weather at all.",
+      "",
+      "'who' is an ACTOR ID. The name and the face both come from the database, so renaming",
+      "somebody in the editor renames them here - and only actors currently in the party are ever",
+      "picked, so nobody remarks on the weather before you have met them. Jerald is 1, Rupert 2.",
+      "",
+      "One line is chosen at random each time the view is opened. Write at least two per state or",
+      "it stops feeling like a person and starts feeling like a tooltip.",
+      "",
+      "EVERYTHING BELOW IS PLACEHOLDER, written to prove the mechanism. Replace it."
+    ],
+    "voices": {
+      "none": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Can't see the weather while we're indoors, obviously."
+          },
+          {
+            "who": 2,
+            "says": "We're inside. It is not doing anything in here."
+          }
+        ]
+      },
+      "rain": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Finally, some fuckin' rain."
+          },
+          {
+            "who": 2,
+            "says": "Aww damn, they haven't even invented umbrellas on this planet."
+          }
+        ],
+        "heavy": [
+          {
+            "who": 1,
+            "says": "Holy shit, this is a fuckton of rain."
+          },
+          {
+            "who": 2,
+            "says": "Did we really have to come out here in this?"
+          }
+        ]
+      },
+      "clear": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Clear as the eye can see!"
+          },
+          {
+            "who": 2,
+            "says": "What a lovely and bright day."
+          }
+        ]
+      },
+      "scorcher": {
+        "any": [
+          {
+            "who": 1,
+            "says": "I'm pretty sure my flesh is melting off."
+          },
+          {
+            "who": 2,
+            "says": "My soul is blazing within!"
+          }
+        ]
+      },
+      "snow": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Brr, a bit chilly for my liking."
+          },
+          {
+            "who": 2,
+            "says": "Well at least magic usually deals with snow."
+          }
+        ]
+      },
+      "starfall": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Huh, the stars are falling. Literally."
+          },
+          {
+            "who": 2,
+            "says": "It is twinkling everywhere. How beautiful!"
+          }
+        ]
+      },
+      "fog": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Hey look- I can't even see my hand!"
+          },
+          {
+            "who": 2,
+            "says": "\u003csquints\u003e Yep, that is fog."
+          }
+        ]
+      },
+      "embers": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Remind me while we're in satan's anus again?"
+          },
+          {
+            "who": 2,
+            "says": "Its like a warm hug."
+          }
+        ]
+      },
+      "leaves": {
+        "any": [
+          {
+            "who": 1,
+            "says": "I FEEL the adventurer's spirit rising!"
+          },
+          {
+            "who": 2,
+            "says": "What a pleasant breeze!"
+          }
+        ]
+      },
+      "motes": {
+        "any": [
+          {
+            "who": 1,
+            "says": "I feel damp and its not even raining."
+          },
+          {
+            "who": 2,
+            "says": "What is the point of this? Is it just so this game looks cooler?"
+          }
+        ]
+      },
+      "submerged": {
+        "any": [
+          {
+            "who": 1,
+            "says": "I feel like I could swim in this."
+          },
+          {
+            "who": 2,
+            "says": "\u003cglub glub\u003e"
+          }
+        ]
+      },
+      "clouds": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Huh, clouds are rolling in. I wonder if it'll rain soon?"
+          },
+          {
+            "who": 2,
+            "says": "Clouds are always the transitionary weather effect."
+          }
+        ]
+      },
+      "sakura": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Wow, I feel like I'm in a JRPG now!"
+          },
+          {
+            "who": 2,
+            "says": "But there aren't any cherry blossom trees around, where are the petals coming from?"
+          }
+        ]
+      },
+      "fireflies": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Wow... Glowing but emitting no light at the same time!"
+          },
+          {
+            "who": 2,
+            "says": "Lovely little useless bugs."
+          }
+        ]
+      },
+      "frigid": {
+        "any": [
+          {
+            "who": 1,
+            "says": "Clear AND cold, what a menacing combo!"
+          },
+          {
+            "who": 2,
+            "says": "Devilish weather pulling tricks with sun and the cold."
+          }
+        ]
+      },
+      "maple": {
+        "any": [
+          {
+            "who": 1,
+            "says": "The absolute most stereotyped season of the year. Aside from sakura of course."
+          },
+          {
+            "who": 2,
+            "says": "Eh?"
+          }
+        ]
+      }
+    },
+    "_comment_places": [
+      "The destinations the DIAGNOSTIC forecast reports on - the one behind the showDebugForecast",
+      "plugin command, not anything a player sees. Naming places in a player-facing screen would",
+      "tell them the Negative Peaks exist before they have found them.",
+      "",
+      "A place is a NAME and a MAP ID and nothing else. The forecast reads that map's own note off",
+      "disk and runs it through the same resolver the game uses on arrival, so retagging a map",
+      "updates the forecast and the two can never disagree. Nothing about a place's weather is",
+      "restated here.",
+      "",
+      "Rows appear in the order listed. A map id that does not exist is reported and dropped."
+    ],
+    "places": [
+      {
+        "name": "Raevula",
+        "mapId": 19
+      },
+      {
+        "name": "Outer Cliffs",
+        "mapId": 117
+      },
+      {
+        "name": "Deluge Valley",
+        "mapId": 125
+      },
+      {
+        "name": "Negative Peaks",
+        "mapId": 120
+      },
+      {
+        "name": "Forest of Dreams",
+        "mapId": 24
+      }
+    ]
+  },
+  "_comment_climates": [
+    "A climate is how one KIND OF PLACE answers the sky rather than following it. It only bends a",
+    "look the map already authored with \u003cweather:...\u003e; a map with no weather of its own follows the",
+    "sky directly and a climate tag on it does nothing.",
+    "",
+    "byType and byIntensity are alternatives, not layers - declare one. `default` is the fallback for",
+    "whichever was declared."
+  ],
+  "climates": {
+    "dreaming": {
+      "_comment": "Forest of Dreams. The fog thickens as the sky clears, which is the one thing a map tag cannot say.",
+      "byType": {
+        "clear": "heavy",
+        "breezy": "moderate",
+        "overcast": "light",
+        "rain": "light",
+        "monsoon": "light",
+        "mist": "heavy",
+        "snow": "moderate",
+        "sakura": "moderate"
+      },
+      "default": "moderate"
+    }
+  }
+}
