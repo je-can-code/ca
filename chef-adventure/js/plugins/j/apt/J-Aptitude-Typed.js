@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.4 APT-TYPED] Adds typed (element/weapon type/skill type) AP gains and teachables.
+ * [v1.2.0 APT-TYPED] Adds typed (element/weapon type/skill type) AP gains and teachables.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -171,6 +171,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Enemy typing reads prefixed elements (vs , x , tool-) from the weakness
+ *    side and standard elements from the resistance side, since a prefix marks
+ *    an element as describing what a battler is rather than what hurts it. The
+ *    rate arithmetic moved to RPG_BaseBattler so anything can ask what a
+ *    battler is.
  * - 1.1.4
  *    The aggregate details window names its aptitude sources.
  * - 1.1.3
@@ -490,7 +496,7 @@ J.APT.EXT.TYPED = J.APT.EXT.TYPED || {};
 * The plugin umbrella that governs all things related to this extension plugin.
 * Name and Version are owned by the metadata instance.
 */
-J.APT.EXT.TYPED.Metadata = new JAptitudeTyped_PluginMetadata("J-Aptitude-Typed", "1.1.4");
+J.APT.EXT.TYPED.Metadata = new JAptitudeTyped_PluginMetadata("J-Aptitude-Typed", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
