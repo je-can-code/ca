@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.3.2 ELEM] Enables greater control over elements.
+ * @plugindesc [v1.4.0 ELEM] Enables greater control over elements.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -283,6 +283,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.4.0
+ *    Added <slayer:[ELEMENT_ID, PERCENT]>, a damage bonus against targets weak
+ *    to an element. Keyed on what the target is rather than what the attack is
+ *    made of, so the attacker need not carry the element to benefit.
  * - 1.3.2
  *    Routed the damage-formula failure through J-Base's new Diagnostics. It was
  *    two warnings plus a separate error; it is now one error naming
@@ -348,7 +352,7 @@ J.ELEM = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.3.2");
+J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

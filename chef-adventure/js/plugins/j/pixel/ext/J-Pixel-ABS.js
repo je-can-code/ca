@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.2 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
+ * [v1.2.0 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -90,6 +90,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    An ally that has stopped getting closer to its formation slot now stands
+ *    still instead of stepping back and forth across the same half tile.
  * - 1.1.2
  *    Simplified how the pixel battler resolves its angle and idle state.
  * - 1.1.1
@@ -281,7 +284,7 @@ J.PIXEL.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-Pixel-ABS", "1.1.2");
+J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-Pixel-ABS", "1.2.0");
 /**
 * A collection of regex patterns for this plugin.
 */

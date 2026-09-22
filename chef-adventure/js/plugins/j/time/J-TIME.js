@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.0.0 TIME] A system for tracking time- real or artificial.
+ * @plugindesc [v2.1.0 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -201,6 +201,12 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    The HUD is the clock and the phase on one line, and nothing else. The
+ *    season and the full date are gone, the seconds with them - the alternating
+ *    colon already says the clock is running. drawContent splits into named
+ *    draws and the window sizes from a declared row count, so an extension can
+ *    add a line. Added the clockIcon parameter.
  * - 2.0.0
  *    BREAKING: the day/night look moved out to J-Lighting-Time. This plugin keeps the
  *    clock, the variables, the conditionals and the HUD, and paints nothing.
@@ -683,7 +689,7 @@ J.TIME = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "2.0.0");
+J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "2.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
