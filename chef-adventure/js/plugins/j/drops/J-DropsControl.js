@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.5.1 DROPS] Enables greater control over loot drops.
+ * @plugindesc [v2.6.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -130,21 +130,23 @@
  *
  *        J-NaturalGrowth
  *
- * plugin? Well now you can! This is a second, independent drop rate bonus
- * from the flat <dropMultiplier:NUM> tag above- it lives on its own
- * registered parameter (key "dor"), can be earned from SDP panels, and
- * follows J-NaturalGrowths' own builder-like Buff/Growth tag pattern instead
- * of a flat additive number.
+ * plugin? Well now you can! Both reward multipliers- drop rate (key "dor")
+ * and gold rate (key "gdr")- accept J-NaturalGrowths' own builder-like
+ * Buff/Growth tag pattern on top of the flat <dropMultiplier:NUM> and
+ * <goldMultiplier:NUM> tags above, and can be earned from SDP panels.
  *
  * NOTE:
  * This section requires J-NaturalGrowth to be loaded. Without it, these tags
  * are silently ignored (the same as always- just nothing computes them).
+ * Where the two plugins sit in the plugin list does not matter.
+ *
+ * Every amount is a percent, exactly like the multiplier tags above, so
+ * <dorBuffPlus:[15]> and <dropMultiplier:15> both grant +15% drops.
  *
  * Formula context:
  *   a = the battler these bonuses are being calculated for
- *   b = 0 (dor's base value is always 0- there's no "base drop rate" to
- *       expose without re-triggering the getAllNotes() lookup these formulas
- *       already live inside)
+ *   b = the multiplier this battler's own tags produce, in percent (the
+ *       summed <dropMultiplier> for dor, the summed <goldMultiplier> for gdr)
  *   v = $gameVariables._data
  *
  * TAG USAGE:
@@ -160,6 +162,10 @@
  *  <dorBuffRate:[FORMULA]>
  *  <dorGrowthPlus:[FORMULA]>
  *  <dorGrowthRate:[FORMULA]>
+ *  <gdrBuffPlus:[FORMULA]>
+ *  <gdrBuffRate:[FORMULA]>
+ *  <gdrGrowthPlus:[FORMULA]>
+ *  <gdrGrowthRate:[FORMULA]>
  * Where "Buff" is temporary (lost when the tag's source is removed) and
  * "Growth" is permanent (accumulates and stays as you level).
  * Where "Plus" is a flat amount and "Rate" is a percent-of-base amount.
@@ -171,6 +177,9 @@
  *  <dorBuffPlus:[15]>
  * Gain a flat 15% drop rate while this tag's source is applied; lost if the
  * source is removed.
+ *
+ *  <gdrGrowthPlus:[2]>
+ * Permanently gain 2% more gold per level.
  *
  * Please refer to the J-NaturalGrowth documentation for more details on the
  * Buff/Growth/Plus/Rate pattern itself.
@@ -210,6 +219,10 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.6.0
+ *    Added natural growth tags for gold rate (gdr). Fixed drop rate growth, which
+ *    never applied when J-NaturalGrowth loaded after this plugin, and drop rate
+ *    buffs, which landed a hundred times too strong.
  * - 2.5.1
  *    Routed the static-instantiation and invalid-drop reports through J-Base's
  *    new Diagnostics, so each names J-DropsControl. The invalid-drop warning now
@@ -437,7 +450,7 @@ J.DROPS.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.5.1");
+J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.6.0");
 /**
 * All regular expressions used by this plugin.
 */
@@ -511,6 +524,10 @@ J.DROPS.RegExp.DropRateBuffPlus = /<dorBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
 J.DROPS.RegExp.DropRateBuffRate = /<dorBuffRate:\[([+\-*/ ().\w]+)]>/gi;
 J.DROPS.RegExp.DropRateGrowthPlus = /<dorGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
 J.DROPS.RegExp.DropRateGrowthRate = /<dorGrowthRate:\[([+\-*/ ().\w]+)]>/gi;
+J.DROPS.RegExp.GoldRateBuffPlus = /<gdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.DROPS.RegExp.GoldRateBuffRate = /<gdrBuffRate:\[([+\-*/ ().\w]+)]>/gi;
+J.DROPS.RegExp.GoldRateGrowthPlus = /<gdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.DROPS.RegExp.GoldRateGrowthRate = /<gdrGrowthRate:\[([+\-*/ ().\w]+)]>/gi;
 /**
 * The collection of all aliased classes for extending.
 */
@@ -738,91 +755,22 @@ var DropsPartyStrategy = class {
 //#endregion
 //#region src/plugins/drops/core/objects/Game_Battler.js
 /**
-* Extends `.initNaturalGrowthParameters()` to include dor as growth-ready.
-*/
-J.DROPS.Aliased.Game_Battler.set("initNaturalGrowthParameters", Game_Battler.prototype.initNaturalGrowthParameters);
-Game_Battler.prototype.initNaturalGrowthParameters = function() {
-	if (!J.NATURAL) return;
-	J.DROPS.Aliased.Game_Battler.get("initNaturalGrowthParameters").call(this);
-	/**
-	* The J object where all my additional properties live.
-	*/
-	this._j ||= {};
-	/**
-	* A grouping of all properties associated with natural growth.
-	*/
-	this._j._natural ||= {};
-	/**
-	* The permanent flat bonus for drop rate.
-	* @type {number}
-	*/
-	this._j._natural._dorPlus = 0;
-	/**
-	* The permanent multiplier bonus for drop rate.
-	* @type {number}
-	*/
-	this._j._natural._dorRate = 0;
-};
-/**
-* Gets the permanent flat bonus for drop rate.
+* The gold multiplier this battler's own tags produce, before SDP panels or natural bonuses.<br/>
+* Only actors carry a reward model, so every other battler answers zero. Natural growth still asks
+* every battler for it, because buffs are refreshed on enemies too.
 * @returns {number}
 */
-Game_Battler.prototype.dorPlus = function() {
-	return this._j._natural._dorPlus;
+Game_Battler.prototype.baseGoldMultiplier = function() {
+	return 0;
 };
 /**
-* Modifies the permanent flat bonus for drop rate.
-* @param {number} amount The amount to modify the bonus by.
-*/
-Game_Battler.prototype.modDorPlus = function(amount) {
-	this._j._natural._dorPlus += amount;
-};
-/**
-* Gets the permanent multiplicative bonus for drop rate.
+* The drop multiplier this battler's own tags produce, before SDP panels or natural bonuses.<br/>
+* Only actors carry a reward model, so every other battler answers zero, for the same reason as
+* {@link #baseGoldMultiplier}.
 * @returns {number}
 */
-Game_Battler.prototype.dorRate = function() {
-	return this._j._natural._dorRate;
-};
-/**
-* Modifies the permanent multiplicative bonus for drop rate.
-* @param {number} amount The amount to modify the bonus by.
-*/
-Game_Battler.prototype.modDorRate = function(amount) {
-	this._j._natural._dorRate += amount;
-};
-/**
-* Gets all natural bonuses for dor.
-* @returns {number}
-*/
-Game_Battler.prototype.dorNaturalBonuses = function() {
-	if (!J.NATURAL) return 0;
-	const dorBuffs = this.dorNaturalBuffs();
-	const dorGrowths = this.dorNaturalGrowths();
-	return dorBuffs + dorGrowths;
-};
-/**
-* Calculates the buffs for drop rate.
-* @returns {number}
-*/
-Game_Battler.prototype.dorNaturalBuffs = function() {
-	const objectsToCheck = this.getAllNotes();
-	const baseParam = 0;
-	const dorBuffPlus = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropRateBuffPlus, baseParam, this);
-	const dorBuffRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropRateBuffRate, baseParam, this);
-	if (!dorBuffPlus && !dorBuffRate) return 0;
-	return this.calculatePlusRate(baseParam, dorBuffPlus, dorBuffRate);
-};
-/**
-* Calculates the growths associated with drop rate.
-* @returns {number}
-*/
-Game_Battler.prototype.dorNaturalGrowths = function() {
-	const baseParam = 0;
-	const growthPlus = this.dorPlus();
-	const growthRate = this.dorRate();
-	if (!growthPlus && !growthRate) return 0;
-	return this.calculatePlusRate(baseParam, growthPlus, growthRate);
+Game_Battler.prototype.baseDropMultiplier = function() {
+	return 0;
 };
 /**
 * How many rungs this battler promotes drops by.
@@ -885,48 +833,57 @@ Object.defineProperty(Game_Actor.prototype, "dor", {
 	configurable: true
 });
 /**
-* Gets this actor's bonus drop multiplier.
-* @returns {number}
-*/
-/**
-* Assembles a reward multiplier factor from this actor's notes and SDP panels.
-* Both contributions are expressed in percent-points and are summed before being scaled down
-* into the factor callers multiply by, so a notetag granting 20 and a panel granting 5 together
-* produce a factor of 0.25 rather than two separately-rounded factors.
+* Sums the percent-points this actor's notes carry for one reward multiplier tag.
 * @param {RegExp} structure The notetag structure carrying the multiplier.
-* @param {string} parameterKey The SDP parameter key contributing to the same multiplier.
+* @returns {number} The summed percent-points.
+*/
+Game_Actor.prototype.rewardTagSum = function(structure) {
+	const objectsToCheck = this.getAllNotes();
+	return RPGManager.getSumFromAllNotesByRegex(objectsToCheck, structure);
+};
+/**
+* Assembles a reward multiplier factor from this actor's notes, SDP panels and natural bonuses.
+* The notetag and panel contributions are expressed in percent-points and are summed before being
+* scaled down into the factor callers multiply by, so a notetag granting 20 and a panel granting 5
+* together produce a factor of 0.25 rather than two separately-rounded factors. Natural bonuses arrive
+* already in factor units, so they join after the scaling rather than before it.
+* @param {RegExp} structure The notetag structure carrying the multiplier.
+* @param {string} parameterKey The registry key of the multiplier, which SDP panels and natural growth
+* both know it by.
 * @returns {number} The assembled multiplier factor.
 */
 Game_Actor.prototype.rewardMultiplierFactor = function(structure, parameterKey) {
 	const baseMultiplier = 0;
-	const objectsToCheck = this.getAllNotes();
-	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, structure);
+	const multiplierBonus = this.rewardTagSum(structure);
 	const sdpBonus = J.SDP ? this.getSdpBonusForParameterKey(parameterKey, 1) : 0;
-	return (multiplierBonus + baseMultiplier + sdpBonus) / 100;
-};
-Game_Actor.prototype.getDropMultiplierBonus = function() {
-	const factor = this.rewardMultiplierFactor(J.DROPS.RegExp.DropMultiplier, "dor");
-	const naturalBonus = this.dorNaturalBonuses();
+	const factor = (multiplierBonus + baseMultiplier + sdpBonus) / 100;
+	const naturalBonus = this.naturalBonus(parameterKey);
 	return factor + naturalBonus;
 };
 /**
-* Extends `.applyNaturalCustomGrowths()` to include dor growths.
+* Overwrites {@link #baseGoldMultiplier}.<br/>
+* The gold multiplier this actor's own tags produce, scaled into a factor. This is what the gold
+* rate's natural tags see as their base.
+* @returns {number}
 */
-J.DROPS.Aliased.Game_Actor.set("applyNaturalCustomGrowths", Game_Actor.prototype.applyNaturalCustomGrowths);
-Game_Actor.prototype.applyNaturalCustomGrowths = function() {
-	J.DROPS.Aliased.Game_Actor.get("applyNaturalCustomGrowths").call(this);
-	if (!J.NATURAL) return;
-	this.applyNaturalDorGrowths();
+Game_Actor.prototype.baseGoldMultiplier = function() {
+	return this.rewardTagSum(J.DROPS.RegExp.GoldMultiplier) / 100;
 };
 /**
-* Applies the natural drop rate growths to this battler.
+* Overwrites {@link #baseDropMultiplier}.<br/>
+* The drop multiplier this actor's own tags produce, scaled into a factor. This is what the drop
+* rate's natural tags see as their base.
+* @returns {number}
 */
-Game_Actor.prototype.applyNaturalDorGrowths = function() {
-	const baseParam = 0;
-	const growthPlus = this.naturalParamBuff(J.DROPS.RegExp.DropRateGrowthPlus, baseParam);
-	this.modDorPlus(growthPlus);
-	const growthRate = this.naturalParamBuff(J.DROPS.RegExp.DropRateGrowthRate, baseParam);
-	this.modDorRate(growthRate);
+Game_Actor.prototype.baseDropMultiplier = function() {
+	return this.rewardTagSum(J.DROPS.RegExp.DropMultiplier) / 100;
+};
+/**
+* Gets this actor's bonus drop multiplier.
+* @returns {number}
+*/
+Game_Actor.prototype.getDropMultiplierBonus = function() {
+	return this.rewardMultiplierFactor(J.DROPS.RegExp.DropMultiplier, "dor");
 };
 /**
 * Gets this actor's bonus gold multiplier.
@@ -1319,8 +1276,12 @@ var DropsParameterRegistration = class {
 	static registerAll() {
 		const goldDropRate = ParameterDefinition.Builder().key("gdr").group(ParameterGroups.FATE).sortOrder(3).label(() => TextManager.goldRate()).description(() => TextManager.goldRateDescription()).iconIndex(() => IconManager.goldRate()).format(ParameterFormat.MULTIPLIER_PERCENT).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.gdr).sdpBinding(SdpParameterBinding.byKey("gdr", () => 1)).build();
 		ParameterRegistry.register(goldDropRate);
+		const goldRateNatural = new NaturalParameterBinding(J.DROPS.RegExp.GoldRateBuffPlus, J.DROPS.RegExp.GoldRateBuffRate, J.DROPS.RegExp.GoldRateGrowthPlus, J.DROPS.RegExp.GoldRateGrowthRate, (battler) => battler.baseGoldMultiplier());
+		ParameterRegistry.bindNatural("gdr", goldRateNatural);
 		const dropRate = ParameterDefinition.Builder().key("dor").group(ParameterGroups.FATE).sortOrder(6).label(() => TextManager.dropRate()).description(() => TextManager.dropRateDescription()).iconIndex(() => IconManager.dropRate()).format(ParameterFormat.MULTIPLIER_PERCENT).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.dor).sdpBinding(SdpParameterBinding.byKey("dor", () => 1)).build();
 		ParameterRegistry.register(dropRate);
+		const dropRateNatural = new NaturalParameterBinding(J.DROPS.RegExp.DropRateBuffPlus, J.DROPS.RegExp.DropRateBuffRate, J.DROPS.RegExp.DropRateGrowthPlus, J.DROPS.RegExp.DropRateGrowthRate, (battler) => battler.baseDropMultiplier());
+		ParameterRegistry.bindNatural("dor", dropRateNatural);
 	}
 };
 

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 ABS-SPEED] Enable modifying move speeds.
+ * [v1.2.0 ABS-SPEED] Enable modifying move speeds.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -65,7 +65,18 @@
  *  <speedBoost:30>
  * This battler's movement speed will be increased by ~40%.
  * ============================================================================
+ * NATURAL GROWTH:
+ * With J-NaturalGrowth also installed, move speed boost (msb) accepts its buff
+ * and growth tags, in the same numbers as <speedBoost:NUM> above:
+ * <msbGrowthPlus:[1]> grants +1 speed boost per level.
+ *
+ * TAG FORMAT:
+ *  <msb(Buff|Growth)(Plus|Rate):[FORMULA]>
+ * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Added natural growth tags for move speed boost (msb).
  * - 1.1.1
  *    Corrected PLUGIN_NAME from J-ABS-SpeedBoosts to J-ABS-Speed, matching the
  *    name the ship has always been built and shipped under.
@@ -101,7 +112,7 @@ var J_SpeedPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/speed/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "3.19.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -119,7 +130,7 @@ J.ABS.EXT.SPEED = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-Speed", "1.1.1");
+J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-Speed", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -135,7 +146,13 @@ J.ABS.EXT.SPEED.Aliased = {
 /**
 * All regular expressions used by this plugin.
 */
-J.ABS.EXT.SPEED.RegExp = { WalkSpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi };
+J.ABS.EXT.SPEED.RegExp = {
+	WalkSpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi,
+	WalkSpeedBoostBuffPlus: /<msbBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+	WalkSpeedBoostBuffRate: /<msbBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+	WalkSpeedBoostGrowthPlus: /<msbGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+	WalkSpeedBoostGrowthRate: /<msbGrowthRate:\[([+\-*/ ().\w]+)]>/gi
+};
 
 //#endregion
 //#region src/plugins/abs/ext/speed/database/RPG_Base.js
@@ -229,10 +246,20 @@ Object.defineProperty(Game_BattlerBase.prototype, "msb", {
 });
 Object.defineProperty(Game_Battler.prototype, "msb", {
 	get: function() {
-		return this._j._abs._speed._walkBoost;
+		const walkBoost = this.walkSpeedBoost();
+		const naturalBonus = this.naturalBonus("msb");
+		return walkBoost + naturalBonus;
 	},
 	configurable: true
 });
+/**
+* Gets the walking speed boost this battler's own tags produce, before natural bonuses.<br/>
+* This is what move speed's natural tags see as their base.
+* @returns {number}
+*/
+Game_Battler.prototype.walkSpeedBoost = function() {
+	return this._j._abs._speed._walkBoost;
+};
 /**
 * Sets the current speed bost scale for this battler.
 * @param {number} amount The new walking speed boost amount.
@@ -315,6 +342,8 @@ var SpeedParameterRegistration = class {
 	static registerAll() {
 		const moveSpeedBoost = ParameterDefinition.Builder().key("msb").group(ParameterGroups.SUPPORT).sortOrder(2).label(() => TextManager.movespeed()).description(() => TextManager.moveSpeedDescription()).iconIndex(() => IconManager.movespeed()).format(ParameterFormat.FLAT).getValue((battler) => battler.msb).sdpBinding(SdpParameterBinding.byKey("msb", () => 0)).build();
 		ParameterRegistry.register(moveSpeedBoost);
+		const moveSpeedNatural = new NaturalParameterBinding(J.ABS.EXT.SPEED.RegExp.WalkSpeedBoostBuffPlus, J.ABS.EXT.SPEED.RegExp.WalkSpeedBoostBuffRate, J.ABS.EXT.SPEED.RegExp.WalkSpeedBoostGrowthPlus, J.ABS.EXT.SPEED.RegExp.WalkSpeedBoostGrowthRate, (battler) => battler.walkSpeedBoost());
+		ParameterRegistry.bindNatural("msb", moveSpeedNatural);
 	}
 };
 

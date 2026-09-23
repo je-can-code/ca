@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.4.3 PROF] Enables skill proficiency tracking.
+ * @plugindesc [v2.5.0 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -151,7 +151,18 @@
  * - Increasing the proficiency can trigger rewards for the skill.
  * - Decreasing the proficiency will NOT undo rewards gained.
  * ============================================================================
+ * NATURAL GROWTH:
+ * With J-NaturalGrowth also installed, the proficiency bonus (prof) accepts
+ * its buff and growth tags, in the same flat numbers as <proficiencyBonus:NUM>:
+ * <profGrowthPlus:[1]> grants +1 proficiency per use for every level gained.
+ *
+ * TAG FORMAT:
+ *  <prof(Buff|Growth)(Plus|Rate):[FORMULA]>
+ * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
+ * ============================================================================
  * CHANGELOG:
+ * - 2.5.0
+ *    Added natural growth tags for proficiency bonus (prof).
  * - 2.4.3
  *    Removed the save-migration block from updateBonusSkillProficiencyGains. The
  *    field is established in initMembers, so the absent value it defended against
@@ -467,7 +478,7 @@ J.PROF.Helpers.loadExternalConfig = (configPath = J_ProficiencyPluginMetadata.CO
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.4.3");
+J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.5.0");
 J.PROF.Helpers.loadExternalConfig();
 /**
 * The various aliases associated with this plugin.
@@ -487,6 +498,10 @@ J.PROF.RegExp = {};
 J.PROF.RegExp.ProficiencyBonus = /<proficiencyBonus:[ ]?(\d+)>/i;
 J.PROF.RegExp.ProficiencyGivingBlock = /<proficiencyGivingBlock>/i;
 J.PROF.RegExp.ProficiencyGainingBlock = /<proficiencyGainingBlock>/i;
+J.PROF.RegExp.ProficiencyBonusBuffPlus = /<profBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.PROF.RegExp.ProficiencyBonusBuffRate = /<profBuffRate:\[([+\-*/ ().\w]+)]>/gi;
+J.PROF.RegExp.ProficiencyBonusGrowthPlus = /<profGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.PROF.RegExp.ProficiencyBonusGrowthRate = /<profGrowthRate:\[([+\-*/ ().\w]+)]>/gi;
 Game_Action.registerFormulaContext("p", (action) => action.skillProficiency());
 
 //#endregion
@@ -500,6 +515,15 @@ Object.defineProperty(Game_BattlerBase.prototype, "prof", {
 	},
 	configurable: true
 });
+/**
+* The proficiency bonus a battler's own tags produce, before SDP panels or natural bonuses.<br/>
+* Only actors earn proficiency, so every other battler answers zero. Natural growth still asks every
+* battler for it, because buffs are refreshed on enemies too.
+* @returns {number}
+*/
+Game_Battler.prototype.baseProficiencyBonus = function() {
+	return 0;
+};
 /**
 * Gets all skill proficiencies for this battler.
 * @returns {SkillProficiency[]}
@@ -818,11 +842,22 @@ Game_Actor.prototype.updateBonusSkillProficiencyGains = function() {
 */
 Object.defineProperty(Game_Actor.prototype, "prof", {
 	get: function() {
+		const baseBonus = this.baseProficiencyBonus();
 		const sdpBonus = J.SDP ? this.getSdpBonusForParameterKey("prof", 1) : 0;
-		return this._j._proficiency._bonusSkillProficiencyGains + sdpBonus;
+		const naturalBonus = this.naturalBonus("prof");
+		return baseBonus + sdpBonus + naturalBonus;
 	},
 	configurable: true
 });
+/**
+* Overwrites {@link Game_Battler#baseProficiencyBonus}.<br/>
+* The proficiency bonus this actor's own tags produce. This is what the proficiency bonus's natural
+* tags see as their base.
+* @returns {number}
+*/
+Game_Actor.prototype.baseProficiencyBonus = function() {
+	return this.bonusSkillProficiencyGains();
+};
 /**
 * Gets the bonus skill proficiency gains.
 * @returns {number} The bonusSkillProficiencyGains.
@@ -1119,6 +1154,8 @@ var ProfParameterRegistration = class {
 	static registerAll() {
 		const proficiencyBonus = ParameterDefinition.Builder().key("prof").group(ParameterGroups.FATE).sortOrder(4).label(() => TextManager.proficiencyBonus()).description(() => TextManager.proficiencyDescription()).iconIndex(() => IconManager.proficiencyBoost()).format(ParameterFormat.FLAT).getValue((battler) => battler.prof).sdpBinding(SdpParameterBinding.byKey("prof", (actor) => actor.baseSkillProficiencyAmount())).build();
 		ParameterRegistry.register(proficiencyBonus);
+		const proficiencyBonusNatural = new NaturalParameterBinding(J.PROF.RegExp.ProficiencyBonusBuffPlus, J.PROF.RegExp.ProficiencyBonusBuffRate, J.PROF.RegExp.ProficiencyBonusGrowthPlus, J.PROF.RegExp.ProficiencyBonusGrowthRate, (battler) => battler.baseProficiencyBonus());
+		ParameterRegistry.bindNatural("prof", proficiencyBonusNatural);
 	}
 };
 

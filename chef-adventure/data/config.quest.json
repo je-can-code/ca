@@ -5780,7 +5780,7 @@
         "ch1"
       ],
       "unknownHint": "Someone is yelling about peasants outside the inn.",
-      "overview": "Vanderslop is absolutely livid with Peter's ignorance of his own inferiority, and demands tribute in the form of delicious food. What kind of salad can even be served to a fuckwad like Vanderslop? The Wilted Wolftrap Salad, naturally. Three of them.",
+      "overview": "Vanderslop is absolutely livid with Peter's ignorance of his own inferiority, and demands tribute in the form of delicious food. What kind of salad can even be served to a fuckwad like Vanderslop? \\item[701], naturally. Three of them.",
       "recommendedLevel": 10,
       "objectives": [
         {
@@ -5834,7 +5834,7 @@
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Acquire three \\item[607] for the tribute."
+              "hint": "Acquire three \\item[701] for the tribute."
             },
             "destination": {
               "mapId": -1,
@@ -5845,7 +5845,7 @@
             },
             "fetch": {
               "type": 0,
-              "id": 607,
+              "id": 701,
               "amount": 3
             },
             "slay": {
@@ -6036,7 +6036,7 @@
         "ch2"
       ],
       "unknownHint": "",
-      "overview": "Vanderslop is raging again, unable to comprehend how Peter isn't disappointed with himself for not being wealthy. 'If you're truly happy, then prove it by showing me the fruits of your labor.' Peter provides the produce; you provide the cooking. Three Seeing Jambalayas ought to do it.",
+      "overview": "Vanderslop is raging again, unable to comprehend how Peter isn't disappointed with himself for not being wealthy. 'If you're truly happy, then prove it by showing me the fruits of your labor.' Peter provides the produce; you provide the cooking. Three \\item[775] ought to do it.",
       "recommendedLevel": 20,
       "objectives": [
         {
@@ -6080,17 +6080,17 @@
         {
           "id": 1,
           "type": "Fetch",
-          "description": "The fruits of Peter's labor, apparently, are jambalaya.",
+          "description": "The fruits of Peter's labor, apparently, are \\item[775].",
           "logs": {
             "inactive": "",
-            "active": "The fruits of labor, apparently, are jambalaya.",
-            "completed": "Three jambalayas. The fruits have been laboured.",
+            "active": "The fruits of labor, apparently, are \\item[775].",
+            "completed": "Three \\item[775]. The fruits have been laboured.",
             "failed": "",
             "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Cook up three \\item[524] from Peter's produce."
+              "hint": "Cook up three \\item[775] from Peter's produce."
             },
             "destination": {
               "mapId": -1,
@@ -6101,7 +6101,7 @@
             },
             "fetch": {
               "type": 0,
-              "id": 524,
+              "id": 775,
               "amount": 3
             },
             "slay": {
@@ -6346,7 +6346,7 @@
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Prepare three \\item[607] for the banquet."
+              "hint": "Prepare three \\item[701] for the banquet."
             },
             "destination": {
               "mapId": -1,
@@ -6357,7 +6357,7 @@
             },
             "fetch": {
               "type": 0,
-              "id": 607,
+              "id": 701,
               "amount": 3
             },
             "slay": {
@@ -6374,17 +6374,17 @@
         {
           "id": 2,
           "type": "Fetch",
-          "description": "No vanity banquet is complete without the jambalaya course.",
+          "description": "No vanity banquet is complete without the \\item[775] course.",
           "logs": {
             "inactive": "",
-            "active": "No banquet is complete without the jambalaya course.",
-            "completed": "Jambalaya: done.",
+            "active": "No banquet is complete without the \\item[775] course.",
+            "completed": "\\item[775]: done.",
             "failed": "",
             "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Prepare three \\item[524] for the banquet."
+              "hint": "Prepare three \\item[775] for the banquet."
             },
             "destination": {
               "mapId": -1,
@@ -6395,7 +6395,7 @@
             },
             "fetch": {
               "type": 0,
-              "id": 524,
+              "id": 775,
               "amount": 3
             },
             "slay": {

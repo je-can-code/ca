@@ -1,0 +1,51 @@
+name: Validate
+
+# Every pull request, and every landing on main. The push trigger is not redundant with the pull
+# request one: a squash merge produces a commit nothing has ever run against, since what CI checked
+# was the branch rather than the result of collapsing it onto main.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# a second push to a branch makes the first run's answer irrelevant, so it is cancelled rather than
+# left to finish. main is deliberately not cancelled: every commit that lands there gets its own
+# verdict, because that is the history someone will later bisect.
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+
+    steps:
+      # the validator reads the database, the plugin list and the mirrored plugins, and nothing else.
+      # img/ and audio/ are most of the working tree, so they are left out of the checkout entirely;
+      # git still tracks every file, which is what the committed-backup check reads.
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            chef-adventure/data
+            chef-adventure/js
+            tools
+
+      # Bun is the only runtime this repository uses, pinned to match rmmz-plugins.
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
+      # proves every check still catches the bug it exists for, by planting each one in memory against
+      # this very tree. A validator that reports clean is indistinguishable from one that is broken, so
+      # the proof runs first and on every commit, not once when the check was written.
+      - name: Selftest
+        run: bun run validate:selftest
+
+      # parse floor, committed backups, plugin drift against the rmmz-plugins manifest, every id a
+      # notetag names, and every id a plugin config names in an MZ table.
+      - name: Validate
+        run: bun run validate
