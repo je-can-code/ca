@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.18.0 BASE] The base class for all J plugins.
+ * [v3.19.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.19.0
+ *    Added natural growth bindings to the parameter registry, so any plugin can
+ *    offer growth tags for its own parameters.
  * - 3.18.0
  *    Added Spriteset_Base#baseSprite, so a plugin can parent something inside the
  *    screen tone rather than over it without reaching for the field directly.
@@ -2056,7 +2059,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.18.0";
+J.BASE.Metadata.Version = "3.19.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -4912,6 +4915,61 @@ var GaugeOptionsBuilder = class {
 var J_EventEmitter = class extends PIXI.utils.EventEmitter {};
 
 //#endregion
+//#region src/plugins/_base/core/models/NaturalParameterBinding.js
+/**
+* Attaches J-NaturalGrowth's buff and growth notetags to one registered parameter.<br/>
+* A parameter grows naturally when whoever owns it binds one of these to its registry key through
+* {@link ParameterRegistry.bindNatural}. The binding names the four tags the parameter answers to, and
+* the value those tags treat as the parameter's base: the `b` of every formula, and what a `Rate` tag
+* is a percent of.
+*
+* The four structures are references to regexes living in the owner's own `RegExp` table, never
+* patterns assembled here. The notetag reference gate and the build manifest both discover tags by
+* reading `RegExp` table literals out of the source, so a pattern built anywhere else would be a tag
+* that neither of them, nor Chef Adventure's data validator, could ever see.
+*/
+var NaturalParameterBinding = class {
+	/**
+	* @param {RegExp} buffPlus The flat bonus a note source grants for as long as it is active.
+	* @param {RegExp} buffRate The percent bonus a note source grants for as long as it is active.
+	* @param {RegExp} growthPlus The flat bonus gained permanently with every level.
+	* @param {RegExp} growthRate The percent bonus gained permanently with every level.
+	* @param {function(Game_Battler): number} getBase Resolves the parameter's own value before any natural
+	* bonus, in the parameter's own units.
+	*/
+	constructor(buffPlus, buffRate, growthPlus, growthRate, getBase) {
+		/**
+		* The flat bonus a note source grants for as long as it is active.
+		* @type {RegExp}
+		*/
+		this.buffPlus = buffPlus;
+		/**
+		* The percent bonus a note source grants for as long as it is active.
+		* @type {RegExp}
+		*/
+		this.buffRate = buffRate;
+		/**
+		* The flat bonus gained permanently with every level.
+		* @type {RegExp}
+		*/
+		this.growthPlus = growthPlus;
+		/**
+		* The percent bonus gained permanently with every level.
+		* @type {RegExp}
+		*/
+		this.growthRate = growthRate;
+		/**
+		* Resolves the parameter's own value before any natural bonus, in the parameter's own units.<br/>
+		* It is asked of every battler, enemies included, because buffs refresh on every battler, so it
+		* must answer for a battler that has no real value for the parameter as well as one that does.
+		* It must also never read the parameter itself, since that value is what natural bonuses feed.
+		* @type {function(Game_Battler): number}
+		*/
+		this.getBase = getBase;
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/core/database/_data/RPG_SkillDamage.js
 /**
 * The damage data for the skill, such as the damage formula or associated element.
@@ -6052,16 +6110,33 @@ var ParameterDefinition = class ParameterDefinition {
 		return padded;
 	}
 	/**
+	* Whether this parameter is stored as a fraction but read by people as a whole number.<br/>
+	* RMMZ keeps every rate as a decimal, so a 75% chance lives as `0.75`, while the status screen and
+	* every notetag that tunes it speak in the `75` a person would say out loud. This is the one list of
+	* formats that crosses that line, which is what keeps the screen and the tags from disagreeing.
+	* @returns {boolean}
+	*/
+	isPercentScaled() {
+		return this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET || this.format === ParameterFormat.REGEN_PER_SECOND;
+	}
+	/**
+	* How many display units one unit of this parameter's raw value is worth: 100 for a parameter held
+	* as a fraction, and 1 for one already held in the numbers people read.<br/>
+	* A number authored in display units becomes a raw value by dividing by this, and a raw value
+	* becomes a displayed one by multiplying by it.
+	* @returns {number}
+	*/
+	displayScale() {
+		return this.isPercentScaled() ? 100 : 1;
+	}
+	/**
 	* Transforms a raw battler value into the numeric magnitude shown in the UI.
 	* Percent and regen formats are multiplied by 100; centered formats also subtract 100 for the delta.
 	* @param {number} value The raw battler value.
 	* @returns {number}
 	*/
 	displayMagnitude(value) {
-		let num = value;
-		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET || this.format === ParameterFormat.REGEN_PER_SECOND) {
-			num *= 100;
-		}
+		let num = value * this.displayScale();
 		if (this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.SCALED_OFFSET) {
 			num -= 100;
 		}
@@ -6221,8 +6296,7 @@ var ParameterDefinition = class ParameterDefinition {
 	* @returns {string}
 	*/
 	prettyDelta(rawDiff, actor = null) {
-		const isPercentScaled = this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET || this.format === ParameterFormat.REGEN_PER_SECOND;
-		const num = isPercentScaled ? rawDiff * 100 : rawDiff;
+		const num = rawDiff * this.displayScale();
 		if (this.format === ParameterFormat.REGEN_PER_SECOND) {
 			const ticksPerSecond = actor && actor.getNaturalRegenTickInterval ? 60 / actor.getNaturalRegenTickInterval() : 1;
 			const perSecond = num * ticksPerSecond;
@@ -6289,6 +6363,13 @@ var ParameterRegistry = class {
 		return this._groupCache;
 	}
 	/**
+	* Gets the natural bindings.
+	* @returns {Map<string, NaturalParameterBinding>} The naturalBindings.
+	*/
+	static naturalBindings() {
+		return this._naturalBindings;
+	}
+	/**
 	* @type {Map<string, ParameterDefinition>}
 	*/
 	static _definitions = new Map();
@@ -6296,6 +6377,14 @@ var ParameterRegistry = class {
 	* @type {Map<string, ParameterDefinition[]>}
 	*/
 	static _groupCache = new Map();
+	/**
+	* The natural growth binding of every parameter that opted into it, keyed by the same string id as
+	* its definition. Held beside the definitions rather than on them, because a definition is immutable
+	* once built and the engine's own parameters are built by J-Base, which cannot name the tags
+	* J-NaturalGrowth declares for them.
+	* @type {Map<string, NaturalParameterBinding>}
+	*/
+	static _naturalBindings = new Map();
 	/**
 	* Registers a parameter definition. Duplicate keys throw.
 	* @param {ParameterDefinition} definition The definition driving this step.
@@ -6367,6 +6456,47 @@ var ParameterRegistry = class {
 		if (!definition) return 0;
 		const base = definition.sdpBinding.getBaseForSdp ? definition.sdpBinding.getBaseForSdp(actor) : definition.resolveValue(actor);
 		return definition.sdpBinding.getPanelBonus(actor, base);
+	}
+	/**
+	* Opts a registered parameter into natural growth by naming the tags it answers to.<br/>
+	* This is how a parameter joins every buff, growth and level-up J-NaturalGrowth performs: storage,
+	* refresh and growth are all keyed by the bound key, so binding is the whole of it. What stays with
+	* the parameter's owner is adding {@link Game_Battler#naturalBonus} wherever it assembles the value.
+	*
+	* Binding an unregistered key throws, because there would be no value for the bonus to join. Binding
+	* one key twice throws too, since the second binding would silently discard the first one's tags.
+	* @param {string} key The registry key of the parameter.
+	* @param {NaturalParameterBinding} binding The tags and base the parameter's natural growth reads.
+	*/
+	static bindNatural(key, binding) {
+		if (this.has(key) === false) {
+			throw new Error(`ParameterRegistry: cannot bind natural growth to unregistered key "${key}".`);
+		}
+		if (this.naturalBindings().has(key)) {
+			throw new Error(`ParameterRegistry: duplicate natural binding for key "${key}".`);
+		}
+		this.naturalBindings().set(key, binding);
+	}
+	/**
+	* Gets the natural growth binding of a parameter.<br/>
+	* Asking for a key nothing bound throws rather than answering with nothing. A parameter whose owner
+	* adds natural bonuses to its value but never bound it would otherwise have tags that parse, pass
+	* every check, and silently do nothing- the exact failure binding exists to prevent.
+	* @param {string} key The registry key of the parameter.
+	* @returns {NaturalParameterBinding}
+	*/
+	static naturalBinding(key) {
+		if (this.naturalBindings().has(key) === false) {
+			throw new Error(`ParameterRegistry: no natural binding for key "${key}"; bind it with bindNatural at boot.`);
+		}
+		return this.naturalBindings().get(key);
+	}
+	/**
+	* Every registry key a natural binding has been attached to, in the order they were bound.
+	* @returns {string[]}
+	*/
+	static naturallyBoundKeys() {
+		return [...this.naturalBindings().keys()];
 	}
 };
 
@@ -11685,6 +11815,19 @@ Game_Battler.prototype.gainTp = function(value) {
 	J.BASE.Aliased.Game_Battler.get("gainTp").call(this, value);
 	if (value > 0) this.onHeal(J.BASE.Resource.TP, value);
 };
+/**
+* The bonus natural buffs and growths add to one registered parameter, in that parameter's own units.<br/>
+* This is the one piece of natural growth a parameter's owner writes itself: wherever it assembles the
+* parameter's value, it adds this. J-Base has no natural growth of its own, so nothing is added here;
+* J-NaturalGrowth extends it to resolve whatever tags were bound to the key. Because the answer is
+* simply zero when that plugin is absent, every owner can call this without first asking whether it is
+* installed, and without caring which of the two plugins happened to load first.
+* @param {string} parameterKey The registry key of the parameter being assembled.
+* @returns {number}
+*/
+Game_Battler.prototype.naturalBonus = function(parameterKey) {
+	return 0;
+};
 Object.defineProperties(Game_BattlerBase.prototype, { 
 /**
 * Outgoing heal amplification (1.0 = baseline). The sender-side counterpart to REC.
@@ -11701,6 +11844,7 @@ Object.defineProperty(Game_Battler.prototype, "har", {
 		if (this.getSdpBonusForParameterKey) {
 			factor += this.getSdpBonusForParameterKey("har", 1);
 		}
+		factor += this.naturalBonus("har");
 		return factor;
 	},
 	configurable: true

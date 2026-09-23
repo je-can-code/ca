@@ -1,0 +1,7258 @@
+{
+  "formatVersion": 1,
+  "generatedBy": "rmmz-plugins src/build-tools/generate-manifest.js - generated, never edit by hand",
+  "files": {
+    "abs/J-ABS.js": "aa9b0ff60bfb1a7ed73651c37e17176351b7f34df883049c4107fbc1e8c7fdd3",
+    "abs/ext/J-ABS-AllyAI.js": "213bdb7ea60af3042c24c4e10f0a8cabb8326994d9b521527f870d4491b5b7e7",
+    "abs/ext/J-ABS-Boss.js": "bdce8ea264182d90385faf2c106874f9c8645bc1c90842512fc0f9c38e8320ca",
+    "abs/ext/J-ABS-Charge.js": "5206f0ef7b974c3a4e123018a9f9bb3588133b8d159bbb3c9445a482def21102",
+    "abs/ext/J-ABS-DangerIndicator.js": "35d16f7bc4eb6ea4767a8f20836af037547b8f37d1af7373f47b2da87b4af353",
+    "abs/ext/J-ABS-Diagonals.js": "5d5b35898c23ae2d17988f1544df6acf6158dcedc51b3e6b65e12df1da3bcd8c",
+    "abs/ext/J-ABS-Dps.js": "41d2e2070f181e8bb163a8afc6d236a0efbc5de0db966ba4494a784188faf061",
+    "abs/ext/J-ABS-Food.js": "9b4d0e66e16f590e268820cb3566679d006f3ed77f8b2dbdd242c63f5d47316d",
+    "abs/ext/J-ABS-Formula.js": "b212ef78be12610fd419ffe0ae38b49c525eae0a9695b9d5c15a354f1264feef",
+    "abs/ext/J-ABS-Hitstop.js": "e0f58a2423e22e21fa963d2ea8c5824cf6cd3d28f9011afce6e06155f1933cc6",
+    "abs/ext/J-ABS-InputManager.js": "1cdbf3711fa5e2acc08f9fb7d4406e356e92a33fac5297cdb87f6a20adc66446",
+    "abs/ext/J-ABS-Juice.js": "dc52669e4eef62f1a8e82834c29c8b06b413e8bee8e39682701c003c43bbdb81",
+    "abs/ext/J-ABS-Loadout.js": "b920d32298716b3a13c5f11df54ac078aed73aee00874f72bc479a412e37a388",
+    "abs/ext/J-ABS-Metrics.js": "2c4e2e2d02c640d1b9252a794627eb4fe8d9b1896c8c496a4e9f56484ac230b4",
+    "abs/ext/J-ABS-Poses.js": "060b4db228ed512c8530cd5b109a0888a6ed6bc756b4c49c3efebff1b3b96693",
+    "abs/ext/J-ABS-Shield.js": "1e63a1fecf9d75adf167327779635635bf0addb94d9119b22f23ba06ab307cc6",
+    "abs/ext/J-ABS-Speed.js": "d90efff495789a087dd740ef975602004532292a7d72e9b609937f1f75264d45",
+    "abs/ext/J-ABS-Star.js": "106b07d36ef24ccbdccff64ce8b1137e22241743237d83df7b1a830de5fb9f0a",
+    "abs/ext/J-ABS-Targeting.js": "d42a7f96f37e14bc12882ef2d3d215043a17a2b47dedaa2dc800f09636c061eb",
+    "abs/ext/J-ABS-Time.js": "5c2d908f777fe894c39f1caa24a615b525cabb58bd76fe04b107060c5de058c4",
+    "abs/ext/J-ABS-Timing.js": "14bfd86907c8ef1774b87d665119b63dbfbec3b3d597759c4885634bbd58a937",
+    "abs/ext/J-ABS-Tools.js": "620ebd0f71450cb8fa2a286c2dad50d210b1f3e7e721ef1a1d73985405bdfa88",
+    "apt/J-Aptitude-Typed.js": "d8316df2f800dbf7c970edff8112224f83b68b341ed9c3d751978c1abc013ac2",
+    "apt/J-Aptitude.js": "a6c32ec14e0063abcfd0e0d5a05eaa9f9e2a6909db428a471110fa8e651ced2e",
+    "base/J-Base.js": "11cbbb7daf767d5a63329094eb2c1c2c395ab373d7d6072d369ee72f50c56f3a",
+    "base/ext/J-Base-Save.js": "e9a387a79f23c5e89a1949a0f7703daa620f45d3c784cfa0f7603a3ef74ba94c",
+    "ca-mods/J-CA-Mods.js": "9535f3dcdbeb678c19c7afc352de43fe71d081d6d9f2d5808a139892de5bf8b7",
+    "cms/core/J-CMS.js": "2313bbfd2763a1e22e5fbdf4381a34e9f233df6c05b10eeddf42c72f852e0fb0",
+    "cms/ext/J-CMS-Equip.js": "b0b81c27b56923743bfde7eac32883c498371fef6723da8032ae32a65a9f1062",
+    "cms/ext/J-CMS-Skill.js": "f89e21d5a8bdb7d88cc7442a202736b9e330a158b2ca87812cf0ff3bec7fa2ed",
+    "crit/J-CriticalFactors.js": "215e4c0f89a12a03b554b96488af7844544d30bf29f92d76037741550af75d3a",
+    "diff/J-Difficulty.js": "e89392754fd3dd9f675c2bf5004af4b4de187e704d75ef2906b6fc2b8bcc01a6",
+    "diff/ext/J-Difficulty-Affix.js": "1bba83d962133555b1b8df39e617ba9b65bf83d30aa266ca8721047e517fedf8",
+    "drops/J-DropsControl.js": "50662b2dd13147ccbf8b9b873c9185d051493f98d5aa24be55acd61684548428",
+    "drops/ext/J-Drops-Passive.js": "b31664504c39139f267660cf088317b5b38beaca5245969a5646fcbde04d9235",
+    "elem/J-Elementalistics.js": "00d12a90d28ecae9c013d8167cb42c33bd8b32257d0719974e4b631b7f6e423f",
+    "escribe/J-Escriptions.js": "b2a0dfb27b3decacd0432a9b6cb99b332724a3aefb762fa7ecc6246ad1b447db",
+    "extend/J-Extend.js": "997743e61907b3ca4a8d35c63dcfe91587a812631387513c52c8a63d41c64f08",
+    "extend/ext/J-Extend-ABS.js": "2e7c366781f77fb8ef4e389f0ef3d9e983410c642acc619cf6e808944b35fc1e",
+    "extend/ext/J-Extend-SKS.js": "1f81936cf8d536f6fce2d574e6fc71893daaa19e5c80ccfbeb3c5667e9ffaa46",
+    "hud/J-HUD.js": "5af77bae8d88a4247a15a9a2b4e0e01d7609fdfb63e00a8195142330df70faa2",
+    "hud/ext/J-HUD-BossFrame.js": "8afbd64ae9b709579828621089504b4d98fb780659787f46d148c66fdfa45621",
+    "hud/ext/J-HUD-Dps.js": "5c85f13db6f75562080260a8f76d690183141f78efb6741d781187feb8c04042",
+    "hud/ext/J-HUD-Food.js": "1f187745e09dcfa7d5092c98235d3375ceaab3ab9fd64dd045da44e5c8cb30b4",
+    "hud/ext/J-HUD-InputFrame.js": "ceedb22c0c8c90580fa711c6f9cc23d4445a0581e0d12cc812b8903caef9d05a",
+    "hud/ext/J-HUD-PartyFrame.js": "79c86fb6a86478f7341855ea782f13ae6220ebd13ef1f08316f3ccb7433af093",
+    "hud/ext/J-HUD-QuestFrame.js": "c001581fbc263f0946aad17a76e7af0e6e8ecaa2075401d477f6a3bbb4a7a376",
+    "hud/ext/J-HUD-TargetFrame.js": "06d219c4585823ba0cdbb1a89f35e0f04e6bfd303ef0746fb094c866a1544e85",
+    "jafting/J-JAFTING.js": "001e02669239ddc6ac9dec0d29a4976fff1bb71a5180d28134e8783cd1fe1341",
+    "jafting/ext/J-JAFTING-Creation.js": "1e83319b4d53ee2488fbb9b418020e78ebb5dbd4280815d09f0f56884a56bb37",
+    "jafting/ext/J-JAFTING-Refinement.js": "f8a4bf0029c0a6fbdba72aa8b2ec08ac48abd7861db85ef8b555838cc1b00523",
+    "level/J-LevelMaster.js": "09c1b85c2b15be9c2819d718571115bce0524a7e8a731fe85dc32300172830c5",
+    "level/ext/J-Level-Flat.js": "18ccaf7552d88d8a407b4e841f266362111fb3f1e264037fd5fd50e10fe94ec6",
+    "level/ext/J-Level-Sync.js": "11376c23bc71056a47151cd3121ee21054b22c4af2dc8545536ff2234e9c879f",
+    "lighting/J-Lighting.js": "5c3d86f3874244908ab6e470b462588cd0df16c1e46d2caa52edbbdceed29d8b",
+    "lighting/ext/J-Lighting-Time.js": "e4f765b5936b5e35b4786c55901b4facb105f51192cb6582b0a55b39484ba3a6",
+    "log/J-Log.js": "45d7fc8b5bf39604077c4b3a1faa18d600dc28ab515c2f18e32ac2f7187feea3",
+    "map/J-Map.js": "5db60da98f22252f0740b4292c665fec143c63789c6d1c26e587670de4f49acb",
+    "message/J-Message.js": "81384ba78407a3039eded4c979a539b297aa9ae4195e6930ba074c65040c2491",
+    "message/ext/J-Message-Bubbles.js": "31560bfefa7f40842eab41c22aa4f654ef0fd8e6eb63bd23c30453eb19ebbba5",
+    "message/ext/J-Message-Chatter.js": "1ec53db1eb8c0d7cb4bd62f5e3531a0141db133b664dd977b1d90b87f6518008",
+    "motion/J-Motion.js": "615d56000f4b5552cd2191d99872a41fa8adab999f20bf8b0fa2740123bf0ba7",
+    "motion/ext/J-Motion-ABS.js": "2cd14cdbbea5a32565ffc0f60ac06e6bbff634b6de91aefe77711bc2062a4231",
+    "motion/ext/J-Motion-Passive.js": "75944e66e3881443be330bc45e8a7cbec8d91db72f309951e49dc6f3646e8d28",
+    "natural/J-NaturalGrowth.js": "47aad21b41ec9200d39866a6ad9bcfdd307632211518776ed45a41e87bc73944",
+    "omni/J-Omnipedia.js": "ca7c6ff1676e305edc19a80b1e3cf83a8bae30ffda1897552961e83403be0575",
+    "omni/ext/J-OMNI-Monsters.js": "4bda2574bb813607073ffca09298c1cbea0f0ec3d80bfca3d13db167043b54a7",
+    "omni/ext/J-OMNI-Quests.js": "806359da5267e67ad5e44fe7dbbdb5acd36338dfc4c20b3bfbd93c6e2ae8c5ef",
+    "omni/ext/J-OMNI-Stats.js": "050639c5c7d11096005bf0e69d384a35d9fb798d7554742bf7c4bd75002b8577",
+    "passive/J-Passive.js": "00e29c043f28811b40a622c9972498924377e16195080d187f4fcb71b8eb573a",
+    "passive/ext/J-Passive-Affix.js": "44a47f84ad6ae8d22dfcb72eec03eeb7007c397ee1ddfb0a6e5117ce6629eace",
+    "passive/ext/J-Passive-Conditional.js": "f3c72a250187ba2cd24e503c3e895b7b3ffa0734baf06a0918441585507b3df9",
+    "passive/ext/J-Passive-OTIB.js": "d7a3fdabb42fcd58b7b05a653b5ed266d78ae2373e53d38a3d695ddd5ed524ad",
+    "passive/ext/J-Passive-SKS.js": "cd7016667b4e5e0138e108987f29d53b127257f96a458ba64d52d7a67b01b734",
+    "pixel/J-Pixelistics.js": "6830e525d4811e4720e193655a13063541f9300ae5a0e9e9758128143accee0a",
+    "pixel/ext/J-Pixel-ABS.js": "10d366f032a5acc97799dcaed5d459226a913429266431558e2679f8dc9a4c55",
+    "popups/J-Popups.js": "b71d8c7c526e4acb0565095baf16f6df2fffb16533e0b46ed14e37f5b2138acc",
+    "popups/ext/J-Popups-ABS.js": "9dd5db18951905248eae5bd56fbaaa849ddcdd0c62a5d354babc04f307577ad5",
+    "popups/ext/J-Popups-APT.js": "66959f44ebda5cf2bc0ed8747a63895329c606292ff7dbf5014105a79d05cf34",
+    "popups/ext/J-Popups-Resources.js": "8d498079771d13b146edd6c704aaeeca47d1a88abc6ae3d3f2fe47c9edc9f725",
+    "popups/ext/J-Popups-SDP.js": "d7be313d1068ffaf811d445b1c13c677ffe584e5cc8584bb7b2c0a4c98257dcc",
+    "prof/J-Proficiency.js": "6ef34316a7426c8b4c1115f8ac0e9f1bb10bc3139c600650654f0621aca017be",
+    "prof/ext/J-Proficiency-Knowledge.js": "0dd8bf71225ff46ece17f88c1255f128b9498875bcbbc10424781ae8b54be30e",
+    "regions/J-RegionEffects.js": "a089be194e731f0a34b47cacc79974a6062abf70b6eb4c6d538bd394e9061da5",
+    "regions/ext/J-Regions-Skills.js": "e5c63974cd58fc27cf831e0d3a7a50ebf2da214d394783181514c66c40402e4b",
+    "regions/ext/J-Regions-States.js": "520b789721b6e13334f6a121dc90bff179146c49fc5443a79a8fab5eb1c7b8bf",
+    "resources/J-Resources.js": "dc42ac76e38c7f5e0ea5106ca1663dbde3567f261ef85c0a812b256f2d135c4c",
+    "resources/ext/J-Resources-ABS.js": "c8337053b24e955228fd9cb6592e8c9b63fe2c42042fbad1822295c78dfaa542",
+    "sdp/J-SDP.js": "b6063825e0f941c27ac509bfd0e550c15ed6c5f422c9974715e45431b8a41052",
+    "sks/J-SkillSlots.js": "b07988efc62790517876bc9023da1483a0e9901294391f711ce9f7df9c41a878",
+    "sks/ext/J-SkillSlots-ABS.js": "edae0d7d6deb767588f9548d19d5715881243df88bf9b232802c45e5a91a74f4",
+    "time/J-TIME.js": "87d9096a599e03da833eac0c9866690866fac9c54504f34d8fb894682ccf953e",
+    "utils/J-SystemUtilities.js": "23258ec4e14fb3f3bc9c0aa16f1c49b489c8f36b712668646cfee7645665b127",
+    "weather/J-Weather.js": "1cb49fc8404b674d28116a41015ba964f1419eef3c13f7b35e04e4b11d984c07",
+    "weather/ext/J-Weather-Time.js": "57d7cabb93a219391d1216ca51479785102b427f52c408ffbe1b4c79ed847782"
+  },
+  "notetags": [
+    {
+      "label": "J.ABS.EXT.ALLYAI.RegExp.DefaultAi",
+      "names": [
+        "defaultAi"
+      ],
+      "pattern": "<defaultAi:(berserker|guardian|vanguard|war-priest|skirmisher|generalist|cleric|artillery|wizard|medic)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.CHARGE.RegExp.ChargeData",
+      "names": [
+        "chargeTier"
+      ],
+      "pattern": "<chargeTier:[ ]?(\\[\\d+,[ ]?\\d+,[ ]?\\d+(,[ ]?\\d+(,[ ]?\\d+)?)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.DANGER.RegExp.NoIndicator",
+      "names": [
+        "noDangerIndicator"
+      ],
+      "pattern": "<noDangerIndicator>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.DANGER.RegExp.ShowIndicator",
+      "names": [
+        "showDangerIndicator"
+      ],
+      "pattern": "<showDangerIndicator>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.FOOD.RegExp.EndFoodChain",
+      "names": [
+        "endFoodChain"
+      ],
+      "pattern": "<endFoodChain>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.FOOD.RegExp.Food",
+      "names": [
+        "food"
+      ],
+      "pattern": "<food:[ ]?([a-zA-Z]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.FOOD.RegExp.FoodChain",
+      "names": [
+        "foodChain"
+      ],
+      "pattern": "<foodChain:[ ]?([a-zA-Z]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.FOOD.RegExp.FoodChainImpervious",
+      "names": [
+        "foodChainImpervious"
+      ],
+      "pattern": "<foodChainImpervious>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.FOOD.RegExp.FoodGroupColor",
+      "names": [
+        "foodGroupColor"
+      ],
+      "pattern": "<foodGroupColor:[ ]?(#[0-9A-Fa-f]{6})>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.FORMULA.RegExp.FormulaApply",
+      "names": [
+        "onApplyFormula"
+      ],
+      "pattern": "<onApplyFormula:[ ]?(\\[(?:hit|use),[ ]?(?:self|allies|target|enemies|all),[ ]?(?:hp|mp|tp),[ ]?[+\\-*/ ().\\w]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.FORMULA.RegExp.SkillApply",
+      "names": [
+        "onApplySkill"
+      ],
+      "pattern": "<onApplySkill:[ ]?(\\[(?:hit|use),[ ]?(?:self|allies|target|enemies|all),[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.HITSTOP.RegExp.Hitstop",
+      "names": [
+        "hitstop"
+      ],
+      "pattern": "<hitstop:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.HITSTOP.RegExp.HitstopScale",
+      "names": [
+        "hitstopScale"
+      ],
+      "pattern": "<hitstopScale:[ ]?(\\d+)%>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.HITSTOP.RegExp.NoHitstop",
+      "names": [
+        "noHitstop"
+      ],
+      "pattern": "<noHitstop>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.CastMotion",
+      "names": [
+        "castMotion"
+      ],
+      "pattern": "<castMotion:[ ]?([a-zA-Z0-9_-]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.CastMotionIntensity",
+      "names": [
+        "castMotionIntensity"
+      ],
+      "pattern": "<castMotionIntensity:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.CastMotionPeriod",
+      "names": [
+        "castMotionPeriod"
+      ],
+      "pattern": "<castMotionPeriod:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.JuiceDuration",
+      "names": [
+        "juiceDuration"
+      ],
+      "pattern": "<juiceDuration:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.JuiceIcon",
+      "names": [
+        "jabsJuiceIcon"
+      ],
+      "pattern": "<jabsJuiceIcon:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.JuiceMotion",
+      "names": [
+        "juiceMotion"
+      ],
+      "pattern": "<juiceMotion:[ ]?([a-zA-Z0-9_-]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.JuiceProfileGun",
+      "names": [
+        "juiceProfileGun"
+      ],
+      "pattern": "<juiceProfileGun>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.JuiceRepeatCount",
+      "names": [
+        "juiceRepeatCount"
+      ],
+      "pattern": "<juiceRepeatCount:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.JuiceSpan",
+      "names": [
+        "juiceSpan"
+      ],
+      "pattern": "<juiceSpan:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.JuiceStabTipDegrees",
+      "names": [
+        "juiceStabTipDegrees"
+      ],
+      "pattern": "<juiceStabTipDegrees:[ ]?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.JuiceWeaponStyle",
+      "names": [
+        "jabsJuiceWeaponStyle"
+      ],
+      "pattern": "<jabsJuiceWeaponStyle:[ ]?([a-zA-Z0-9_-]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.JUICE.RegExp.NoJuice",
+      "names": [
+        "noJuice"
+      ],
+      "pattern": "<noJuice>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.POSES.RegExp.PoseSuffix",
+      "names": [
+        "poseSuffix"
+      ],
+      "pattern": "<poseSuffix:[ ]?(\\[[-_]?\\w+,[ ]?\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.Break",
+      "names": [
+        "shieldBreak"
+      ],
+      "pattern": "<shieldBreak:[ ]?(\\[[\\d, ]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.Bypass",
+      "names": [
+        "shieldBypass"
+      ],
+      "pattern": "<shieldBypass(?::[ ]?(\\[[\\d, ]+]))?>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.Priority",
+      "names": [
+        "shieldPriority"
+      ],
+      "pattern": "<shieldPriority:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.Protect",
+      "names": [
+        "shieldProtect"
+      ],
+      "pattern": "<shieldProtect>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldAmplification",
+      "names": [
+        "sar"
+      ],
+      "pattern": "<sar:(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldAmplificationBuffPlus",
+      "names": [
+        "sarBuffPlus"
+      ],
+      "pattern": "<sarBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldAmplificationBuffRate",
+      "names": [
+        "sarBuffRate"
+      ],
+      "pattern": "<sarBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldAmplificationGrowthPlus",
+      "names": [
+        "sarGrowthPlus"
+      ],
+      "pattern": "<sarGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldAmplificationGrowthRate",
+      "names": [
+        "sarGrowthRate"
+      ],
+      "pattern": "<sarGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldCapFormula",
+      "names": [
+        "shieldCap"
+      ],
+      "pattern": "<shieldCap:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldDamage",
+      "names": [
+        "shieldDamage"
+      ],
+      "pattern": "<shieldDamage:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldEffectiveness",
+      "names": [
+        "ser"
+      ],
+      "pattern": "<ser:(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldEffectivenessBuffPlus",
+      "names": [
+        "serBuffPlus"
+      ],
+      "pattern": "<serBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldEffectivenessBuffRate",
+      "names": [
+        "serBuffRate"
+      ],
+      "pattern": "<serBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldEffectivenessGrowthPlus",
+      "names": [
+        "serGrowthPlus"
+      ],
+      "pattern": "<serGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldEffectivenessGrowthRate",
+      "names": [
+        "serGrowthRate"
+      ],
+      "pattern": "<serGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.ShieldPointsFormula",
+      "names": [
+        "shield"
+      ],
+      "pattern": "<shield:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SHIELD.RegExp.Type",
+      "names": [
+        "shieldType"
+      ],
+      "pattern": "<shieldType:[ ]?(\\[[\\d, ]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SPEED.RegExp.WalkSpeedBoost",
+      "names": [
+        "speedBoost"
+      ],
+      "pattern": "<speedBoost:[ ]?([-]?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SPEED.RegExp.WalkSpeedBoostBuffPlus",
+      "names": [
+        "msbBuffPlus"
+      ],
+      "pattern": "<msbBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SPEED.RegExp.WalkSpeedBoostBuffRate",
+      "names": [
+        "msbBuffRate"
+      ],
+      "pattern": "<msbBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SPEED.RegExp.WalkSpeedBoostGrowthPlus",
+      "names": [
+        "msbGrowthPlus"
+      ],
+      "pattern": "<msbGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.SPEED.RegExp.WalkSpeedBoostGrowthRate",
+      "names": [
+        "msbGrowthRate"
+      ],
+      "pattern": "<msbGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.TARGETING.RegExp.Targeted",
+      "names": [
+        "targeted"
+      ],
+      "pattern": "<targeted>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.TIMING.RegExp.BaseCastSpeed",
+      "names": [
+        "baseCastTime"
+      ],
+      "pattern": "<baseCastTime:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.TIMING.RegExp.BaseFastCooldown",
+      "names": [
+        "baseFastCooldown"
+      ],
+      "pattern": "<baseFastCooldown:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.TIMING.RegExp.CastSpeedFlat",
+      "names": [
+        "castTimeFlat"
+      ],
+      "pattern": "<castTimeFlat:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.TIMING.RegExp.CastSpeedRate",
+      "names": [
+        "castSpeedRate"
+      ],
+      "pattern": "<castSpeedRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.TIMING.RegExp.FastCooldownFlat",
+      "names": [
+        "fastCooldownFlat"
+      ],
+      "pattern": "<fastCooldownFlat:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.TIMING.RegExp.FastCooldownRate",
+      "names": [
+        "fastCooldownRate"
+      ],
+      "pattern": "<fastCooldownRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.EXT.TOOLS.RegExp.BlockGapClose",
+      "names": [
+        "blockGapClose"
+      ],
+      "pattern": "<blockGapClose>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.TOOLS.RegExp.GapClose",
+      "names": [
+        "gapClose"
+      ],
+      "pattern": "<gapClose:(\\w+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.TOOLS.RegExp.GapCloseAny",
+      "names": [
+        "gapCloseAny"
+      ],
+      "pattern": "<gapCloseAny>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.TOOLS.RegExp.GapCloseEnd",
+      "names": [
+        "onGapCloseEnd"
+      ],
+      "pattern": "<onGapCloseEnd:[ ]?(\\[[\\d, ]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.TOOLS.RegExp.GapCloseEndThis",
+      "names": [
+        "thisOnGapCloseEnd"
+      ],
+      "pattern": "<thisOnGapCloseEnd:[ ]?(\\[[\\d, ]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.TOOLS.RegExp.GapCloseMode",
+      "names": [
+        "gapCloseMode"
+      ],
+      "pattern": "<gapCloseMode:(blink|jump|travel)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.TOOLS.RegExp.GapClosePosition",
+      "names": [
+        "gapClosePosition"
+      ],
+      "pattern": "<gapClosePosition:(infront|behind|same)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.TOOLS.RegExp.GapCloseTarget",
+      "names": [
+        "gapCloseTarget"
+      ],
+      "pattern": "<gapCloseTarget:(\\w+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.TOOLS.RegExp.PullForward",
+      "names": [
+        "pullForward"
+      ],
+      "pattern": "<pullForward:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.EXT.TOOLS.RegExp.RespectTerrain",
+      "names": [
+        "respectTerrain"
+      ],
+      "pattern": "<respectTerrain>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.Accumulate",
+      "names": [
+        "accumulate"
+      ],
+      "pattern": "<accumulate>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ActionId",
+      "names": [
+        "actionId"
+      ],
+      "pattern": "<actionId:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.AggroInAmp",
+      "names": [
+        "aggroInAmp"
+      ],
+      "pattern": "<aggroInAmp:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.AggroLock",
+      "names": [
+        "aggroLock"
+      ],
+      "pattern": "<aggroLock>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.AggroMultiplier",
+      "names": [
+        "aggroMultiplier"
+      ],
+      "pattern": "<aggroMultiplier:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.AggroOutAmp",
+      "names": [
+        "aggroOutAmp"
+      ],
+      "pattern": "<aggroOutAmp:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.AggroPercent",
+      "names": [
+        "aggroPercent"
+      ],
+      "pattern": "<aggroPercent:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.AiRoleFollower",
+      "names": [
+        "aiRole"
+      ],
+      "pattern": "<aiRole:[ ]?follower>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiRoleGuardian",
+      "names": [
+        "aiRole"
+      ],
+      "pattern": "<aiRole:[ ]?guardian>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiRoleLeader",
+      "names": [
+        "aiRole"
+      ],
+      "pattern": "<aiRole:[ ]?leader>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiRoleSentinel",
+      "names": [
+        "aiRole"
+      ],
+      "pattern": "<aiRole:[ ]?sentinel>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiRoleSolo",
+      "names": [
+        "aiRole"
+      ],
+      "pattern": "<aiRole:[ ]?solo>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiRoleWard",
+      "names": [
+        "aiRole"
+      ],
+      "pattern": "<aiRole:[ ]?ward>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiSkillExclusion",
+      "names": [
+        "aiSkillExclusion"
+      ],
+      "pattern": "<aiSkillExclusion>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.AiTraitBerserker",
+      "names": [
+        "aiTrait"
+      ],
+      "pattern": "<aiTrait:[ ]?berserker>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiTraitBuffer",
+      "names": [
+        "aiTrait"
+      ],
+      "pattern": "<aiTrait:[ ]?buffer>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiTraitCareful",
+      "names": [
+        "aiTrait"
+      ],
+      "pattern": "<aiTrait:[ ]?careful>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiTraitCleanser",
+      "names": [
+        "aiTrait"
+      ],
+      "pattern": "<aiTrait:[ ]?cleanser>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiTraitExecutor",
+      "names": [
+        "aiTrait"
+      ],
+      "pattern": "<aiTrait:[ ]?executor>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiTraitFollower",
+      "names": [
+        "aiTrait"
+      ],
+      "pattern": "<aiTrait:[ ]?follower>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiTraitHealer",
+      "names": [
+        "aiTrait"
+      ],
+      "pattern": "<aiTrait:[ ]?healer>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiTraitLeader",
+      "names": [
+        "aiTrait"
+      ],
+      "pattern": "<aiTrait:[ ]?leader>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiTraitReckless",
+      "names": [
+        "aiTrait"
+      ],
+      "pattern": "<aiTrait:[ ]?reckless>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiTraitTactical",
+      "names": [
+        "aiTrait"
+      ],
+      "pattern": "<aiTrait:[ ]?tactical>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AlertDuration",
+      "names": [
+        "alertDuration"
+      ],
+      "pattern": "<alertDuration:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AlertedPursuitBoost",
+      "names": [
+        "alertedPursuitBoost"
+      ],
+      "pattern": "<alertedPursuitBoost:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AlertedSightBoost",
+      "names": [
+        "alertedSightBoost"
+      ],
+      "pattern": "<alertedSightBoost:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ApplyStateOnExpire",
+      "names": [
+        "applyStateOnExpire"
+      ],
+      "pattern": "<applyStateOnExpire:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BlacklistAutoAssignSkillType",
+      "names": [
+        "noAutoAssignType"
+      ],
+      "pattern": "<noAutoAssignType:[ ]?(\\[[\\d, ]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusAggro",
+      "names": [
+        "aggro"
+      ],
+      "pattern": "<aggro:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusDamage",
+      "names": [
+        "bonusDamage"
+      ],
+      "pattern": "<bonusDamage:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusDamageForMyStateCount",
+      "names": [
+        "bonusDamageForMyStateCount"
+      ],
+      "pattern": "<bonusDamageForMyStateCount:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusDamageIfSelfState",
+      "names": [
+        "bonusDamageIfSelfState"
+      ],
+      "pattern": "<bonusDamageIfSelfState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusDamageIfState",
+      "names": [
+        "bonusDamageIfState"
+      ],
+      "pattern": "<bonusDamageIfState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusDamageIfStateType",
+      "names": [
+        "bonusDamageIfStateType"
+      ],
+      "pattern": "<bonusDamageIfStateType:[ ]?(\\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusDamageIfTargetHpBelow",
+      "names": [
+        "bonusDamageIfTargetHpBelow"
+      ],
+      "pattern": "<bonusDamageIfTargetHpBelow:[ ]?(\\[-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?,[ ]?-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusDamagePerStateStack",
+      "names": [
+        "bonusDamagePerStateStack"
+      ],
+      "pattern": "<bonusDamagePerStateStack:[ ]?(\\[\\d+,[ ]?-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusDamagePerStateType",
+      "names": [
+        "bonusDamagePerStateType"
+      ],
+      "pattern": "<bonusDamagePerStateType:[ ]?(\\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusHitsScopeBasic",
+      "names": [
+        "bonus-hits-basic"
+      ],
+      "pattern": "<bonus-hits-basic:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusHitsScopeBasicFormula",
+      "names": [
+        "bonus-hits-basic"
+      ],
+      "pattern": "<bonus-hits-basic:[ ]?\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusHitsScopeGlobal",
+      "names": [
+        "bonus-hits-global"
+      ],
+      "pattern": "<bonus-hits-global:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusHitsScopeGlobalFormula",
+      "names": [
+        "bonus-hits-global"
+      ],
+      "pattern": "<bonus-hits-global:[ ]?\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusHitsScopeSkill",
+      "names": [
+        "bonus-hits-skill"
+      ],
+      "pattern": "<bonus-hits-skill:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusHitsScopeSkillFormula",
+      "names": [
+        "bonus-hits-skill"
+      ],
+      "pattern": "<bonus-hits-skill:[ ]?\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusHitsSkillNote",
+      "names": [
+        "bonus-hits"
+      ],
+      "pattern": "<bonus-hits:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.BonusHitsSkillNoteFormula",
+      "names": [
+        "bonus-hits"
+      ],
+      "pattern": "<bonus-hits:[ ]?\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.CannotBeInterrupted",
+      "names": [
+        "cannotBeInterrupted"
+      ],
+      "pattern": "<cannotBeInterrupted>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.CannotMoveToInterrupt",
+      "names": [
+        "cannotMoveToInterrupt"
+      ],
+      "pattern": "<cannotMoveToInterrupt>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.CastAnimation",
+      "names": [
+        "castAnimation"
+      ],
+      "pattern": "<castAnimation:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.CastPreviewWarnAt",
+      "names": [
+        "castPreviewWarnAt"
+      ],
+      "pattern": "<castPreviewWarnAt:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.CastTime",
+      "names": [
+        "castTime"
+      ],
+      "pattern": "<castTime:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.CastTimeDamageBonus",
+      "names": [
+        "castTimeDamageBonus"
+      ],
+      "pattern": "<castTimeDamageBonus:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Channel",
+      "names": [
+        "channel"
+      ],
+      "pattern": "<channel:[ ]?(\\[(?:0|[1-9][0-9]*),[ ]?(?:0|[1-9][0-9]*)])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ChannelTickSpeed",
+      "names": [
+        "channelTickSpeed"
+      ],
+      "pattern": "<channelTickSpeed:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ComboAction",
+      "names": [
+        "combo"
+      ],
+      "pattern": "<combo:[ ]?(\\[\\d+(?:,[ ]?\\d+){0,2}])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ComboStarter",
+      "names": [
+        "comboStarter"
+      ],
+      "pattern": "<comboStarter>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigAutoAssignSkills",
+      "names": [
+        "autoAssignSkills"
+      ],
+      "pattern": "<autoAssignSkills>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigAutoUpgradeSkills",
+      "names": [
+        "autoUpgradeSkills"
+      ],
+      "pattern": "<autoUpgradeSkills>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigCanIdle",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?canIdle>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigHideStates",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?hideStates>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigInanimate",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?inanimate>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigInvincible",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?invincible>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigNoHpBar",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?noHpBar>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigNoIdle",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?noIdle>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigNoName",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?noName>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigNoSwitch",
+      "names": [
+        "noSwitch"
+      ],
+      "pattern": "<noSwitch>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigNotInanimate",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?notInanimate>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigNotInvincible",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?notInvincible>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigShowHpBar",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?showHpBar>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigShowName",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?showName>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConfigShowStates",
+      "names": [
+        "jabsConfig"
+      ],
+      "pattern": "<jabsConfig:[ ]?showStates>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ConvertUsesCaster",
+      "names": [
+        "convertUsesCaster"
+      ],
+      "pattern": "<convertUsesCaster>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Cooldown",
+      "names": [
+        "cooldown"
+      ],
+      "pattern": "<cooldown:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.CounterGuard",
+      "names": [
+        "counterGuard"
+      ],
+      "pattern": "<counterGuard:[ ]?(\\[\\d+(?:\\.\\d+)?(?:,\\s*\\d+(?:\\.\\d+)?)*])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.CounterParry",
+      "names": [
+        "counterParry"
+      ],
+      "pattern": "<counterParry:[ ]?(\\[\\d+(?:\\.\\d+)?(?:,\\s*\\d+(?:\\.\\d+)?)*])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.CursedRolls",
+      "names": [
+        "cursedRolls"
+      ],
+      "pattern": "<cursedRolls:[ ]?\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Degrees",
+      "names": [
+        "degrees"
+      ],
+      "pattern": "<degrees:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.DelayData",
+      "names": [
+        "delay"
+      ],
+      "pattern": "<delay:[ ]?(\\[-?\\d+,[ ]?(true|false)(?:,[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?))?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Direct",
+      "names": [
+        "direct"
+      ],
+      "pattern": "<direct>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.DirectLock",
+      "names": [
+        "directLock"
+      ],
+      "pattern": "<directLock>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.DirectStateTarget",
+      "names": [
+        "directStateTarget"
+      ],
+      "pattern": "<directStateTarget:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Disabled",
+      "names": [
+        "disabled"
+      ],
+      "pattern": "<disabled>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.DodgeSpeed",
+      "names": [
+        "dodgeSpeed"
+      ],
+      "pattern": "<dodgeSpeed:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.DodgeSteps",
+      "names": [
+        "dodge"
+      ],
+      "pattern": "<dodge:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.DotAmpRate",
+      "names": [
+        "dotAmpRate"
+      ],
+      "pattern": "<dotAmpRate:[ ]?(-?\\d+)%?>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Duration",
+      "names": [
+        "duration"
+      ],
+      "pattern": "<duration:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.EncoreRepeats",
+      "names": [
+        "encoreRepeats"
+      ],
+      "pattern": "<encoreRepeats:[ ]?\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.EnemyId",
+      "names": [
+        "enemyId"
+      ],
+      "pattern": "<enemyId:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.Expires",
+      "names": [
+        "expires"
+      ],
+      "pattern": "<expires:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.FreeCombo",
+      "names": [
+        "freeCombo"
+      ],
+      "pattern": "<freeCombo>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.GlobalCooldownFrames",
+      "names": [
+        "gcd"
+      ],
+      "pattern": "<gcd:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.GlobalCooldownReduction",
+      "names": [
+        "cdr"
+      ],
+      "pattern": "<cdr:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Guard",
+      "names": [
+        "guard"
+      ],
+      "pattern": "<guard:[ ]?(\\[-?\\d+,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.GuardInterval",
+      "names": [
+        "guardInterval"
+      ],
+      "pattern": "<guardInterval:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.GuardRange",
+      "names": [
+        "guardRange"
+      ],
+      "pattern": "<guardRange:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.GuardSkillId",
+      "names": [
+        "guardSkillId"
+      ],
+      "pattern": "<guardSkillId:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.HideFromJabsMenu",
+      "names": [
+        "hideFromJabsMenu"
+      ],
+      "pattern": "<hideFromJabsMenu>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.HotAmpRate",
+      "names": [
+        "hotAmpRate"
+      ],
+      "pattern": "<hotAmpRate:[ ]?(-?\\d+)%?>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.IFrames",
+      "names": [
+        "iframes"
+      ],
+      "pattern": "<iframes:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.IgnoreParry",
+      "names": [
+        "ignoreParry"
+      ],
+      "pattern": "<ignoreParry:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.IgnoreTerrain",
+      "names": [
+        "ignoreTerrain"
+      ],
+      "pattern": "<ignoreTerrain>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ImmuneToAll",
+      "names": [
+        "immuneToAll"
+      ],
+      "pattern": "<immuneToAll>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ImmuneToNegatives",
+      "names": [
+        "immuneToNegatives"
+      ],
+      "pattern": "<immuneToNegatives>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ImmuneToStates",
+      "names": [
+        "immuneToStates"
+      ],
+      "pattern": "<immuneToStates>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.IndefiniteState",
+      "names": [
+        "indefiniteState"
+      ],
+      "pattern": "<indefiniteState>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.InnerRadius",
+      "names": [
+        "innerRadius"
+      ],
+      "pattern": "<innerRadius:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Interrupt",
+      "names": [
+        "interrupt"
+      ],
+      "pattern": "<interrupt:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.InvincibleDodge",
+      "names": [
+        "invincibleDodge"
+      ],
+      "pattern": "<invincibleDodge>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.JabsTool",
+      "names": [
+        "jabsTool"
+      ],
+      "pattern": "<jabsTool>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.Knockback",
+      "names": [
+        "knockback"
+      ],
+      "pattern": "<knockback:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.KnockbackAmp",
+      "names": [
+        "knockbackAmp"
+      ],
+      "pattern": "<knockbackAmp:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.KnockbackResist",
+      "names": [
+        "knockbackResist"
+      ],
+      "pattern": "<knockbackResist:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Linger",
+      "names": [
+        "linger"
+      ],
+      "pattern": "<linger:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.LootMagnetBuff",
+      "names": [
+        "lootMagnetBuff"
+      ],
+      "pattern": "<lootMagnetBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.LootMagnetRate",
+      "names": [
+        "lootMagnetRate"
+      ],
+      "pattern": "<lootMagnetRate:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.LoseAllStacksAtOnce",
+      "names": [
+        "loseAllStacksAtOnce"
+      ],
+      "pattern": "<loseAllStacksAtOnce>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.LuckyRolls",
+      "names": [
+        "luckyRolls"
+      ],
+      "pattern": "<luckyRolls:[ ]?\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.MoveSpeed",
+      "names": [
+        "moveSpeed"
+      ],
+      "pattern": "<moveSpeed:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.MoveType",
+      "names": [
+        "moveType"
+      ],
+      "pattern": "<moveType:[ ]?(forward|backward|directional)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Muted",
+      "names": [
+        "muted"
+      ],
+      "pattern": "<muted>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.NoAutoAssign",
+      "names": [
+        "noAutoAssign"
+      ],
+      "pattern": "<noAutoAssign>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.NoCastPreviewSkill",
+      "names": [
+        "noCastPreview"
+      ],
+      "pattern": "<noCastPreview>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.NoCastPreviewsBattler",
+      "names": [
+        "noCastPreviews"
+      ],
+      "pattern": "<noCastPreviews>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.NoLogs",
+      "names": [
+        "noLogs"
+      ],
+      "pattern": "<noLogs>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.NoRespawn",
+      "names": [
+        "noRespawn"
+      ],
+      "pattern": "<noRespawn>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.NoSkillUpgrading",
+      "names": [
+        "noUpgrade"
+      ],
+      "pattern": "<noUpgrade>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.NotMyAggro",
+      "names": [
+        "notMyAggro"
+      ],
+      "pattern": "<notMyAggro:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.NotMyAggroPercent",
+      "names": [
+        "notMyAggroPercent"
+      ],
+      "pattern": "<notMyAggroPercent:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.OffhandEligible",
+      "names": [
+        "offhandEligible"
+      ],
+      "pattern": "<offhandEligible>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.OffhandSkillId",
+      "names": [
+        "offhandSkillId"
+      ],
+      "pattern": "<offhandSkillId:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Ogcd",
+      "names": [
+        "ogcd"
+      ],
+      "pattern": "<ogcd>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.OnCastAnimationId",
+      "names": [
+        "onCastAnimationId"
+      ],
+      "pattern": "<onCastAnimationId:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.OnChannelComplete",
+      "names": [
+        "onChannelComplete"
+      ],
+      "pattern": "<onChannelComplete:[ ]?(\\[\\d+(?:,[ ]?\\d+)*])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.OnDefeatedTarget",
+      "names": [
+        "onDefeatedTarget"
+      ],
+      "pattern": "<onDefeatedTarget>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.OnEvadeApply",
+      "names": [
+        "onEvadeApply"
+      ],
+      "pattern": "<onEvadeApply:[ ]?(\\[\\d+,?[ ]?\\d+?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.OnEvadeApplySelf",
+      "names": [
+        "onEvadeApplySelf"
+      ],
+      "pattern": "<onEvadeApplySelf:[ ]?(\\[\\d+,?[ ]?\\d+?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.OnEvadeExecute",
+      "names": [
+        "onEvadeExecute"
+      ],
+      "pattern": "<onEvadeExecute:[ ]?(\\[\\d+,?[ ]?\\d+?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.OnOwnDefeat",
+      "names": [
+        "onOwnDefeat"
+      ],
+      "pattern": "<onOwnDefeat:[ ]?(\\[\\d+,?[ ]?\\d+?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.OnTargetDefeat",
+      "names": [
+        "onTargetDefeat"
+      ],
+      "pattern": "<onTargetDefeat:[ ]?(\\[\\d+,?[ ]?\\d+?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Paralyzed",
+      "names": [
+        "paralyzed"
+      ],
+      "pattern": "<paralyzed>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Parry",
+      "names": [
+        "parry"
+      ],
+      "pattern": "<parry:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ParryExtensionRate",
+      "names": [
+        "per"
+      ],
+      "pattern": "<per:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.PerDebuffBuff",
+      "names": [
+        "perDebuffBuff"
+      ],
+      "pattern": "<perDebuffBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.PiercingData",
+      "names": [
+        "pierce"
+      ],
+      "pattern": "<pierce:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.PrepareTime",
+      "names": [
+        "prepare"
+      ],
+      "pattern": "<prepare:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.Projectile",
+      "names": [
+        "projectile"
+      ],
+      "pattern": "<projectile:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ProjectileDurationMultiplier",
+      "names": [
+        "projectileDuration"
+      ],
+      "pattern": "<projectileDuration:[ ]?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ProjectileFormation",
+      "names": [
+        "formation"
+      ],
+      "pattern": "<formation:[ ]?(line|spray|cross|xburst|nova)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Proximity",
+      "names": [
+        "proximity"
+      ],
+      "pattern": "<proximity:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ProximityBuff",
+      "names": [
+        "proximityBuff"
+      ],
+      "pattern": "<proximityBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ProximityKnockback",
+      "names": [
+        "proximityKnockback"
+      ],
+      "pattern": "<proximityKnockback:[ ]?(\\[(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?,[ ]?-?(?:0|[1-9][0-9]*)])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ProximityRate",
+      "names": [
+        "proximityRate"
+      ],
+      "pattern": "<proximityRate:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.PurgeStates",
+      "names": [
+        "purgeStates"
+      ],
+      "pattern": "<purgeStates:[ ]?(\\[.*?])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.Pursuit",
+      "names": [
+        "pursuit"
+      ],
+      "pattern": "<pursuit:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.RadiusBuff",
+      "names": [
+        "radiusBuff"
+      ],
+      "pattern": "<radiusBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.RadiusRate",
+      "names": [
+        "radiusRate"
+      ],
+      "pattern": "<radiusRate:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Range",
+      "names": [
+        "radius"
+      ],
+      "pattern": "<radius:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.RangeBuff",
+      "names": [
+        "rangeBuff"
+      ],
+      "pattern": "<rangeBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.RangeRate",
+      "names": [
+        "rangeRate"
+      ],
+      "pattern": "<rangeRate:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ReapplyExtendAmount",
+      "names": [
+        "stackExtendAmount"
+      ],
+      "pattern": "<stackExtendAmount:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ReapplyExtendMax",
+      "names": [
+        "stackExtendMax"
+      ],
+      "pattern": "<stackExtendMax:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ReapplyRefreshDiminish",
+      "names": [
+        "stateRefreshDiminish"
+      ],
+      "pattern": "<stateRefreshDiminish:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ReapplyRefreshReset",
+      "names": [
+        "stateRefreshReset"
+      ],
+      "pattern": "<stateRefreshReset:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ReapplyStackMax",
+      "names": [
+        "stackMax"
+      ],
+      "pattern": "<stackMax:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ReapplyType",
+      "names": [
+        "stackType"
+      ],
+      "pattern": "<stackType:[ ]?(refresh|extend|stack)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.RemoveOnConvert",
+      "names": [
+        "removeOnConvert"
+      ],
+      "pattern": "<removeOnConvert>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Respawn",
+      "names": [
+        "respawn"
+      ],
+      "pattern": "<respawn:[ ]?(\\[[\\w-]+,[ ]?[\\w-]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.RespawnAnimation",
+      "names": [
+        "respawnAnimation"
+      ],
+      "pattern": "<respawnAnimation:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.Retaliate",
+      "names": [
+        "retaliate"
+      ],
+      "pattern": "<retaliate:[ ]?(\\[\\d+,?[ ]?\\d+?(?:,?[ ]?\\w+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Rooted",
+      "names": [
+        "rooted"
+      ],
+      "pattern": "<rooted>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SelfAnimationId",
+      "names": [
+        "selfAnimationId"
+      ],
+      "pattern": "<selfAnimationId:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Shape",
+      "names": [
+        "hitbox"
+      ],
+      "pattern": "<hitbox:[ ]?(circle|rhombus|square|line|arc|wall|cross)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Sight",
+      "names": [
+        "sight"
+      ],
+      "pattern": "<sight:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.SkillHistoryBonus",
+      "names": [
+        "skillHistoryBonus"
+      ],
+      "pattern": "<skillHistoryBonus:[ ]?(\\[\\d+,[ ]?\\d+,[ ]?\\d+,[ ]?[a-z_]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SkillId",
+      "names": [
+        "skillId"
+      ],
+      "pattern": "<skillId:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SkillTransform",
+      "names": [
+        "skillTransform"
+      ],
+      "pattern": "<skillTransform:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SlipHpFlat",
+      "names": [
+        "hpFlat"
+      ],
+      "pattern": "<hpFlat:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SlipHpFormula",
+      "names": [
+        "hpFormula"
+      ],
+      "pattern": "<hpFormula:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SlipHpPercent",
+      "names": [
+        "hpPercent"
+      ],
+      "pattern": "<hpPercent:[ ]?(-?\\d+)%?>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SlipMpFlat",
+      "names": [
+        "mpFlat"
+      ],
+      "pattern": "<mpFlat:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SlipMpFormula",
+      "names": [
+        "mpFormula"
+      ],
+      "pattern": "<mpFormula:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SlipMpPercent",
+      "names": [
+        "mpPercent"
+      ],
+      "pattern": "<mpPercent:[ ]?(-?\\d+)%?>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SlipTpFlat",
+      "names": [
+        "tpFlat"
+      ],
+      "pattern": "<tpFlat:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SlipTpFormula",
+      "names": [
+        "tpFormula"
+      ],
+      "pattern": "<tpFormula:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SlipTpPercent",
+      "names": [
+        "tpPercent"
+      ],
+      "pattern": "<tpPercent:[ ]?(-?\\d+)%?>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SlotTransform",
+      "names": [
+        "slotTransform"
+      ],
+      "pattern": "<slotTransform:[ ]?(\\[[\\w-]+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Spread",
+      "names": [
+        "spread"
+      ],
+      "pattern": "<spread:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SpreadPerTick",
+      "names": [
+        "spreadPerTick"
+      ],
+      "pattern": "<spreadPerTick:(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SpreadPreferUnafflicted",
+      "names": [
+        "spreadPreferUnafflicted"
+      ],
+      "pattern": "<spreadPreferUnafflicted>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SpreadSkipAfflicted",
+      "names": [
+        "spreadSkipAfflicted"
+      ],
+      "pattern": "<spreadSkipAfflicted>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.SpreadTick",
+      "names": [
+        "spreadTick"
+      ],
+      "pattern": "<spreadTick:(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.StackMaxBoost",
+      "names": [
+        "stackMaxBoost"
+      ],
+      "pattern": "<stackMaxBoost:[ ]?([-+]?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.StackOnExpire",
+      "names": [
+        "stackOnExpire"
+      ],
+      "pattern": "<stackOnExpire>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.StacksConvertToState",
+      "names": [
+        "stacksConvertToState"
+      ],
+      "pattern": "<stacksConvertToState:(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.StateApplicationAmount",
+      "names": [
+        "applyStacks"
+      ],
+      "pattern": "<applyStacks:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.StateDuration",
+      "names": [
+        "stateDuration"
+      ],
+      "pattern": "<stateDuration:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.StateDurationFlatPlus",
+      "names": [
+        "stateDurationFlat"
+      ],
+      "pattern": "<stateDurationFlat:[ ]?([-+]?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.StateDurationFormulaPlus",
+      "names": [
+        "stateDurationFormula"
+      ],
+      "pattern": "<stateDurationFormula:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.StateDurationPercentPlus",
+      "names": [
+        "stateDurationPerc"
+      ],
+      "pattern": "<stateDurationPerc:[ ]?([-+]?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.StateDurationSec",
+      "names": [
+        "stateDurationSec"
+      ],
+      "pattern": "<stateDurationSec:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.StateTypeImmune",
+      "names": [
+        "stateTypeImmune"
+      ],
+      "pattern": "<stateTypeImmune:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.StateTypeResist",
+      "names": [
+        "stateTypeResist"
+      ],
+      "pattern": "<stateTypeResist:[ ]?(\\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.TeamId",
+      "names": [
+        "teamId"
+      ],
+      "pattern": "<teamId:[ ]?(\\d+)>",
+      "flags": "g"
+    },
+    {
+      "label": "J.ABS.RegExp.Thickness",
+      "names": [
+        "thickness"
+      ],
+      "pattern": "<thickness:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThicknessBuff",
+      "names": [
+        "thicknessBuff"
+      ],
+      "pattern": "<thicknessBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThicknessRate",
+      "names": [
+        "thicknessRate"
+      ],
+      "pattern": "<thicknessRate:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisBonusDamage",
+      "names": [
+        "thisBonusDamage"
+      ],
+      "pattern": "<thisBonusDamage:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisBonusDamageForMyStateCount",
+      "names": [
+        "thisBonusDamageForMyStateCount"
+      ],
+      "pattern": "<thisBonusDamageForMyStateCount:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisBonusDamageIfSelfState",
+      "names": [
+        "thisBonusDamageIfSelfState"
+      ],
+      "pattern": "<thisBonusDamageIfSelfState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisBonusDamageIfState",
+      "names": [
+        "thisBonusDamageIfState"
+      ],
+      "pattern": "<thisBonusDamageIfState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisBonusDamageIfTargetHpBelow",
+      "names": [
+        "thisBonusDamageIfTargetHpBelow"
+      ],
+      "pattern": "<thisBonusDamageIfTargetHpBelow:[ ]?(\\[-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?,[ ]?-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisBonusDamagePerStateStack",
+      "names": [
+        "thisBonusDamagePerStateStack"
+      ],
+      "pattern": "<thisBonusDamagePerStateStack:[ ]?(\\[\\d+,[ ]?-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisCannotBeInterrupted",
+      "names": [
+        "thisCannotBeInterrupted"
+      ],
+      "pattern": "<thisCannotBeInterrupted>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisCastTimeDamageBonus",
+      "names": [
+        "thisCastTimeDamageBonus"
+      ],
+      "pattern": "<thisCastTimeDamageBonus:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisCursedRolls",
+      "names": [
+        "thisCursedRolls"
+      ],
+      "pattern": "<thisCursedRolls:[ ]?\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisDotAmpRate",
+      "names": [
+        "thisDotAmpRate"
+      ],
+      "pattern": "<thisDotAmpRate:[ ]?(-?\\d+)%?>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisHotAmpRate",
+      "names": [
+        "thisHotAmpRate"
+      ],
+      "pattern": "<thisHotAmpRate:[ ]?(-?\\d+)%?>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisIgnoreParry",
+      "names": [
+        "thisIgnoreParry"
+      ],
+      "pattern": "<thisIgnoreParry:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisKnockbackAmp",
+      "names": [
+        "thisKnockbackAmp"
+      ],
+      "pattern": "<thisKnockbackAmp:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisLuckyRolls",
+      "names": [
+        "thisLuckyRolls"
+      ],
+      "pattern": "<thisLuckyRolls:[ ]?\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisProximityBuff",
+      "names": [
+        "thisProximityBuff"
+      ],
+      "pattern": "<thisProximityBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisProximityRate",
+      "names": [
+        "thisProximityRate"
+      ],
+      "pattern": "<thisProximityRate:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisRadiusBuff",
+      "names": [
+        "thisRadiusBuff"
+      ],
+      "pattern": "<thisRadiusBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisRadiusRate",
+      "names": [
+        "thisRadiusRate"
+      ],
+      "pattern": "<thisRadiusRate:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisRangeBuff",
+      "names": [
+        "thisRangeBuff"
+      ],
+      "pattern": "<thisRangeBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisRangeRate",
+      "names": [
+        "thisRangeRate"
+      ],
+      "pattern": "<thisRangeRate:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisSkillHistoryBonus",
+      "names": [
+        "thisSkillHistoryBonus"
+      ],
+      "pattern": "<thisSkillHistoryBonus:[ ]?(\\[\\d+,[ ]?\\d+,[ ]?[a-z_]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisStackMaxBoost",
+      "names": [
+        "thisStackMaxBoost"
+      ],
+      "pattern": "<thisStackMaxBoost:[ ]?([-+]?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisStateDurationFlatPlus",
+      "names": [
+        "thisStateDurationFlat"
+      ],
+      "pattern": "<thisStateDurationFlat:[ ]?([-+]?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisStateDurationFormulaPlus",
+      "names": [
+        "thisStateDurationFormula"
+      ],
+      "pattern": "<thisStateDurationFormula:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisStateDurationPercentPlus",
+      "names": [
+        "thisStateDurationPerc"
+      ],
+      "pattern": "<thisStateDurationPerc:[ ]?([-+]?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisThicknessBuff",
+      "names": [
+        "thisThicknessBuff"
+      ],
+      "pattern": "<thisThicknessBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisThicknessRate",
+      "names": [
+        "thisThicknessRate"
+      ],
+      "pattern": "<thisThicknessRate:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisTickSpeed",
+      "names": [
+        "thisTickSpeed"
+      ],
+      "pattern": "<thisTickSpeed:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.TickSpeedFlat",
+      "names": [
+        "tickSpeedFlat"
+      ],
+      "pattern": "<tickSpeedFlat:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.TickSpeedPercent",
+      "names": [
+        "tickSpeedPercent"
+      ],
+      "pattern": "<tickSpeedPercent:[ ]?(-?\\d+)%?>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.TickSpeedTypePercent",
+      "names": [
+        "tickSpeedTypePercent"
+      ],
+      "pattern": "<tickSpeedTypePercent:(\\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.UniqueCooldown",
+      "names": [
+        "uniqueCooldown"
+      ],
+      "pattern": "<uniqueCooldown>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.Unparryable",
+      "names": [
+        "unparryable"
+      ],
+      "pattern": "<unparryable>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.UpgradeOnlySkill",
+      "names": [
+        "onlyUpgrade"
+      ],
+      "pattern": "<onlyUpgrade>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.UpgradeOverSkill",
+      "names": [
+        "upgradeOverSkill"
+      ],
+      "pattern": "<upgradeOverSkill:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.UseOnPickup",
+      "names": [
+        "useOnPickup"
+      ],
+      "pattern": "<useOnPickup>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VeryCursed",
+      "names": [
+        "veryCursed"
+      ],
+      "pattern": "<veryCursed>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.VeryLucky",
+      "names": [
+        "veryLucky"
+      ],
+      "pattern": "<veryLucky>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.Viral",
+      "names": [
+        "viral"
+      ],
+      "pattern": "<viral>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisAnchor",
+      "names": [
+        "visAnchor"
+      ],
+      "pattern": "<visAnchor:[ ]?(\\[(?:0|1|0?\\.\\d+),[ ]?(?:0|1|0?\\.\\d+)])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisDebug",
+      "names": [
+        "visDebug"
+      ],
+      "pattern": "<visDebug>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisOffset",
+      "names": [
+        "visOffset"
+      ],
+      "pattern": "<visOffset:[ ]?(\\[-?\\d+,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisOffsetD",
+      "names": [
+        "visOffsetD"
+      ],
+      "pattern": "<visOffsetD:[ ]?(\\[-?\\d+,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisOffsetDL",
+      "names": [
+        "visOffsetDL"
+      ],
+      "pattern": "<visOffsetDL:[ ]?(\\[-?\\d+,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisOffsetDR",
+      "names": [
+        "visOffsetDR"
+      ],
+      "pattern": "<visOffsetDR:[ ]?(\\[-?\\d+,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisOffsetL",
+      "names": [
+        "visOffsetL"
+      ],
+      "pattern": "<visOffsetL:[ ]?(\\[-?\\d+,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisOffsetR",
+      "names": [
+        "visOffsetR"
+      ],
+      "pattern": "<visOffsetR:[ ]?(\\[-?\\d+,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisOffsetU",
+      "names": [
+        "visOffsetU"
+      ],
+      "pattern": "<visOffsetU:[ ]?(\\[-?\\d+,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisOffsetUL",
+      "names": [
+        "visOffsetUL"
+      ],
+      "pattern": "<visOffsetUL:[ ]?(\\[-?\\d+,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisOffsetUR",
+      "names": [
+        "visOffsetUR"
+      ],
+      "pattern": "<visOffsetUR:[ ]?(\\[-?\\d+,[ ]?-?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisRotate",
+      "names": [
+        "visRotate"
+      ],
+      "pattern": "<visRotate>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisScale",
+      "names": [
+        "visScale"
+      ],
+      "pattern": "<visScale:[ ]?(\\[-?\\d+(?:\\.\\d+)?,[ ]?-?\\d+(?:\\.\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisZ",
+      "names": [
+        "visZ"
+      ],
+      "pattern": "<visZ:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.VisionMultiplier",
+      "names": [
+        "visionMultiplier"
+      ],
+      "pattern": "<visionMultiplier:[ ]?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.VulnerabilityPerAuthoredStateStack",
+      "names": [
+        "vulnerabilityPerAuthoredStateStack"
+      ],
+      "pattern": "<vulnerabilityPerAuthoredStateStack:[ ]?(-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.APT.EXT.TYPED.RegExp.ApTypedReward",
+      "names": [
+        "apTyped"
+      ],
+      "pattern": "<apTyped:[ ]?(\\[\\d+,[ ]?[A-Za-z]+,[ ]?[A-Za-z0-9_\\- ]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.APT.EXT.TYPED.RegExp.AptitudeTeachableTyped",
+      "names": [
+        "aptitudeTyped"
+      ],
+      "pattern": "<aptitudeTyped:[ ]?(\\[\\d+,[ ]?\\d+,[ ]?[A-Za-z]+,[ ]?[A-Za-z0-9_\\- ]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.APT.RegExp.ApReward",
+      "names": [
+        "ap"
+      ],
+      "pattern": "<ap: ?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.APT.RegExp.AptMultiplier",
+      "names": [
+        "aptMultiplier"
+      ],
+      "pattern": "<aptMultiplier:(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.APT.RegExp.AptRateBuffPlus",
+      "names": [
+        "aprBuffPlus"
+      ],
+      "pattern": "<aprBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.APT.RegExp.AptRateBuffRate",
+      "names": [
+        "aprBuffRate"
+      ],
+      "pattern": "<aprBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.APT.RegExp.AptRateGrowthPlus",
+      "names": [
+        "aprGrowthPlus"
+      ],
+      "pattern": "<aprGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.APT.RegExp.AptRateGrowthRate",
+      "names": [
+        "aprGrowthRate"
+      ],
+      "pattern": "<aprGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.APT.RegExp.AptitudeTeachable",
+      "names": [
+        "aptitude"
+      ],
+      "pattern": "<aptitude:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.BASE.RegExp.ClassifierType",
+      "names": [
+        "type"
+      ],
+      "pattern": "<type:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.BASE.RegExp.HealAmplification",
+      "names": [
+        "har"
+      ],
+      "pattern": "<har:(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.BASE.RegExp.MaxItems",
+      "names": [
+        "max"
+      ],
+      "pattern": "<max:(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.BASE.RegExp.MaxTp",
+      "names": [
+        "maxTp"
+      ],
+      "pattern": "<maxTp: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisAgi",
+      "names": [
+        "thisAgi"
+      ],
+      "pattern": "<thisAgi: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisAtk",
+      "names": [
+        "thisAtk"
+      ],
+      "pattern": "<thisAtk: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisCev",
+      "names": [
+        "thisCev"
+      ],
+      "pattern": "<thisCev: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisCnt",
+      "names": [
+        "thisCnt"
+      ],
+      "pattern": "<thisCnt: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisCri",
+      "names": [
+        "thisCri"
+      ],
+      "pattern": "<thisCri: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisDef",
+      "names": [
+        "thisDef"
+      ],
+      "pattern": "<thisDef: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisEva",
+      "names": [
+        "thisEva"
+      ],
+      "pattern": "<thisEva: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisExr",
+      "names": [
+        "thisExr"
+      ],
+      "pattern": "<thisExr: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisFdr",
+      "names": [
+        "thisFdr"
+      ],
+      "pattern": "<thisFdr: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisGrd",
+      "names": [
+        "thisGrd"
+      ],
+      "pattern": "<thisGrd: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisHit",
+      "names": [
+        "thisHit"
+      ],
+      "pattern": "<thisHit: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisHrg",
+      "names": [
+        "thisHrg"
+      ],
+      "pattern": "<thisHrg: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisLuk",
+      "names": [
+        "thisLuk"
+      ],
+      "pattern": "<thisLuk: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisMat",
+      "names": [
+        "thisMat"
+      ],
+      "pattern": "<thisMat: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisMcr",
+      "names": [
+        "thisMcr"
+      ],
+      "pattern": "<thisMcr: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisMdf",
+      "names": [
+        "thisMdf"
+      ],
+      "pattern": "<thisMdf: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisMdr",
+      "names": [
+        "thisMdr"
+      ],
+      "pattern": "<thisMdr: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisMev",
+      "names": [
+        "thisMev"
+      ],
+      "pattern": "<thisMev: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisMhp",
+      "names": [
+        "thisMhp"
+      ],
+      "pattern": "<thisMhp: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisMmp",
+      "names": [
+        "thisMmp"
+      ],
+      "pattern": "<thisMmp: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisMrf",
+      "names": [
+        "thisMrf"
+      ],
+      "pattern": "<thisMrf: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisMrg",
+      "names": [
+        "thisMrg"
+      ],
+      "pattern": "<thisMrg: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisMtp",
+      "names": [
+        "thisMtp"
+      ],
+      "pattern": "<thisMtp: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisPdr",
+      "names": [
+        "thisPdr"
+      ],
+      "pattern": "<thisPdr: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisPha",
+      "names": [
+        "thisPha"
+      ],
+      "pattern": "<thisPha: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisRec",
+      "names": [
+        "thisRec"
+      ],
+      "pattern": "<thisRec: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisTcr",
+      "names": [
+        "thisTcr"
+      ],
+      "pattern": "<thisTcr: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisTgr",
+      "names": [
+        "thisTgr"
+      ],
+      "pattern": "<thisTgr: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.BASE.RegExp.ThisTrg",
+      "names": [
+        "thisTrg"
+      ],
+      "pattern": "<thisTrg: ?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritAlwaysIfState",
+      "names": [
+        "critAlwaysIfState"
+      ],
+      "pattern": "<critAlwaysIfState:(\\[\\d+(?:,[ ]?\\d+)*])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritAlwaysIfStateType",
+      "names": [
+        "critAlwaysIfStateType"
+      ],
+      "pattern": "<critAlwaysIfStateType:([a-zA-Z][a-zA-Z0-9_-]*)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritChanceIfState",
+      "names": [
+        "critChanceIfState"
+      ],
+      "pattern": "<critChanceIfState:(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritChanceIfStateType",
+      "names": [
+        "critChanceIfStateType"
+      ],
+      "pattern": "<critChanceIfStateType:(\\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritDamageMultiplier",
+      "names": [
+        "critMultiplier"
+      ],
+      "pattern": "<critMultiplier: ?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritDamageMultiplierBase",
+      "names": [
+        "critMultiplierBase"
+      ],
+      "pattern": "<critMultiplierBase: ?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritDamageMultiplierBuffPlus",
+      "names": [
+        "cdmBuffPlus"
+      ],
+      "pattern": "<cdmBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritDamageMultiplierBuffRate",
+      "names": [
+        "cdmBuffRate"
+      ],
+      "pattern": "<cdmBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritDamageMultiplierGrowthPlus",
+      "names": [
+        "cdmGrowthPlus"
+      ],
+      "pattern": "<cdmGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritDamageMultiplierGrowthRate",
+      "names": [
+        "cdmGrowthRate"
+      ],
+      "pattern": "<cdmGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritDamageReduction",
+      "names": [
+        "critReduction"
+      ],
+      "pattern": "<critReduction: ?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritDamageReductionBase",
+      "names": [
+        "critReductionBase"
+      ],
+      "pattern": "<critReductionBase: ?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritTakenRateBuffPlus",
+      "names": [
+        "ctrBuffPlus"
+      ],
+      "pattern": "<ctrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritTakenRateBuffRate",
+      "names": [
+        "ctrBuffRate"
+      ],
+      "pattern": "<ctrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritTakenRateGrowthPlus",
+      "names": [
+        "ctrGrowthPlus"
+      ],
+      "pattern": "<ctrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.CritTakenRateGrowthRate",
+      "names": [
+        "ctrGrowthRate"
+      ],
+      "pattern": "<ctrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.ForceCritProcs",
+      "names": [
+        "forceCritProcs"
+      ],
+      "pattern": "<forceCritProcs>",
+      "flags": "i"
+    },
+    {
+      "label": "J.CRIT.RegExp.OnCritApply",
+      "names": [
+        "onCritApply"
+      ],
+      "pattern": "<onCritApply:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.OnCritSelf",
+      "names": [
+        "onCritSelf"
+      ],
+      "pattern": "<onCritSelf:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.ThisCritApply",
+      "names": [
+        "thisCritApply"
+      ],
+      "pattern": "<thisCritApply:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.ThisCritChanceIfState",
+      "names": [
+        "thisCritChanceIfState"
+      ],
+      "pattern": "<thisCritChanceIfState:(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.ThisCritChanceIfStateType",
+      "names": [
+        "thisCritChanceIfStateType"
+      ],
+      "pattern": "<thisCritChanceIfStateType:(\\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.ThisCritDamageChance",
+      "names": [
+        "thisCritChance"
+      ],
+      "pattern": "<thisCritChance:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.ThisCritDamageMultiplier",
+      "names": [
+        "thisCritMultiplier"
+      ],
+      "pattern": "<thisCritMultiplier:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.ThisCritSelf",
+      "names": [
+        "thisCritSelf"
+      ],
+      "pattern": "<thisCritSelf:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.ThisCritsAlways",
+      "names": [
+        "thisCritsAlways"
+      ],
+      "pattern": "<thisCritsAlways>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.ThisCritsAlwaysIfState",
+      "names": [
+        "thisCritsAlwaysIfState"
+      ],
+      "pattern": "<thisCritsAlwaysIfState:(\\[\\d+(?:,[ ]?\\d+)*])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.CRIT.RegExp.ThisCritsAlwaysIfStateType",
+      "names": [
+        "thisCritsAlwaysIfStateType"
+      ],
+      "pattern": "<thisCritsAlwaysIfStateType:([a-zA-Z][a-zA-Z0-9_-]*)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.DROPS.RegExp.DropMultiplier",
+      "names": [
+        "dropMultiplier"
+      ],
+      "pattern": "<dropMultiplier:[ ]?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.DROPS.RegExp.DropQuantity",
+      "names": [
+        "dropQuantity"
+      ],
+      "pattern": "<dropQuantity:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.DROPS.RegExp.DropRateBuffPlus",
+      "names": [
+        "dorBuffPlus"
+      ],
+      "pattern": "<dorBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.DROPS.RegExp.DropRateBuffRate",
+      "names": [
+        "dorBuffRate"
+      ],
+      "pattern": "<dorBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.DROPS.RegExp.DropRateGrowthPlus",
+      "names": [
+        "dorGrowthPlus"
+      ],
+      "pattern": "<dorGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.DROPS.RegExp.DropRateGrowthRate",
+      "names": [
+        "dorGrowthRate"
+      ],
+      "pattern": "<dorGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.DROPS.RegExp.DropUpgrade",
+      "names": [
+        "dropUpgrade"
+      ],
+      "pattern": "<dropUpgrade:[ ]?(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.DROPS.RegExp.DropUpgradeId",
+      "names": [
+        "dropUpgradeId"
+      ],
+      "pattern": "<dropUpgradeId:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.DROPS.RegExp.ExtraDrop",
+      "names": [
+        "drops"
+      ],
+      "pattern": "<drops:[ ]?(\\[(i|item|w|weapon|a|armor),[ ]?(\\d+),[ ]?(\\d+)])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.DROPS.RegExp.GoldMultiplier",
+      "names": [
+        "goldMultiplier"
+      ],
+      "pattern": "<goldMultiplier:[ ]?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.DROPS.RegExp.GoldRateBuffPlus",
+      "names": [
+        "gdrBuffPlus"
+      ],
+      "pattern": "<gdrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.DROPS.RegExp.GoldRateBuffRate",
+      "names": [
+        "gdrBuffRate"
+      ],
+      "pattern": "<gdrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.DROPS.RegExp.GoldRateGrowthPlus",
+      "names": [
+        "gdrGrowthPlus"
+      ],
+      "pattern": "<gdrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.DROPS.RegExp.GoldRateGrowthRate",
+      "names": [
+        "gdrGrowthRate"
+      ],
+      "pattern": "<gdrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ELEM.RegExp.AbsorbElementIds",
+      "names": [
+        "absorbElements"
+      ],
+      "pattern": "<absorbElements:[ ]?(\\[[\\d, ]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ELEM.RegExp.AttackElementIds",
+      "names": [
+        "attackElements"
+      ],
+      "pattern": "<attackElements:[ ]?(\\[[\\d, ]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ELEM.RegExp.BoostElement",
+      "names": [
+        "boostElement"
+      ],
+      "pattern": "<boostElement:[ ]?(\\[\\d+,[ ]?-?\\+?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ELEM.RegExp.PierceElement",
+      "names": [
+        "pierceElement"
+      ],
+      "pattern": "<pierceElement:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ELEM.RegExp.Slayer",
+      "names": [
+        "slayer"
+      ],
+      "pattern": "<slayer:[ ]?(\\[\\d+,[ ]?-?\\+?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ELEM.RegExp.StrictElementIds",
+      "names": [
+        "strictElements"
+      ],
+      "pattern": "<strictElements:[ ]?(\\[[\\d, ]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ELEM.RegExp.ThisPierceElement",
+      "names": [
+        "thisPierceElement"
+      ],
+      "pattern": "<thisPierceElement:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.ESCRIBE.RegExp.IconIndex",
+      "names": [
+        "icon"
+      ],
+      "pattern": "<icon:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ESCRIBE.RegExp.ProximityIcon",
+      "names": [
+        "proximityIcon"
+      ],
+      "pattern": "<proximityIcon:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ESCRIBE.RegExp.ProximityText",
+      "names": [
+        "proximityText"
+      ],
+      "pattern": "<proximityText:[ ]?((0|([1-9][0-9]*))(\\.[0-9]+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ESCRIBE.RegExp.Text",
+      "names": [
+        "text"
+      ],
+      "pattern": "<text:(.+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.ApplyState",
+      "names": [
+        "applyState"
+      ],
+      "pattern": "<applyState:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?-?\\d+(?:,[ ]?\\d+)?)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.EXTEND.RegExp.Extend",
+      "names": [
+        "extend"
+      ],
+      "pattern": "<extend:[ ]?(\\[[ ]?\\d+(?:,[ ]?\\d+)*[ ]?])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.ExtendType",
+      "names": [
+        "extendType"
+      ],
+      "pattern": "<extendType:[ ]?(.+?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnCastExecuteSkill",
+      "names": [
+        "onCastExecuteSkill"
+      ],
+      "pattern": "<onCastExecuteSkill:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnCastExecuteSkillIfAfflicted",
+      "names": [
+        "onCastExecuteSkillIfAfflicted"
+      ],
+      "pattern": "<onCastExecuteSkillIfAfflicted:[ ]?(\\[\\d+,[ ]?\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnCastLoseState",
+      "names": [
+        "onCastLoseState"
+      ],
+      "pattern": "<onCastLoseState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnCastRemoveState",
+      "names": [
+        "onCastRemoveState"
+      ],
+      "pattern": "<onCastRemoveState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnCastSelfState",
+      "names": [
+        "onCastSelfState"
+      ],
+      "pattern": "<onCastSelfState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnCastSelfStateIfAfflicted",
+      "names": [
+        "onCastSelfStateIfAfflicted"
+      ],
+      "pattern": "<onCastSelfStateIfAfflicted:[ ]?(\\[\\d+,[ ]?\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnCastStripState",
+      "names": [
+        "onCastStripState"
+      ],
+      "pattern": "<onCastStripState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnHitLoseState",
+      "names": [
+        "onHitLoseState"
+      ],
+      "pattern": "<onHitLoseState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnHitRemoveState",
+      "names": [
+        "onHitRemoveState"
+      ],
+      "pattern": "<onHitRemoveState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnHitSelfState",
+      "names": [
+        "onHitSelfState"
+      ],
+      "pattern": "<onHitSelfState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.OnHitStripState",
+      "names": [
+        "onHitStripState"
+      ],
+      "pattern": "<onHitStripState:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.EXTEND.RegExp.ThisApplyState",
+      "names": [
+        "thisApplyState"
+      ],
+      "pattern": "<thisApplyState:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?-?\\d+(?:,[ ]?\\d+)?)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.EXTEND.RegExp.ToggleGroupOnExecute",
+      "names": [
+        "toggleGroupOnExecute"
+      ],
+      "pattern": "<toggleGroupOnExecute:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.EXTEND.RegExp.ToggleOnExecute",
+      "names": [
+        "toggleOnExecute"
+      ],
+      "pattern": "<toggleOnExecute:[ ]?(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.HUD.EXT.TARGET.RegExp.HideTargetFrame",
+      "names": [
+        "hideTargetFrame"
+      ],
+      "pattern": "<hideTargetFrame>",
+      "flags": "i"
+    },
+    {
+      "label": "J.HUD.EXT.TARGET.RegExp.HideTargetHP",
+      "names": [
+        "hideTargetHpBar"
+      ],
+      "pattern": "<hideTargetHpBar>",
+      "flags": "i"
+    },
+    {
+      "label": "J.HUD.EXT.TARGET.RegExp.HideTargetMP",
+      "names": [
+        "hideTargetMpBar"
+      ],
+      "pattern": "<hideTargetMpBar>",
+      "flags": "i"
+    },
+    {
+      "label": "J.HUD.EXT.TARGET.RegExp.HideTargetTP",
+      "names": [
+        "hideTargetTpBar"
+      ],
+      "pattern": "<hideTargetTpBar>",
+      "flags": "i"
+    },
+    {
+      "label": "J.HUD.EXT.TARGET.RegExp.HideTargetText",
+      "names": [
+        "hideTargetFrameText"
+      ],
+      "pattern": "<hideTargetFrameText>",
+      "flags": "i"
+    },
+    {
+      "label": "J.HUD.EXT.TARGET.RegExp.TargetFrameIcon",
+      "names": [
+        "targetFrameIcon"
+      ],
+      "pattern": "<targetFrameIcon:(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.HUD.EXT.TARGET.RegExp.TargetFrameText",
+      "names": [
+        "targetFrameText"
+      ],
+      "pattern": "<targetFrameText:([\\w :\"'.!+\\-*/\\\\]*)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.JAFTING.EXT.CREATE.RegExp.IngredientType",
+      "names": [
+        "ingredientType"
+      ],
+      "pattern": "<ingredientType:[ ]?(\\w+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.JAFTING.EXT.REFINE.RegExp.MaxRefineCount",
+      "names": [
+        "maxRefineCount"
+      ],
+      "pattern": "<maxRefineCount:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.JAFTING.EXT.REFINE.RegExp.MaxRefinedTraits",
+      "names": [
+        "maxRefinedTraits"
+      ],
+      "pattern": "<maxRefinedTraits:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.JAFTING.EXT.REFINE.RegExp.NotRefinementBase",
+      "names": [
+        "notRefinementBase"
+      ],
+      "pattern": "<notRefinementBase>",
+      "flags": "i"
+    },
+    {
+      "label": "J.JAFTING.EXT.REFINE.RegExp.NotRefinementMaterial",
+      "names": [
+        "notRefinementMaterial"
+      ],
+      "pattern": "<notRefinementMaterial>",
+      "flags": "i"
+    },
+    {
+      "label": "J.JAFTING.EXT.REFINE.RegExp.TransferrableEffectsBelow",
+      "names": [
+        "transferrableEffectsBelow"
+      ],
+      "pattern": "<transferrableEffectsBelow>",
+      "flags": "i"
+    },
+    {
+      "label": "J.JAFTING.EXT.REFINE.RegExp.Unrefinable",
+      "names": [
+        "noRefine"
+      ],
+      "pattern": "<noRefine>",
+      "flags": "i"
+    },
+    {
+      "label": "J.LEVEL.EXT.SYNC.RegExp.ContentSyncLevel",
+      "names": [
+        "levelSync"
+      ],
+      "pattern": "<levelSync:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.LEVEL.EXT.SYNC.RegExp.ContentSyncUplevel",
+      "names": [
+        "levelSyncUp"
+      ],
+      "pattern": "<levelSyncUp>",
+      "flags": "i"
+    },
+    {
+      "label": "J.LEVEL.RegExp.GrowthCurveByParamId[0]",
+      "names": [
+        "mhpGrowthCurve"
+      ],
+      "pattern": "<mhpGrowthCurve:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.LEVEL.RegExp.GrowthCurveByParamId[1]",
+      "names": [
+        "mmpGrowthCurve"
+      ],
+      "pattern": "<mmpGrowthCurve:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.LEVEL.RegExp.GrowthCurveByParamId[2]",
+      "names": [
+        "atkGrowthCurve"
+      ],
+      "pattern": "<atkGrowthCurve:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.LEVEL.RegExp.GrowthCurveByParamId[3]",
+      "names": [
+        "defGrowthCurve"
+      ],
+      "pattern": "<defGrowthCurve:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.LEVEL.RegExp.GrowthCurveByParamId[4]",
+      "names": [
+        "matGrowthCurve"
+      ],
+      "pattern": "<matGrowthCurve:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.LEVEL.RegExp.GrowthCurveByParamId[5]",
+      "names": [
+        "mdfGrowthCurve"
+      ],
+      "pattern": "<mdfGrowthCurve:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.LEVEL.RegExp.GrowthCurveByParamId[6]",
+      "names": [
+        "agiGrowthCurve"
+      ],
+      "pattern": "<agiGrowthCurve:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.LEVEL.RegExp.GrowthCurveByParamId[7]",
+      "names": [
+        "lukGrowthCurve"
+      ],
+      "pattern": "<lukGrowthCurve:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.LEVEL.RegExp.HideLevel",
+      "names": [
+        "hideLevel"
+      ],
+      "pattern": "<hideLevel>",
+      "flags": "i"
+    },
+    {
+      "label": "J.LEVEL.RegExp.Learning",
+      "names": [
+        "learning"
+      ],
+      "pattern": "<learning: ?(\\[\\d+, ?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.LEVEL.RegExp.Level",
+      "names": [
+        "lv",
+        "lvl",
+        "level"
+      ],
+      "pattern": "<(?:lv|lvl|level):[ ]?(-?\\+?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.LEVEL.RegExp.MaxLevelBoost",
+      "names": [
+        "maxLevelBoost"
+      ],
+      "pattern": "<maxLevelBoost: ?(-?\\+?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.LEVEL.RegExp.MtpGrowthCurve",
+      "names": [
+        "mtpGrowthCurve"
+      ],
+      "pattern": "<mtpGrowthCurve:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.LIGHTING.RegExp.Ambient",
+      "names": [
+        "ambient"
+      ],
+      "pattern": "<ambient:[ ]?(\\[[\\d.]+(?:,[ ]?[#\\w.-]+)*])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.LIGHTING.RegExp.Light",
+      "names": [
+        "light"
+      ],
+      "pattern": "<light:[ ]?(\\[[\\d.]+(?:,[ ]?[#\\w.-]+)*])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MAP.RegExp.AreaEvent",
+      "names": [
+        "areaEvent"
+      ],
+      "pattern": "<areaEvent: ?(\\d+)x(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MAP.RegExp.BlockMinimap",
+      "names": [
+        "blockMinimap"
+      ],
+      "pattern": "<blockMinimap>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.MAP.RegExp.MinimapEvent",
+      "names": [
+        "mm",
+        "minimap"
+      ],
+      "pattern": "<(?:mm|minimap):(npc|loot|object|teleport|questOffer|questProgress|questTurnIn)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.MESSAGE.EXT.CHATTER.RegExp.Chatter",
+      "names": [
+        "chatter"
+      ],
+      "pattern": "<chatter: ?([^>]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.EXT.CHATTER.RegExp.ChatterBackground",
+      "names": [
+        "chatterBackground"
+      ],
+      "pattern": "<chatterBackground: ?(window|dim|transparent)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.EXT.CHATTER.RegExp.ChatterCooldown",
+      "names": [
+        "chatterCooldown"
+      ],
+      "pattern": "<chatterCooldown: ?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.EXT.CHATTER.RegExp.ChatterDelay",
+      "names": [
+        "chatterDelay"
+      ],
+      "pattern": "<chatterDelay: ?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.EXT.CHATTER.RegExp.ChatterDuration",
+      "names": [
+        "chatterDuration"
+      ],
+      "pattern": "<chatterDuration: ?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.EXT.CHATTER.RegExp.ChatterPosition",
+      "names": [
+        "chatterPosition"
+      ],
+      "pattern": "<chatterPosition: ?(top|middle|bottom)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.EXT.CHATTER.RegExp.ChatterRadius",
+      "names": [
+        "chatterRadius"
+      ],
+      "pattern": "<chatterRadius: ?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.EXT.CHATTER.RegExp.ChatterSpeed",
+      "names": [
+        "chatterSpeed"
+      ],
+      "pattern": "<chatterSpeed: ?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.RegExp.LeaderChoiceConditional",
+      "names": [
+        "leaderChoiceCondition"
+      ],
+      "pattern": "<leaderChoiceCondition:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.RegExp.NotLeaderChoiceConditional",
+      "names": [
+        "notLeaderChoiceCondition"
+      ],
+      "pattern": "<notLeaderChoiceCondition:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.RegExp.SwitchOffChoiceConditional",
+      "names": [
+        "switchOffChoiceCondition"
+      ],
+      "pattern": "<switchOffChoiceCondition:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MESSAGE.RegExp.SwitchOnChoiceConditional",
+      "names": [
+        "switchOnChoiceCondition"
+      ],
+      "pattern": "<switchOnChoiceCondition:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MOTION.EXT.ABS.RegExp.DeathMotion",
+      "names": [
+        "deathMotion"
+      ],
+      "pattern": "<deathMotion:[ ]?(\\w+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MOTION.EXT.ABS.RegExp.NoDeathMotion",
+      "names": [
+        "noDeathMotion"
+      ],
+      "pattern": "<noDeathMotion>",
+      "flags": "i"
+    },
+    {
+      "label": "J.MOTION.RegExp.Motion",
+      "names": [
+        "motion"
+      ],
+      "pattern": "<motion:[ ]?(\\[\\w+(?:,[ ]?[#\\w.-]+)*])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.NATURAL.RegExp.AggroBuffPlus",
+      "names": [
+        "tgrBuffPlus"
+      ],
+      "pattern": "<tgrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.AggroBuffRate",
+      "names": [
+        "tgrBuffRate"
+      ],
+      "pattern": "<tgrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.AggroGrowthPlus",
+      "names": [
+        "tgrGrowthPlus"
+      ],
+      "pattern": "<tgrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.AggroGrowthRate",
+      "names": [
+        "tgrGrowthRate"
+      ],
+      "pattern": "<tgrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.BaseMaxTech",
+      "names": [
+        "baseMaxTp"
+      ],
+      "pattern": "<baseMaxTp:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CounterBuffPlus",
+      "names": [
+        "cntBuffPlus"
+      ],
+      "pattern": "<cntBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CounterBuffRate",
+      "names": [
+        "cntBuffRate"
+      ],
+      "pattern": "<cntBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CounterGrowthPlus",
+      "names": [
+        "cntGrowthPlus"
+      ],
+      "pattern": "<cntGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CounterGrowthRate",
+      "names": [
+        "cntGrowthRate"
+      ],
+      "pattern": "<cntGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CritChanceBuffPlus",
+      "names": [
+        "criBuffPlus"
+      ],
+      "pattern": "<criBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CritChanceBuffRate",
+      "names": [
+        "criBuffRate"
+      ],
+      "pattern": "<criBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CritChanceGrowthPlus",
+      "names": [
+        "criGrowthPlus"
+      ],
+      "pattern": "<criGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CritChanceGrowthRate",
+      "names": [
+        "criGrowthRate"
+      ],
+      "pattern": "<criGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CritEvadeBuffPlus",
+      "names": [
+        "cevBuffPlus"
+      ],
+      "pattern": "<cevBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CritEvadeBuffRate",
+      "names": [
+        "cevBuffRate"
+      ],
+      "pattern": "<cevBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CritEvadeGrowthPlus",
+      "names": [
+        "cevGrowthPlus"
+      ],
+      "pattern": "<cevGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.CritEvadeGrowthRate",
+      "names": [
+        "cevGrowthRate"
+      ],
+      "pattern": "<cevGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.DefenseBuffPlus",
+      "names": [
+        "defBuffPlus"
+      ],
+      "pattern": "<defBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.DefenseBuffRate",
+      "names": [
+        "defBuffRate"
+      ],
+      "pattern": "<defBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.DefenseGrowthPlus",
+      "names": [
+        "defGrowthPlus"
+      ],
+      "pattern": "<defGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.DefenseGrowthRate",
+      "names": [
+        "defGrowthRate"
+      ],
+      "pattern": "<defGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.EvadeBuffPlus",
+      "names": [
+        "evaBuffPlus"
+      ],
+      "pattern": "<evaBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.EvadeBuffRate",
+      "names": [
+        "evaBuffRate"
+      ],
+      "pattern": "<evaBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.EvadeGrowthPlus",
+      "names": [
+        "evaGrowthPlus"
+      ],
+      "pattern": "<evaGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.EvadeGrowthRate",
+      "names": [
+        "evaGrowthRate"
+      ],
+      "pattern": "<evaGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ExpGainRateBuffPlus",
+      "names": [
+        "exrBuffPlus"
+      ],
+      "pattern": "<exrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ExpGainRateBuffRate",
+      "names": [
+        "exrBuffRate"
+      ],
+      "pattern": "<exrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ExpGainRateGrowthPlus",
+      "names": [
+        "exrGrowthPlus"
+      ],
+      "pattern": "<exrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ExpGainRateGrowthRate",
+      "names": [
+        "exrGrowthRate"
+      ],
+      "pattern": "<exrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.FloorDmgRateBuffPlus",
+      "names": [
+        "fdrBuffPlus"
+      ],
+      "pattern": "<fdrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.FloorDmgRateBuffRate",
+      "names": [
+        "fdrBuffRate"
+      ],
+      "pattern": "<fdrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.FloorDmgRateGrowthPlus",
+      "names": [
+        "fdrGrowthPlus"
+      ],
+      "pattern": "<fdrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.FloorDmgRateGrowthRate",
+      "names": [
+        "fdrGrowthRate"
+      ],
+      "pattern": "<fdrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ForceBuffPlus",
+      "names": [
+        "matBuffPlus"
+      ],
+      "pattern": "<matBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ForceBuffRate",
+      "names": [
+        "matBuffRate"
+      ],
+      "pattern": "<matBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ForceGrowthPlus",
+      "names": [
+        "matGrowthPlus"
+      ],
+      "pattern": "<matGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ForceGrowthRate",
+      "names": [
+        "matGrowthRate"
+      ],
+      "pattern": "<matGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HarBuffPlus",
+      "names": [
+        "harBuffPlus"
+      ],
+      "pattern": "<harBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HarBuffRate",
+      "names": [
+        "harBuffRate"
+      ],
+      "pattern": "<harBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HarGrowthPlus",
+      "names": [
+        "harGrowthPlus"
+      ],
+      "pattern": "<harGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HarGrowthRate",
+      "names": [
+        "harGrowthRate"
+      ],
+      "pattern": "<harGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HealingBuffPlus",
+      "names": [
+        "recBuffPlus"
+      ],
+      "pattern": "<recBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HealingBuffRate",
+      "names": [
+        "recBuffRate"
+      ],
+      "pattern": "<recBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HealingGrowthPlus",
+      "names": [
+        "recGrowthPlus"
+      ],
+      "pattern": "<recGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HealingGrowthRate",
+      "names": [
+        "recGrowthRate"
+      ],
+      "pattern": "<recGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HitBuffPlus",
+      "names": [
+        "hitBuffPlus"
+      ],
+      "pattern": "<hitBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HitBuffRate",
+      "names": [
+        "hitBuffRate"
+      ],
+      "pattern": "<hitBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HitGrowthPlus",
+      "names": [
+        "hitGrowthPlus"
+      ],
+      "pattern": "<hitGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.HitGrowthRate",
+      "names": [
+        "hitGrowthRate"
+      ],
+      "pattern": "<hitGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ItemFxBuffPlus",
+      "names": [
+        "phaBuffPlus"
+      ],
+      "pattern": "<phaBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ItemFxBuffRate",
+      "names": [
+        "phaBuffRate"
+      ],
+      "pattern": "<phaBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ItemFxGrowthPlus",
+      "names": [
+        "phaGrowthPlus"
+      ],
+      "pattern": "<phaGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ItemFxGrowthRate",
+      "names": [
+        "phaGrowthRate"
+      ],
+      "pattern": "<phaGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.LifeRegenBuffPlus",
+      "names": [
+        "hrgBuffPlus"
+      ],
+      "pattern": "<hrgBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.LifeRegenBuffRate",
+      "names": [
+        "hrgBuffRate"
+      ],
+      "pattern": "<hrgBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.LifeRegenGrowthPlus",
+      "names": [
+        "hrgGrowthPlus"
+      ],
+      "pattern": "<hrgGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.LifeRegenGrowthRate",
+      "names": [
+        "hrgGrowthRate"
+      ],
+      "pattern": "<hrgGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.LuckBuffPlus",
+      "names": [
+        "lukBuffPlus"
+      ],
+      "pattern": "<lukBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.LuckBuffRate",
+      "names": [
+        "lukBuffRate"
+      ],
+      "pattern": "<lukBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.LuckGrowthPlus",
+      "names": [
+        "lukGrowthPlus"
+      ],
+      "pattern": "<lukGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.LuckGrowthRate",
+      "names": [
+        "lukGrowthRate"
+      ],
+      "pattern": "<lukGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiCostRateBuffPlus",
+      "names": [
+        "mcrBuffPlus"
+      ],
+      "pattern": "<mcrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiCostRateBuffRate",
+      "names": [
+        "mcrBuffRate"
+      ],
+      "pattern": "<mcrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiCostRateGrowthPlus",
+      "names": [
+        "mcrGrowthPlus"
+      ],
+      "pattern": "<mcrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiCostRateGrowthRate",
+      "names": [
+        "mcrGrowthRate"
+      ],
+      "pattern": "<mcrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiDmgRateBuffPlus",
+      "names": [
+        "mdrBuffPlus"
+      ],
+      "pattern": "<mdrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiDmgRateBuffRate",
+      "names": [
+        "mdrBuffRate"
+      ],
+      "pattern": "<mdrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiDmgRateGrowthPlus",
+      "names": [
+        "mdrGrowthPlus"
+      ],
+      "pattern": "<mdrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiDmgRateGrowthRate",
+      "names": [
+        "mdrGrowthRate"
+      ],
+      "pattern": "<mdrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiEvadeBuffPlus",
+      "names": [
+        "mevBuffPlus"
+      ],
+      "pattern": "<mevBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiEvadeBuffRate",
+      "names": [
+        "mevBuffRate"
+      ],
+      "pattern": "<mevBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiEvadeGrowthPlus",
+      "names": [
+        "mevGrowthPlus"
+      ],
+      "pattern": "<mevGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiEvadeGrowthRate",
+      "names": [
+        "mevGrowthRate"
+      ],
+      "pattern": "<mevGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiReflectBuffPlus",
+      "names": [
+        "mrfBuffPlus"
+      ],
+      "pattern": "<mrfBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiReflectBuffRate",
+      "names": [
+        "mrfBuffRate"
+      ],
+      "pattern": "<mrfBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiReflectGrowthPlus",
+      "names": [
+        "mrfGrowthPlus"
+      ],
+      "pattern": "<mrfGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiReflectGrowthRate",
+      "names": [
+        "mrfGrowthRate"
+      ],
+      "pattern": "<mrfGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiRegenBuffPlus",
+      "names": [
+        "mrgBuffPlus"
+      ],
+      "pattern": "<mrgBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiRegenBuffRate",
+      "names": [
+        "mrgBuffRate"
+      ],
+      "pattern": "<mrgBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiRegenGrowthPlus",
+      "names": [
+        "mrgGrowthPlus"
+      ],
+      "pattern": "<mrgGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MagiRegenGrowthRate",
+      "names": [
+        "mrgGrowthRate"
+      ],
+      "pattern": "<mrgGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxLifeBuffPlus",
+      "names": [
+        "mhpBuffPlus"
+      ],
+      "pattern": "<mhpBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxLifeBuffRate",
+      "names": [
+        "mhpBuffRate"
+      ],
+      "pattern": "<mhpBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxLifeGrowthPlus",
+      "names": [
+        "mhpGrowthPlus"
+      ],
+      "pattern": "<mhpGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxLifeGrowthRate",
+      "names": [
+        "mhpGrowthRate"
+      ],
+      "pattern": "<mhpGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxMagiBuffPlus",
+      "names": [
+        "mmpBuffPlus"
+      ],
+      "pattern": "<mmpBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxMagiBuffRate",
+      "names": [
+        "mmpBuffRate"
+      ],
+      "pattern": "<mmpBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxMagiGrowthPlus",
+      "names": [
+        "mmpGrowthPlus"
+      ],
+      "pattern": "<mmpGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxMagiGrowthRate",
+      "names": [
+        "mmpGrowthRate"
+      ],
+      "pattern": "<mmpGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxTechBuffPlus",
+      "names": [
+        "mtpBuffPlus"
+      ],
+      "pattern": "<mtpBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxTechBuffRate",
+      "names": [
+        "mtpBuffRate"
+      ],
+      "pattern": "<mtpBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxTechGrowthPlus",
+      "names": [
+        "mtpGrowthPlus"
+      ],
+      "pattern": "<mtpGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.MaxTechGrowthRate",
+      "names": [
+        "mtpGrowthRate"
+      ],
+      "pattern": "<mtpGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ParryBuffPlus",
+      "names": [
+        "grdBuffPlus"
+      ],
+      "pattern": "<grdBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ParryBuffRate",
+      "names": [
+        "grdBuffRate"
+      ],
+      "pattern": "<grdBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ParryGrowthPlus",
+      "names": [
+        "grdGrowthPlus"
+      ],
+      "pattern": "<grdGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ParryGrowthRate",
+      "names": [
+        "grdGrowthRate"
+      ],
+      "pattern": "<grdGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.PhysDmgRateBuffPlus",
+      "names": [
+        "pdrBuffPlus"
+      ],
+      "pattern": "<pdrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.PhysDmgRateBuffRate",
+      "names": [
+        "pdrBuffRate"
+      ],
+      "pattern": "<pdrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.PhysDmgRateGrowthPlus",
+      "names": [
+        "pdrGrowthPlus"
+      ],
+      "pattern": "<pdrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.PhysDmgRateGrowthRate",
+      "names": [
+        "pdrGrowthRate"
+      ],
+      "pattern": "<pdrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.PowerBuffPlus",
+      "names": [
+        "atkBuffPlus"
+      ],
+      "pattern": "<atkBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.PowerBuffRate",
+      "names": [
+        "atkBuffRate"
+      ],
+      "pattern": "<atkBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.PowerGrowthPlus",
+      "names": [
+        "atkGrowthPlus"
+      ],
+      "pattern": "<atkGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.PowerGrowthRate",
+      "names": [
+        "atkGrowthRate"
+      ],
+      "pattern": "<atkGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ResistBuffPlus",
+      "names": [
+        "mdfBuffPlus"
+      ],
+      "pattern": "<mdfBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ResistBuffRate",
+      "names": [
+        "mdfBuffRate"
+      ],
+      "pattern": "<mdfBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ResistGrowthPlus",
+      "names": [
+        "mdfGrowthPlus"
+      ],
+      "pattern": "<mdfGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.ResistGrowthRate",
+      "names": [
+        "mdfGrowthRate"
+      ],
+      "pattern": "<mdfGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.RewardExp",
+      "names": [
+        "expPlus"
+      ],
+      "pattern": "<expPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.RewardGold",
+      "names": [
+        "goldPlus"
+      ],
+      "pattern": "<goldPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.RewardSdps",
+      "names": [
+        "sdpPlus"
+      ],
+      "pattern": "<sdpPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.SpeedBuffPlus",
+      "names": [
+        "agiBuffPlus"
+      ],
+      "pattern": "<agiBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.SpeedBuffRate",
+      "names": [
+        "agiBuffRate"
+      ],
+      "pattern": "<agiBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.SpeedGrowthPlus",
+      "names": [
+        "agiGrowthPlus"
+      ],
+      "pattern": "<agiGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.SpeedGrowthRate",
+      "names": [
+        "agiGrowthRate"
+      ],
+      "pattern": "<agiGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.TechCostRateBuffPlus",
+      "names": [
+        "tcrBuffPlus"
+      ],
+      "pattern": "<tcrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.TechCostRateBuffRate",
+      "names": [
+        "tcrBuffRate"
+      ],
+      "pattern": "<tcrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.TechCostRateGrowthPlus",
+      "names": [
+        "tcrGrowthPlus"
+      ],
+      "pattern": "<tcrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.TechCostRateGrowthRate",
+      "names": [
+        "tcrGrowthRate"
+      ],
+      "pattern": "<tcrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.TechRegenBuffPlus",
+      "names": [
+        "trgBuffPlus"
+      ],
+      "pattern": "<trgBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.TechRegenBuffRate",
+      "names": [
+        "trgBuffRate"
+      ],
+      "pattern": "<trgBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.TechRegenGrowthPlus",
+      "names": [
+        "trgGrowthPlus"
+      ],
+      "pattern": "<trgGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.NATURAL.RegExp.TechRegenGrowthRate",
+      "names": [
+        "trgGrowthRate"
+      ],
+      "pattern": "<trgGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.OMNI.EXT.MONSTER.RegExp.HideFromMonsterpedia",
+      "names": [
+        "hideFromMonsterpedia"
+      ],
+      "pattern": "<hideFromMonsterpedia>",
+      "flags": "i"
+    },
+    {
+      "label": "J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription",
+      "names": [
+        "descriptionLine"
+      ],
+      "pattern": "<descriptionLine:[ ]?([\\w\\s.?!,\\-'\"]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.OMNI.EXT.MONSTER.RegExp.MonsterpediaFamilyIcon",
+      "names": [
+        "monsterFamilyIcon"
+      ],
+      "pattern": "<monsterFamilyIcon:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.OMNI.EXT.QUEST.RegExp.ChoiceQuest",
+      "names": [
+        "choiceQuestCondition"
+      ],
+      "pattern": "<choiceQuestCondition:[ ]?(\\[[\\w.-]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.OMNI.EXT.QUEST.RegExp.ChoiceQuestObjective",
+      "names": [
+        "choiceQuestCondition"
+      ],
+      "pattern": "<choiceQuestCondition:[ ]?(\\[([\\w.-]+),[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.OMNI.EXT.QUEST.RegExp.ChoiceQuestObjectiveForState",
+      "names": [
+        "choiceQuestCondition"
+      ],
+      "pattern": "<choiceQuestCondition:[ ]?(\\[([\\w.-]+),[ ]?(-?\\d+),[ ]?(inactive|active|completed|failed|missed)])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.OMNI.EXT.QUEST.RegExp.EventQuest",
+      "names": [
+        "pageQuestCondition"
+      ],
+      "pattern": "<pageQuestCondition:[ ]?(\\[[\\w.-]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.OMNI.EXT.QUEST.RegExp.EventQuestObjective",
+      "names": [
+        "pageQuestCondition"
+      ],
+      "pattern": "<pageQuestCondition:[ ]?(\\[([\\w.-]+),[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.OMNI.EXT.QUEST.RegExp.EventQuestObjectiveForState",
+      "names": [
+        "pageQuestCondition"
+      ],
+      "pattern": "<pageQuestCondition:[ ]?(\\[([\\w.-]+),[ ]?(-?\\d+),[ ]?(inactive|active|completed|failed|missed)])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.AffixTier",
+      "names": [
+        "affix-tier"
+      ],
+      "pattern": "<affix-tier:([1-9]\\d*)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassivePrefixes",
+      "names": [
+        "no-rng-passive-prefixes"
+      ],
+      "pattern": "<no-rng-passive-prefixes>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassiveSuffixes",
+      "names": [
+        "no-rng-passive-suffixes"
+      ],
+      "pattern": "<no-rng-passive-suffixes>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassives",
+      "names": [
+        "no-rng-passives"
+      ],
+      "pattern": "<no-rng-passives>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.PassiveAffixPrefixChance",
+      "names": [
+        "passive-affix-prefix-chance"
+      ],
+      "pattern": "<passive-affix-prefix-chance:[ ]?([+-]?\\d+(?:\\.\\d+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.PassiveAffixSuffixChance",
+      "names": [
+        "passive-affix-suffix-chance"
+      ],
+      "pattern": "<passive-affix-suffix-chance:[ ]?([+-]?\\d+(?:\\.\\d+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.Prefix",
+      "names": [
+        "enemy-prefix"
+      ],
+      "pattern": "<enemy-prefix>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.RewardMultiplier",
+      "names": [
+        "rewardMultiplier"
+      ],
+      "pattern": "<rewardMultiplier:\\[[ ]?(exp|gold|sdp|ap|drops),[ ]?(\\d+(?:\\.\\d+)?)[ ]?]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.Suffix",
+      "names": [
+        "enemy-suffix"
+      ],
+      "pattern": "<enemy-suffix>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.TierColorHex",
+      "names": [
+        "tier-color-hex"
+      ],
+      "pattern": "<tier-color-hex:(#[0-9A-F]{6})>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.AFFIX.RegExp.Weight",
+      "names": [
+        "affix-weight"
+      ],
+      "pattern": "<affix-weight:(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState",
+      "names": [
+        "autoApplyState"
+      ],
+      "pattern": "<autoApplyState:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby",
+      "names": [
+        "autoApplyStateOnNearby"
+      ],
+      "pattern": "<autoApplyStateOnNearby:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill",
+      "names": [
+        "autoExecuteSkill"
+      ],
+      "pattern": "<autoExecuteSkill:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState",
+      "names": [
+        "autoInflictState"
+      ],
+      "pattern": "<autoInflictState:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns",
+      "names": [
+        "autoModifyCooldowns"
+      ],
+      "pattern": "<autoModifyCooldowns:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveSourceRule",
+      "names": [
+        "passiveSourceRule"
+      ],
+      "pattern": "<passiveSourceRule:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateCount",
+      "names": [
+        "passiveStateCount"
+      ],
+      "pattern": "<passiveStateCount:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateRule",
+      "names": [
+        "passiveStateRule"
+      ],
+      "pattern": "<passiveStateRule:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillExecution",
+      "names": [
+        "removeOnSkillExecution"
+      ],
+      "pattern": "<removeOnSkillExecution:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillResolution",
+      "names": [
+        "removeOnSkillResolution"
+      ],
+      "pattern": "<removeOnSkillResolution:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove",
+      "names": [
+        "removeStateOnMove"
+      ],
+      "pattern": "<removeStateOnMove:[ ]?(\\[[^\\]]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.OTIB.RegExp.OtibStateIds",
+      "names": [
+        "otib"
+      ],
+      "pattern": "<otib:[ ]?(\\[[\\d, ]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PASSIVE.RegExp.EquippedPassiveStateIds",
+      "names": [
+        "equippedPassive"
+      ],
+      "pattern": "<equippedPassive:[ ]?(\\[[\\d, ]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.RegExp.HideFromPassiveList",
+      "names": [
+        "hideFromPassiveList"
+      ],
+      "pattern": "<hideFromPassiveList>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.RegExp.PassiveStateIds",
+      "names": [
+        "passive"
+      ],
+      "pattern": "<passive:[ ]?(\\[[\\d, ]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.RegExp.UniqueEquippedPassiveStateIds",
+      "names": [
+        "uniqueEquippedPassive"
+      ],
+      "pattern": "<uniqueEquippedPassive:[ ]?(\\[[\\d, ]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.RegExp.UniquePassiveStateIds",
+      "names": [
+        "uniquePassive"
+      ],
+      "pattern": "<uniquePassive:[ ]?(\\[[\\d, ]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PIXEL.EXT.ABS.RegExp.HitboxReveal",
+      "names": [
+        "hitboxReveal"
+      ],
+      "pattern": "<hitboxReveal:[ ]?([+-]?\\d+(?:\\.\\d+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PIXEL.EXT.ABS.RegExp.HitboxSize",
+      "names": [
+        "hitboxSize"
+      ],
+      "pattern": "<hitboxSize:[ ]?(\\[[ ]?[+-]?\\d+(?:\\.\\d+)?[ ]?,[ ]?[+-]?\\d+(?:\\.\\d+)?[ ]?]|[+-]?\\d+(?:\\.\\d+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.POPUPS.EXT.ABS.RegExp.NoAnySlipPopup",
+      "names": [
+        "noSlipPopup"
+      ],
+      "pattern": "<noSlipPopup>",
+      "flags": "i"
+    },
+    {
+      "label": "J.POPUPS.EXT.ABS.RegExp.NoHpSlipPopup",
+      "names": [
+        "noHpPopup"
+      ],
+      "pattern": "<noHpPopup>",
+      "flags": "i"
+    },
+    {
+      "label": "J.POPUPS.EXT.ABS.RegExp.NoMpSlipPopup",
+      "names": [
+        "noMpPopup"
+      ],
+      "pattern": "<noMpPopup>",
+      "flags": "i"
+    },
+    {
+      "label": "J.POPUPS.EXT.ABS.RegExp.NoTpSlipPopup",
+      "names": [
+        "noTpPopup"
+      ],
+      "pattern": "<noTpPopup>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PROF.RegExp.ProficiencyBonus",
+      "names": [
+        "proficiencyBonus"
+      ],
+      "pattern": "<proficiencyBonus:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PROF.RegExp.ProficiencyBonusBuffPlus",
+      "names": [
+        "profBuffPlus"
+      ],
+      "pattern": "<profBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PROF.RegExp.ProficiencyBonusBuffRate",
+      "names": [
+        "profBuffRate"
+      ],
+      "pattern": "<profBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PROF.RegExp.ProficiencyBonusGrowthPlus",
+      "names": [
+        "profGrowthPlus"
+      ],
+      "pattern": "<profGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PROF.RegExp.ProficiencyBonusGrowthRate",
+      "names": [
+        "profGrowthRate"
+      ],
+      "pattern": "<profGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.PROF.RegExp.ProficiencyGainingBlock",
+      "names": [
+        "proficiencyGainingBlock"
+      ],
+      "pattern": "<proficiencyGainingBlock>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PROF.RegExp.ProficiencyGivingBlock",
+      "names": [
+        "proficiencyGivingBlock"
+      ],
+      "pattern": "<proficiencyGivingBlock>",
+      "flags": "i"
+    },
+    {
+      "label": "J.REGIONS.EXT.SKILLS.RegExp.RegionSkill",
+      "names": [
+        "regionSkill"
+      ],
+      "pattern": "<regionSkill:[ ]?(\\[\\d+, ?\\d+, ?\\d+, ?\\d+, ?(true|false)])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.REGIONS.EXT.STATES.RegExp.RegionState",
+      "names": [
+        "regionAddState"
+      ],
+      "pattern": "<regionAddState:[ ]?(\\[\\d+, ?\\d+(?:, ?\\d+)?(?:, ?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.REGIONS.RegExp.AllowRegions",
+      "names": [
+        "allowRegions"
+      ],
+      "pattern": "<allowRegions:[ ]?(\\[[\\d, ]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.REGIONS.RegExp.DenyRegions",
+      "names": [
+        "denyRegions"
+      ],
+      "pattern": "<denyRegions:[ ]?(\\[[\\d, ]+])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.Lifesteal",
+      "names": [
+        "lst"
+      ],
+      "pattern": "<lst:(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.LifestealBuffPlus",
+      "names": [
+        "lstBuffPlus"
+      ],
+      "pattern": "<lstBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.LifestealBuffRate",
+      "names": [
+        "lstBuffRate"
+      ],
+      "pattern": "<lstBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.LifestealGrowthPlus",
+      "names": [
+        "lstGrowthPlus"
+      ],
+      "pattern": "<lstGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.LifestealGrowthRate",
+      "names": [
+        "lstGrowthRate"
+      ],
+      "pattern": "<lstGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.Manasteal",
+      "names": [
+        "mst"
+      ],
+      "pattern": "<mst:(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.ManastealBuffPlus",
+      "names": [
+        "mstBuffPlus"
+      ],
+      "pattern": "<mstBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.ManastealBuffRate",
+      "names": [
+        "mstBuffRate"
+      ],
+      "pattern": "<mstBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.ManastealGrowthPlus",
+      "names": [
+        "mstGrowthPlus"
+      ],
+      "pattern": "<mstGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.ManastealGrowthRate",
+      "names": [
+        "mstGrowthRate"
+      ],
+      "pattern": "<mstGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealHp",
+      "names": [
+        "onAllyAnyHealHp"
+      ],
+      "pattern": "<onAllyAnyHealHp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealMp",
+      "names": [
+        "onAllyAnyHealMp"
+      ],
+      "pattern": "<onAllyAnyHealMp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealTp",
+      "names": [
+        "onAllyAnyHealTp"
+      ],
+      "pattern": "<onAllyAnyHealTp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealHp",
+      "names": [
+        "onAllyHpHealHp"
+      ],
+      "pattern": "<onAllyHpHealHp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealMp",
+      "names": [
+        "onAllyHpHealMp"
+      ],
+      "pattern": "<onAllyHpHealMp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealTp",
+      "names": [
+        "onAllyHpHealTp"
+      ],
+      "pattern": "<onAllyHpHealTp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealHp",
+      "names": [
+        "onAllyMpHealHp"
+      ],
+      "pattern": "<onAllyMpHealHp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealMp",
+      "names": [
+        "onAllyMpHealMp"
+      ],
+      "pattern": "<onAllyMpHealMp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealTp",
+      "names": [
+        "onAllyMpHealTp"
+      ],
+      "pattern": "<onAllyMpHealTp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealHp",
+      "names": [
+        "onAllyTpHealHp"
+      ],
+      "pattern": "<onAllyTpHealHp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealMp",
+      "names": [
+        "onAllyTpHealMp"
+      ],
+      "pattern": "<onAllyTpHealMp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealTp",
+      "names": [
+        "onAllyTpHealTp"
+      ],
+      "pattern": "<onAllyTpHealTp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAttackHpGainFlat",
+      "names": [
+        "on-attack-hp-gain"
+      ],
+      "pattern": "<on-attack-hp-gain:(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAttackHpGainFormula",
+      "names": [
+        "on-attack-hp-gain"
+      ],
+      "pattern": "<on-attack-hp-gain:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAttackHpGainPercent",
+      "names": [
+        "on-attack-hp-gain"
+      ],
+      "pattern": "<on-attack-hp-gain:(-?\\d+)%>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAttackMpGainFlat",
+      "names": [
+        "on-attack-mp-gain"
+      ],
+      "pattern": "<on-attack-mp-gain:(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAttackMpGainFormula",
+      "names": [
+        "on-attack-mp-gain"
+      ],
+      "pattern": "<on-attack-mp-gain:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAttackMpGainPercent",
+      "names": [
+        "on-attack-mp-gain"
+      ],
+      "pattern": "<on-attack-mp-gain:(-?\\d+)%>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainFlat",
+      "names": [
+        "on-attack-tp-gain"
+      ],
+      "pattern": "<on-attack-tp-gain:(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainFormula",
+      "names": [
+        "on-attack-tp-gain"
+      ],
+      "pattern": "<on-attack-tp-gain:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainPercent",
+      "names": [
+        "on-attack-tp-gain"
+      ],
+      "pattern": "<on-attack-tp-gain:(-?\\d+)%>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealHp",
+      "names": [
+        "onSelfAnyHealHp"
+      ],
+      "pattern": "<onSelfAnyHealHp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealMp",
+      "names": [
+        "onSelfAnyHealMp"
+      ],
+      "pattern": "<onSelfAnyHealMp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealTp",
+      "names": [
+        "onSelfAnyHealTp"
+      ],
+      "pattern": "<onSelfAnyHealTp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealHp",
+      "names": [
+        "onSelfHpHealHp"
+      ],
+      "pattern": "<onSelfHpHealHp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealMp",
+      "names": [
+        "onSelfHpHealMp"
+      ],
+      "pattern": "<onSelfHpHealMp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealTp",
+      "names": [
+        "onSelfHpHealTp"
+      ],
+      "pattern": "<onSelfHpHealTp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealHp",
+      "names": [
+        "onSelfMpHealHp"
+      ],
+      "pattern": "<onSelfMpHealHp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealMp",
+      "names": [
+        "onSelfMpHealMp"
+      ],
+      "pattern": "<onSelfMpHealMp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealTp",
+      "names": [
+        "onSelfMpHealTp"
+      ],
+      "pattern": "<onSelfMpHealTp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealHp",
+      "names": [
+        "onSelfTpHealHp"
+      ],
+      "pattern": "<onSelfTpHealHp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealMp",
+      "names": [
+        "onSelfTpHealMp"
+      ],
+      "pattern": "<onSelfTpHealMp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealTp",
+      "names": [
+        "onSelfTpHealTp"
+      ],
+      "pattern": "<onSelfTpHealTp:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?\\d+)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.Techsteal",
+      "names": [
+        "tst"
+      ],
+      "pattern": "<tst:(-?\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.TechstealBuffPlus",
+      "names": [
+        "tstBuffPlus"
+      ],
+      "pattern": "<tstBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.TechstealBuffRate",
+      "names": [
+        "tstBuffRate"
+      ],
+      "pattern": "<tstBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.TechstealGrowthPlus",
+      "names": [
+        "tstGrowthPlus"
+      ],
+      "pattern": "<tstGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.TechstealGrowthRate",
+      "names": [
+        "tstGrowthRate"
+      ],
+      "pattern": "<tstGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.WhenHitHpGainFlat",
+      "names": [
+        "when-hit-hp-gain"
+      ],
+      "pattern": "<when-hit-hp-gain:(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.WhenHitHpGainFormula",
+      "names": [
+        "when-hit-hp-gain"
+      ],
+      "pattern": "<when-hit-hp-gain:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.WhenHitHpGainPercent",
+      "names": [
+        "when-hit-hp-gain"
+      ],
+      "pattern": "<when-hit-hp-gain:(\\d+)%>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.WhenHitMpGainFlat",
+      "names": [
+        "when-hit-mp-gain"
+      ],
+      "pattern": "<when-hit-mp-gain:(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.WhenHitMpGainFormula",
+      "names": [
+        "when-hit-mp-gain"
+      ],
+      "pattern": "<when-hit-mp-gain:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.WhenHitMpGainPercent",
+      "names": [
+        "when-hit-mp-gain"
+      ],
+      "pattern": "<when-hit-mp-gain:(\\d+)%>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainFlat",
+      "names": [
+        "when-hit-tp-gain"
+      ],
+      "pattern": "<when-hit-tp-gain:(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainFormula",
+      "names": [
+        "when-hit-tp-gain"
+      ],
+      "pattern": "<when-hit-tp-gain:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainPercent",
+      "names": [
+        "when-hit-tp-gain"
+      ],
+      "pattern": "<when-hit-tp-gain:(\\d+)%>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpCostFlat",
+      "names": [
+        "hp-cost"
+      ],
+      "pattern": "<hp-cost:(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpCostFormula",
+      "names": [
+        "hp-cost"
+      ],
+      "pattern": "<hp-cost:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpCostLethal",
+      "names": [
+        "hp-cost-can-kill"
+      ],
+      "pattern": "<hp-cost-can-kill>",
+      "flags": "i"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpCostPercent",
+      "names": [
+        "hp-cost"
+      ],
+      "pattern": "<hp-cost:(\\d+)%>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpCostRateBuffPlus",
+      "names": [
+        "hcrBuffPlus"
+      ],
+      "pattern": "<hcrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpCostRateBuffRate",
+      "names": [
+        "hcrBuffRate"
+      ],
+      "pattern": "<hcrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpCostRateGrowthPlus",
+      "names": [
+        "hcrGrowthPlus"
+      ],
+      "pattern": "<hcrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpCostRateGrowthRate",
+      "names": [
+        "hcrGrowthRate"
+      ],
+      "pattern": "<hcrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpCostReduction",
+      "names": [
+        "hcr"
+      ],
+      "pattern": "<hcr:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpGainFlat",
+      "names": [
+        "hp-gain"
+      ],
+      "pattern": "<hp-gain:(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpGainFormula",
+      "names": [
+        "hp-gain"
+      ],
+      "pattern": "<hp-gain:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.HpGainPercent",
+      "names": [
+        "hp-gain"
+      ],
+      "pattern": "<hp-gain:(\\d+)%>",
+      "flags": "i"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.ItemCost",
+      "names": [
+        "itemCost"
+      ],
+      "pattern": "<itemCost:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.MpCostFlat",
+      "names": [
+        "mp-cost"
+      ],
+      "pattern": "<mp-cost:(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.MpCostFormula",
+      "names": [
+        "mp-cost"
+      ],
+      "pattern": "<mp-cost:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.MpCostPercent",
+      "names": [
+        "mp-cost"
+      ],
+      "pattern": "<mp-cost:(\\d+)%>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.MpGainFlat",
+      "names": [
+        "mp-gain"
+      ],
+      "pattern": "<mp-gain:(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.MpGainFormula",
+      "names": [
+        "mp-gain"
+      ],
+      "pattern": "<mp-gain:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.MpGainPercent",
+      "names": [
+        "mp-gain"
+      ],
+      "pattern": "<mp-gain:(\\d+)%>",
+      "flags": "i"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.StackCost",
+      "names": [
+        "stackCost"
+      ],
+      "pattern": "<stackCost:[ ]?(\\[\\d+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.TpCostFlat",
+      "names": [
+        "tp-cost"
+      ],
+      "pattern": "<tp-cost:(\\d+)>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.TpCostFormula",
+      "names": [
+        "tp-cost"
+      ],
+      "pattern": "<tp-cost:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.TpCostPercent",
+      "names": [
+        "tp-cost"
+      ],
+      "pattern": "<tp-cost:(\\d+)%>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.TpGainFlat",
+      "names": [
+        "tp-gain"
+      ],
+      "pattern": "<tp-gain:(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.TpGainFormula",
+      "names": [
+        "tp-gain"
+      ],
+      "pattern": "<tp-gain:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.RESOURCES.RegExp.TpGainPercent",
+      "names": [
+        "tp-gain"
+      ],
+      "pattern": "<tp-gain:(\\d+)%>",
+      "flags": "i"
+    },
+    {
+      "label": "J.SDP.RegExp.SdpBonusFormula",
+      "names": [
+        "sdpBonusFormula"
+      ],
+      "pattern": "<sdpBonusFormula:\\[(.+?)]>",
+      "flags": "i"
+    },
+    {
+      "label": "J.SDP.RegExp.SdpDropData",
+      "names": [
+        "sdpDropData"
+      ],
+      "pattern": "<sdpDropData: ?(\\[[-\\w]+,[ ]?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.SDP.RegExp.SdpMultiplier",
+      "names": [
+        "sdpMultiplier"
+      ],
+      "pattern": "<sdpMultiplier: ?([-.\\d]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.SDP.RegExp.SdpPoints",
+      "names": [
+        "sdpPoints"
+      ],
+      "pattern": "<sdpPoints: ?-?([0-9]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.SDP.RegExp.SdpRateBuffPlus",
+      "names": [
+        "sdrBuffPlus"
+      ],
+      "pattern": "<sdrBuffPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.SDP.RegExp.SdpRateBuffRate",
+      "names": [
+        "sdrBuffRate"
+      ],
+      "pattern": "<sdrBuffRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.SDP.RegExp.SdpRateGrowthPlus",
+      "names": [
+        "sdrGrowthPlus"
+      ],
+      "pattern": "<sdrGrowthPlus:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.SDP.RegExp.SdpRateGrowthRate",
+      "names": [
+        "sdrGrowthRate"
+      ],
+      "pattern": "<sdrGrowthRate:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.SDP.RegExp.SdpUnlockKey",
+      "names": [
+        "sdpUnlock"
+      ],
+      "pattern": "<sdpUnlock: ?(.+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.SKS.RegExp.BaseSlotPoints",
+      "names": [
+        "baseSlotPoints"
+      ],
+      "pattern": "<baseSlotPoints:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.SKS.RegExp.BaseSlots",
+      "names": [
+        "baseSlots"
+      ],
+      "pattern": "<baseSlots:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.SKS.RegExp.MaxSlotPoints",
+      "names": [
+        "maxSlotPoints"
+      ],
+      "pattern": "<maxSlotPoints:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.SKS.RegExp.MaxSlots",
+      "names": [
+        "maxSlots"
+      ],
+      "pattern": "<maxSlots:\\[([+\\-*/ ().\\w]+)]>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.SKS.RegExp.SlotCost",
+      "names": [
+        "slotCost"
+      ],
+      "pattern": "<slotCost:[ ]?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.SKS.RegExp.SlotCostModifier",
+      "names": [
+        "slotCostModifier"
+      ],
+      "pattern": "<slotCostModifier:[ ]?(-?\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.SKS.RegExp.Unslotted",
+      "names": [
+        "unslotted"
+      ],
+      "pattern": "<unslotted>",
+      "flags": "i"
+    },
+    {
+      "label": "J.SKS.RegExp.UnslottedSkills",
+      "names": [
+        "unslottedSkills"
+      ],
+      "pattern": "<unslottedSkills:[ ]?(\\[[\\d, ]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.DayChoice",
+      "names": [
+        "dayChoice"
+      ],
+      "pattern": "<dayChoice:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.DayPage",
+      "names": [
+        "dayPage"
+      ],
+      "pattern": "<dayPage:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.DayRangeChoice",
+      "names": [
+        "dayRangeChoice"
+      ],
+      "pattern": "<dayRangeChoice:[ ]?(\\d+)-(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.DayRangePage",
+      "names": [
+        "dayRangePage"
+      ],
+      "pattern": "<dayRangePage:[ ]?(\\d+)-(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.FullDateRangeChoice",
+      "names": [
+        "fullDateRangeChoice"
+      ],
+      "pattern": "<fullDateRangeChoice:[ ]?(\\[\\d+, ?\\d+, ?\\d+, ?\\d+, ?\\d+])-(\\[\\d+, ?\\d+, ?\\d+, ?\\d+, ?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.FullDateRangePage",
+      "names": [
+        "fullDateRangePage"
+      ],
+      "pattern": "<fullDateRangePage:[ ]?(\\[\\d+, ?\\d+, ?\\d+, ?\\d+, ?\\d+])-(\\[\\d+, ?\\d+, ?\\d+, ?\\d+, ?\\d+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.HourChoice",
+      "names": [
+        "hourChoice"
+      ],
+      "pattern": "<hourChoice:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.HourPage",
+      "names": [
+        "hourPage"
+      ],
+      "pattern": "<hourPage:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.HourRangeChoice",
+      "names": [
+        "hourRangeChoice"
+      ],
+      "pattern": "<hourRangeChoice:[ ]?(\\d+)-(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.HourRangePage",
+      "names": [
+        "hourRangePage"
+      ],
+      "pattern": "<hourRangePage:[ ]?(\\d+)-(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.MinuteChoice",
+      "names": [
+        "minuteChoice"
+      ],
+      "pattern": "<minuteChoice:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.MinutePage",
+      "names": [
+        "minutePage"
+      ],
+      "pattern": "<minutePage:[ ]?(\\d+),? ?( )?>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.MinuteRangeChoice",
+      "names": [
+        "minuteRangeChoice"
+      ],
+      "pattern": "<minuteRangeChoice:[ ]?(\\d+)-(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.MinuteRangePage",
+      "names": [
+        "minuteRangePage"
+      ],
+      "pattern": "<minuteRangePage:[ ]?(\\d+)-(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.MonthChoice",
+      "names": [
+        "monthChoice"
+      ],
+      "pattern": "<monthChoice:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.MonthPage",
+      "names": [
+        "monthPage"
+      ],
+      "pattern": "<monthPage:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.MonthRangeChoice",
+      "names": [
+        "monthRangeChoice"
+      ],
+      "pattern": "<monthRangeChoice:[ ]?(\\d+)-(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.MonthRangePage",
+      "names": [
+        "monthRangePage"
+      ],
+      "pattern": "<monthRangePage:[ ]?(\\d+)-(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.SeasonOfYearChoice",
+      "names": [
+        "seasonOfYearChoice"
+      ],
+      "pattern": "<seasonOfYearChoice:[ ]?([0-3]|spring|summer|autumn|winter)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.SeasonOfYearPage",
+      "names": [
+        "seasonOfYearPage"
+      ],
+      "pattern": "<seasonOfYearPage:[ ]?([0-3]|spring|summer|autumn|winter)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.TimeOfDayChoice",
+      "names": [
+        "timeOfDayChoice"
+      ],
+      "pattern": "<timeOfDayChoice:[ ]?([0-5]|moontide|dawn|morning|afternoon|evening|night)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.TimeOfDayPage",
+      "names": [
+        "timeOfDayPage"
+      ],
+      "pattern": "<timeOfDayPage:[ ]?([0-5]|moontide|dawn|morning|afternoon|evening|night)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.TimeRangeChoice",
+      "names": [
+        "timeRangeChoice"
+      ],
+      "pattern": "<timeRangeChoice:[ ]?(\\d{1,2}):(\\d{1,2})-(\\d{1,2}):(\\d{1,2})>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.TimeRangePage",
+      "names": [
+        "timeRangePage"
+      ],
+      "pattern": "<timeRangePage:[ ]?(\\d{1,2}):(\\d{1,2})-(\\d{1,2}):(\\d{1,2})>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.YearChoice",
+      "names": [
+        "yearChoice"
+      ],
+      "pattern": "<yearChoice:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.YearPage",
+      "names": [
+        "yearPage"
+      ],
+      "pattern": "<yearPage:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.YearRangeChoice",
+      "names": [
+        "yearRangeChoice"
+      ],
+      "pattern": "<yearRangeChoice:[ ]?(\\d+)-(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.TIME.RegExp.YearRangePage",
+      "names": [
+        "yearRangePage"
+      ],
+      "pattern": "<yearRangePage:[ ]?(\\d+)-(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.WEATHER.EXT.TIME.RegExp.Climate",
+      "names": [
+        "climate"
+      ],
+      "pattern": "<climate:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.WEATHER.EXT.TIME.RegExp.WeatherIntensityPage",
+      "names": [
+        "weatherIntensityPage"
+      ],
+      "pattern": "<weatherIntensityPage:[ ]?([a-zA-Z0-9_-]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.WEATHER.EXT.TIME.RegExp.WeatherIntensityRangePage",
+      "names": [
+        "weatherIntensityRangePage"
+      ],
+      "pattern": "<weatherIntensityRangePage:[ ]?([a-zA-Z0-9]+)-([a-zA-Z0-9]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.WEATHER.EXT.TIME.RegExp.WeatherTypePage",
+      "names": [
+        "weatherTypePage"
+      ],
+      "pattern": "<weatherTypePage:[ ]?([a-zA-Z0-9_-]+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.WEATHER.RegExp.NoWeather",
+      "names": [
+        "noWeather"
+      ],
+      "pattern": "<noWeather>",
+      "flags": "i"
+    },
+    {
+      "label": "J.WEATHER.RegExp.Weather",
+      "names": [
+        "weather"
+      ],
+      "pattern": "<weather:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>",
+      "flags": "i"
+    }
+  ],
+  "commentLineGate": {
+    "label": "J.BASE.RegExp.ParsableComment",
+    "pattern": "^<[[\\]\\w :\"',.!?+\\-*/\\\\#~%=();]+>$",
+    "flags": "i"
+  },
+  "metaTags": [
+    "battleMap",
+    "extend",
+    "extendType",
+    "noToneChange",
+    "timeBlock"
+  ],
+  "idTables": {
+    "Actors": "a row in data/Actors.json with a non-empty name",
+    "Animations": "a row in data/Animations.json with a non-empty name",
+    "Armors": "a row in data/Armors.json with a non-empty name",
+    "Classes": "a row in data/Classes.json with a non-empty name",
+    "Enemies": "a row in data/Enemies.json with a non-empty name",
+    "Items": "a row in data/Items.json with a non-empty name",
+    "Skills": "a row in data/Skills.json with a non-empty name",
+    "States": "a row in data/States.json with a non-empty name",
+    "Weapons": "a row in data/Weapons.json with a non-empty name",
+    "Self": "a row with a non-empty name in the same table as the row whose note carries the tag",
+    "Maps": "a map listed in data/MapInfos.json",
+    "Elements": "a named entry in the elements list of data/System.json, or 0 - RPG Maker's built-in \"None\" element",
+    "SkillTypes": "a named entry in the skillTypes list of data/System.json",
+    "WeaponTypes": "a named entry in the weaponTypes list of data/System.json",
+    "Switches": "an entry in the switches list of data/System.json",
+    "JabsActionMapEvents": "an event on the map named by the actionMapId parameter of J-ABS in js/plugins.js",
+    "SdpPanels": "a panel key in data/config.sdp.json",
+    "Quests": "a quest key in data/config.quest.json"
+  },
+  "idTargets": {
+    "absorbElements": [
+      {
+        "position": "each",
+        "table": "Elements"
+      }
+    ],
+    "actionId": [
+      {
+        "position": 0,
+        "table": "JabsActionMapEvents"
+      }
+    ],
+    "allowRegions": [
+      {
+        "position": "each",
+        "table": null,
+        "reason": "region ids are painted onto map tiles; there is no table to resolve them against"
+      }
+    ],
+    "apTyped": [
+      {
+        "position": 2,
+        "table": {
+          "byPosition": 1,
+          "cases": {
+            "element": "Elements",
+            "weapontype": "WeaponTypes",
+            "skilltype": "SkillTypes"
+          }
+        },
+        "acceptsName": true
+      }
+    ],
+    "applyState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "applyStateOnExpire": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "aptitude": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "aptitudeTyped": [
+      {
+        "position": 0,
+        "table": "Skills"
+      },
+      {
+        "position": 3,
+        "table": {
+          "byPosition": 2,
+          "cases": {
+            "element": "Elements",
+            "weapontype": "WeaponTypes",
+            "skilltype": "SkillTypes"
+          }
+        },
+        "acceptsName": true
+      }
+    ],
+    "attackElements": [
+      {
+        "position": "each",
+        "table": "Elements"
+      }
+    ],
+    "autoApplyState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "autoApplyStateOnNearby": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "autoExecuteSkill": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "autoInflictState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "battleMap": [
+      {
+        "position": 0,
+        "table": "Maps"
+      }
+    ],
+    "bonusDamageIfSelfState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "bonusDamageIfState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "bonusDamagePerStateStack": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "boostElement": [
+      {
+        "position": 0,
+        "table": "Elements"
+      }
+    ],
+    "castAnimation": [
+      {
+        "position": 0,
+        "table": "Animations"
+      }
+    ],
+    "channel": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "chargeTier": [
+      {
+        "position": 2,
+        "table": "Skills",
+        "allowZero": true
+      },
+      {
+        "position": 3,
+        "table": "Animations"
+      },
+      {
+        "position": 4,
+        "table": "Animations"
+      }
+    ],
+    "choiceQuestCondition": [
+      {
+        "position": 0,
+        "table": "Quests"
+      }
+    ],
+    "combo": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "counterGuard": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "counterParry": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "critAlwaysIfState": [
+      {
+        "position": "each",
+        "table": "States"
+      }
+    ],
+    "critChanceIfState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "denyRegions": [
+      {
+        "position": "each",
+        "table": null,
+        "reason": "region ids are painted onto map tiles; there is no table to resolve them against"
+      }
+    ],
+    "directStateTarget": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "dropUpgradeId": [
+      {
+        "position": 0,
+        "table": "Self"
+      }
+    ],
+    "drops": [
+      {
+        "position": 1,
+        "table": {
+          "byPosition": 0,
+          "cases": {
+            "i": "Items",
+            "item": "Items",
+            "w": "Weapons",
+            "weapon": "Weapons",
+            "a": "Armors",
+            "armor": "Armors"
+          }
+        }
+      }
+    ],
+    "enemyId": [
+      {
+        "position": 0,
+        "table": "Enemies"
+      }
+    ],
+    "equippedPassive": [
+      {
+        "position": "each",
+        "table": "States"
+      }
+    ],
+    "extend": [
+      {
+        "position": "each",
+        "table": "Self"
+      }
+    ],
+    "guardSkillId": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "itemCost": [
+      {
+        "position": 0,
+        "table": "Items"
+      }
+    ],
+    "leaderChoiceCondition": [
+      {
+        "position": 0,
+        "table": "Actors"
+      }
+    ],
+    "learning": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "noAutoAssignType": [
+      {
+        "position": "each",
+        "table": "SkillTypes"
+      }
+    ],
+    "notLeaderChoiceCondition": [
+      {
+        "position": 0,
+        "table": "Actors"
+      }
+    ],
+    "offhandSkillId": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "onApplySkill": [
+      {
+        "position": 2,
+        "table": "Skills"
+      }
+    ],
+    "onCastAnimationId": [
+      {
+        "position": 0,
+        "table": "Animations"
+      }
+    ],
+    "onCastExecuteSkill": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "onCastExecuteSkillIfAfflicted": [
+      {
+        "position": 0,
+        "table": "Skills"
+      },
+      {
+        "position": 2,
+        "table": "States"
+      }
+    ],
+    "onCastLoseState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onCastRemoveState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onCastSelfState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onCastSelfStateIfAfflicted": [
+      {
+        "position": 0,
+        "table": "States"
+      },
+      {
+        "position": 2,
+        "table": "States"
+      }
+    ],
+    "onCastStripState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onChannelComplete": [
+      {
+        "position": "each",
+        "table": "Skills"
+      }
+    ],
+    "onCritApply": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onCritSelf": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onEvadeApply": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onEvadeApplySelf": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onEvadeExecute": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "onGapCloseEnd": [
+      {
+        "position": "each",
+        "table": "Skills"
+      }
+    ],
+    "onHitLoseState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onHitRemoveState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onHitSelfState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onHitStripState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "onOwnDefeat": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "onTargetDefeat": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "otib": [
+      {
+        "position": "each",
+        "table": "States"
+      }
+    ],
+    "pageQuestCondition": [
+      {
+        "position": 0,
+        "table": "Quests"
+      }
+    ],
+    "passive": [
+      {
+        "position": "each",
+        "table": "States"
+      }
+    ],
+    "passiveStateCount": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "passiveStateRule": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "pierceElement": [
+      {
+        "position": 0,
+        "table": "Elements"
+      }
+    ],
+    "regionAddState": [
+      {
+        "position": 0,
+        "table": null,
+        "reason": "region ids are painted onto map tiles; there is no table to resolve them against"
+      },
+      {
+        "position": 1,
+        "table": "States"
+      },
+      {
+        "position": 3,
+        "table": "Animations"
+      }
+    ],
+    "regionSkill": [
+      {
+        "position": 0,
+        "table": null,
+        "reason": "region ids are painted onto map tiles; there is no table to resolve them against"
+      },
+      {
+        "position": 1,
+        "table": "Skills"
+      },
+      {
+        "position": 3,
+        "table": "Enemies"
+      }
+    ],
+    "removeOnSkillExecution": [
+      {
+        "position": 0,
+        "table": "SkillTypes",
+        "allowZero": true
+      }
+    ],
+    "removeOnSkillResolution": [
+      {
+        "position": 0,
+        "table": "SkillTypes",
+        "allowZero": true
+      }
+    ],
+    "removeStateOnMove": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "respawnAnimation": [
+      {
+        "position": 0,
+        "table": "Animations"
+      }
+    ],
+    "retaliate": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "sdpDropData": [
+      {
+        "position": 0,
+        "table": "SdpPanels"
+      }
+    ],
+    "sdpUnlock": [
+      {
+        "position": 0,
+        "table": "SdpPanels"
+      }
+    ],
+    "selfAnimationId": [
+      {
+        "position": 0,
+        "table": "Animations"
+      }
+    ],
+    "shieldBreak": [
+      {
+        "position": "each",
+        "table": "Skills"
+      }
+    ],
+    "skillHistoryBonus": [
+      {
+        "position": 0,
+        "table": "SkillTypes",
+        "allowZero": true
+      }
+    ],
+    "skillId": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ],
+    "skillTransform": [
+      {
+        "position": 0,
+        "table": "Skills"
+      },
+      {
+        "position": 1,
+        "table": "Skills"
+      }
+    ],
+    "slayer": [
+      {
+        "position": 0,
+        "table": "Elements"
+      }
+    ],
+    "slotTransform": [
+      {
+        "position": 1,
+        "table": "Skills"
+      }
+    ],
+    "stackCost": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "stacksConvertToState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "strictElements": [
+      {
+        "position": "each",
+        "table": "Elements"
+      }
+    ],
+    "switchOffChoiceCondition": [
+      {
+        "position": 0,
+        "table": "Switches"
+      }
+    ],
+    "switchOnChoiceCondition": [
+      {
+        "position": 0,
+        "table": "Switches"
+      }
+    ],
+    "thisApplyState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "thisBonusDamageIfSelfState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "thisBonusDamageIfState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "thisBonusDamagePerStateStack": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "thisCritApply": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "thisCritChanceIfState": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "thisCritSelf": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "thisCritsAlwaysIfState": [
+      {
+        "position": "each",
+        "table": "States"
+      }
+    ],
+    "thisOnGapCloseEnd": [
+      {
+        "position": "each",
+        "table": "Skills"
+      }
+    ],
+    "thisPierceElement": [
+      {
+        "position": 0,
+        "table": "Elements"
+      }
+    ],
+    "toggleGroupOnExecute": [
+      {
+        "position": "each",
+        "table": "States"
+      }
+    ],
+    "toggleOnExecute": [
+      {
+        "position": 0,
+        "table": "States"
+      }
+    ],
+    "uniqueEquippedPassive": [
+      {
+        "position": "each",
+        "table": "States"
+      }
+    ],
+    "uniquePassive": [
+      {
+        "position": "each",
+        "table": "States"
+      }
+    ],
+    "unslottedSkills": [
+      {
+        "position": "each",
+        "table": "Skills"
+      }
+    ],
+    "upgradeOverSkill": [
+      {
+        "position": 0,
+        "table": "Skills"
+      }
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 RESOURCES] Extends skill cost/gain system to include HP, MP, and TP.
+ * @plugindesc [v1.2.0 RESOURCES] Extends skill cost/gain system to include HP, MP, and TP.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -172,7 +172,21 @@
  * Costs 2 of item 12 to cast; refuses to fire without them in stock.
  *
  * ============================================================================
+ * NATURAL GROWTH:
+ * With J-NaturalGrowth also installed, life cost (hcr) accepts its buff and
+ * growth tags. Amounts are percents that move the life cost as it is shown,
+ * so a negative amount is what makes skills cheaper- the opposite sign of
+ * <hcr:[NUM]>, which is written as a reduction:
+ * <hcrGrowthPlus:[-2]> lowers life cost by 2% per level.
+ *
+ * TAG FORMAT:
+ *  <hcr(Buff|Growth)(Plus|Rate):[FORMULA]>
+ * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Added natural growth tags for life cost (hcr). A negative value makes costs
+ *    cheaper.
  * - 1.1.0
  *    Routed the _resources namespace into its own save section, so resource
  *    state lands in systems/resources.json rather than in the system blob.
@@ -248,7 +262,7 @@ J.RESOURCES.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.RESOURCES.Metadata = new JResources_PluginMetadata("J-Resources", "1.1.0");
+J.RESOURCES.Metadata = new JResources_PluginMetadata("J-Resources", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -263,6 +277,10 @@ J.RESOURCES.Aliased.Game_Battler = new Map();
 */
 J.RESOURCES.RegExp = {};
 J.RESOURCES.RegExp.HpCostReduction = /<hcr:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.RegExp.HpCostRateBuffPlus = /<hcrBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.RegExp.HpCostRateBuffRate = /<hcrBuffRate:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.RegExp.HpCostRateGrowthPlus = /<hcrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.RegExp.HpCostRateGrowthRate = /<hcrGrowthRate:\[([+\-*/ ().\w]+)]>/gi;
 J.RESOURCES.RegExp.HpCostFlat = /<hp-cost:(\d+)>/gi;
 J.RESOURCES.RegExp.HpCostPercent = /<hp-cost:(\d+)%>/gi;
 J.RESOURCES.RegExp.HpCostFormula = /<hp-cost:\[([+\-*/ ().\w]+)]>/gi;
@@ -583,20 +601,15 @@ Game_Battler.prototype.initResourcesMembers = function() {
 	this._j._hcr = 100;
 };
 /**
-* HP cost reduction in decimal percent space (0 = none).
+* HP cost reduction in decimal percent space (0 = none).<br/>
+* The mirror image of {@link #hcrFactor}: whatever share of the cost that factor removes.
 */
 Object.defineProperty(Game_Battler.prototype, "hcr", {
 	get: function() {
-		return Math.max(0, (100 - this._j._hcr) / 100);
+		return Math.max(0, 1 - this.hcrFactor());
 	},
 	configurable: true
 });
-/**
-* Gets the hp cost reduction factor for this battler.
-* This is the normalized fractional amount used in the math for hp cost reduction.
-* Floored at zero — a negative factor would let ResourceManager's hp cost calculations go
-* negative, which would refund hp on cast instead of just reducing the cost to free.
-*/
 /**
 * Gets the raw hp-cost-reduction percentage as stored (100 means no reduction).
 *
@@ -607,9 +620,25 @@ Object.defineProperty(Game_Battler.prototype, "hcr", {
 Game_Battler.prototype.hcrPercent = function() {
 	return this._j._hcr;
 };
+/**
+* The hp cost factor this battler's own `<hcr>` tags produce, before natural bonuses.<br/>
+* This is what life cost's natural tags see as their base.
+* @returns {number}
+*/
+Game_Battler.prototype.baseHcrFactor = function() {
+	return this.hcrPercent() / 100;
+};
+/**
+* Gets the hp cost reduction factor for this battler.
+* This is the normalized fractional amount used in the math for hp cost reduction.
+* Floored at zero — a negative factor would let ResourceManager's hp cost calculations go
+* negative, which would refund hp on cast instead of just reducing the cost to free.
+* @returns {number}
+*/
 Game_Battler.prototype.hcrFactor = function() {
-	const hrcFactor = Math.max(0, this.hcrPercent() / 100);
-	return hrcFactor;
+	const baseFactor = this.baseHcrFactor();
+	const naturalBonus = this.naturalBonus("hcr");
+	return Math.max(0, baseFactor + naturalBonus);
 };
 /**
 * Sets the hp cost reduction for this battler.
@@ -763,6 +792,8 @@ var ResourcesParameterRegistration = class {
 	static registerAll() {
 		const hpCostReduction = ParameterDefinition.Builder().key("hcr").group(ParameterGroups.COMBAT).sortOrder(5).label(() => TextManager.hcr()).description(() => TextManager.hcrDescription()).iconIndex(() => IconManager.hcr()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.COST_RATE).getValue((battler) => battler.hcrFactor()).sdpBinding(SdpParameterBinding.byKey("hcr", () => 100)).build();
 		ParameterRegistry.register(hpCostReduction);
+		const hpCostNatural = new NaturalParameterBinding(J.RESOURCES.RegExp.HpCostRateBuffPlus, J.RESOURCES.RegExp.HpCostRateBuffRate, J.RESOURCES.RegExp.HpCostRateGrowthPlus, J.RESOURCES.RegExp.HpCostRateGrowthRate, (battler) => battler.baseHcrFactor());
+		ParameterRegistry.bindNatural("hcr", hpCostNatural);
 	}
 };
 

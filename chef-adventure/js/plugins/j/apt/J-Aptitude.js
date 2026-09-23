@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.4.0 APT] A plugin that grants the ability to learn by gaining points.
+ * [v1.5.0 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -128,7 +128,18 @@
  *   tune progression alongside EXP.
  *
  * ============================================================================
+ * NATURAL GROWTH:
+ * With J-NaturalGrowth also installed, aptitude rate (apr) accepts its buff
+ * and growth tags. Amounts are percents, like <aptMultiplier:NUM>:
+ * <aprGrowthPlus:[2]> grants 2% more AP per level.
+ *
+ * TAG FORMAT:
+ *  <apr(Buff|Growth)(Plus|Rate):[FORMULA]>
+ * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Added natural growth tags for aptitude rate (apr).
  * - 1.4.0
  *    Added ApManager#resolveDisplaySourceByKey, so a display can name where an
  *    aptitude gain came from.
@@ -695,7 +706,7 @@ var JAptitude_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "3.19.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -717,7 +728,7 @@ J.APT.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.4.0");
+J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.5.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -768,6 +779,10 @@ J.APT.RegExp.AptitudeTeachable = /<aptitude:[ ]?(\[\d+,[ ]?\d+])>/gi;
 */
 J.APT.RegExp.ApReward = /<ap: ?(\d+)>/i;
 J.APT.RegExp.AptMultiplier = /<aptMultiplier:(-?\d+)>/i;
+J.APT.RegExp.AptRateBuffPlus = /<aprBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.APT.RegExp.AptRateBuffRate = /<aprBuffRate:\[([+\-*/ ().\w]+)]>/gi;
+J.APT.RegExp.AptRateGrowthPlus = /<aprGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.APT.RegExp.AptRateGrowthRate = /<aprGrowthRate:\[([+\-*/ ().\w]+)]>/gi;
 
 //#endregion
 //#region src/plugins/apt/core/database/RPG_Base.js
@@ -810,20 +825,40 @@ apr: {
 	},
 	configurable: true
 } });
+/**
+* The aptitude multiplier a battler's own tags produce, before SDP panels or natural bonuses.<br/>
+* Only actors earn aptitude, so every other battler answers the neutral factor. Natural growth still
+* asks every battler for it, because buffs are refreshed on enemies too.
+* @returns {number}
+*/
+Game_BattlerBase.prototype.baseAptFactor = function() {
+	return 1;
+};
 Object.defineProperty(Game_Actor.prototype, "apr", {
 	get: function() {
-		if (this.getCachedApr() !== null) {
-			return this.getCachedApr();
-		}
-		const multiplier = 100;
-		const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.APT.RegExp.AptMultiplier);
+		const baseFactor = this.baseAptFactor();
 		const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("apr", 1) : 0;
-		const factor = (multiplier + bonus + sdpBonus) / 100;
-		this.setCachedApr(factor);
-		return this.getCachedApr();
+		const naturalBonus = this.naturalBonus("apr");
+		return baseFactor + sdpBonus / 100 + naturalBonus;
 	},
 	configurable: true
 });
+/**
+* Overwrites {@link Game_BattlerBase#baseAptFactor}.<br/>
+* The aptitude multiplier this actor's own tags produce, cached until this actor's data changes. This
+* is what aptitude rate's natural tags see as their base.
+* @returns {number}
+*/
+Game_Actor.prototype.baseAptFactor = function() {
+	if (this.getCachedApr() !== null) {
+		return this.getCachedApr();
+	}
+	const multiplier = 100;
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.APT.RegExp.AptMultiplier);
+	const factor = (multiplier + bonus) / 100;
+	this.setCachedApr(factor);
+	return this.getCachedApr();
+};
 
 //#endregion
 //#region src/plugins/apt/core/objects/Game_Battler.js
@@ -869,7 +904,7 @@ Game_Actor.prototype.initAptitudeMembers = function() {
 	*/
 	this._j._aptitude._learned = {};
 	/**
-	* The cached result of the {@link #apr} property getter.
+	* The cached result of {@link #baseAptFactor}, the tag-driven half of the {@link #apr} property.
 	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
 	* @type {number|null}
 	*/
@@ -1429,6 +1464,8 @@ var AptParameterRegistration = class {
 	static registerAll() {
 		const aptitudeRate = ParameterDefinition.Builder().key("apr").group(ParameterGroups.FATE).sortOrder(7).label(() => TextManager.aptRate()).description(() => TextManager.aptRateDescription()).iconIndex(() => IconManager.aptRate()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.apr).sdpBinding(SdpParameterBinding.byKey("apr", () => 1)).build();
 		ParameterRegistry.register(aptitudeRate);
+		const aptitudeRateNatural = new NaturalParameterBinding(J.APT.RegExp.AptRateBuffPlus, J.APT.RegExp.AptRateBuffRate, J.APT.RegExp.AptRateGrowthPlus, J.APT.RegExp.AptRateGrowthRate, (battler) => battler.baseAptFactor());
+		ParameterRegistry.bindNatural("apr", aptitudeRateNatural);
 	}
 };
 

@@ -108,7 +108,7 @@ CEV would be **`code: 22`, `dataId: 3`** (EX Parameter → Crit Dodge), with `va
 | dataId | CA name | Key |
 |---:|---|---|
 | 0 | Accuracy | `hit` |
-| 1 | Parry Extend | `eva` |
+| 1 | Phys Evade | `eva` |
 | 2 | Crit Rate | `cri` |
 | 3 | Crit Dodge | `cev` |
 | 4 | Magic Evade | `mev` |

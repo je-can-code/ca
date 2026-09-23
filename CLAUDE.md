@@ -145,6 +145,32 @@ erroring, which makes a missing tag look like a targeting bug.
 
 ---
 
+## Validating the data
+
+**`bun run validate` checks the seams between the three things that write `chef-adventure/data/`** -
+RPG Maker MZ, jmz-data-editor and the scripts in `tools/` - and CI runs it on every pull request. It
+takes well under a second. Run it after any bulk edit to the data, and before committing one.
+
+| Check | Fails when |
+|---|---|
+| parse floor | any `data/**/*.json` does not parse |
+| housekeeping | a `*.old.json`, `*.backup*` or `*.bak*` file is committed |
+| plugin drift | `js/plugins/j/` holds a file the rmmz-plugins build did not produce, or one it changed |
+| notetags | a tag names a row that is blank or missing, or matches no pattern any J plugin declares |
+| config references | a `config.*.json` names a blank or missing row in an MZ table |
+
+What every tag means - its patterns, and which payload values are ids into which table - comes from
+`js/plugins/j/manifest.json`, which the rmmz-plugins build writes and `hotfix` mirrors in with the
+plugins. **It is generated; never edit it.** A tag the validator wrongly calls unknown, or an id it
+resolves against the wrong table, is fixed upstream in `rmmz-plugins/src/build-tools/`
+(`notetag-declarations.js`, `notetag-id-targets.js`), never by teaching the validator an exception.
+
+`bun run validate:selftest` plants each kind of bug in memory - a drop aimed at a blank armor, a
+typo'd `<sght:5>`, a stray plugin file - and fails unless every one is caught. Run it if a green
+result ever seems too good to be true.
+
+---
+
 ## Git and pull requests
 
 - **Never push directly to `main`.** Feature branch and a PR, always.

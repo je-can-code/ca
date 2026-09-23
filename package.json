@@ -1,0 +1,8 @@
+{
+  "name": "chef-adventure",
+  "private": true,
+  "scripts": {
+    "validate": "bun tools/validate/index.js",
+    "validate:selftest": "bun tools/validate/index.js --selftest"
+  }
+}

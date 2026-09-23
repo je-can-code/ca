@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.3 ABS-SHIELD] A JABS extension that provides state-based HP shields.
+ * [v1.2.0 ABS-SHIELD] A JABS extension that provides state-based HP shields.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -344,7 +344,19 @@
  * They are mostly just states, so work with them as you would any other state.
  *
  * ============================================================================
+ * NATURAL GROWTH:
+ * With J-NaturalGrowth also installed, shield amplification (sar) and shield
+ * effectiveness (ser) accept its buff and growth tags. Amounts are percents,
+ * like <sar:25> above: <sarGrowthPlus:[1.5]> grants +1.5% per level.
+ *
+ * TAG FORMAT:
+ *  <(sar|ser)(Buff|Growth)(Plus|Rate):[FORMULA]>
+ * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Added natural growth tags for shield amplification (sar) and shield
+ *    effectiveness (ser).
  * - 1.1.3
  *    The shield gauge now hangs off the character overlay, so it keeps its own size
  *    and stays put through whatever the battler beneath it is animating.
@@ -407,7 +419,7 @@ var JShield_PluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/shield/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "3.19.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -429,7 +441,7 @@ J.ABS.EXT.SHIELD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.1.3");
+J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -487,7 +499,15 @@ J.ABS.EXT.SHIELD.RegExp = {
 	/** Outgoing shield point amplification (`<sar:25>` = +25%). */
 	ShieldAmplification: /<sar:(-?\d+)>/gi,
 	/** Incoming shield effectiveness (`<ser:25>` = +25%). */
-	ShieldEffectiveness: /<ser:(-?\d+)>/gi
+	ShieldEffectiveness: /<ser:(-?\d+)>/gi,
+	ShieldAmplificationBuffPlus: /<sarBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+	ShieldAmplificationBuffRate: /<sarBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+	ShieldAmplificationGrowthPlus: /<sarGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+	ShieldAmplificationGrowthRate: /<sarGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+	ShieldEffectivenessBuffPlus: /<serBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+	ShieldEffectivenessBuffRate: /<serBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+	ShieldEffectivenessGrowthPlus: /<serGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+	ShieldEffectivenessGrowthRate: /<serGrowthRate:\[([+\-*/ ().\w]+)]>/gi
 };
 /** Legacy SDP panel parameter ids for shield stats. */
 J.ABS.EXT.SHIELD.SdpParamId = {
@@ -1047,6 +1067,7 @@ Object.defineProperty(Game_Battler.prototype, "sar", {
 		if (this.getSdpBonusForParameterKey) {
 			factor += this.getSdpBonusForParameterKey("sar", 1);
 		}
+		factor += this.naturalBonus("sar");
 		return factor;
 	},
 	configurable: true
@@ -1057,6 +1078,7 @@ Object.defineProperty(Game_Battler.prototype, "ser", {
 		if (this.getSdpBonusForParameterKey) {
 			factor += this.getSdpBonusForParameterKey("ser", 1);
 		}
+		factor += this.naturalBonus("ser");
 		return factor;
 	},
 	configurable: true
@@ -1721,8 +1743,12 @@ var ShieldParameterRegistration = class {
 	static registerAll() {
 		const shieldAbsorptionRate = ParameterDefinition.Builder().key("sar").group(ParameterGroups.SUPPORT).sortOrder(0).label(() => TextManager.sar()).description(() => TextManager.sarDescription()).iconIndex(() => IconManager.sar()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.sar).sdpBinding(SdpParameterBinding.byKey("sar", () => 1)).build();
 		ParameterRegistry.register(shieldAbsorptionRate);
+		const shieldAbsorptionNatural = new NaturalParameterBinding(J.ABS.EXT.SHIELD.RegExp.ShieldAmplificationBuffPlus, J.ABS.EXT.SHIELD.RegExp.ShieldAmplificationBuffRate, J.ABS.EXT.SHIELD.RegExp.ShieldAmplificationGrowthPlus, J.ABS.EXT.SHIELD.RegExp.ShieldAmplificationGrowthRate, (battler) => battler.baseSarFactor());
+		ParameterRegistry.bindNatural("sar", shieldAbsorptionNatural);
 		const shieldEfficiencyRate = ParameterDefinition.Builder().key("ser").group(ParameterGroups.SUPPORT).sortOrder(1).label(() => TextManager.ser()).description(() => TextManager.serDescription()).iconIndex(() => IconManager.ser()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.ser).sdpBinding(SdpParameterBinding.byKey("ser", () => 1)).build();
 		ParameterRegistry.register(shieldEfficiencyRate);
+		const shieldEfficiencyNatural = new NaturalParameterBinding(J.ABS.EXT.SHIELD.RegExp.ShieldEffectivenessBuffPlus, J.ABS.EXT.SHIELD.RegExp.ShieldEffectivenessBuffRate, J.ABS.EXT.SHIELD.RegExp.ShieldEffectivenessGrowthPlus, J.ABS.EXT.SHIELD.RegExp.ShieldEffectivenessGrowthRate, (battler) => battler.baseSerFactor());
+		ParameterRegistry.bindNatural("ser", shieldEfficiencyNatural);
 	}
 };
 

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 RESOURCES-ABS] Damage-linked HP, MP, and TP resource effects.
+ * [v1.2.0 RESOURCES-ABS] Damage-linked HP, MP, and TP resource effects.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -237,7 +237,19 @@
  *    (Momentum from healing).
  *
  * ============================================================================
+ * NATURAL GROWTH:
+ * With J-NaturalGrowth also installed, lifesteal (lst), manasteal (mst) and
+ * techsteal (tst) accept its buff and growth tags. Amounts are percents, like
+ * <lst:NUM>: <lstGrowthPlus:[1.5]> grants +1.5% lifesteal per level.
+ *
+ * TAG FORMAT:
+ *  <(lst|mst|tst)(Buff|Growth)(Plus|Rate):[FORMULA]>
+ * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Added natural growth tags for lifesteal, manasteal and techsteal (lst, mst,
+ *    tst).
  * - 1.1.0
  *    Added HEAL EVENTS system with onSelf and onAlly resource cascade tags.
  *    24 notetag variants (4 triggers × 3 outputs × 2 families).
@@ -288,7 +300,7 @@ J.RESOURCES.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.RESOURCES.EXT.ABS.Metadata = new JResourcesAbs_PluginMetadata("J-Resources-ABS", "1.1.0");
+J.RESOURCES.EXT.ABS.Metadata = new JResourcesAbs_PluginMetadata("J-Resources-ABS", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -321,6 +333,18 @@ J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainFormula = /<when-hit-tp-gain:\[([+\-*/ (
 J.RESOURCES.EXT.ABS.RegExp.Lifesteal = /<lst:(-?\d+)>/gi;
 J.RESOURCES.EXT.ABS.RegExp.Manasteal = /<mst:(-?\d+)>/gi;
 J.RESOURCES.EXT.ABS.RegExp.Techsteal = /<tst:(-?\d+)>/gi;
+J.RESOURCES.EXT.ABS.RegExp.LifestealBuffPlus = /<lstBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.LifestealBuffRate = /<lstBuffRate:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.LifestealGrowthPlus = /<lstGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.LifestealGrowthRate = /<lstGrowthRate:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.ManastealBuffPlus = /<mstBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.ManastealBuffRate = /<mstBuffRate:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.ManastealGrowthPlus = /<mstGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.ManastealGrowthRate = /<mstGrowthRate:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.TechstealBuffPlus = /<tstBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.TechstealBuffRate = /<tstBuffRate:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.TechstealGrowthPlus = /<tstGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.TechstealGrowthRate = /<tstGrowthRate:\[([+\-*/ ().\w]+)]>/gi;
 J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealHp = /<onSelfHpHealHp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
 J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealMp = /<onSelfHpHealMp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
 J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealTp = /<onSelfHpHealTp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
@@ -669,6 +693,7 @@ Object.defineProperty(Game_Battler.prototype, "lst", {
 		if (this.getSdpBonusForParameterKey) {
 			rate += this.getSdpBonusForParameterKey("lst", 1);
 		}
+		rate += this.naturalBonus("lst");
 		return rate;
 	},
 	configurable: true
@@ -679,6 +704,7 @@ Object.defineProperty(Game_Battler.prototype, "mst", {
 		if (this.getSdpBonusForParameterKey) {
 			rate += this.getSdpBonusForParameterKey("mst", 1);
 		}
+		rate += this.naturalBonus("mst");
 		return rate;
 	},
 	configurable: true
@@ -689,6 +715,7 @@ Object.defineProperty(Game_Battler.prototype, "tst", {
 		if (this.getSdpBonusForParameterKey) {
 			rate += this.getSdpBonusForParameterKey("tst", 1);
 		}
+		rate += this.naturalBonus("tst");
 		return rate;
 	},
 	configurable: true
@@ -915,10 +942,16 @@ var ResourcesAbsParameterRegistration = class {
 	static registerAll() {
 		const lifeSteal = ParameterDefinition.Builder().key("lst").group(ParameterGroups.COMBAT).sortOrder(4).label(() => TextManager.lst()).description(() => TextManager.lstDescription()).iconIndex(() => IconManager.lst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.lst).sdpBinding(SdpParameterBinding.byKey("lst", () => 1)).build();
 		ParameterRegistry.register(lifeSteal);
+		const lifeStealNatural = new NaturalParameterBinding(J.RESOURCES.EXT.ABS.RegExp.LifestealBuffPlus, J.RESOURCES.EXT.ABS.RegExp.LifestealBuffRate, J.RESOURCES.EXT.ABS.RegExp.LifestealGrowthPlus, J.RESOURCES.EXT.ABS.RegExp.LifestealGrowthRate, (battler) => battler.baseLstRate());
+		ParameterRegistry.bindNatural("lst", lifeStealNatural);
 		const magiSteal = ParameterDefinition.Builder().key("mst").group(ParameterGroups.COMBAT).sortOrder(6).label(() => TextManager.mst()).description(() => TextManager.mstDescription()).iconIndex(() => IconManager.mst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.mst).sdpBinding(SdpParameterBinding.byKey("mst", () => 1)).build();
 		ParameterRegistry.register(magiSteal);
+		const magiStealNatural = new NaturalParameterBinding(J.RESOURCES.EXT.ABS.RegExp.ManastealBuffPlus, J.RESOURCES.EXT.ABS.RegExp.ManastealBuffRate, J.RESOURCES.EXT.ABS.RegExp.ManastealGrowthPlus, J.RESOURCES.EXT.ABS.RegExp.ManastealGrowthRate, (battler) => battler.baseMstRate());
+		ParameterRegistry.bindNatural("mst", magiStealNatural);
 		const techSteal = ParameterDefinition.Builder().key("tst").group(ParameterGroups.COMBAT).sortOrder(8).label(() => TextManager.tst()).description(() => TextManager.tstDescription()).iconIndex(() => IconManager.tst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.tst).sdpBinding(SdpParameterBinding.byKey("tst", () => 1)).build();
 		ParameterRegistry.register(techSteal);
+		const techStealNatural = new NaturalParameterBinding(J.RESOURCES.EXT.ABS.RegExp.TechstealBuffPlus, J.RESOURCES.EXT.ABS.RegExp.TechstealBuffRate, J.RESOURCES.EXT.ABS.RegExp.TechstealGrowthPlus, J.RESOURCES.EXT.ABS.RegExp.TechstealGrowthRate, (battler) => battler.baseTstRate());
+		ParameterRegistry.bindNatural("tst", techStealNatural);
 	}
 };
 

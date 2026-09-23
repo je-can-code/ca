@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v4.7.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v4.8.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -365,7 +365,18 @@
  * An actor at level 50 gains an extra 25% SDP points from this source.
  *
  * ============================================================================
+ * NATURAL GROWTH:
+ * With J-NaturalGrowth also installed, the SDP multiplier (sdr) accepts its
+ * buff and growth tags. Amounts are percents, like <sdpMultiplier:NUM>:
+ * <sdrGrowthPlus:[1]> grants 1% more SDP points per level.
+ *
+ * TAG FORMAT:
+ *  <sdr(Buff|Growth)(Plus|Rate):[FORMULA]>
+ * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
+ * ============================================================================
  * CHANGELOG:
+ * - 4.8.0
+ *    Added natural growth tags for SDP rate (sdr).
  * - 4.7.0
  *    Mastery prose acts now break at tiers 2 and 4 rather than 3 and 9, matching a
  *    five-tier subgroup strip.
@@ -3900,7 +3911,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.7.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.8.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3931,7 +3942,11 @@ J.SDP.RegExp = {
 	SdpMultiplier: /<sdpMultiplier: ?([-.\d]+)>/i,
 	SdpBonusFormula: /<sdpBonusFormula:\[(.+?)]>/i,
 	SdpDropData: /<sdpDropData: ?(\[[-\w]+,[ ]?\d+])>/i,
-	SdpUnlockKey: /<sdpUnlock: ?(.+)>/i
+	SdpUnlockKey: /<sdpUnlock: ?(.+)>/i,
+	SdpRateBuffPlus: /<sdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+	SdpRateBuffRate: /<sdrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+	SdpRateGrowthPlus: /<sdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+	SdpRateGrowthRate: /<sdrGrowthRate:\[([+\-*/ ().\w]+)]>/gi
 };
 
 //#endregion
@@ -4037,6 +4052,15 @@ Object.defineProperty(Game_BattlerBase.prototype, "sdpMultiplier", {
 	},
 	configurable: true
 });
+/**
+* The SDP points multiplier a battler's own tags produce, before SDP panels or natural bonuses.<br/>
+* Only actors earn SDP points, so every other battler answers the neutral factor. Natural growth still
+* asks every battler for it, because buffs are refreshed on enemies too.
+* @returns {number}
+*/
+Game_BattlerBase.prototype.baseSdpMultiplier = function() {
+	return 1;
+};
 
 //#endregion
 //#region src/plugins/sdp/core/objects/Game_Actor.js
@@ -4229,13 +4253,31 @@ Game_Actor.prototype.modSdpPoints = function(points) {
 Object.defineProperty(Game_Actor.prototype, "sdpMultiplier", {
 	get: function() {
 		const multiplier = 100;
-		const objectsToCheck = this.getAllNotes();
-		const sdpMultiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.SDP.RegExp.SdpMultiplier);
+		const sdpMultiplierBonus = this.sdpMultiplierTagBonus();
 		const sdpPanelBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("sdr", 1) : 0;
-		return (multiplier + sdpMultiplierBonus + sdpPanelBonus) / 100;
+		const factor = (multiplier + sdpMultiplierBonus + sdpPanelBonus) / 100;
+		const naturalBonus = this.naturalBonus("sdr");
+		return factor + naturalBonus;
 	},
 	configurable: true
 });
+/**
+* Sums the percent-points this actor's notes add to the SDP points multiplier.
+* @returns {number}
+*/
+Game_Actor.prototype.sdpMultiplierTagBonus = function() {
+	const objectsToCheck = this.getAllNotes();
+	return RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.SDP.RegExp.SdpMultiplier);
+};
+/**
+* Overwrites {@link Game_BattlerBase#baseSdpMultiplier}.<br/>
+* The SDP points multiplier this actor's own tags produce, as a factor. This is what the SDP
+* multiplier's natural tags see as their base.
+* @returns {number}
+*/
+Game_Actor.prototype.baseSdpMultiplier = function() {
+	return (100 + this.sdpMultiplierTagBonus()) / 100;
+};
 /**
 * Ranks up this actor's panel by key.
 * @param {string} panelKey The key of the panel to rank up.
@@ -4948,6 +4990,8 @@ var SdpParameterRegistration = class {
 	static registerAll() {
 		const sdpMultiplier = ParameterDefinition.Builder().key("sdr").group(ParameterGroups.FATE).sortOrder(5).label(() => TextManager.sdpMultiplier()).description(() => TextManager.sdpMultiplierDescription()).iconIndex(() => IconManager.sdpMultiplier()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.sdpMultiplier).sdpBinding(SdpParameterBinding.byKey("sdr", () => 1)).build();
 		ParameterRegistry.register(sdpMultiplier);
+		const sdpMultiplierNatural = new NaturalParameterBinding(J.SDP.RegExp.SdpRateBuffPlus, J.SDP.RegExp.SdpRateBuffRate, J.SDP.RegExp.SdpRateGrowthPlus, J.SDP.RegExp.SdpRateGrowthRate, (battler) => battler.baseSdpMultiplier());
+		ParameterRegistry.bindNatural("sdr", sdpMultiplierNatural);
 	}
 };
 
