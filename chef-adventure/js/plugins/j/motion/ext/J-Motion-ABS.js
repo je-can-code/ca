@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 MOTION-ABS] Combat-driven motion: state effects and death animations.
+ * [v1.2.0 MOTION-ABS] Combat-driven motion: state effects, deaths, arrivals and departures.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -16,11 +16,13 @@
  * OVERVIEW
  * J-Motion gives map characters motion. This extension lets combat drive it.
  *
- * Two things live here, and both exist because a battler and a character are
- * different objects that only J-ABS holds together at the same time:
+ * Three things live here, and all of them exist because a battler and a
+ * character are different objects that only J-ABS holds together at once:
  *
  * - STATES can declare motions. A bleeding creature pulses, an elite swells.
  * - DEATHS are animated. Enemies collapse instead of vanishing mid-frame.
+ * - ARRIVALS and DEPARTURES are animated. An enemy whose event page brings it
+ *   onto the map or takes it off again turns into view or away from it.
  *
  * Integrates with others of mine plugins:
  * - J-Base; to be honest this is just required for all my plugins.
@@ -47,6 +49,42 @@
  *
  * Rewards and loot still drop the moment the enemy is defeated, so gold and
  * items appear while the body is still coming apart.
+ *
+ * ARRIVALS AND DEPARTURES
+ * Every enemy gets these too, without being asked. An enemy event whose page
+ * stops applying - a <timeRangePage> closing, a switch turning off, an Erase
+ * Event command - used to vanish on the spot, and one whose page started
+ * applying used to pop into existence. Now both are animated.
+ *
+ * The shape is a fold: the sprite turns on its vertical axis like a paper
+ * cutout, edge-on when it is absent and facing the player when it is present.
+ * A departing enemy turns away and is gone; an arriving one turns to face you.
+ * No death looks like this, so an enemy leaving at the end of its hours is
+ * never mistaken for one that was just killed with no loot to show for it.
+ *
+ * While it folds away, an enemy cannot be hit and does not act, and its page is
+ * held back until the fold has finished. While it unfolds, it can be hit but
+ * does not act until it is fully facing you.
+ *
+ * Both begin with the enemy's respawn animation, the very one it plays when it
+ * returns after being defeated, chosen the same way: <respawnAnimation:ID> on
+ * the event, then the enemy's note, then J-ABS's default. An id of 0 turns it
+ * off here too, and the fold still plays without it.
+ *
+ * Any page change on a living enemy counts, including one that swaps it for a
+ * different enemy on the event's next page: J-ABS builds that as a brand new
+ * battler at full health anyway, so it folds out and the new one folds in.
+ *
+ * Enemies that respawn after being defeated, and enemies brought in by the
+ * Spawn Enemy command, unfold into view too, beneath whatever animation they
+ * already play - so every way an enemy appears looks the same.
+ *
+ * Enemies already on a map when you arrive there do not unfold; that is a map
+ * loading, not an entrance. Enemies that are dying leave through their death
+ * animation instead.
+ *
+ * Both motions are also ordinary J-Motion types, `fold` and `unfold`, taking a
+ * single DURATION parameter, and can be declared anywhere a motion can.
  *
  * ============================================================================
  * DEATH MOTION:
@@ -126,8 +164,23 @@
  *
  * Collection is deliberately not animated. A collected drop arrives at the
  * player and goes there, which is already a moment with a visible cause.
+ *
+ * ----------------------------------------------------------------------------
+ * Arrival and departure pacing lives in the same file, under `presence`:
+ *
+ *   "presence": {
+ *     "arrivalDuration": 30,
+ *     "departureDuration": 30
+ *   }
+ *
+ * Both are in frames. A duration of 0 turns that half off, and the enemy
+ * appears or vanishes on the frame its page changes, as it used to.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Enemies now fold into view when their page brings them onto the map, and fold
+ *    away when it takes them off, instead of popping in and out. A folding enemy
+ *    can't be hit on the way out, and doesn't act until it is facing you.
  * - 1.1.0
  *    A loot drop about to expire now blinks, then dissolves over its closing frames,
  *    so it stops vanishing without warning. Loot being drawn toward somebody is
@@ -142,10 +195,11 @@
 /**
 * The metadata for J-Motion-ABS.
 *
-* Death and loot pacing are read from the same external config J-Motion core uses, under their own
-* `death` and `loot` sections. Keeping them there rather than in plugin parameters means the speed
-* at which everything in the game dies or fades away is one file a designer can open, which is the
-* sort of thing that gets retuned by feel rather than by reasoning.
+* Death, loot, and presence pacing are read from the same external config J-Motion core uses, under
+* their own `death`, `loot`, and `presence` sections. Keeping them there rather than in plugin
+* parameters means the speed at which everything in the game dies, fades away, arrives, or leaves is
+* one file a designer can open, which is the sort of thing that gets retuned by feel rather than by
+* reasoning.
 */
 var J_MOTION_ABS_PluginMetadata = class J_MOTION_ABS_PluginMetadata extends PluginMetadata {
 	/**
@@ -191,14 +245,27 @@ var J_MOTION_ABS_PluginMetadata = class J_MOTION_ABS_PluginMetadata extends Plug
 		}
 	};
 	/**
+	* The arrival and departure pacing used when the config says nothing at all.
+	*
+	* Frames, and the same numbers the shipped config carries. Half a second each way: long enough to
+	* read as a battler turning to face the player or turning away, short enough that nobody is left
+	* waiting on it.
+	* @type {{arrivalDuration: number, departureDuration: number}}
+	*/
+	static FALLBACK_PRESENCE = {
+		arrivalDuration: 30,
+		departureDuration: 30
+	};
+	/**
 	* Extends {@link #postInitialize}.<br>
-	* Reads the death and loot pacing out of the shared motion configuration.
+	* Reads the death, loot, and presence pacing out of the shared motion configuration.
 	*/
 	postInitialize() {
 		super.postInitialize();
 		const parsedConfiguration = this.loadMotionConfiguration();
 		this.initializeDeathMetadata(parsedConfiguration);
 		this.initializeLootMetadata(parsedConfiguration);
+		this.initializePresenceMetadata(parsedConfiguration);
 	}
 	/**
 	* Reads the shared motion configuration off disk.
@@ -255,6 +322,27 @@ var J_MOTION_ABS_PluginMetadata = class J_MOTION_ABS_PluginMetadata extends Plug
 		};
 	}
 	/**
+	* Reads how long a battler takes to arrive on the map and to leave it when its page changes.
+	*
+	* A duration of zero turns that half off entirely, and the battler appears or vanishes on the
+	* frame its page changes, the way it did before either animation existed.
+	* @param {Object} parsedConfiguration The parsed motion configuration root.
+	*/
+	initializePresenceMetadata(parsedConfiguration) {
+		const presenceConfiguration = parsedConfiguration.presence ?? {};
+		const fallback = J_MOTION_ABS_PluginMetadata.FALLBACK_PRESENCE;
+		/**
+		* How many frames a battler takes to unfold into view when its page brings it onto the map.
+		* @type {number}
+		*/
+		this.arrivalDuration = presenceConfiguration.arrivalDuration ?? fallback.arrivalDuration;
+		/**
+		* How many frames a battler takes to fold out of view before its page takes it off the map.
+		* @type {number}
+		*/
+		this.departureDuration = presenceConfiguration.departureDuration ?? fallback.departureDuration;
+	}
+	/**
 	* How long a death style runs for, in frames.
 	*
 	* An unrecognised style is a typo in somebody's notetag rather than a reason to stop the game, so
@@ -294,7 +382,7 @@ globalThis.J ||= {};
 	if (hasMotionRequirement === false) {
 		throw new Error(`Either missing J-Motion or has a lower version than the required: ${requiredMotionVersion}`);
 	}
-	const requiredJabsVersion = "4.16.0";
+	const requiredJabsVersion = "4.25.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (hasJabsRequirement === false) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -307,12 +395,13 @@ J.MOTION.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.MOTION.EXT.ABS.Metadata = new J_MOTION_ABS_PluginMetadata("J-Motion-ABS", "1.1.0");
+J.MOTION.EXT.ABS.Metadata = new J_MOTION_ABS_PluginMetadata("J-Motion-ABS", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.MOTION.EXT.ABS.Aliased = {};
 J.MOTION.EXT.ABS.Aliased.Game_Battler = new Map();
+J.MOTION.EXT.ABS.Aliased.Game_Event = new Map();
 J.MOTION.EXT.ABS.Aliased.JABS_Engine = new Map();
 J.MOTION.EXT.ABS.Aliased.Sprite_Character = new Map();
 /**
@@ -512,6 +601,89 @@ var CollapseMotionEffect = class CollapseMotionEffect extends MotionEffect {
 };
 
 //#endregion
+//#region src/plugins/motion/ext/abs/models/FoldMotionEffect.js
+/**
+* How a battler arrives on the map and leaves it when nobody killed it.
+*
+* A battler whose page appears or disappears used to do so on a single frame, which reads as a
+* rendering fault rather than as something happening. This gives both moments a shape: the sprite
+* turns on its vertical axis like a paper cutout, edge-on when it is not there and facing the player
+* when it is. Folding turns it away; unfolding turns it back.
+*
+* The shape was chosen against J-Motion-ABS's own collapses rather than on its own merits. Every
+* death squashes, topples, or sinks, and all of those move a body vertically or tip it over. A fold
+* is the one thing none of them do — the height never changes — so a battler leaving at the end of
+* its hours can never be mistaken for one that was just killed with no loot to show for it.
+*
+* The two directions are one effect because each is exactly the other played backwards, and keeping
+* them together is what guarantees they stay that way when either one is retuned.
+*
+* `MotionEffect`, `MotionChannels` and `MotionEasing` are reached as globals rather than imports:
+* they ship inside J-Motion's bundle and are hoisted by the time this one loads.
+*/
+var FoldMotionEffect = class FoldMotionEffect extends MotionEffect {
+	/**
+	* The motion type that turns a sprite away until it is edge-on and gone.
+	* @type {string}
+	*/
+	static FOLD = "fold";
+	/**
+	* The motion type that turns a sprite from edge-on to facing the player.
+	* @type {string}
+	*/
+	static UNFOLD = "unfold";
+	/**
+	* The channels a fold takes exclusive ownership of while it runs.
+	*
+	* Width and opacity are the whole of the fold, so nothing ambient may fight it for them: a
+	* ghosting enemy would otherwise pulse back into view halfway through leaving. Everything else is
+	* left to compose, so a floating enemy still bobs as it turns and a large one is still large.
+	* @returns {string[]}
+	*/
+	claims() {
+		return [MotionChannels.SCALE_X, MotionChannels.OPACITY];
+	}
+	/**
+	* How far through the fold this frame is, from 0 to 1.
+	* @returns {number}
+	*/
+	progress() {
+		const { duration } = this.parameters();
+		return MotionEasing.normalize(this.elapsedFrames() / duration);
+	}
+	/**
+	* How far the sprite is turned away from the player this frame, from 0 (facing) to 1 (edge-on).
+	*
+	* Folding turns away as it progresses; unfolding starts turned away and comes back. Answering the
+	* question in these terms is what lets one drawing serve both directions.
+	* @returns {number}
+	*/
+	turnedAway() {
+		const progress = this.progress();
+		const motionType = this.declaration().type();
+		if (motionType === FoldMotionEffect.UNFOLD) return 1 - progress;
+		return progress;
+	}
+	/**
+	* Writes this frame of the fold into the composition.
+	*
+	* The width is the cosine of the turn, which is exactly how wide a flat card looks at that angle —
+	* so a turn at a steady pace starts slowly and hurries as it goes edge-on, and unfolding does the
+	* reverse. The opacity falls away with the square of the turn, so the sprite stays solid while it
+	* is still recognisably turning and is gone by the time it is edge-on.
+	* @param {MotionComposition} composition The composition being built for this character.
+	*/
+	applyTo(composition) {
+		const turnedAway = this.turnedAway();
+		const quarterTurn = Math.PI / 2;
+		const width = Math.cos(turnedAway * quarterTurn);
+		const opacity = 1 - turnedAway * turnedAway;
+		composition.contribute(this, MotionChannels.SCALE_X, width);
+		composition.contribute(this, MotionChannels.OPACITY, opacity);
+	}
+};
+
+//#endregion
 //#region src/plugins/motion/ext/abs/core/registerCollapseMotionType.js
 /**
 * Teaches J-Motion how to animate a death.
@@ -532,6 +704,28 @@ MotionTypeRegistry.register("collapse", {
 		duration: 30
 	},
 	phaseSpan: () => 0
+});
+
+//#endregion
+//#region src/plugins/motion/ext/abs/core/registerFoldMotionTypes.js
+/**
+* Teaches J-Motion how a battler arrives and leaves.
+*
+* Two types sharing one implementation, the same way J-Motion core's transitions share one: the
+* effect reads which of the two it was declared as. Like the collapse, anything that can declare a
+* motion can declare these, even though the only thing that routinely does is a battler's page
+* bringing it onto the map or taking it off again.
+*
+* There is no phase offset: an entrance or an exit happens when it happens, and starting one halfway
+* through would be nonsense.
+*/
+[FoldMotionEffect.FOLD, FoldMotionEffect.UNFOLD].forEach((motionType) => {
+	MotionTypeRegistry.register(motionType, {
+		implementation: FoldMotionEffect,
+		parameterNames: ["duration"],
+		defaults: { duration: 30 },
+		phaseSpan: () => 0
+	});
 });
 
 //#endregion
@@ -857,6 +1051,254 @@ var LootMotionCoordinator = class LootMotionCoordinator {
 };
 
 //#endregion
+//#region src/plugins/motion/ext/abs/managers/PresenceMotionCoordinator.js
+/**
+* Gives a battler an entrance and an exit when its event's page brings it onto the map or takes it
+* off again, rather than letting it blink into or out of existence.
+*
+* Arriving is the easy half. By the time anybody hears about a page change it has already happened,
+* and the battler the new page brought simply unfolds into view. Leaving is the hard half, because
+* the page change is itself what blanks the graphic: by the time a departure could be announced
+* there is nothing left on screen to animate. So a departure holds the page change back instead.
+* The battler keeps its page, folds away, and only then is the change let through. That hold is the
+* only state this class keeps.
+*
+* Like {@link BattlerMotionCoordinator}, this translates what is happening to a battler into motion
+* declarations, plus the battler's own respawn animation as the one flourish every coming and going
+* shares, and draws nothing itself. How a fold looks is {@link FoldMotionEffect}'s business.
+*/
+var PresenceMotionCoordinator = class PresenceMotionCoordinator {
+	/**
+	* The source key arrivals and departures are both declared under.
+	*
+	* One key for both, because they are the two ends of one thing. An arrival declared over a
+	* departure that is still folding replaces the fold outright rather than composing with it.
+	* @type {string}
+	*/
+	static PRESENCE_SOURCE_KEY = "combat:presence";
+	/**
+	* The page index vanilla gives an event that has never been set up.
+	*
+	* An event only ever leaves this value while it is being built, which happens for every event on
+	* a map at once as the map loads.
+	* @type {number}
+	*/
+	static UNBUILT_PAGE_INDEX = -2;
+	/**
+	* Every event currently folding out of view, and what seeing its departure through will need.
+	*
+	* Kept here rather than on the event for the same reason J-Motion keeps motion off characters: a
+	* departure is half a second of presentation, and a `WeakMap` gives it no field for a savefile to
+	* find. Saving mid-fold simply loses the rest of the fold. The page change is still pending when
+	* the save loads, so the next refresh starts a fresh one.
+	* @type {WeakMap<Game_Event, Object>}
+	*/
+	static #departures = new WeakMap();
+	/**
+	* Determines whether an event is partway through folding out of view.
+	* @param {Game_Event} event The event to check.
+	* @returns {boolean}
+	*/
+	static isDeparting(event) {
+		return PresenceMotionCoordinator.#departures.has(event);
+	}
+	/**
+	* Holds back a page change that would take a live battler off the map, and starts it folding away.
+	*
+	* Every page change on an event holding a battler comes through here, whether the new page is
+	* empty, a plain event, or another battler entirely. That last case matters. J-ABS rebuilds a
+	* battler from scratch whenever its page changes, so a creature swapping for the one on its next
+	* page is a new creature at full health, and it should look like one leaving and another arriving.
+	* @param {Game_Event} event The event about to change page.
+	* @returns {boolean} True when the change must wait for the fold to finish.
+	*/
+	static holdPageChange(event) {
+		if (PresenceMotionCoordinator.isDeparting(event) === true) {
+			return PresenceMotionCoordinator.#isReleasing(event) === false;
+		}
+		if (event.hasJabsBattler() === false) return false;
+		const jabsBattler = event.getJabsBattler();
+		if (PresenceMotionCoordinator.canDepart(jabsBattler) === false) return false;
+		PresenceMotionCoordinator.beginDeparture(event, jabsBattler);
+		return true;
+	}
+	/**
+	* Determines whether a battler may fold out of view rather than vanish on the spot.
+	* @param {JABS_Battler} jabsBattler The battler whose page is about to change.
+	* @returns {boolean}
+	*/
+	static canDepart(jabsBattler) {
+		if (J.MOTION.EXT.ABS.Metadata.departureDuration <= 0) return false;
+		if (jabsBattler.isDying() === true) return false;
+		if (jabsBattler.isDead() === true) return false;
+		return true;
+	}
+	/**
+	* Starts a battler folding out of view, and holds its page until it has finished.
+	* @param {Game_Event} event The event whose page is being held.
+	* @param {JABS_Battler} jabsBattler The battler that is leaving.
+	*/
+	static beginDeparture(event, jabsBattler) {
+		const duration = J.MOTION.EXT.ABS.Metadata.departureDuration;
+		const sourceKey = PresenceMotionCoordinator.PRESENCE_SOURCE_KEY;
+		PresenceMotionCoordinator.#departures.set(event, {
+			framesRemaining: duration,
+			departingUuid: event.getJabsBattlerUuid(),
+			wasInvincible: jabsBattler.isInvincible(),
+			isReleasing: false
+		});
+		jabsBattler.setInvincible(true);
+		jabsBattler.setWaitCountdown(duration);
+		const declaration = new MotionDeclaration(FoldMotionEffect.FOLD, [duration], sourceKey);
+		CharacterMotionComposer.declare(event, sourceKey, [declaration]);
+		PresenceMotionCoordinator.#playPresenceAnimation(event);
+	}
+	/**
+	* Counts a departure down by one frame, and lets its page change through once the fold is done.
+	*
+	* Reached from every event's update, the one per-frame heartbeat an event is guaranteed to have
+	* while it is on the map. Nothing else would ever finish a departure: the refresh that started it
+	* does not come round again on its own.
+	* @param {Game_Event} event The event being updated.
+	*/
+	static updateDeparture(event) {
+		if (PresenceMotionCoordinator.isDeparting(event) === false) return;
+		const departure = PresenceMotionCoordinator.#departures.get(event);
+		const framesRemaining = departure.framesRemaining - 1;
+		if (framesRemaining > 0) {
+			PresenceMotionCoordinator.#departures.set(event, {
+				...departure,
+				framesRemaining
+			});
+			return;
+		}
+		PresenceMotionCoordinator.completeDeparture(event, departure);
+	}
+	/**
+	* Lets a finished departure's page change through, and settles whatever that leaves behind.
+	*
+	* The fold is withdrawn before the page moves rather than after. All of this happens inside one
+	* update, before the sprite next draws, so nothing pops back into view in between. Whatever comes
+	* next then starts from a clean slate: an empty page shows nothing, and a battler arriving in its
+	* place begins its own unfold without a finished fold still claiming the sprite.
+	* @param {Game_Event} event The event that has finished folding.
+	* @param {Object} departure What was recorded when the departure began.
+	*/
+	static completeDeparture(event, departure) {
+		CharacterMotionComposer.removeDeclarations(event, PresenceMotionCoordinator.PRESENCE_SOURCE_KEY);
+		PresenceMotionCoordinator.#releasePage(event, departure);
+		if (event.getJabsBattlerUuid() === departure.departingUuid) {
+			PresenceMotionCoordinator.#returnFromDeparture(event, departure);
+		}
+	}
+	/**
+	* Lets the page change a departure was holding back go through.
+	* @param {Game_Event} event The event whose page was held.
+	* @param {Object} departure What was recorded when the departure began.
+	*/
+	static #releasePage(event, departure) {
+		PresenceMotionCoordinator.#departures.set(event, {
+			...departure,
+			isReleasing: true
+		});
+		event.refresh();
+		PresenceMotionCoordinator.#departures.delete(event);
+	}
+	/**
+	* Determines whether a departure is in the middle of letting its own page change through.
+	* @param {Game_Event} event The departing event.
+	* @returns {boolean}
+	*/
+	static #isReleasing(event) {
+		const departure = PresenceMotionCoordinator.#departures.get(event);
+		return departure.isReleasing;
+	}
+	/**
+	* Puts back a battler whose page came back before it had finished leaving.
+	* @param {Game_Event} event The event that kept its page.
+	* @param {Object} departure What was recorded when the departure began.
+	*/
+	static #returnFromDeparture(event, departure) {
+		const jabsBattler = event.getJabsBattler();
+		jabsBattler.setInvincible(departure.wasInvincible);
+		PresenceMotionCoordinator.beginArrival(event);
+	}
+	/**
+	* Unfolds a battler into view when a page change has just brought one onto the map.
+	* @param {Game_Event} event The event that changed page.
+	* @param {number} previousPageIndex The page it was on before the change.
+	*/
+	static welcomeArrival(event, previousPageIndex) {
+		if (previousPageIndex === PresenceMotionCoordinator.UNBUILT_PAGE_INDEX) return;
+		if (event.hasJabsBattler() === false) return;
+		PresenceMotionCoordinator.beginArrival(event);
+	}
+	/**
+	* Starts a battler unfolding into view with its respawn animation, as a page change brings it in.
+	* @param {Game_Event} event The event whose battler is arriving.
+	*/
+	static beginArrival(event) {
+		if (PresenceMotionCoordinator.#hasArrivals() === false) return;
+		PresenceMotionCoordinator.#unfoldIntoView(event);
+		PresenceMotionCoordinator.#playPresenceAnimation(event);
+	}
+	/**
+	* Unfolds a battler that has just been created on the map, rather than one a page change revealed.
+	*
+	* Two things create a battler outright: a respawn, which rebuilds a defeated battler's event from
+	* scratch, and the Spawn Enemy command, which clones one in. Both happen on a brand new event, whose
+	* first page is set up as it is built and so never counts as an arrival on its own. Both also play
+	* an animation of their own choosing already, which is why this adds only the unfold - a second
+	* flourish on top would play the same stars twice.
+	*
+	* The new event has no sprite yet, and needs none: the unfold is declared against the event, and
+	* simply starts on the first frame its sprite draws.
+	* @param {Game_Event} event The event that was just created.
+	*/
+	static welcomeNewBattler(event) {
+		if (PresenceMotionCoordinator.#hasArrivals() === false) return;
+		if (event.hasJabsBattler() === false) return;
+		PresenceMotionCoordinator.#unfoldIntoView(event);
+	}
+	/**
+	* Determines whether arrivals are configured to take any time at all.
+	* @returns {boolean}
+	*/
+	static #hasArrivals() {
+		return J.MOTION.EXT.ABS.Metadata.arrivalDuration > 0;
+	}
+	/**
+	* Turns a battler to face the player from edge-on, and keeps it from acting until it has.
+	* @param {Game_Event} event The event whose battler is arriving.
+	*/
+	static #unfoldIntoView(event) {
+		const duration = J.MOTION.EXT.ABS.Metadata.arrivalDuration;
+		const sourceKey = PresenceMotionCoordinator.PRESENCE_SOURCE_KEY;
+		const jabsBattler = event.getJabsBattler();
+		jabsBattler.setWaitCountdown(duration);
+		const declaration = new MotionDeclaration(FoldMotionEffect.UNFOLD, [duration], sourceKey);
+		CharacterMotionComposer.declare(event, sourceKey, [declaration], duration);
+	}
+	/**
+	* Plays a battler's respawn animation on its event, as a fold into or out of existence begins.
+	*
+	* The very same animation a battler comes back from the dead with, resolved by J-ABS's own ladder,
+	* so a creature appearing at the start of its hours, leaving at the end of them, and respawning after
+	* a death all share one flourish. An event or enemy that asks for animation 0 gets none of it, here or
+	* on a respawn.
+	*
+	* Unlike a respawn this needs no delay before asking: a respawned event is built fresh and has no
+	* sprite until the next spriteset update, but an event changing page has had its sprite all along.
+	* @param {Game_Event} event The event whose battler is arriving or leaving.
+	*/
+	static #playPresenceAnimation(event) {
+		const animationId = event.respawnAnimationId();
+		if (animationId === 0) return;
+		event.requestAnimation(animationId);
+	}
+};
+
+//#endregion
 //#region src/plugins/motion/ext/abs/objects/Game_Battler.js
 /**
 * Extends {@link #addState}.<br/>
@@ -875,6 +1317,41 @@ J.MOTION.EXT.ABS.Aliased.Game_Battler.set("removeState", Game_Battler.prototype.
 Game_Battler.prototype.removeState = function(stateId) {
 	J.MOTION.EXT.ABS.Aliased.Game_Battler.get("removeState").call(this, stateId);
 	BattlerMotionCoordinator.removeStateMotions(this, stateId);
+};
+
+//#endregion
+//#region src/plugins/motion/ext/abs/objects/Game_Event.js
+/**
+* Extends {@link #deferPageChange}.<br/>
+* Also holds a live battler's page back long enough for it to fold out of view.
+*
+* Without this a battler whose page stops applying - a time window closing, a switch turning off -
+* vanishes on the frame the page changes, because that change is what blanks its graphic. Holding
+* the change back is the only way to give it anything to animate on the way out.
+*/
+J.MOTION.EXT.ABS.Aliased.Game_Event.set("deferPageChange", Game_Event.prototype.deferPageChange);
+Game_Event.prototype.deferPageChange = function(newPageIndex) {
+	const deferred = J.MOTION.EXT.ABS.Aliased.Game_Event.get("deferPageChange").call(this, newPageIndex);
+	if (deferred === true) return true;
+	return PresenceMotionCoordinator.holdPageChange(this);
+};
+/**
+* Extends {@link #onPageChanged}.<br/>
+* Also unfolds whatever battler the new page brought onto the map.
+*/
+J.MOTION.EXT.ABS.Aliased.Game_Event.set("onPageChanged", Game_Event.prototype.onPageChanged);
+Game_Event.prototype.onPageChanged = function(previousPageIndex) {
+	J.MOTION.EXT.ABS.Aliased.Game_Event.get("onPageChanged").call(this, previousPageIndex);
+	PresenceMotionCoordinator.welcomeArrival(this, previousPageIndex);
+};
+/**
+* Extends {@link #update}.<br/>
+* Also counts down a departure, and lets its held page change through once the fold is done.
+*/
+J.MOTION.EXT.ABS.Aliased.Game_Event.set("update", Game_Event.prototype.update);
+Game_Event.prototype.update = function() {
+	J.MOTION.EXT.ABS.Aliased.Game_Event.get("update").call(this);
+	PresenceMotionCoordinator.updateDeparture(this);
 };
 
 //#endregion
@@ -918,6 +1395,33 @@ J.MOTION.EXT.ABS.Aliased.JABS_Engine.set("postPartyCycling", JABS_Engine.prototy
 JABS_Engine.prototype.postPartyCycling = function() {
 	J.MOTION.EXT.ABS.Aliased.JABS_Engine.get("postPartyCycling").call(this);
 	BattlerMotionCoordinator.refreshLeaderStateMotions();
+};
+/**
+* Extends {@link #processRespawnAnimation}.<br/>
+* Also unfolds the returning battler into view, the same way a battler its page brings in does.
+*
+* J-ABS still plays the respawn animation itself, a beat later once the new sprite exists. This only
+* adds the unfold beneath it, so a creature returning from the dead and one appearing at the start
+* of its hours look like one thing.
+*/
+J.MOTION.EXT.ABS.Aliased.JABS_Engine.set("processRespawnAnimation", JABS_Engine.prototype.processRespawnAnimation);
+JABS_Engine.prototype.processRespawnAnimation = function(freshEvent) {
+	J.MOTION.EXT.ABS.Aliased.JABS_Engine.get("processRespawnAnimation").call(this, freshEvent);
+	PresenceMotionCoordinator.welcomeNewBattler(freshEvent);
+};
+/**
+* Extends {@link #addEnemyToMap}.<br/>
+* Also unfolds an enemy spawned onto the map into view.
+*
+* The Spawn Enemy command plays whatever animation it was given on its own, so like a respawn this
+* only adds the unfold, and a spawned wave arrives the same way everything else does.
+*/
+J.MOTION.EXT.ABS.Aliased.JABS_Engine.set("addEnemyToMap", JABS_Engine.prototype.addEnemyToMap);
+JABS_Engine.prototype.addEnemyToMap = function(x, y, enemyCloneEventId) {
+	const addedEnemy = J.MOTION.EXT.ABS.Aliased.JABS_Engine.get("addEnemyToMap").call(this, x, y, enemyCloneEventId);
+	if (addedEnemy === undefined) return addedEnemy;
+	PresenceMotionCoordinator.welcomeNewBattler(addedEnemy);
+	return addedEnemy;
 };
 
 //#endregion

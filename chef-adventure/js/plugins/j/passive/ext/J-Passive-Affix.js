@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.1 PASSIVE-AFFIX] Random passive affixes + tier presentation for JABS enemies.
+ * [v1.2.2 PASSIVE-AFFIX] Random passive affixes + tier presentation for JABS enemies.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -267,6 +267,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.2
+ *    Affix tier icons now reach the target frame as icons, so they lead the enemy's
+ *    name on the rebuilt frame from J-HUD-TargetFrame 2.0.0.
  * - 1.2.1
  *    Renamed the declared dependency on J-MessageTextCodes to J-Message, which
  *    is what that plugin's file is called now.
@@ -456,7 +459,7 @@ J.PASSIVE.EXT.AFFIX = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.AFFIX.Metadata = new JPassiveAffix_PluginMetadata("J-Passive-Affix", "1.2.1");
+J.PASSIVE.EXT.AFFIX.Metadata = new JPassiveAffix_PluginMetadata("J-Passive-Affix", "1.2.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -732,27 +735,30 @@ JABS_AiManager.postConvertMutate = function(battler, jabsBattler) {
 //#endregion
 //#region src/plugins/passive/ext/affix/managers/JABS_Battler.js
 /**
-* With {@link J.HUD.EXT.TARGET}, wraps {@link JABS_Battler#buildFramedTarget}: tier prefix/suffix text, icons,
-* optional {@link Window_Base#colorizeText} (same passive id bands as the map stripe).
+* With {@link J.HUD.EXT.TARGET}, extends {@link JABS_Battler#decorateFramedTarget}: tier prefix/suffix text, the
+* tier icons that lead the name, and the tier color (same passive id bands as the map stripe). The target frame
+* and the boss frame both decorate through that hook, so a tiered enemy reads the same in either.
 */
 if (J.HUD && J.HUD.EXT.TARGET) {
 	/**
-	* Builds {@link FramedTarget} for the HUD, then applies tier label text, icons, and optional color.
-	* @param {JABS_Battler} battlerLastHit Last-hit target for this frame.
-	* @returns {FramedTarget}
+	* Extends {@link #decorateFramedTarget}.<br/>
+	* Applies tier label text, icons, and color to a framed target.
+	* @param {FramedTarget} framedTarget The framed target to decorate in place.
+	* @param {JABS_Battler} framedBattler The battler the framed target shows.
 	*/
-	J.PASSIVE.EXT.AFFIX.Aliased.JABS_Battler.set("buildFramedTarget", JABS_Battler.prototype.buildFramedTarget);
-	JABS_Battler.prototype.buildFramedTarget = function(battlerLastHit) {
-		const framedTarget = J.PASSIVE.EXT.AFFIX.Aliased.JABS_Battler.get("buildFramedTarget").call(this, battlerLastHit);
-		this.applyPassiveTierTargetFrameDecoration(framedTarget, battlerLastHit);
-		const tierStripeHex = J.PASSIVE.EXT.AFFIX.Helpers.resolvePassiveTierStripeColorHex(battlerLastHit.getBattler());
+	J.PASSIVE.EXT.AFFIX.Aliased.JABS_Battler.set("decorateFramedTarget", JABS_Battler.prototype.decorateFramedTarget);
+	JABS_Battler.prototype.decorateFramedTarget = function(framedTarget, framedBattler) {
+		J.PASSIVE.EXT.AFFIX.Aliased.JABS_Battler.get("decorateFramedTarget").call(this, framedTarget, framedBattler);
+		this.applyPassiveTierTargetFrameDecoration(framedTarget, framedBattler);
+		const tierStripeHex = J.PASSIVE.EXT.AFFIX.Helpers.resolvePassiveTierStripeColorHex(framedBattler.getBattler());
 		if (ColorManager.isValidHexColor(tierStripeHex)) {
 			framedTarget.nameColorHex = tierStripeHex;
 		}
-		return framedTarget;
 	};
 	/**
-	* Mutates {@link FramedTarget#name}: tier words, up to two `\\I` escapes, optional {@link Window_Base#colorizeText}.
+	* Mutates {@link FramedTarget#name} and {@link FramedTarget#nameIconIndices}: tier words on the name, and up
+	* to two tier icons ahead of it. The tier's color is not applied here- it rides on
+	* {@link FramedTarget#nameColorHex}, set by {@link #decorateFramedTarget}.
 	* @param {FramedTarget} framedTarget HUD row to update in place.
 	* @param {JABS_Battler} battlerLastHit Source for passive state ids.
 	*/
@@ -771,7 +777,6 @@ if (J.HUD && J.HUD.EXT.TARGET) {
 		let foundSuffix = false;
 		let prefixIconIndex = null;
 		let suffixIconIndex = null;
-		let prefixTierHudMessageColorIndex = null;
 		let displayName = framedTarget.name;
 		for (const passiveStateId of passiveStatesIds) {
 			const state = battler.state(passiveStateId);
@@ -779,9 +784,6 @@ if (J.HUD && J.HUD.EXT.TARGET) {
 			if (state.isEnemyPrefix === true && foundPrefix === false) {
 				displayName = `${state.name} ${displayName}`;
 				prefixIconIndex = state.iconIndex;
-				if (state.tierColorHex) {
-					prefixTierHudMessageColorIndex = ColorManager.colorIndexFromHex(state.tierColorHex);
-				}
 				foundPrefix = true;
 			}
 			if (state.isEnemySuffix === true && foundSuffix === false) {
@@ -791,18 +793,15 @@ if (J.HUD && J.HUD.EXT.TARGET) {
 			}
 			if (foundPrefix === true && foundSuffix === true) break;
 		}
-		let iconEscapes = String.empty;
+		const nameIconIndices = [];
 		if (prefixIconIndex !== null) {
-			iconEscapes += `\\I[${prefixIconIndex}]`;
+			nameIconIndices.push(prefixIconIndex);
 		}
 		if (suffixIconIndex !== null) {
-			iconEscapes += `\\I[${suffixIconIndex}]`;
+			nameIconIndices.push(suffixIconIndex);
 		}
-		let labeledBody = displayName;
-		if (J.MESSAGE && prefixTierHudMessageColorIndex !== null) {
-			labeledBody = Window_Base.prototype.colorizeText(prefixTierHudMessageColorIndex, displayName);
-		}
-		framedTarget.name = `${iconEscapes}${labeledBody}`;
+		framedTarget.name = displayName;
+		framedTarget.nameIconIndices = nameIconIndices;
 	};
 }
 

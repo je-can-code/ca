@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 HUD-BOSS] A HUD frame that displays a single target, like a boss.
+ * [v1.1.0 HUD-BOSS] A HUD frame that displays a single target, like a boss.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -25,6 +25,10 @@
  * the player's current target, not a specially-tagged "boss".
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    The boss frame now has a wide gauge centered under the boss's name, with its
+ *    level above and its afflictions below. While it is up, the target frame waits
+ *    beneath it, and never opens for the boss itself.
  * - 1.0.2
  *    Routed the boss-creation failure through J-Base's new Diagnostics, so it
  *    names J-HUD-BossFrame in the console.
@@ -67,6 +71,12 @@ globalThis.J ||= {};
 	if (hasHudRequirement === false) {
 		throw new Error(`Either missing J-HUD or has a lower version than the required: ${requiredHudVersion}`);
 	}
+	const requiredTargetFrameVersion = "2.0.0";
+	const targetFrameVersion = J.HUD.EXT.TARGET.Metadata.version.version();
+	const hasTargetFrameRequirement = J.BASE.Helpers.satisfies(targetFrameVersion, requiredTargetFrameVersion);
+	if (hasTargetFrameRequirement === false) {
+		throw new Error(`Either missing J-HUD-TargetFrame or has a lower version than the required: ${requiredTargetFrameVersion}`);
+	}
 })();
 /**
 * The plugin umbrella that governs all things related to this extension plugin.
@@ -76,12 +86,13 @@ J.HUD.EXT.BOSS = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudBoss_PluginMetadata}
 */
-J.HUD.EXT.BOSS.Metadata = new JHudBoss_PluginMetadata("J-HUD-BossFrame", "1.0.2");
+J.HUD.EXT.BOSS.Metadata = new JHudBoss_PluginMetadata("J-HUD-BossFrame", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.HUD.EXT.BOSS.Aliased = {};
 J.HUD.EXT.BOSS.Aliased.Hud_Manager = new Map();
+J.HUD.EXT.BOSS.Aliased.JABS_Battler = new Map();
 J.HUD.EXT.BOSS.Aliased.Scene_Map = new Map();
 
 //#endregion
@@ -107,6 +118,13 @@ var BossFrameManager = class {
 	* @type {boolean}
 	*/
 	static #showBossRequest = false;
+	/**
+	* Whether the boss frame is meant to be on screen: shown by the last request, and not hidden since.<br/>
+	* Unlike the requests, which clear the moment the frame acts on them, this holds for as long as the boss
+	* frame stays up.
+	* @type {boolean}
+	*/
+	static #bossFrameActive = false;
 	/**
 	* Gets the current boss.
 	* @returns {FramedTarget|null}
@@ -227,6 +245,7 @@ var BossFrameManager = class {
 	*/
 	static requestHideBossFrame() {
 		this.#hideBossRequest = true;
+		this.#bossFrameActive = false;
 	}
 	/**
 	* Acknowledges the request for the boss frame to be concealed.
@@ -246,12 +265,45 @@ var BossFrameManager = class {
 	*/
 	static requestShowBossFrame() {
 		this.#showBossRequest = true;
+		this.#bossFrameActive = true;
 	}
 	/**
 	* Acknowledges the request for the boss frame to be revealed.
 	*/
 	static acknowledgeBossFrameShown() {
 		this.#showBossRequest = false;
+	}
+	/**
+	* Whether the boss frame is meant to be on screen right now.
+	* @returns {boolean}
+	*/
+	static isBossFrameActive() {
+		return this.#bossFrameActive;
+	}
+	/**
+	* Whether the boss frame is up and showing the given battler.<br/>
+	* The target frame asks this before opening for a battler: the boss frame already shows that battler's
+	* name, level, health, and afflictions, and a second frame opened for them would only stack on top of it.
+	* @param {JABS_Battler} jabsBattler The battler being asked about.
+	* @returns {boolean}
+	*/
+	static isFramingBattler(jabsBattler) {
+		if (!this.isBossFrameActive()) return false;
+		const bossBattler = this.getBossGameBattler();
+		if (!bossBattler) return false;
+		return bossBattler.getUuid() === jabsBattler.getUuid();
+	}
+	/**
+	* Where the target frame should sit, given where it usually rests and where the boss frame ends.<br/>
+	* Both frames want the top of the screen, so while the boss frame is up, the target frame drops to just
+	* below it rather than covering it.
+	* @param {number} restingY The y the target frame sits at when no boss is framed.
+	* @param {number} bossFrameBottom The y of the boss frame's bottom edge.
+	* @returns {number}
+	*/
+	static targetFrameY(restingY, bossFrameBottom) {
+		if (this.isBossFrameActive()) return bossFrameBottom;
+		return restingY;
 	}
 	/**
 	* Creates a {@link FramedTarget} based on the data that resides in the event
@@ -268,6 +320,7 @@ var BossFrameManager = class {
 		const bossBattler = bossJabsBattler.getBattler();
 		const framedTargetConfiguration = new FramedTargetConfiguration();
 		const framedTarget = new FramedTarget(bossBattler.name(), String.empty, 14, bossBattler, framedTargetConfiguration);
+		bossJabsBattler.decorateFramedTarget(framedTarget, bossJabsBattler);
 		return framedTarget;
 	}
 	/**
@@ -285,8 +338,32 @@ var BossFrameManager = class {
 };
 
 //#endregion
+//#region src/plugins/hud/ext/boss/_models/JABS_Battler.js
+/**
+* Extends {@link #canShowTargetFrame}.<br/>
+* The boss in the boss frame never opens the target frame as well. The boss frame already shows that
+* battler's name, level, health, and afflictions, and a second frame opened for them would only stack on
+* top of it. Anyone else struck mid-fight- an add, a stray slime- still opens the target frame as usual.
+* @returns {boolean}
+*/
+J.HUD.EXT.BOSS.Aliased.JABS_Battler.set("canShowTargetFrame", JABS_Battler.prototype.canShowTargetFrame);
+JABS_Battler.prototype.canShowTargetFrame = function() {
+	if (BossFrameManager.isFramingBattler(this)) return false;
+	return J.HUD.EXT.BOSS.Aliased.JABS_Battler.get("canShowTargetFrame").call(this);
+};
+
+//#endregion
 //#region src/plugins/hud/ext/boss/windows/Window_BossFrame.js
-var Window_BossFrame = class extends Window_TargetFrame {
+var Window_BossFrame = class Window_BossFrame extends Window_TargetFrame {
+	/**
+	* The size of the boss's hp gauge, in pixels: far wider than a regular target's, and a touch taller. Its bar
+	* fills its whole bitmap, so the height is both.
+	* @type {{width: number, height: number}}
+	*/
+	static HpGaugeSize = {
+		width: 1e3,
+		height: 16
+	};
 	constructor(rect) {
 		super(rect);
 	}
@@ -347,21 +424,11 @@ var Window_BossFrame = class extends Window_TargetFrame {
 		this.getOrCreateTargetHpGaugeSprite();
 	}
 	/**
-	* Creates an target gauge sprite for this window and caches it.
-	* @returns {Sprite_FlowingGauge} The gauge sprite of the target.
+	* Creates the boss's hp gauge sprite for this window and caches it.
+	* @returns {Sprite_MapGauge} The gauge sprite of the boss.
 	*/
 	getOrCreateTargetHpGaugeSprite() {
-		const key = `bossframe-enemy-hp-gauge`;
-		if (this.j()._spriteCache.has(key)) {
-			return this.j()._spriteCache.get(key);
-		}
-		const sprite = new Sprite_FlowingGauge();
-		this.j()._spriteCache.set(key, sprite);
-		sprite.hide();
-		sprite.scale.x = 10;
-		sprite.scale.y = 1;
-		this.addChild(sprite);
-		return sprite;
+		return this.getOrCreateGaugeSprite("bossframe-enemy-hp-gauge", Window_BossFrame.HpGaugeSize);
 	}
 	handleInactivity() {}
 	update() {
@@ -401,18 +468,101 @@ var Window_BossFrame = class extends Window_TargetFrame {
 		}
 	}
 	/**
-	* Draws the target's name in the window.
+	* Lays out the boss frame. Where the target frame runs its icons, level, and name along one row, the
+	* boss frame centers its icons and name across the whole frame, rides the level small and centered along the
+	* top directly above them, and centers its gauge beneath.<br/>
+	* Everything below the level drops by one level row to make room for it.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
+	drawContent(x, y) {
+		this.drawTargetLevel(x, y);
+		const bodyY = y + this.bossLevelRowHeight();
+		this.drawTargetName(x, bodyY);
+		this.drawTargetExtra(x, bodyY + 24);
+		this.drawTargetBattlerInfo(x, y);
+	}
+	/**
+	* Centers the boss's gauge across the frame, under the centered name.<br/>
+	* The gauge is a child of the window rather than of its contents, so it centers on the window's own width.
+	* The affliction strip starts from this same value, so it lines up under the gauge's left end.
+	* @returns {number}
+	*/
+	targetBattlerGaugesX() {
+		return (this.width - Window_BossFrame.HpGaugeSize.width) / 2;
+	}
+	/**
+	* How far below the top of the gauges the afflictions start.<br/>
+	* The boss frame only ever draws its hp gauge, so the afflictions only have to clear it, and a small gap.
+	* @returns {number}
+	*/
+	targetGaugeStackHeight() {
+		return Window_BossFrame.HpGaugeSize.height + 4;
+	}
+	/**
+	* The vertical room reserved along the top of the frame for the level.<br/>
+	* Nothing is reserved when there is no level to draw, so a frame without one keeps its name and
+	* gauges where they would otherwise sit.
+	* @returns {number}
+	*/
+	bossLevelRowHeight() {
+		if (!this.canDrawTargetLevel()) return 0;
+		return 16;
+	}
+	/**
+	* Drops the gauges by the level row, so they stay below the name as it moves down to make room for
+	* the level.<br/>
+	* The affliction rows are positioned from this same value, which keeps them moving with the gauges.
+	* @returns {number}
+	*/
+	targetBattlerGaugesY() {
+		const baseGaugesY = super.targetBattlerGaugesY();
+		return baseGaugesY + this.bossLevelRowHeight();
+	}
+	/**
+	* Draws the target's name in the window.<br/>
+	* A boss's name reads larger than a regular target's, and is centered across the frame- led by the same
+	* icons the target frame leads its name with (the boss's own, then any an extension set), and in whatever
+	* color the name hook settles on.
 	* @param {number} x The x coordinate.
 	* @param {number} y The y coordinate.
 	*/
 	drawTargetName(x, y) {
-		let name = `\\FS[24]${this.targetName()}`;
+		const iconCodes = this.targetRowIconIndices().map((iconIndex) => `\\I[${iconIndex}]`).join(String.empty);
+		let name = `\\FS[24]${iconCodes}${this.targetName()}`;
 		if (J.MESSAGE) {
-			name = `\\*` + name;
+			name = `\\*${name}`;
 		}
-		const textWidth = this.textWidth(name);
-		const centerX = this.contentsWidth() / 2 - textWidth / 2;
-		this.drawTextEx(name, centerX, y, textWidth);
+		const color = this.targetNameColor();
+		this.drawCenteredTextEx(name, y, color);
+	}
+	/**
+	* Draws the level small and centered across the top of the frame, directly above the name.<br/>
+	* On a frame this wide, anywhere measured from an edge would sit out under the rest of the HUD- so the
+	* given x is not used here.
+	* @param {string} levelString The level text, escape codes included.
+	* @param {number} x The x coordinate; unused, since the level is centered.
+	* @param {number} y The y coordinate.
+	* @returns {number} The width the level took.
+	*/
+	drawTargetLevelText(levelString, x, y) {
+		const color = this.targetLevelColor();
+		return this.drawCenteredTextEx(levelString, y, color);
+	}
+	/**
+	* Draws a line of text centered across the frame, and reports how wide it drew.<br/>
+	* Measures with {@link Window_Base#textSizeEx} rather than {@link Window_Base#textWidth}: the latter
+	* measures the raw string, so escape codes like `\FS[24]` count as printed characters, and the extra
+	* width drags the line left of center.
+	* @param {string} text The text to draw, escape codes included.
+	* @param {number} y The y coordinate.
+	* @param {string} color The color the text starts in.
+	* @returns {number}
+	*/
+	drawCenteredTextEx(text, y, color) {
+		const { width } = this.textSizeEx(text);
+		const centerX = (this.contentsWidth() - width) / 2;
+		return this.drawTextExInColor(text, centerX, y, width, color);
 	}
 	/**
 	* Draws the target's various gauges.
@@ -505,6 +655,7 @@ Scene_Map.prototype.updateHudFrames = function() {
 	J.HUD.EXT.BOSS.Aliased.Scene_Map.get("updateHudFrames").call(this);
 	this.handleAssignBoss();
 	this.handleBossFrameVisibility();
+	this.handleTargetFramePlacement();
 };
 /**
 * Handles incoming requests to assign a boss to the boss frame.
@@ -527,7 +678,19 @@ Scene_Map.prototype.handleHideBossFrame = function() {
 Scene_Map.prototype.handleShowBossFrame = function() {
 	if (!BossFrameManager.needsBossFrameShowing()) return;
 	this.getBossFrameWindow().requestShowBossFrame();
-	BossFrameManager.acknowledgeBossFrameHidden();
+	BossFrameManager.acknowledgeBossFrameShown();
+};
+/**
+* Keeps the target frame out from under the boss frame.<br/>
+* Both frames want the top of the screen, so while the boss frame is up, the target frame waits just below
+* it- and goes back to its usual place once the boss frame is hidden.
+*/
+Scene_Map.prototype.handleTargetFramePlacement = function() {
+	const targetFrame = this.getTargetFrameWindow();
+	const bossFrame = this.getBossFrameWindow();
+	const bossFrameBottom = bossFrame.y + bossFrame.height;
+	const restingY = J.HUD.EXT.TARGET.Metadata.TargetFrameY;
+	targetFrame.y = BossFrameManager.targetFrameY(restingY, bossFrameBottom);
 };
 
 //#endregion
