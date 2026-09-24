@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.3.0 HUD] Provides core functionality for this HUD system.
+ * [v2.4.0 HUD] Provides core functionality for this HUD system.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -75,6 +75,9 @@
  * plugin-command driven.
  * ============================================================================
  * CHANGELOG:
+ * - 2.4.0
+ *    Afflictions can now sit on one shared row of smaller icons, each on a colored
+ *    square that marks it a buff or a debuff, for frames that are short on room.
  * - 2.3.0
  *    Added HudInterferenceResolver, which decides how far a frame fades while the
  *    player is standing on top of it. The geometry belongs to the family rather than
@@ -149,7 +152,7 @@ globalThis.J ||= {};
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredAbsVersion = "4.0.0";
+	const requiredAbsVersion = "4.25.0";
 	const hasAbsRequirement = J.ABS && J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredAbsVersion);
 	if (hasAbsRequirement === false) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredAbsVersion}`);
@@ -167,7 +170,7 @@ J.HUD.EXT = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHud_PluginMetadata}
 */
-J.HUD.Metadata = new JHud_PluginMetadata("J-HUD", "2.3.0");
+J.HUD.Metadata = new JHud_PluginMetadata("J-HUD", "2.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -874,7 +877,7 @@ var Window_Frame = class extends Window_Base {
 		/**
 		* The cached collection of sprites.
 		* @type {Map<string,
-		*   Sprite_Icon|Sprite_BaseText|Sprite_SkillCost|Sprite_CooldownGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
+		*   Sprite_Icon|Sprite_BaseText|Sprite_SkillCost|Sprite_CooldownGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_Face|Sprite>}
 		*/
 		this._j._spriteCache = new Map();
 	}
@@ -977,7 +980,10 @@ Scene_Map.prototype.refreshHud = function() {};
 //#endregion
 //#region src/plugins/hud/core/models/StateAfflictionHudLayoutSpec.js
 /**
-* Layout coordinates for the dual-row HUD affliction presenter.
+* Layout coordinates for the HUD affliction presenter.<br/>
+* The defaults describe two rows of full-size icons- debuffs over buffs. A host that is short on room turns
+* on the compact settings instead: one shared row, smaller icons, and a colored square behind each icon to
+* say which side of the ledger it is on.
 */
 var StateAfflictionHudLayoutSpec = class {
 	/**
@@ -1001,6 +1007,49 @@ var StateAfflictionHudLayoutSpec = class {
 	*/
 	rowGap = 8;
 	/**
+	* Whether buffs continue along the debuff row rather than starting a second row beneath it.<br/>
+	* One row keeps a frame short; two rows keep debuffs and buffs apart without needing a color to do it.
+	* @type {boolean}
+	*/
+	singleRow = false;
+	/**
+	* The scale each state icon is drawn at, where 1 is the iconset's own size.
+	* @type {number}
+	*/
+	iconScale = 1;
+	/**
+	* Whether each icon sits on a square colored by which side it is on- red for a debuff, green for a
+	* buff. Once debuffs and buffs share a row, this is what tells them apart.
+	* @type {boolean}
+	*/
+	polarityBacking = false;
+	/**
+	* How far the colored square reaches past its icon on every side.
+	* @type {number}
+	*/
+	backingPadding = 2;
+	/**
+	* How opaque the colored square is, from 0 to 255.<br/>
+	* Short of solid, so the square reads as a tint behind the icon rather than a tile the icon sits on.
+	* @type {number}
+	*/
+	backingOpacity = 192;
+	/**
+	* How far below the top of its icon a timer is placed.
+	* @type {number}
+	*/
+	timerOffsetY = 20;
+	/**
+	* How much smaller than the main font the timers are drawn.
+	* @type {number}
+	*/
+	timerFontSizeReduction = 6;
+	/**
+	* How much smaller than the main font the stack counts are drawn.
+	* @type {number}
+	*/
+	stackFontSizeReduction = 4;
+	/**
 	* The y coordinate for the negative row.
 	* @returns {number}
 	*/
@@ -1012,7 +1061,8 @@ var StateAfflictionHudLayoutSpec = class {
 	* @returns {number}
 	*/
 	positiveRowY() {
-		return this.originY + ImageManager.iconHeight + this.rowGap;
+		if (this.singleRow === true) return this.negativeRowY();
+		return this.originY + this.scaledIconHeight() + this.rowGap;
 	}
 	/**
 	* The x coordinate for a slot at the given index.
@@ -1022,12 +1072,56 @@ var StateAfflictionHudLayoutSpec = class {
 	slotX(index) {
 		return this.originX + index * this.iconPitch;
 	}
+	/**
+	* The x coordinate for the buff at the given index.<br/>
+	* On a shared row the buffs pick up where the debuffs leave off, so their position depends on how many
+	* debuffs came before them.
+	* @param {number} index The buff's index among the buffs.
+	* @param {number} negativeCount How many debuffs lead the row.
+	* @returns {number}
+	*/
+	positiveSlotX(index, negativeCount) {
+		if (this.singleRow === true) return this.slotX(negativeCount + index);
+		return this.slotX(index);
+	}
+	/**
+	* The width a state icon is drawn at.
+	* @returns {number}
+	*/
+	scaledIconWidth() {
+		return ImageManager.iconWidth * this.iconScale;
+	}
+	/**
+	* The height a state icon is drawn at.
+	* @returns {number}
+	*/
+	scaledIconHeight() {
+		return ImageManager.iconHeight * this.iconScale;
+	}
+	/**
+	* The x coordinate of the center of the icon in a slot.<br/>
+	* The timer and stack count are centered on this, so they stay under their icon however large it is drawn.
+	* @param {number} slotX The x coordinate of the slot.
+	* @returns {number}
+	*/
+	slotCenterX(slotX) {
+		return slotX + this.scaledIconWidth() / 2;
+	}
+	/**
+	* The width and height of the colored square behind an icon.
+	* @returns {number}
+	*/
+	backingSize() {
+		return this.scaledIconWidth() + this.backingPadding * 2;
+	}
 };
 
 //#endregion
 //#region src/plugins/hud/core/presenters/StateAfflictionHudPresenter.js
 /**
-* Renders dual-row HUD afflictions with icons, timers, and stack counts.
+* Renders HUD afflictions with icons, timers, and stack counts.<br/>
+* Where each piece lands- two rows or one, full-size icons or smaller ones on colored squares- is decided
+* by the {@link StateAfflictionHudLayoutSpec} the host window hands over each frame.
 */
 var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 	/**
@@ -1073,13 +1167,13 @@ var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 			const viewModel = collection.negative[index];
 			const x = layoutSpec.slotX(index);
 			const y = layoutSpec.negativeRowY();
-			this.renderSlot(battler, viewModel, x, y);
+			this.renderSlot(battler, viewModel, x, y, layoutSpec);
 		}
 		for (let index = 0; index < collection.positive.length; index++) {
 			const viewModel = collection.positive[index];
-			const x = layoutSpec.slotX(index);
+			const x = layoutSpec.positiveSlotX(index, collection.negative.length);
 			const y = layoutSpec.positiveRowY();
-			this.renderSlot(battler, viewModel, x, y);
+			this.renderSlot(battler, viewModel, x, y, layoutSpec);
 		}
 	}
 	/**
@@ -1139,7 +1233,8 @@ var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 		const prefixes = [
 			"affliction-icon-",
 			"affliction-timer-",
-			"affliction-stack-"
+			"affliction-stack-",
+			"affliction-backing-"
 		];
 		let matchedPrefix = null;
 		for (const prefix of prefixes) {
@@ -1167,27 +1262,33 @@ var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 	* @param {StateAfflictionViewModel} viewModel The row to render.
 	* @param {number} ox The origin x coordinate.
 	* @param {number} y The origin y coordinate.
+	* @param {StateAfflictionHudLayoutSpec} layoutSpec The layout the slot is drawn to.
 	*/
-	renderSlot(battler, viewModel, ox, y) {
+	renderSlot(battler, viewModel, ox, y, layoutSpec) {
 		const state = battler.state(viewModel.stateId);
 		const iconIndex = state ? state.iconIndex : 0;
-		const timerSprite = this.getOrCreateTimerSprite(battler, viewModel.stateId);
+		const timerSprite = this.getOrCreateTimerSprite(battler, viewModel.stateId, layoutSpec);
+		const centerX = layoutSpec.slotCenterX(ox);
 		if (viewModel.isEternal === false) {
 			const seconds = (viewModel.durationFrames / 60).toFixed(1);
 			timerSprite.setText(seconds);
-			timerSprite.move(ox, y + 20);
+			timerSprite.move(centerX, y + layoutSpec.timerOffsetY);
 			timerSprite.show();
 		} else {
 			timerSprite.setText(String.empty);
 			timerSprite.hide();
 		}
+		this.renderSlotBacking(battler, viewModel, ox, y, layoutSpec);
 		const iconSprite = this.getOrCreateIconSprite(battler, viewModel.stateId, iconIndex);
+		iconSprite.scale.x = layoutSpec.iconScale;
+		iconSprite.scale.y = layoutSpec.iconScale;
 		iconSprite.move(ox, y);
 		iconSprite.show();
-		const stackSprite = this.getOrCreateStackSprite(battler, viewModel.stateId);
+		const stackSprite = this.getOrCreateStackSprite(battler, viewModel.stateId, layoutSpec);
 		if (viewModel.stackCount > 1) {
+			const stackY = y - layoutSpec.scaledIconHeight();
 			stackSprite.setText(`x${viewModel.stackCount}`);
-			stackSprite.move(ox, y - ImageManager.iconHeight);
+			stackSprite.move(centerX, stackY);
 			stackSprite.show();
 		} else {
 			stackSprite.setText(String.empty);
@@ -1195,16 +1296,35 @@ var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 		}
 	}
 	/**
-	* Hides the icon, timer, and stack sprites for one state id.
+	* Places the colored square behind a slot's icon, when the layout draws one.
+	* @param {Game_Battler} battler The afflicted battler.
+	* @param {StateAfflictionViewModel} viewModel The row the square belongs to.
+	* @param {number} ox The origin x coordinate of the slot.
+	* @param {number} y The origin y coordinate of the slot.
+	* @param {StateAfflictionHudLayoutSpec} layoutSpec The layout the slot is drawn to.
+	*/
+	renderSlotBacking(battler, viewModel, ox, y, layoutSpec) {
+		if (layoutSpec.polarityBacking === false) return;
+		const backingSprite = this.getOrCreateBackingSprite(battler, viewModel, layoutSpec);
+		const { backingPadding } = layoutSpec;
+		backingSprite.move(ox - backingPadding, y - backingPadding);
+		backingSprite.show();
+	}
+	/**
+	* Hides the icon, backing, timer, and stack sprites for one state id.
 	* @param {StateAfflictionBattlerIdentity} identity The battler cache identity.
 	* @param {number} stateId The database state id.
 	*/
 	hideSlotSprites(identity, stateId) {
 		const iconKey = identity.buildIconKey(stateId);
+		const backingKey = identity.buildBackingKey(stateId);
 		const timerKey = identity.buildTimerKey(stateId);
 		const stackKey = identity.buildStackKey(stateId);
 		if (this.#spriteCache.has(iconKey) === true) {
 			this.#spriteCache.get(iconKey).hide();
+		}
+		if (this.#spriteCache.has(backingKey) === true) {
+			this.#spriteCache.get(backingKey).hide();
 		}
 		if (this.#spriteCache.has(timerKey) === true) {
 			const timerSprite = this.#spriteCache.get(timerKey);
@@ -1242,9 +1362,10 @@ var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 	* Creates or retrieves the timer sprite for a state.
 	* @param {Game_Battler} battler The afflicted battler.
 	* @param {number} stateId The database state id.
+	* @param {StateAfflictionHudLayoutSpec} layoutSpec The layout the timer is drawn to.
 	* @returns {Sprite_BaseText}
 	*/
-	getOrCreateTimerSprite(battler, stateId) {
+	getOrCreateTimerSprite(battler, stateId, layoutSpec) {
 		const identity = StateAfflictionBattlerIdentity.fromBattler(battler);
 		const key = identity.buildTimerKey(stateId);
 		if (this.#spriteCache.has(key) === true) {
@@ -1252,9 +1373,10 @@ var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 		}
 		const spriteText = new Sprite_BaseText();
 		spriteText.setFontFace($gameSystem.numberFontFace());
-		spriteText.setFontSize($gameSystem.mainFontSize() - 6);
+		spriteText.setFontSize($gameSystem.mainFontSize() - layoutSpec.timerFontSizeReduction);
 		spriteText.setAlignment(Sprite_BaseText.Alignments.Center);
-		spriteText.setMinWidth(ImageManager.iconWidth);
+		spriteText.setMinWidth(layoutSpec.scaledIconWidth());
+		spriteText.anchor.x = .5;
 		this.#spriteCache.set(key, spriteText);
 		spriteText.hide();
 		this.#hostWindow.addChild(spriteText);
@@ -1264,9 +1386,10 @@ var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 	* Creates or retrieves the stack sprite for a state.
 	* @param {Game_Battler} battler The afflicted battler.
 	* @param {number} stateId The database state id.
+	* @param {StateAfflictionHudLayoutSpec} layoutSpec The layout the stack count is drawn to.
 	* @returns {Sprite_BaseText}
 	*/
-	getOrCreateStackSprite(battler, stateId) {
+	getOrCreateStackSprite(battler, stateId, layoutSpec) {
 		const identity = StateAfflictionBattlerIdentity.fromBattler(battler);
 		const key = identity.buildStackKey(stateId);
 		if (this.#spriteCache.has(key) === true) {
@@ -1274,13 +1397,50 @@ var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 		}
 		const spriteText = new Sprite_BaseText();
 		spriteText.setFontFace($gameSystem.numberFontFace());
-		spriteText.setFontSize($gameSystem.mainFontSize() - 4);
+		spriteText.setFontSize($gameSystem.mainFontSize() - layoutSpec.stackFontSizeReduction);
 		spriteText.setAlignment(Sprite_BaseText.Alignments.Center);
-		spriteText.setMinWidth(ImageManager.iconWidth);
+		spriteText.setMinWidth(layoutSpec.scaledIconWidth());
+		spriteText.anchor.x = .5;
 		this.#spriteCache.set(key, spriteText);
 		spriteText.hide();
 		this.#hostWindow.addChild(spriteText);
 		return spriteText;
+	}
+	/**
+	* Creates or retrieves the colored square drawn behind a state's icon.<br/>
+	* The square is painted once, when it is created. Its color follows the state's polarity, and a state
+	* on a given battler is a debuff or a buff for as long as it is on them.
+	* @param {Game_Battler} battler The afflicted battler.
+	* @param {StateAfflictionViewModel} viewModel The row the square belongs to.
+	* @param {StateAfflictionHudLayoutSpec} layoutSpec The layout the square is drawn to.
+	* @returns {Sprite}
+	*/
+	getOrCreateBackingSprite(battler, viewModel, layoutSpec) {
+		const identity = StateAfflictionBattlerIdentity.fromBattler(battler);
+		const key = identity.buildBackingKey(viewModel.stateId);
+		if (this.#spriteCache.has(key) === true) {
+			return this.#spriteCache.get(key);
+		}
+		const size = layoutSpec.backingSize();
+		const bitmap = new Bitmap(size, size);
+		const color = StateAfflictionHudPresenter.backingColor(viewModel);
+		bitmap.paintOpacity = layoutSpec.backingOpacity;
+		bitmap.fillAll(color);
+		const sprite = new Sprite(bitmap);
+		this.#spriteCache.set(key, sprite);
+		sprite.hide();
+		this.#hostWindow.addChild(sprite);
+		return sprite;
+	}
+	/**
+	* The color of the square behind an affliction's icon: the engine's power-down color for a debuff,
+	* and its power-up color for a buff- the same pair the engine uses for stats going down and up.
+	* @param {StateAfflictionViewModel} viewModel The row being colored.
+	* @returns {string}
+	*/
+	static backingColor(viewModel) {
+		if (viewModel.polarity === "positive") return ColorManager.powerUpColor();
+		return ColorManager.powerDownColor();
 	}
 };
 

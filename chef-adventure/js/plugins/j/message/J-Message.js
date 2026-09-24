@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.1.0 MESSAGE] Gives access to more message window functionality.
+ * @plugindesc [v2.1.1 MESSAGE] Gives access to more message window functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -251,6 +251,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.1
+ *    A Show Choices, Input Number or Select Item with no Show Text above it no
+ *    longer flashes an empty message box as it closes.
  * - 2.1.0
  *    Added the \more text code, which welds a message onto the one written
  *    after it. The box grows to hold whatever they add up to.
@@ -658,7 +661,7 @@ J.MESSAGE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.MESSAGE.Metadata = new J_MessagePluginMetadata("J-Message", "2.1.0");
+J.MESSAGE.Metadata = new J_MessagePluginMetadata("J-Message", "2.1.1");
 /**
 * A collection of all base aliases.
 */
@@ -3587,8 +3590,17 @@ Window_Message.prototype.isFadingMessage = function() {
 * letter with it. So the collapse is undone here and replaced with a fade: the window is held fully
 * open and made progressively transparent instead, which is the only way the text is still on screen
 * to leave with it.
+*
+* A window that was never opened declines the fade, because it has nothing on screen to fade. A Show
+* Choices, Input Number or Select Item written without a Show Text above it starts with this window
+* still shut, and still ends by terminating it - so fading from there would throw the empty box fully
+* open for the whole length of the fade just to dissolve it again.
 */
 Window_Message.prototype.beginMessageFade = function() {
+	if (this.isClosed() === true) {
+		this.finishMessageFade();
+		return;
+	}
 	const frames = MessageFade.frames();
 	this.setFadeFrames(frames);
 	this.setFadeElapsed(0);

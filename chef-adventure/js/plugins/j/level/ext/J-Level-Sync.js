@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 LEVEL-SYNC] Content level sync for dungeons and trials.
+ * @plugindesc [v1.1.1 LEVEL-SYNC] Content level sync for dungeons and trials.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -117,6 +117,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    A content-synced target's level reads in light blue on the rebuilt target
+ *    frame from J-HUD-TargetFrame 2.0.0.
  * - 1.1.0
  *    Routed the _levelSync namespace into its own save section, so an active
  *    sync session lands in systems/level-sync.json rather than in the system
@@ -220,7 +223,7 @@ J.LEVEL.EXT.SYNC = {};
 /**
 * The metadata associated with this plugin.
 */
-J.LEVEL.EXT.SYNC.Metadata = new JLevelSync_PluginMetadata("J-Level-Sync", "1.1.0");
+J.LEVEL.EXT.SYNC.Metadata = new JLevelSync_PluginMetadata("J-Level-Sync", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -590,23 +593,16 @@ Window_StatusBase.prototype.drawActorLevel = function(actor, x, y) {
 //#region src/plugins/level/ext/sync/windows/Window_TargetFrame.js
 if (J.HUD && J.HUD.EXT && J.HUD.EXT.TARGET) {
 	/**
-	* Extends {@link #drawTargetLevel}.<br/>
-	* Colorizes the level text and prepends the sync icon when the target is a
-	* content-synced actor.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
+	* Extends {@link #targetLevelColor}.<br/>
+	* A content-synced target's level reads in light blue, so the player can tell at a glance that the level on
+	* show is the synced one rather than the real one.
+	* @returns {string}
 	*/
-	J.LEVEL.EXT.SYNC.Aliased.Window_TargetFrame.set("drawTargetLevel", Window_TargetFrame.prototype.drawTargetLevel);
-	Window_TargetFrame.prototype.drawTargetLevel = function(x, y) {
-		if (!this.canDrawTargetLevel()) return;
-		const { _battler: battler } = this._j;
-		if (!battler.level) return;
-		const isSynced = battler.isActor() && battler.isContentSynced();
-		const iconIndex = J.LEVEL.EXT.SYNC.Metadata.syncIndicatorIconIndex;
-		const colorCode = isSynced ? "\\C[6]" : "";
-		const iconPrefix = isSynced && iconIndex > 0 ? `\\I[${iconIndex}]` : "";
-		const levelString = `\\FS[14]${colorCode}${iconPrefix}Lv.${battler.level.padZero(3)}`;
-		this.drawTextEx(levelString, x, y, this.targetFrameLevelColumnWidth());
+	J.LEVEL.EXT.SYNC.Aliased.Window_TargetFrame.set("targetLevelColor", Window_TargetFrame.prototype.targetLevelColor);
+	Window_TargetFrame.prototype.targetLevelColor = function() {
+		const { _battler: battler } = this.j();
+		if (battler.isActor() && battler.isContentSynced()) return "#80c0ff";
+		return J.LEVEL.EXT.SYNC.Aliased.Window_TargetFrame.get("targetLevelColor").call(this);
 	};
 }
 

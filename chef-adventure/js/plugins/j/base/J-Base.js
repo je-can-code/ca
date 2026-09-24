@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.19.0 BASE] The base class for all J plugins.
+ * [v3.20.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.20.0
+ *    Map gauges now leave a trail. A loss leaves the lost amount behind in red to
+ *    drain away, and a gain shows in green ahead of the bar as it fills in.
  * - 3.19.0
  *    Added natural growth bindings to the parameter registry, so any plugin can
  *    offer growth tags for its own parameters.
@@ -2059,7 +2062,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.19.0";
+J.BASE.Metadata.Version = "3.20.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -4900,6 +4903,210 @@ var GaugeOptionsBuilder = class {
 	startAngle(radians) {
 		this.#startAngle = radians;
 		return this;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/models/GaugeTrail.js
+/**
+* The trail that shows recent change on a gauge, the way many action games show it: a loss snaps the bar down
+* and leaves a chunk of the old amount behind that drains away, and a gain puts a chunk of the new amount up
+* ahead of the bar that the bar then fills into.<br/>
+* It is the numbers only- where the bar's fill ends, where the trail ends, and which way things are going. The
+* gauge that owns it decides how to draw that.
+*/
+var GaugeTrail = class GaugeTrail {
+	/**
+	* Which way the gauge is moving, which decides the trail's color.
+	*/
+	static Trends = {
+		/**
+		* Nothing to show: the fill and the trail agree.
+		*/
+		Steady: "steady",
+		/**
+		* The value dropped: the fill already sits at it, and the trail drains down after it.
+		*/
+		Loss: "loss",
+		/**
+		* The value rose: the trail already sits at it, and the fill grows up into it.
+		*/
+		Gain: "gain"
+	};
+	/**
+	* How much of the remaining gap the moving end closes each frame- one tenth, so it closes fast at first and
+	* eases in at the end.
+	* @type {number}
+	*/
+	static CatchUpDivisor = 10;
+	/**
+	* How small the gap has to get, as a fraction of the gauge's max, before the trail settles. A tenth of a
+	* percent of the bar is under a pixel on all but the widest gauges, so settling there is never seen as a jump.
+	* @type {number}
+	*/
+	static SettleFraction = .001;
+	/**
+	* The latest true value the gauge was given.
+	* @type {number}
+	*/
+	#value = 0;
+	/**
+	* Where the gauge's fill ends.
+	* @type {number}
+	*/
+	#fill = 0;
+	/**
+	* Where the trail ends. Never short of the fill.
+	* @type {number}
+	*/
+	#trail = 0;
+	/**
+	* The gauge's max. Not a number until the first value arrives, which is how a cleared trail knows to take
+	* its first value as it is instead of animating toward it.
+	* @type {number}
+	*/
+	#max = NaN;
+	/**
+	* Which way the gauge is moving.
+	* @type {string}
+	*/
+	#trend = GaugeTrail.Trends.Steady;
+	/**
+	* Forgets everything, so the next value the trail is given is taken as it is, with nothing to animate.<br/>
+	* A gauge does this when it starts showing a different battler- that battler's value was never on the bar,
+	* so there is no change to show.
+	*/
+	clear() {
+		this.#value = 0;
+		this.#fill = 0;
+		this.#trail = 0;
+		this.#max = NaN;
+		this.#trend = GaugeTrail.Trends.Steady;
+	}
+	/**
+	* Gives the trail the gauge's value for this frame, then moves the trail one frame along.<br/>
+	* Meant to be called once per frame with whatever the gauge currently holds; a value that has not changed
+	* just lets the trail keep moving.
+	* @param {number} value The gauge's current value.
+	* @param {number} max The gauge's current max.
+	*/
+	track(value, max) {
+		if (!this.hasObserved()) {
+			this.#adopt(value, max);
+			return;
+		}
+		this.#max = max;
+		if (value !== this.#value) {
+			this.#observe(value);
+		}
+		this.#step();
+	}
+	/**
+	* Takes a value as it is, with nothing to animate.
+	* @param {number} value The value to adopt.
+	* @param {number} max The max to adopt.
+	*/
+	#adopt(value, max) {
+		this.#value = value;
+		this.#fill = value;
+		this.#trail = value;
+		this.#max = max;
+		this.#trend = GaugeTrail.Trends.Steady;
+	}
+	/**
+	* Moves the ends to show a new value.
+	* @param {number} value The new value.
+	*/
+	#observe(value) {
+		if (value < this.#fill) {
+			this.#observeLoss(value);
+		} else {
+			this.#observeGain(value);
+		}
+		this.#value = value;
+	}
+	/**
+	* Shows a loss: the fill drops straight to the new value, and the trail marks what was on the bar before it.
+	* @param {number} value The new, lower value.
+	*/
+	#observeLoss(value) {
+		if (this.#trend === GaugeTrail.Trends.Gain) {
+			this.#trail = this.#fill;
+		}
+		this.#fill = value;
+		this.#trend = GaugeTrail.Trends.Loss;
+	}
+	/**
+	* Shows a gain: the trail jumps straight to the new value, and the fill grows up into it.
+	* @param {number} value The new value, at or above the fill.
+	*/
+	#observeGain(value) {
+		this.#trail = value;
+		this.#trend = value > this.#fill ? GaugeTrail.Trends.Gain : GaugeTrail.Trends.Steady;
+	}
+	/**
+	* Moves the trail one frame along: whichever end is moving closes part of the gap, and the two settle
+	* together once the gap is too small to see.
+	*/
+	#step() {
+		if (this.#trend === GaugeTrail.Trends.Steady) return;
+		const catchUp = (this.#trail - this.#fill) / GaugeTrail.CatchUpDivisor;
+		if (this.#trend === GaugeTrail.Trends.Loss) {
+			this.#trail -= catchUp;
+		} else {
+			this.#fill += catchUp;
+		}
+		const settleGap = this.#max * GaugeTrail.SettleFraction;
+		if (this.#trail - this.#fill <= settleGap) {
+			this.#fill = this.#value;
+			this.#trail = this.#value;
+			this.#trend = GaugeTrail.Trends.Steady;
+		}
+	}
+	/**
+	* Whether the trail has been given a value since it was made or last cleared.
+	* @returns {boolean}
+	*/
+	hasObserved() {
+		return !Number.isNaN(this.#max);
+	}
+	/**
+	* Whether the fill and the trail agree, with nothing left to show.
+	* @returns {boolean}
+	*/
+	isSettled() {
+		return this.#trend === GaugeTrail.Trends.Steady;
+	}
+	/**
+	* Which way the gauge is moving.
+	* @returns {string}
+	*/
+	trend() {
+		return this.#trend;
+	}
+	/**
+	* How far along the gauge its fill reaches, from 0 to 1.
+	* @returns {number}
+	*/
+	fillRate() {
+		return this.#rateOf(this.#fill);
+	}
+	/**
+	* How far along the gauge its trail reaches, from 0 to 1.
+	* @returns {number}
+	*/
+	trailRate() {
+		return this.#rateOf(this.#trail);
+	}
+	/**
+	* How far along the gauge an amount reaches, from 0 to 1.<br/>
+	* A gauge without a max to measure against- nothing given yet, or a max of 0- reaches nowhere.
+	* @param {number} amount The amount to measure.
+	* @returns {number}
+	*/
+	#rateOf(amount) {
+		if (this.#max > 0) return amount / this.#max;
+		return 0;
 	}
 };
 
@@ -15494,14 +15701,34 @@ var Sprite_Icon = class extends Sprite {
 /**
 * The sprite for displaying a gauge on a character's sprite.
 */
-var Sprite_MapGauge = class extends Sprite_Gauge {
+var Sprite_MapGauge = class Sprite_MapGauge extends Sprite_Gauge {
+	/**
+	* The resources whose gauges show recent change with a trail: a red chunk draining after a loss, a green
+	* chunk filling in after a gain. These are the ones that get spent and restored- a gauge that only ever
+	* fills, like a cast or a charge, has no change worth showing.<br/>
+	* An extension whose gauge should trail too adds its status type here.
+	* @type {string[]}
+	*/
+	static TrailingStatusTypes = [
+		"hp",
+		"mp",
+		"tp"
+	];
 	/**
 	* Gets the gauge.
 	* @returns {{_bitmapWidth: number, _bitmapHeight: number, _gaugeHeight: number, _label: string,
-	* _value: number|null, _iconIndex: number, _iconSprite: Sprite|null, _activated: boolean}} The gauge.
+	* _value: number|null, _iconIndex: number, _iconSprite: Sprite|null, _activated: boolean,
+	* _trail: GaugeTrail}} The gauge.
 	*/
 	gauge() {
 		return this._gauge;
+	}
+	/**
+	* Gets the trail that shows recent change on this gauge.
+	* @returns {GaugeTrail}
+	*/
+	gaugeTrail() {
+		return this.gauge()._trail;
 	}
 	/**
 	* Constructor.
@@ -15583,6 +15810,11 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		* @type {boolean}
 		*/
 		this._gauge._activated = true;
+		/**
+		* The trail that shows recent change on this gauge, for the gauges that show it.
+		* @type {GaugeTrail}
+		*/
+		this._gauge._trail = new GaugeTrail();
 	}
 	/**
 	* Gets the battler associated with this gauge.
@@ -15767,6 +15999,81 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		if (this.isGaugeActive() === false) return;
 		super.update();
 	}
+	/**
+	* Whether this gauge shows recent change with a trail. See {@link Sprite_MapGauge.TrailingStatusTypes}.
+	* @returns {boolean}
+	*/
+	usesTrail() {
+		return Sprite_MapGauge.TrailingStatusTypes.includes(this.getStatusType());
+	}
+	/**
+	* Extends {@link Sprite_Gauge#setup}.<br/>
+	* A different battler or resource is a fresh gauge, so its trail starts over from whatever it first shows.
+	* The same pair again is not: the target frame asks for it on every hit, and a trail cleared each time would
+	* never get to drain. The engine's setup ends by updating the bitmap, so the trail is cleared ahead of it.
+	* @param {Game_Battler} battler The battler to show.
+	* @param {string} statusType The resource to show, such as "hp".
+	*/
+	setup(battler, statusType) {
+		const isFreshGauge = battler !== this.getBattler() || statusType !== this.getStatusType();
+		if (isFreshGauge) {
+			this.gaugeTrail().clear();
+		}
+		super.setup(battler, statusType);
+		if (isFreshGauge) {
+			this.redraw();
+		}
+	}
+	/**
+	* Extends {@link Sprite_Gauge#updateBitmap}.<br/>
+	* A gauge that trails leaves the engine's easing behind entirely: its trail decides what the bar shows.
+	*/
+	updateBitmap() {
+		if (!this.usesTrail()) {
+			super.updateBitmap();
+			return;
+		}
+		this.updateTrail();
+	}
+	/**
+	* Feeds the trail this frame's value and redraws whenever there is something new to see.
+	*/
+	updateTrail() {
+		const value = this.currentValue();
+		if (isNaN(value)) return;
+		const maxValue = this.currentMaxValue();
+		const hasChanged = value !== this.value() || maxValue !== this.maxValue();
+		const wasMoving = !this.gaugeTrail().isSettled();
+		this.setValue(value);
+		this.setMaxValue(maxValue);
+		this.gaugeTrail().track(value, maxValue);
+		if (hasChanged || wasMoving) {
+			this.redraw();
+		}
+	}
+	/**
+	* The color of the trail right now: the gain color while a gain fills in, and the loss color otherwise.
+	* @returns {string}
+	*/
+	trailColor() {
+		const trend = this.gaugeTrail().trend();
+		if (trend === GaugeTrail.Trends.Gain) return this.trailGainColor();
+		return this.trailLossColor();
+	}
+	/**
+	* The color a loss drains in: the engine's power-down red, the same red a debuff's square uses.
+	* @returns {string}
+	*/
+	trailLossColor() {
+		return ColorManager.powerDownColor();
+	}
+	/**
+	* The color a gain fills in with: the engine's power-up green, the same green a buff's square uses.
+	* @returns {string}
+	*/
+	trailGainColor() {
+		return ColorManager.powerUpColor();
+	}
 	drawIcon() {
 		if (this.iconIndex() >= 0) {
 			if (!this.gauge()._iconSprite) {
@@ -15814,6 +16121,50 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 				}
 			}
 		}
+	}
+	/**
+	* Extends {@link Sprite_Gauge#drawGaugeRect}.<br/>
+	* A gauge that trails draws its trail between the backdrop and the fill; any other gauge draws as the engine
+	* does.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} width The width of the gauge.
+	* @param {number} height The height of the gauge.
+	*/
+	drawGaugeRect(x, y, width, height) {
+		if (!this.usesTrail()) {
+			super.drawGaugeRect(x, y, width, height);
+			return;
+		}
+		this.drawTrailingGaugeRect(x, y, width, height);
+	}
+	/**
+	* Draws a trailing gauge: the backdrop, then the chunk of recent change from the fill's edge out to the
+	* trail's, then the fill over the top. Loss or gain, the chunk sits between the two ends- only its color says
+	* which it is.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} width The width of the gauge.
+	* @param {number} height The height of the gauge.
+	*/
+	drawTrailingGaugeRect(x, y, width, height) {
+		const trail = this.gaugeTrail();
+		const isShown = this.isValid();
+		const fillRate = isShown ? trail.fillRate() : 0;
+		const trailRate = isShown ? trail.trailRate() : 0;
+		const innerWidth = width - 2;
+		const innerHeight = height - 2;
+		const fillWidth = Math.floor(innerWidth * fillRate);
+		const trailWidth = Math.floor(innerWidth * trailRate);
+		const backColor = this.gaugeBackColor();
+		this.bitmap.fillRect(x, y, width, height, backColor);
+		if (trailWidth > fillWidth) {
+			const trailColor = this.trailColor();
+			this.bitmap.fillRect(x + 1 + fillWidth, y + 1, trailWidth - fillWidth, innerHeight, trailColor);
+		}
+		const fillColor1 = this.gaugeColor1();
+		const fillColor2 = this.gaugeColor2();
+		this.bitmap.gradientFillRect(x + 1, y + 1, fillWidth, innerHeight, fillColor1, fillColor2);
 	}
 	/**
 	* Overwrites {@link #measureLabelWidth}.<br/>

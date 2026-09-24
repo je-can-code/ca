@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 HUD-TARGET] A HUD frame that displays your battle target.
+ * [v2.0.0 HUD-TARGET] A HUD frame that displays your battle target.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -28,32 +28,10 @@
  * ============================================================================
  * SETUP:
  * This plugin creates a window, which contains gauges representing the target
- * that is currently set. These gauges are not default window gauges, but
- * images loaded from disk instead. You must add two images matching these file
- * names into a new directory called "hud" inside your images directory:
- *  /img/hud/target-gauge-background.png
- *  /img/hud/target-gauge-foreground.png
- * ============================================================================
- * ABOUT THE IMAGES:
- * As mentioned above, there are two images required to construct the gauges in
- * the target frame.
- *
- * FIRST IMAGE:
- *  The first image, the background image, is typically a darker image that is
- *  drawn as a backdrop to the gauge.
- *
- * SECOND IMAGE:
- *  The second image makes up the middleground and foreground of the gauge.
- *  The format is two horizontal gauges of equal height stacked ontop of
- *  eachother. The top of these two gauges is the "foreground", representing
- *  the actual value of the gauge. The bottom of these two gauges is the
- *  "middleground", representing the "current" value of the gauge. This spends
- *  time in-transition a lot, and typically isn't ever fully displayed.
- *
- * In both images' cases, you can swap out the images to whatever other gauge
- * imagery you would like, though you'll likely need to fiddle with the x:y
- * plugin parameters of the various gauges to get it just right. You only need
- * to make sure that the file names remain the same, as those are hard-coded.
+ * that is currently set. No images are needed: the gauges are drawn the same
+ * way as the rest of the HUD's gauges, trail and all- when the target loses
+ * some of a gauge, the lost amount turns red and drains away, and when it
+ * gains some back, the gained amount shows in green and the gauge fills in.
  * ============================================================================
  * TARGET FRAME TEXT:
  * Have you ever wanted your JABS battlers to have an extra line of text that
@@ -97,9 +75,8 @@
  * ignored.
  *
  * NOTE 2:
- * If no target frame icon is available, the gauges will automatically move to
- * the left to fill the empty space that would've been left otherwise by the
- * missing icon.
+ * The icon leads the target's name. If no target frame icon is available, the
+ * name simply starts where the icon would have been.
  *
  * TAG USAGE:
  * - Enemies
@@ -111,7 +88,7 @@
  * TAG EXAMPLE:
  *  <targetFrameIcon:25>
  * When this enemy is struck on the map, the target frame will display an icon
- * that matches the icon index of 25 to the left of the gauges (if applicable).
+ * that matches the icon index of 25 ahead of the enemy's name.
  * ============================================================================
  * HIDING DATA:
  * Have you ever wanted to hide certain data points for some enemies, but not
@@ -175,83 +152,6 @@
  * @desc The height in pixels of the target frame window.
  * @default 180
  *
- * @param targetFrameGauge
- * @text Target Frame Gauge
- *
- * @param backgroundGauge
- * @parent targetFrameGauge
- * @text Background Settings
- *
- * @param backgroundImageFilename
- * @parent backgroundGauge
- * @type file
- * @text Background Image File
- * @desc The file that represents the background image; see plugin description for details.
- * @default img/hud/target-gauge-background
- *
- * @param backgroundGaugeImageX
- * @parent backgroundGauge
- * @type number
- * @min 0
- * @text Background Image X
- * @desc The x coordinate correction of the backdrop gauge image, aka the background.
- * @default 0
- *
- * @param backgroundGaugeImageY
- * @parent backgroundGauge
- * @type number
- * @min 0
- * @text Background Image Y
- * @desc The y coordinate correction of the backdrop gauge image, aka the background.
- * @default 0
- *
- * @param middlegroundGauge
- * @parent targetFrameGauge
- * @text Middleground Settings
- *
- * @param middlegroundGaugeImageX
- * @parent middlegroundGauge
- * @type number
- * @min 0
- * @text Middleground Image X
- * @desc Horizontal position is set from the measured backdrop trough at runtime so HP/MP stay aligned; Y still uses this block.
- * @default 2
- *
- * @param middlegroundGaugeImageY
- * @parent middlegroundGauge
- * @type number
- * @min 0
- * @text Middleground Image Y
- * @desc The y coordinate correction of the "current" gauge image, aka the middleground.
- * @default 2
- *
- * @param foregroundGauge
- * @parent targetFrameGauge
- * @text Foreground Settings
- *
- * @param foregroundImageFilename
- * @parent foregroundGauge
- * @type file
- * @text Background Image File
- * @desc The file that represents the foreground image; see plugin description for details.
- * @default img/hud/target-gauge-foreground
- *
- * @param foregroundGaugeImageX
- * @parent foregroundGauge
- * @type number
- * @min 0
- * @text Foreground Image X
- * @desc Horizontal position is set from the measured backdrop trough at runtime so HP/MP stay aligned; Y still uses this block.
- * @default 2
- *
- * @param foregroundGaugeImageY
- * @parent foregroundGauge
- * @type number
- * @min 0
- * @text Foreground Image Y
- * @desc The y coordinate correction of the "current" gauge image, aka the foreground.
- * @default 3
- *
  * @param settings
  * @text Target Settings
  *
@@ -268,35 +168,6 @@
  * @on Enable HP Gauge
  * @off Disable HP Gauge
  *
- * @param hpGaugeScaleX
- * @parent hpSettings
- * @type number
- * @decimals 2
- * @min -10.00
- * @max 10.00
- * @text Horizontal Scaling
- * @desc The scaling for how wide the HP gauge is.
- * @default 2.00
- *
- * @param hpGaugeScaleY
- * @parent hpSettings
- * @type number
- * @decimals 2
- * @min -10.00
- * @max 10.00
- * @text Vertical Scaling
- * @desc The scaling for how tall the HP gauge is.
- * @default 1.00
- *
- * @param hpGaugeRotation
- * @parent hpSettings
- * @type number
- * @min -360
- * @max 360
- * @text Rotation
- * @desc The degree of rotation for the HP gauge. Between -360 and 360.
- * @default 0
- *
  * @param mpSettings
  * @parent settings
  * @text For MP:
@@ -309,35 +180,6 @@
  * @default true
  * @on Enable MP Gauge
  * @off Disable MP Gauge
- *
- * @param mpGaugeScaleX
- * @parent mpSettings
- * @type number
- * @decimals 2
- * @min -10.00
- * @max 10.00
- * @text Horizontal Scaling
- * @desc The scaling for how wide the MP gauge is.
- * @default 1.00
- *
- * @param mpGaugeScaleY
- * @parent mpSettings
- * @type number
- * @decimals 2
- * @min -10.00
- * @max 10.00
- * @text Vertical Scaling
- * @desc The scaling for how tall the MP gauge is.
- * @default 0.50
- *
- * @param mpGaugeRotation
- * @parent mpSettings
- * @type number
- * @min -360
- * @max 360
- * @text Rotation
- * @desc The degree of rotation for the MP gauge. Between -360 and 360.
- * @default 0
  *
  * @param tpSettings
  * @parent settings
@@ -352,26 +194,6 @@
  * @on Enable TP Gauge
  * @off Disable TP Gauge
  *
- * @param tpGaugeScaleX
- * @parent tpSettings
- * @type number
- * @decimals 2
- * @min -10.00
- * @max 10.00
- * @text Horizontal Scaling
- * @desc The scaling for how wide the TP gauge is.
- * @default 0.30
- *
- * @param tpGaugeScaleY
- * @parent tpSettings
- * @type number
- * @decimals 2
- * @min -10.00
- * @max 10.00
- * @text Vertical Scaling
- * @desc The scaling for how tall the TP gauge is.
- * @default 0.40
- *
  * @param tpGaugeRotation
  * @parent tpSettings
  * @type number
@@ -383,6 +205,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    The target frame no longer needs gauge images. Its gauges draw like the rest of
+ *    the HUD's, trail and all, its afflictions share one compact row, and icons now
+ *    lead the target's name. The image gauge parameters are gone.
  * - 1.2.0
  *    The target frame fades while the player is standing on top of it, through the
  *    shared resolver in J-HUD. This rides on top of the inactivity fade rather than
@@ -442,46 +268,6 @@ var JHudTarget_PluginMetadata = class extends PluginMetadata {
 		*/
 		this.TargetFrameHeight = Number(this.parsedPluginParameters["targetFrameHeight"]);
 		/**
-		* The x coordinate of the background gauge image.
-		* @type {number}
-		*/
-		this.BackgroundGaugeImageX = Number(this.parsedPluginParameters["backgroundGaugeImageX"]);
-		/**
-		* The y coordinate of the background gauge image.
-		* @type {number}
-		*/
-		this.BackgroundGaugeImageY = Number(this.parsedPluginParameters["backgroundGaugeImageY"]);
-		/**
-		* The x coordinate of the middleground gauge image.
-		* @type {number}
-		*/
-		this.MiddlegroundGaugeImageX = Number(this.parsedPluginParameters["middlegroundGaugeImageX"]);
-		/**
-		* The y coordinate of the middleground gauge image.
-		* @type {number}
-		*/
-		this.MiddlegroundGaugeImageY = Number(this.parsedPluginParameters["middlegroundGaugeImageY"]);
-		/**
-		* The x coordinate of the foreground gauge image.
-		* @type {number}
-		*/
-		this.ForegroundGaugeImageX = Number(this.parsedPluginParameters["foregroundGaugeImageX"]);
-		/**
-		* The y coordinate of the foreground gauge image.
-		* @type {number}
-		*/
-		this.ForegroundGaugeImageY = Number(this.parsedPluginParameters["foregroundGaugeImageY"]);
-		/**
-		* The filename of the background gauge image.
-		* @type {string}
-		*/
-		this.BackgroundFilename = this.parsedPluginParameters["backgroundImageFilename"];
-		/**
-		* The filename of the foreground gauge image.
-		* @type {string}
-		*/
-		this.ForegroundFilename = this.parsedPluginParameters["foregroundImageFilename"];
-		/**
 		* Whether or not the hp gauge is enabled by default.
 		* @type {boolean}
 		*/
@@ -496,46 +282,6 @@ var JHudTarget_PluginMetadata = class extends PluginMetadata {
 		* @type {boolean}
 		*/
 		this.EnableTP = this.parsedPluginParameters["enableTp"] === "true";
-		/**
-		* The x scale of the hp gauge sprite.
-		* @type {number}
-		*/
-		this.HpGaugeScaleX = Number(this.parsedPluginParameters["hpGaugeScaleX"]);
-		/**
-		* The y scale of the hp gauge sprite.
-		* @type {number}
-		*/
-		this.HpGaugeScaleY = Number(this.parsedPluginParameters["hpGaugeScaleY"]);
-		/**
-		* The rotation of the hp gauge sprite in degrees.
-		* @type {number}
-		*/
-		this.HpGaugeRotation = Number(this.parsedPluginParameters["hpGaugeRotation"]);
-		/**
-		* The x scale of the mp gauge sprite.
-		* @type {number}
-		*/
-		this.MpGaugeScaleX = Number(this.parsedPluginParameters["mpGaugeScaleX"]);
-		/**
-		* The y scale of the mp gauge sprite.
-		* @type {number}
-		*/
-		this.MpGaugeScaleY = Number(this.parsedPluginParameters["mpGaugeScaleY"]);
-		/**
-		* The rotation of the mp gauge sprite in degrees.
-		* @type {number}
-		*/
-		this.MpGaugeRotation = Number(this.parsedPluginParameters["mpGaugeRotation"]);
-		/**
-		* The x scale of the tp gauge sprite.
-		* @type {number}
-		*/
-		this.TpGaugeScaleX = Number(this.parsedPluginParameters["tpGaugeScaleX"]);
-		/**
-		* The y scale of the tp gauge sprite.
-		* @type {number}
-		*/
-		this.TpGaugeScaleY = Number(this.parsedPluginParameters["tpGaugeScaleY"]);
 		/**
 		* The rotation of the tp gauge sprite in degrees.
 		* @type {number}
@@ -556,7 +302,7 @@ globalThis.J ||= {};
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredHudVersion = "2.0.0";
+	const requiredHudVersion = "2.4.0";
 	const hasHudRequirement = J.BASE.Helpers.satisfies(J.HUD.Metadata.version.version(), requiredHudVersion);
 	if (hasHudRequirement === false) {
 		throw new Error(`Either missing J-HUD or has a lower version than the required: ${requiredHudVersion}`);
@@ -570,7 +316,7 @@ J.HUD.EXT.TARGET = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudTarget_PluginMetadata}
 */
-J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "1.2.0");
+J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "2.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -664,6 +410,13 @@ var FramedTarget = class {
 	*/
 	icon = 0;
 	/**
+	* Icons an extension wants shown ahead of the target's name, drawn after {@link #icon}.<br/>
+	* Held apart from {@link #name} so the frame decides where they go- and what goes between them and the
+	* name- rather than finding them baked into the name's text.
+	* @type {number[]}
+	*/
+	nameIconIndices = [];
+	/**
 	* The battler data of the target.
 	* @type {Game_Enemy|null}
 	*/
@@ -696,911 +449,6 @@ var FramedTarget = class {
 		this.configuration = configuration;
 		this.nameColorHex = nameColorHex;
 	}
-};
-
-//#endregion
-//#region src/plugins/hud/ext/target/sprites/Sprite_FlowingGauge.js
-/**
-* A gauge that acts like a regular `Sprite_Gauge` that is instead based
-* on images and also "flows".
-*/
-var Sprite_FlowingGauge = class Sprite_FlowingGauge extends Sprite {
-	/**
-	* Gets the background bitmap.
-	* @returns {Bitmap|null} The backgroundBitmap.
-	*/
-	backgroundBitmap() {
-		return this._backgroundBitmap;
-	}
-	/**
-	* Sets the is ready.
-	* @param {boolean} newIsReady The new isReady.
-	*/
-	setIsReady(newIsReady) {
-		this._isReady = newIsReady;
-	}
-	/**
-	* Gets the gauge bitmap.
-	* @returns {Bitmap|null} The gaugeBitmap.
-	*/
-	gaugeBitmap() {
-		return this._gaugeBitmap;
-	}
-	/**
-	* Sets the gauge bitmap.
-	* @param {Bitmap|null} newGaugeBitmap The new gaugeBitmap.
-	*/
-	setGaugeBitmap(newGaugeBitmap) {
-		this._gaugeBitmap = newGaugeBitmap;
-	}
-	/**
-	* Gets the gauge background.
-	* @returns {Sprite} The gaugeBackground.
-	*/
-	gaugeBackground() {
-		return this._gaugeBackground;
-	}
-	/**
-	* Sets the gauge background.
-	* @param {Sprite} newGaugeBackground The new gaugeBackground.
-	*/
-	setGaugeBackground(newGaugeBackground) {
-		this._gaugeBackground = newGaugeBackground;
-	}
-	/**
-	* Gets the gauge current sprite.
-	* @returns {Sprite} The gaugeCurrentSprite.
-	*/
-	gaugeCurrentSprite() {
-		return this._gaugeCurrentSprite;
-	}
-	/**
-	* Sets the gauge current sprite.
-	* @param {Sprite} newGaugeCurrentSprite The new gaugeCurrentSprite.
-	*/
-	setGaugeCurrentSprite(newGaugeCurrentSprite) {
-		this._gaugeCurrentSprite = newGaugeCurrentSprite;
-	}
-	/**
-	* Gets the gauge actual sprite.
-	* @returns {Sprite} The gaugeActualSprite.
-	*/
-	gaugeActualSprite() {
-		return this._gaugeActualSprite;
-	}
-	/**
-	* Sets the gauge actual sprite.
-	* @param {Sprite} newGaugeActualSprite The new gaugeActualSprite.
-	*/
-	setGaugeActualSprite(newGaugeActualSprite) {
-		this._gaugeActualSprite = newGaugeActualSprite;
-	}
-	/**
-	* Gets the gauge current.
-	* @returns {number} The gaugeCurrent.
-	*/
-	gaugeCurrent() {
-		return this._gaugeCurrent;
-	}
-	/**
-	* Sets the gauge current.
-	* @param {number} newGaugeCurrent The new gaugeCurrent.
-	*/
-	setGaugeCurrent(newGaugeCurrent) {
-		this._gaugeCurrent = newGaugeCurrent;
-	}
-	/**
-	* Gets the gauge target.
-	* @returns {number} The gaugeTarget.
-	*/
-	gaugeTarget() {
-		return this._gaugeTarget;
-	}
-	/**
-	* Sets the gauge target.
-	* @param {number} newGaugeTarget The new gaugeTarget.
-	*/
-	setGaugeTarget(newGaugeTarget) {
-		this._gaugeTarget = newGaugeTarget;
-	}
-	/**
-	* Gets the gauge max.
-	* @returns {number} The gaugeMax.
-	*/
-	gaugeMax() {
-		return this._gaugeMax;
-	}
-	/**
-	* Sets the gauge max.
-	* @param {number} newGaugeMax The new gaugeMax.
-	*/
-	setGaugeMax(newGaugeMax) {
-		this._gaugeMax = newGaugeMax;
-	}
-	/**
-	* Gets the battler.
-	* @returns {Game_Enemy|null} The battler.
-	*/
-	battler() {
-		return this._battler;
-	}
-	/**
-	* Sets the battler.
-	* @param {Game_Enemy|null} newBattler The new battler.
-	*/
-	setBattler(newBattler) {
-		this._battler = newBattler;
-	}
-	/**
-	* Gets the gauge type.
-	* @returns {Sprite_FlowingGauge.Types} The gaugeType.
-	*/
-	gaugeType() {
-		return this._gaugeType;
-	}
-	/**
-	* Sets the gauge type.
-	* @param {Sprite_FlowingGauge.Types} newGaugeType The new gaugeType.
-	*/
-	setGaugeType(newGaugeType) {
-		this._gaugeType = newGaugeType;
-	}
-	/**
-	* Gets the gauge slice fill min x.
-	* @returns {number} The gaugeSliceFillMinX.
-	*/
-	gaugeSliceFillMinX() {
-		return this._gaugeSliceFillMinX;
-	}
-	/**
-	* Sets the gauge slice fill min x.
-	* @param {number} newGaugeSliceFillMinX The new gaugeSliceFillMinX.
-	*/
-	setGaugeSliceFillMinX(newGaugeSliceFillMinX) {
-		this._gaugeSliceFillMinX = newGaugeSliceFillMinX;
-	}
-	/**
-	* Gets the gauge slice fill inner width.
-	* @returns {number} The gaugeSliceFillInnerWidth.
-	*/
-	gaugeSliceFillInnerWidth() {
-		return this._gaugeSliceFillInnerWidth;
-	}
-	/**
-	* Sets the gauge slice fill inner width.
-	* @param {number} newGaugeSliceFillInnerWidth The new gaugeSliceFillInnerWidth.
-	*/
-	setGaugeSliceFillInnerWidth(newGaugeSliceFillInnerWidth) {
-		this._gaugeSliceFillInnerWidth = newGaugeSliceFillInnerWidth;
-	}
-	/**
-	* Gets the gauge actual flow limit.
-	* @returns {number} The gaugeActualFlowLimit.
-	*/
-	gaugeActualFlowLimit() {
-		return this._gaugeActualFlowLimit;
-	}
-	/**
-	* Sets the gauge actual flow limit.
-	* @param {number} newGaugeActualFlowLimit The new gaugeActualFlowLimit.
-	*/
-	setGaugeActualFlowLimit(newGaugeActualFlowLimit) {
-		this._gaugeActualFlowLimit = newGaugeActualFlowLimit;
-	}
-	/**
-	* Gets the gauge actual flow current.
-	* @returns {number} The gaugeActualFlowCurrent.
-	*/
-	gaugeActualFlowCurrent() {
-		return this._gaugeActualFlowCurrent;
-	}
-	/**
-	* Sets the gauge actual flow current.
-	* @param {number} newGaugeActualFlowCurrent The new gaugeActualFlowCurrent.
-	*/
-	setGaugeActualFlowCurrent(newGaugeActualFlowCurrent) {
-		this._gaugeActualFlowCurrent = newGaugeActualFlowCurrent;
-	}
-	/**
-	* Gets the gauge background track min x.
-	* @returns {number} The gaugeBackgroundTrackMinX.
-	*/
-	gaugeBackgroundTrackMinX() {
-		return this._gaugeBackgroundTrackMinX;
-	}
-	/**
-	* Sets the gauge background track min x.
-	* @param {number} newGaugeBackgroundTrackMinX The new gaugeBackgroundTrackMinX.
-	*/
-	setGaugeBackgroundTrackMinX(newGaugeBackgroundTrackMinX) {
-		this._gaugeBackgroundTrackMinX = newGaugeBackgroundTrackMinX;
-	}
-	/**
-	* Gets the gauge background track inner width.
-	* @returns {number} The gaugeBackgroundTrackInnerWidth.
-	*/
-	gaugeBackgroundTrackInnerWidth() {
-		return this._gaugeBackgroundTrackInnerWidth;
-	}
-	/**
-	* Sets the gauge background track inner width.
-	* @param {number} newGaugeBackgroundTrackInnerWidth The new gaugeBackgroundTrackInnerWidth.
-	*/
-	setGaugeBackgroundTrackInnerWidth(newGaugeBackgroundTrackInnerWidth) {
-		this._gaugeBackgroundTrackInnerWidth = newGaugeBackgroundTrackInnerWidth;
-	}
-	static Types = {
-		HP: "hp",
-		MP: "mp",
-		TP: "tp"
-	};
-	/**
-	* The bitmap for the background sprite.
-	* @type {Bitmap|null}
-	* @private
-	*/
-	_backgroundBitmap = null;
-	/**
-	* The sprite background of this gauge.
-	* @type {Sprite}
-	*/
-	_gaugeBackground = null;
-	/**
-	* The bitmap of the file that makes up this gauge.
-	* It is expected to be a pair of horizontal gauges equal in height.
-	* @type {Bitmap|null}
-	*/
-	_gaugeBitmap = null;
-	/**
-	* The sprite representing the "current" value of this gauge.
-	* It slides gradually over a couple seconds to the target value.
-	* @type {Sprite}
-	*/
-	_gaugeCurrentSprite = null;
-	/**
-	* The sprite representing the "actual" value of this gauge.
-	* It does not slide, it is instantly changed.
-	* @type {Sprite}
-	*/
-	_gaugeActualSprite = null;
-	/**
-	* The battler this gauge is representing when in use.
-	* @type {Game_Enemy|null}
-	*/
-	_battler = null;
-	/**
-	* The "current" value of the gauge in numeric form.
-	* @type {number}
-	*/
-	_gaugeCurrent = 0;
-	/**
-	* The "target" value of the gauge in numeric form.
-	* @type {number}
-	*/
-	_gaugeTarget = 0;
-	/**
-	* The "max" value of the gauge in numeric form.
-	* @type {number}
-	*/
-	_gaugeMax = 0;
-	/**
-	* The type of gauge this is, such as HP, MP, or TP.
-	* @type {Sprite_FlowingGauge.Types}
-	*/
-	_gaugeType = String.empty;
-	/**
-	* Whether or not this gauge is setup and ready to be drawn.
-	* @type {boolean}
-	*/
-	_isReady = false;
-	/**
-	* Left edge (in texture pixels) of the painted fill inside one gauge slice.
-	* @type {number}
-	*/
-	_gaugeSliceFillMinX = 0;
-	/**
-	* Width (in texture pixels) of the painted fill inside one gauge slice.
-	* @type {number}
-	*/
-	_gaugeSliceFillInnerWidth = 0;
-	/**
-	* Left edge (in texture pixels) of the background track interior.
-	* @type {number}
-	*/
-	_gaugeBackgroundTrackMinX = 0;
-	/**
-	* Width (in texture pixels) of the background track interior.
-	* @type {number}
-	*/
-	_gaugeBackgroundTrackInnerWidth = 0;
-	/**
-	* Initializes all properties of this class.
-	*/
-	initialize(bitmap) {
-		super.initialize(bitmap);
-		this.initializeGauges();
-	}
-	/**
-	* Initializes the gauges based on bitmaps loaded from file.
-	*/
-	initializeGauges() {
-		this.resetValues();
-		const backgroundFilename = this.extractFileName(J.HUD.EXT.TARGET.Metadata.BackgroundFilename);
-		const backgroundPromise = ImageManager.loadHudBitmap(backgroundFilename);
-		backgroundPromise.then((bitmap) => this.setBackgroundBitmap(bitmap)).catch(() => {
-			throw new Error("background bitmap failed to load.");
-		});
-		const foregroundFilename = this.extractFileName(J.HUD.EXT.TARGET.Metadata.ForegroundFilename);
-		const foregroundPromise = ImageManager.loadHudBitmap(foregroundFilename);
-		foregroundPromise.then((bitmap) => this.setForegroundBitmap(bitmap)).catch(() => {
-			throw new Error("background bitmap failed to load.");
-		});
-		Promise.all([backgroundPromise, foregroundPromise]).then(() => this.onReady());
-	}
-	/**
-	* Extracts the filename out of the extended path.
-	* @param {string} longFileName The filename with the path in it.
-	* @returns {string} Just the filename.
-	*/
-	extractFileName(longFileName) {
-		const lastSlash = longFileName.lastIndexOf("/") + 1;
-		return longFileName.substring(lastSlash);
-	}
-	/**
-	* Sets the background bitmap to the given value.
-	* @param {Bitmap} bitmap The bitmap to set to the background.
-	*/
-	setBackgroundBitmap(bitmap) {
-		this._backgroundBitmap = bitmap;
-	}
-	/**
-	* Sets the foreground bitmap to the given value.
-	* @param {Bitmap} bitmap The bitmap to set to the foreground.
-	*/
-	setForegroundBitmap(bitmap) {
-		this.setGaugeBitmap(bitmap);
-	}
-	/**
-	* Creates gauge's background sprite.
-	*/
-	createGaugeBackground() {
-		this.setGaugeBackground(new Sprite(this.backgroundBitmap()));
-		this.gaugeBackground().x = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageX;
-		this.gaugeBackground().y = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageY;
-		this.addChild(this.gaugeBackground());
-	}
-	/**
-	* Creates gauge's foreground sprite.
-	*/
-	createGaugeForeground() {
-		this.setGaugeCurrentSprite(new Sprite(this.gaugeBitmap()));
-		this.gaugeCurrentSprite().x = J.HUD.EXT.TARGET.Metadata.MiddlegroundGaugeImageX;
-		this.gaugeCurrentSprite().y = J.HUD.EXT.TARGET.Metadata.MiddlegroundGaugeImageY;
-		this.addChild(this.gaugeCurrentSprite());
-		this.setGaugeActualSprite(new Sprite(this.gaugeBitmap()));
-		this.gaugeActualSprite().x = J.HUD.EXT.TARGET.Metadata.ForegroundGaugeImageX;
-		this.gaugeActualSprite().y = J.HUD.EXT.TARGET.Metadata.ForegroundGaugeImageY;
-		this.addChild(this.gaugeActualSprite());
-	}
-	/**
-	* Resets all gauge values to 0.
-	*/
-	resetValues() {
-		this.setGaugeCurrent(0);
-		this.setGaugeTarget(0);
-		this.setGaugeMax(0);
-	}
-	/**
-	* Clears the battler of this gauge.
-	*/
-	clearBattler() {
-		this.setBattler(null);
-	}
-	/**
-	* The "current" value of the gauge.
-	* This is spends a lot of time in flux due to gradual change for visual enjoyment.
-	* If you need the real current value, use `.target()`.
-	* @returns {number}
-	*/
-	current() {
-		return this.gaugeCurrent();
-	}
-	/**
-	* The "target" value of the gauge.
-	* This is what the "current" is striving to reach.
-	* @returns {number}
-	*/
-	target() {
-		if (this.battler()) {
-			return this.#targetByType();
-		} else {
-			return 0;
-		}
-	}
-	/**
-	* Gets the target value for this gauge by its gauge type.
-	* @returns {number}
-	*/
-	#targetByType() {
-		switch (this.gaugeType()) {
-			case Sprite_FlowingGauge.Types.HP: return this.battler().hp;
-			case Sprite_FlowingGauge.Types.MP: return this.battler().mp;
-			case Sprite_FlowingGauge.Types.TP: return this.battler().tp;
-			default: return 0;
-		}
-	}
-	/**
-	* The "max" value of the gauge.
-	* This is simply the maximum amount that the gauge represents when full.
-	* @returns {number}
-	*/
-	max() {
-		if (this.battler()) {
-			return this.#maxByType();
-		} else {
-			return 0;
-		}
-	}
-	/**
-	* Gets the max value for this gauge by its gauge type.
-	* @returns {number}
-	*/
-	#maxByType() {
-		switch (this.gaugeType()) {
-			case Sprite_FlowingGauge.Types.HP: return this.battler().mhp;
-			case Sprite_FlowingGauge.Types.MP: return this.battler().mmp;
-			case Sprite_FlowingGauge.Types.TP: return this.battler().maxTp();
-			default: return 0;
-		}
-	}
-	/**
-	* Sets up this gauge with the given enemy battler.
-	* @param {Game_Enemy} battler The enemy battler.
-	* @param {Sprite_FlowingGauge.Types} gaugeType The type of gauge this is.
-	*/
-	setup(battler, gaugeType = Sprite_FlowingGauge.Types.HP) {
-		this.setBattler(battler);
-		this.setGaugeType(gaugeType);
-		this.setupGaugeByType();
-		this.show();
-	}
-	/**
-	* Sets up the gauge based on the gauge type.
-	*/
-	setupGaugeByType() {
-		this.gaugeCurrentSprite().setColorTone(this.greyTone());
-		switch (this.gaugeType()) {
-			case Sprite_FlowingGauge.Types.HP:
-				this.setupGaugeAsHp();
-				break;
-			case Sprite_FlowingGauge.Types.MP:
-				this.setupGaugeAsMp();
-				break;
-			case Sprite_FlowingGauge.Types.TP:
-				this.setupGaugeAsTp();
-				break;
-		}
-	}
-	/**
-	* Sets up the gauge as an hp gauge.
-	*/
-	setupGaugeAsHp() {
-		this.setGaugeCurrent(this.battler().hp);
-		this.setGaugeTarget(this.battler().hp);
-		this.setGaugeMax(this.battler().mhp);
-		this.gaugeActualSprite().setHue(this.hpGaugeHue());
-	}
-	hpGaugeHue() {
-		return 0;
-	}
-	/**
-	* Sets up the gauge as an mp gauge.
-	*/
-	setupGaugeAsMp() {
-		this.setGaugeCurrent(this.battler().mp);
-		this.setGaugeTarget(this.battler().mp);
-		this.setGaugeMax(this.battler().mmp);
-		this.gaugeActualSprite().setHue(this.mpGaugeHue());
-	}
-	mpGaugeHue() {
-		return -180;
-	}
-	/**
-	* Sets up the gauge as a tp gauge.
-	*/
-	setupGaugeAsTp() {
-		this.setGaugeCurrent(this.battler().tp);
-		this.setGaugeTarget(this.battler().tp);
-		const maxTp = this.battler().maxTp();
-		this.setGaugeMax(maxTp);
-		this.gaugeActualSprite().setHue(this.tpGaugeHue());
-	}
-	tpGaugeHue() {
-		return 80;
-	}
-	/**
-	* Refresh this gauge by redrawing it.
-	*/
-	refresh() {
-		this.drawGauge();
-	}
-	/**
-	* The update loop of this gauge.
-	*/
-	update() {
-		super.update();
-		if (!this.isReady()) return;
-		this.updateCurrent();
-		this.updateFlow();
-		this.drawGauge();
-	}
-	/**
-	* Checks if this gauge is ready for drawing.
-	* If it is not, then updating will not take place.
-	* @returns {boolean} True if this gauge is ready, false otherwise.
-	*/
-	isReady() {
-		return this._isReady;
-	}
-	/**
-	* Executes one-time actions once the gauge is ready.
-	*/
-	onReady() {
-		this.createGaugeBackground();
-		this.createGaugeForeground();
-		this.measureGaugeArtExtents();
-		this.alignGaugeForegroundToBackgroundTrack();
-		this.updateFlowMax();
-		this.setIsReady(true);
-	}
-	/**
-	* Updates the current and max values of the flow effect.
-	*/
-	updateFlowMax() {
-		const sliceW = this.gaugeWidth();
-		const maxFlow = sliceW - this.gaugeSliceFillMinX() - this.gaugeSliceFillInnerWidth();
-		this.setGaugeActualFlowLimit(Math.max(1, maxFlow));
-		this.setGaugeActualFlowCurrent(Math.floor(Math.random() * this.gaugeActualFlowLimit()));
-	}
-	/**
-	* Updates the current value of the fore-most gauge.
-	* This is the background gauge that is a bit slower.
-	*/
-	updateCurrent() {
-		if (!this.canUpdateCurrent()) return;
-		if (this.isHpGaugeEmpty()) {
-			this.onDefeat();
-			return;
-		}
-		if (this.current() !== this.target()) {
-			this.handleCurrentValueUpdate();
-		} else {
-			this.handleCurrentValueUnchanged();
-		}
-	}
-	/**
-	* Handles the update to the "current" value while it is changing either up or down.
-	*/
-	handleCurrentValueUpdate() {
-		const changeRate = this.changeRate();
-		if (this.target() < this.current()) {
-			this.processCurrentValueIncrease(changeRate);
-		} else if (this.target() > this.current()) {
-			this.processCurrentValueDecrease(changeRate);
-		}
-	}
-	/**
-	* Processes the decrease of the current value and changes the tone.
-	*/
-	processCurrentValueIncrease(changeRate) {
-		this.setGaugeCurrent(this.gaugeCurrent() - changeRate);
-		if (this.current() < this.target()) {
-			this.setGaugeCurrent(this.gaugeTarget());
-		}
-		this.gaugeCurrentSprite().setColorTone(this.downTone());
-	}
-	/**
-	* Processes the increase of the current value and changes the tone.
-	*/
-	processCurrentValueDecrease(changeRate) {
-		this.setGaugeCurrent(this.gaugeCurrent() + changeRate);
-		if (this.current() > this.target()) {
-			this.setGaugeCurrent(this.gaugeTarget());
-		}
-		this.gaugeCurrentSprite().setColorTone(this.upTone());
-	}
-	/**
-	* Handles the update to the "current" value while it is unchanging.
-	*/
-	handleCurrentValueUnchanged() {
-		this.gaugeCurrentSprite().setColorTone(this.greyTone());
-	}
-	/**
-	* Whether or not we can update the
-	* @returns {boolean}
-	*/
-	canUpdateCurrent() {
-		if (!this.battler()) return false;
-		return true;
-	}
-	/**
-	* Whether or not this HP gauge is empty.
-	* Not applicable to non-HP gauges.
-	* @returns {boolean} True if the HP gauge target is 0, false if not HP gauge or not 0.
-	*/
-	isHpGaugeEmpty() {
-		if (this.gaugeType() !== Sprite_FlowingGauge.Types.HP) return false;
-		if (this.target() !== 0) return false;
-		return true;
-	}
-	/**
-	* Logic to execute when this target is defeated.
-	*/
-	onDefeat() {
-		this.clearBattler();
-		this.resetValues();
-	}
-	/**
-	* The hue to alter the image by when the middleground gauge is going up.
-	* The gauge goes up when you're healing, so this defaults to green.
-	* @returns {[number, number, number, number]} The color tone: [red, green, blue, grey].
-	*/
-	upTone() {
-		return [
-			0,
-			255,
-			0,
-			128
-		];
-	}
-	/**
-	* The hue to alter the image by when the middleground gauge is going down.
-	* @returns {[number, number, number, number]} The color tone: [red, green, blue, grey].
-	*/
-	downTone() {
-		return [
-			255,
-			0,
-			0,
-			0
-		];
-	}
-	/**
-	* The color tone to turn the sprite greyscale.
-	* @returns {[number, number, number, number]} The color tone: [red, green, blue, grey].
-	*/
-	greyTone() {
-		return [
-			0,
-			0,
-			0,
-			255
-		];
-	}
-	/**
-	* Calculates the rate of which to increment/decrement the current gauge.
-	* The gauge goes down when they are hurting, so this defaults to red.
-	* @returns {number}
-	*/
-	changeRate() {
-		const divisor = 10;
-		const rate = Math.abs((this.target() - this.current()) / divisor);
-		return rate;
-	}
-	/**
-	* Update the flow meter to give the flowy aesthetic.
-	*/
-	updateFlow() {
-		this.setGaugeActualFlowCurrent(this.gaugeActualFlowCurrent() + .3);
-		if (this.gaugeActualFlowCurrent() > this.gaugeActualFlowLimit()) {
-			this.setGaugeActualFlowCurrent(0);
-		}
-	}
-	/**
-	* Draws this gauge.
-	*/
-	drawGauge() {
-		this.drawCurrentGauge();
-		this.drawActualGauge();
-	}
-	/**
-	* Draws the "current" gauge, the gauge drawn in the middleground that
-	* represents the amount that the enemy looks like they have. This extra
-	* bar is drawn mostly for effect, and will spend a lot of time in-flux.
-	*/
-	drawCurrentGauge() {
-		const gaugeHeight = this.gaugeHeight();
-		const factor = this.current() / this.max() * this.gaugeSliceFillInnerWidth();
-		const frameX = this.gaugeActualFlowCurrent() + this.gaugeSliceFillMinX();
-		this.gaugeCurrentSprite().setFrame(frameX, gaugeHeight, factor, gaugeHeight);
-	}
-	/**
-	* Draws the "actual" gauge, the gauge drawn in the foremost-ground that
-	* represents the amount that the enemy currently has.
-	*/
-	drawActualGauge() {
-		const gaugeHeight = this.gaugeHeight();
-		const factor = this.target() / this.max() * this.gaugeSliceFillInnerWidth();
-		const frameX = this.gaugeActualFlowCurrent() + this.gaugeSliceFillMinX();
-		this.gaugeActualSprite().setFrame(frameX, 0, factor, gaugeHeight);
-	}
-	/**
-	* The width of the gauge.
-	* @returns {number}
-	*/
-	gaugeWidth() {
-		return Math.floor(this.gaugeBitmap().width / 3);
-	}
-	/**
-	* The height of the gauge.
-	* @returns {number}
-	*/
-	gaugeHeight() {
-		return Math.floor(this.gaugeBitmap().height / 2);
-	}
-	/**
-	* Measures the interior track on the background and the interior fill band on the foreground slice.
-	* This keeps HP/MP bars inside the frame art when `scale.x` is cranked up.
-	*/
-	measureGaugeArtExtents() {
-		this.setGaugeSliceFillMinX(0);
-		this.setGaugeSliceFillInnerWidth(1);
-		this.setGaugeBackgroundTrackMinX(0);
-		this.setGaugeBackgroundTrackInnerWidth(1);
-		if (!this.gaugeBitmap()) return;
-		const sliceW = this.gaugeWidth();
-		const sliceH = this.gaugeHeight();
-		if (sliceW === 0 || sliceH === 0) return;
-		this.setGaugeSliceFillInnerWidth(sliceW);
-		this.setGaugeBackgroundTrackInnerWidth(this.backgroundBitmap() ? this.backgroundBitmap().width : sliceW);
-		if (!this.backgroundBitmap()) return;
-		const bgTrack = this.measureLongestOpaqueDarkHorizontalRun(this.backgroundBitmap(), 0, 0, this.backgroundBitmap().width, this.backgroundBitmap().height, 80);
-		const topTrack = this.measureBrightHorizontalExtent(this.gaugeBitmap(), 0, 0, sliceW, sliceH, 24);
-		const bottomTrack = this.measureBrightHorizontalExtent(this.gaugeBitmap(), 0, sliceH, sliceW, sliceH, 24);
-		const fillMinX = Math.min(topTrack.minX, bottomTrack.minX);
-		const fillMaxX = Math.max(topTrack.maxX, bottomTrack.maxX);
-		const fillInnerW = Math.max(1, fillMaxX - fillMinX + 1);
-		const trackInnerW = Math.max(1, bgTrack.maxX - bgTrack.minX + 1);
-		this.setGaugeSliceFillMinX(fillMinX);
-		this.setGaugeSliceFillInnerWidth(fillInnerW);
-		this.setGaugeBackgroundTrackMinX(bgTrack.minX);
-		this.setGaugeBackgroundTrackInnerWidth(trackInnerW);
-	}
-	/**
-	* Positions and scales the bar sprites so the measured fill maps onto the measured background track.
-	*/
-	alignGaugeForegroundToBackgroundTrack() {
-		if (!this.gaugeCurrentSprite() || !this.gaugeActualSprite()) return;
-		if (this.gaugeSliceFillInnerWidth() <= 0 || this.gaugeBackgroundTrackInnerWidth() <= 0) return;
-		const bgX = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageX;
-		const fillLeftX = bgX + this.gaugeBackgroundTrackMinX();
-		const troughRightExclusive = bgX + this.gaugeBackgroundTrackMinX() + this.gaugeBackgroundTrackInnerWidth();
-		const effectiveBarWidth = Math.max(1, Math.min(this.gaugeBackgroundTrackInnerWidth(), troughRightExclusive - fillLeftX));
-		const ratio = effectiveBarWidth / this.gaugeSliceFillInnerWidth();
-		this.gaugeCurrentSprite().scale.x = ratio;
-		this.gaugeActualSprite().scale.x = ratio;
-		this.gaugeCurrentSprite().x = fillLeftX;
-		this.gaugeActualSprite().x = fillLeftX;
-	}
-	/**
-	* Finds the horizontal span of "bright enough" pixels inside a bitmap rectangle.
-	* Used to ignore near-black border pixels that are still opaque.
-	* @param {Bitmap} bitmap The bitmap to scan.
-	* @param {number} rectX The left of the scan rectangle.
-	* @param {number} rectY The top of the scan rectangle.
-	* @param {number} rectW The width of the scan rectangle.
-	* @param {number} rectH The height of the scan rectangle.
-	* @param {number} minBrightSum Minimum r+g+b sum to count as interior content.
-	* @returns {{minX:number,maxX:number}}
-	*/
-	measureBrightHorizontalExtent(bitmap, rectX, rectY, rectW, rectH, minBrightSum) {
-		let minX = rectW;
-		let maxX = -1;
-		for (let y = 0; y < rectH; y++) {
-			for (let x = 0; x < rectW; x++) {
-				const px = rectX + x;
-				const py = rectY + y;
-				if (bitmap.getAlphaPixel(px, py) < 8) continue;
-				const hex = bitmap.getPixel(px, py);
-				const bright = this.sumRgbFromHexString(hex);
-				if (bright <= minBrightSum) continue;
-				minX = Math.min(minX, x);
-				maxX = Math.max(maxX, x);
-			}
-		}
-		if (maxX < 0) {
-			return {
-				minX: 0,
-				maxX: rectW - 1
-			};
-		}
-		return {
-			minX,
-			maxX
-		};
-	}
-	/**
-	* Finds the longest horizontal run of opaque "dark" pixels in a rectangle (row by row).
-	* Used for capsule-style gauge frames where the playable trough is darker than the end caps.
-	* @param {Bitmap} bitmap The bitmap to scan.
-	* @param {number} rectX The left of the scan rectangle.
-	* @param {number} rectY The top of the scan rectangle.
-	* @param {number} rectW The width of the scan rectangle.
-	* @param {number} rectH The height of the scan rectangle.
-	* @param {number} maxDarkSum Inclusive ceiling on r+g+b for a pixel to count as trough (caps sit above this).
-	* @returns {{minX:number,maxX:number}} Inclusive span of the best run in the same local x space as
-	* {@link measureBrightHorizontalExtent}.
-	*/
-	measureLongestOpaqueDarkHorizontalRun(bitmap, rectX, rectY, rectW, rectH, maxDarkSum) {
-		let bestMinX = 0;
-		let bestMaxX = rectW - 1;
-		let bestLen = 0;
-		for (let y = 0; y < rectH; y++) {
-			const py = rectY + y;
-			let runStart = -1;
-			for (let x = 0; x <= rectW; x++) {
-				const atEnd = x === rectW;
-				let isDark = false;
-				if (atEnd === false) {
-					const px = rectX + x;
-					if (bitmap.getAlphaPixel(px, py) < 8) {
-						isDark = false;
-					} else {
-						const sum = this.sumRgbFromHexString(bitmap.getPixel(px, py));
-						isDark = sum <= maxDarkSum;
-					}
-				}
-				if (isDark && runStart < 0) {
-					runStart = x;
-				}
-				if ((isDark === false || atEnd) && runStart >= 0) {
-					const runEnd = x - 1;
-					const len = runEnd - runStart + 1;
-					if (len > bestLen) {
-						bestLen = len;
-						bestMinX = runStart;
-						bestMaxX = runEnd;
-					}
-					runStart = -1;
-				}
-			}
-		}
-		if (bestLen === 0) {
-			return {
-				minX: 0,
-				maxX: rectW - 1
-			};
-		}
-		return {
-			minX: bestMinX,
-			maxX: bestMaxX
-		};
-	}
-	/**
-	* Parses `#RRGGBB` from {@link Bitmap#getPixel} and sums the channels.
-	* @param {string} hex The color string.
-	* @returns {number}
-	*/
-	sumRgbFromHexString(hex) {
-		if (!hex || hex.length < 7) return 0;
-		const r = parseInt(hex.slice(1, 3), 16);
-		const g = parseInt(hex.slice(3, 5), 16);
-		const b = parseInt(hex.slice(5, 7), 16);
-		return r + g + b;
-	}
-};
-
-//#endregion
-//#region src/plugins/hud/ext/target/managers/ImageManager.js
-/**
-* Generates a promise based on the resolution of the bitmap.<br/>
-* If the promise resolves successfully, it'll contain the bitmap.<br/>
-* If the promise rejects, then it is up to the handler how to deal with that.<br/>
-* @param {string} filename The name of the file without the file extension.
-* @returns {Promise}
-*/
-ImageManager.loadHudBitmap = function(filename) {
-	return this.loadBitmapPromise(filename, "img/hud/");
 };
 
 //#endregion
@@ -1832,8 +680,18 @@ JABS_Battler.prototype.buildFramedTarget = function(battlerLastHit) {
 	const targetFrameText = battlerLastHit.getTargetFrameText();
 	const targetFrameIcon = battlerLastHit.getTargetFrameIcon();
 	const targetConfiguration = battlerLastHit.buildFramedTargetConfiguration();
-	return new FramedTarget(battlerName, targetFrameText, targetFrameIcon, battlerLastHit.getBattler(), targetConfiguration, String.empty);
+	const framedTarget = new FramedTarget(battlerName, targetFrameText, targetFrameIcon, battlerLastHit.getBattler(), targetConfiguration, String.empty);
+	this.decorateFramedTarget(framedTarget, battlerLastHit);
+	return framedTarget;
 };
+/**
+* Decorates a framed target once it is built: the hook extensions alias to add to how a target is shown.
+* J-Passive-Affix adds a tier's name, icons, and color here. The boss frame runs its boss through this same
+* hook, so whatever an extension adds shows up on the boss frame as well as the target frame.
+* @param {FramedTarget} _framedTarget The framed target to decorate in place.
+* @param {JABS_Battler} _framedBattler The battler the framed target shows.
+*/
+JABS_Battler.prototype.decorateFramedTarget = function(_framedTarget, _framedBattler) {};
 /**
 * Determines whether or not the target frame will show for the given target.
 * @returns {boolean} True if we should show the target frame, false otherwise.
@@ -1963,6 +821,26 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 	*/
 	static MaxDuration = 180;
 	/**
+	* The size of each of the frame's gauges, in pixels. Each gauge's bar fills its whole bitmap, so the height is
+	* both.
+	* @type {{hp: {width: number, height: number}, mp: {width: number, height: number},
+	* tp: {width: number, height: number}}}
+	*/
+	static GaugeSizes = {
+		hp: {
+			width: 200,
+			height: 12
+		},
+		mp: {
+			width: 200,
+			height: 6
+		},
+		tp: {
+			width: 30,
+			height: 6
+		}
+	};
+	/**
 	* Constructor.
 	* @param {Rectangle} rect The shape of this window.
 	*/
@@ -2018,6 +896,11 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		*/
 		this._j._icon = 0;
 		/**
+		* Icons an extension placed ahead of the target's name, drawn after the target's own icon.
+		* @type {number[]}
+		*/
+		this._j._nameIconIndices = [];
+		/**
 		* The battler of the target.
 		* @type {Game_Actor|Game_Enemy}
 		*/
@@ -2036,7 +919,7 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 	/**
 	* Gets the j.
 	* @returns {{_spriteCache: Map<string, Sprite>, _name: string, _nameColorHex: string, _text: string,
-	* _icon: number, _battler: Game_Battler|null, _requestTargetRefresh: boolean,
+	* _icon: number, _nameIconIndices: number[], _battler: Game_Battler|null, _requestTargetRefresh: boolean,
 	* _inactivityTimer: number}} The j.
 	*/
 	j() {
@@ -2072,54 +955,44 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		this.getOrCreateTargetTpGaugeSprite();
 	}
 	/**
-	* Creates an target gauge sprite for this window and caches it.
-	* @returns {Sprite_FlowingGauge} The gauge sprite of the target.
+	* Creates the target's hp gauge sprite for this window and caches it.
+	* @returns {Sprite_MapGauge} The gauge sprite of the target.
 	*/
 	getOrCreateTargetHpGaugeSprite() {
-		const key = `targetframe-enemy-hp-gauge`;
-		if (this.j()._spriteCache.has(key)) {
-			return this.j()._spriteCache.get(key);
-		}
-		const sprite = new Sprite_FlowingGauge();
-		this.j()._spriteCache.set(key, sprite);
-		sprite.hide();
-		sprite.scale.x = J.HUD.EXT.TARGET.Metadata.HpGaugeScaleX;
-		sprite.scale.y = J.HUD.EXT.TARGET.Metadata.HpGaugeScaleY;
-		this.addChild(sprite);
-		return sprite;
+		return this.getOrCreateGaugeSprite("targetframe-enemy-hp-gauge", Window_TargetFrame.GaugeSizes.hp);
 	}
 	/**
-	* Creates an target gauge sprite for this window and caches it.
-	* @returns {Sprite_FlowingGauge} The gauge sprite of the target.
+	* Creates the target's mp gauge sprite for this window and caches it.
+	* @returns {Sprite_MapGauge} The gauge sprite of the target.
 	*/
 	getOrCreateTargetMpGaugeSprite() {
-		const key = `targetframe-enemy-mp-gauge`;
-		if (this.j()._spriteCache.has(key)) {
-			return this.j()._spriteCache.get(key);
-		}
-		const sprite = new Sprite_FlowingGauge();
-		this.j()._spriteCache.set(key, sprite);
-		sprite.hide();
-		sprite.scale.x = J.HUD.EXT.TARGET.Metadata.MpGaugeScaleX;
-		sprite.scale.y = J.HUD.EXT.TARGET.Metadata.MpGaugeScaleY;
-		this.addChild(sprite);
+		return this.getOrCreateGaugeSprite("targetframe-enemy-mp-gauge", Window_TargetFrame.GaugeSizes.mp);
+	}
+	/**
+	* Creates the target's tp gauge sprite for this window and caches it.<br/>
+	* The tp gauge stands on end beside the others, turned however far the plugin settings say.
+	* @returns {Sprite_MapGauge} The gauge sprite of the target.
+	*/
+	getOrCreateTargetTpGaugeSprite() {
+		const sprite = this.getOrCreateGaugeSprite("targetframe-enemy-tp-gauge", Window_TargetFrame.GaugeSizes.tp);
+		sprite.rotation = J.HUD.EXT.TARGET.Metadata.TpGaugeRotation * (Math.PI / 180);
 		return sprite;
 	}
 	/**
-	* Creates an target gauge sprite for this window and caches it.
-	* @returns {Sprite_FlowingGauge} The gauge sprite of the target.
+	* Creates a gauge sprite of the given size for this window and caches it under the given key- or hands back
+	* the one already cached there.
+	* @param {string} key The key the gauge is cached under.
+	* @param {{width: number, height: number}} size The size of the gauge, in pixels.
+	* @returns {Sprite_MapGauge}
 	*/
-	getOrCreateTargetTpGaugeSprite() {
-		const key = `targetframe-enemy-tp-gauge`;
+	getOrCreateGaugeSprite(key, size) {
 		if (this.j()._spriteCache.has(key)) {
 			return this.j()._spriteCache.get(key);
 		}
-		const sprite = new Sprite_FlowingGauge();
+		const { width, height } = size;
+		const sprite = new Sprite_MapGauge(width, height, height);
 		this.j()._spriteCache.set(key, sprite);
 		sprite.hide();
-		sprite.rotation = J.HUD.EXT.TARGET.Metadata.TpGaugeRotation * (Math.PI / 180);
-		sprite.scale.x = J.HUD.EXT.TARGET.Metadata.TpGaugeScaleX;
-		sprite.scale.y = J.HUD.EXT.TARGET.Metadata.TpGaugeScaleY;
 		this.addChild(sprite);
 		return sprite;
 	}
@@ -2132,6 +1005,7 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		this.j()._nameColorHex = target.nameColorHex;
 		this.j()._text = target.text;
 		this.j()._icon = target.icon;
+		this.j()._nameIconIndices = target.nameIconIndices;
 		this.j()._battler = target.battler;
 		this.j()._configuration = target.configuration;
 		this.refresh();
@@ -2175,6 +1049,13 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 	*/
 	targetIcon() {
 		return this.j()._icon;
+	}
+	/**
+	* Gets the icons an extension placed ahead of the current target's name.
+	* @returns {number[]}
+	*/
+	targetNameIconIndices() {
+		return this.j()._nameIconIndices;
 	}
 	/**
 	* Gets the configuration of the current target.
@@ -2223,42 +1104,61 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		}
 	}
 	/**
-	* Pixel width reserved for the level column (Lv.xxx).
-	* @returns {number}
-	*/
-	targetFrameLevelColumnWidth() {
-		return 96;
-	}
-	/**
-	* Max draw width for the name row so the level column does not overlap long tier names.
-	* @returns {number}
-	*/
-	targetFrameNameLineInnerWidth() {
-		const gap = 8;
-		const w = this.contentsWidth() - this.targetFrameLevelColumnWidth() - gap;
-		return Math.max(200, w);
-	}
-	/**
-	* X offset for the level text (right-hand column after the name).
-	* @param {number} baseX Content-relative base x.
-	* @returns {number}
-	*/
-	targetFrameLevelDrawX(baseX) {
-		return baseX + this.targetFrameNameLineInnerWidth() + 4;
-	}
-	/**
 	* Max width for subtext lines that span the window body.
 	* @returns {number}
 	*/
 	targetFrameBodyTextWidth() {
 		return Math.max(200, this.contentsWidth() - 8);
 	}
+	/**
+	* Lays out the target frame, top to bottom: a name row of icons, level, and name; the target's extra
+	* text beneath that, when it has any; then the gauges.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
 	drawContent(x, y) {
-		this.drawTargetName(x, y);
-		this.drawTargetLevel(this.targetFrameLevelDrawX(x), y);
+		this.drawTargetNameRow(x, y);
 		this.drawTargetExtra(x, y + 24);
-		this.drawTargetIcon(x, y + 48);
-		this.drawTargetBattlerInfo(x + 32, y);
+		this.drawTargetBattlerInfo(x, y);
+	}
+	/**
+	* Draws the name row: the target's icons, then its level, then its name, left to right.<br/>
+	* Each piece is drawn on its own, so each keeps its own size and color, and each is centered on the
+	* name's line- the name being the tallest thing on it.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
+	drawTargetNameRow(x, y) {
+		const iconsWidth = this.drawTargetRowIcons(x, y);
+		const levelX = x + iconsWidth;
+		const levelWidth = this.drawTargetLevel(levelX, y + 5);
+		const levelSpan = levelWidth > 0 ? levelWidth + 6 : 0;
+		this.drawTargetName(levelX + levelSpan, y);
+	}
+	/**
+	* Draws the icons that lead the name row: the target's own icon, then any an extension set ahead of
+	* its name.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate of the row.
+	* @returns {number} The width the icons took, including the gap after them; 0 when there were none.
+	*/
+	drawTargetRowIcons(x, y) {
+		const iconIndices = this.targetRowIconIndices();
+		if (iconIndices.length === 0) return 0;
+		const iconY = y + 1;
+		const pitch = ImageManager.iconWidth + 2;
+		iconIndices.forEach((iconIndex, index) => {
+			this.drawIcon(iconIndex, x + index * pitch, iconY);
+		});
+		return iconIndices.length * pitch + 4;
+	}
+	/**
+	* The icon indices that lead the name row, in the order they are drawn.
+	* @returns {number[]}
+	*/
+	targetRowIconIndices() {
+		const ownIcons = this.hasTargetIcon() ? [this.targetIcon()] : [];
+		return [...ownIcons, ...this.targetNameIconIndices()];
 	}
 	/**
 	* Handles inactivity of this window.
@@ -2273,20 +1173,19 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		}
 	}
 	/**
-	* Fades out the target frame window along with all sprites and content.
+	* Fades out the target frame's contents and sprites.<br/>
+	* The frame floats over the map with no window drawn behind it, so there is no window frame or background
+	* to fade- {@link #configure} hid those for good.
 	*/
 	fadeOutWindow() {
-		this.opacity -= 10;
-		this.backOpacity -= 10;
 		this.contentsOpacity -= 10;
 		this.j()._spriteCache.forEach((sprite, _) => sprite.opacity -= 10);
 	}
 	/**
-	* Fades in the target frame window along with all sprites and content.
+	* Fades in the target frame's contents and sprites.<br/>
+	* Only those two- the window frame and background stay hidden, so the frame keeps floating.
 	*/
 	fadeInWindow() {
-		this.opacity += 40;
-		this.backOpacity += 40;
 		this.contentsOpacity += 40;
 		this.j()._spriteCache.forEach((sprite, _) => sprite.opacity += 40);
 	}
@@ -2306,35 +1205,79 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 	drawTargetName(x, y) {
 		let name = `\\FS[24]${this.targetName()}`;
 		if (J.MESSAGE) {
-			name = `\\*` + name;
+			name = `\\*${name}`;
 		}
+		const color = this.targetNameColor();
+		const width = this.contentsWidth() - x;
+		this.drawTextExInColor(name, x, y, width, color);
+	}
+	/**
+	* The color the target's name is drawn in.<br/>
+	* The color an extension asked for on the framed target, when it asked for one- J-Passive-Affix asks for a
+	* tier's color- and the normal text color otherwise.
+	* @returns {string}
+	*/
+	targetNameColor() {
 		const hex = this.j()._nameColorHex;
-		const useHex = hex !== String.empty && hex.length > 0;
-		const w = this.targetFrameNameLineInnerWidth();
-		this.contents.fontFace = $gameSystem.mainFontFace();
-		this.contents.fontSize = $gameSystem.mainFontSize();
-		if (useHex) {
-			this.changeTextColor(hex);
-			this.changeOutlineColor(ColorManager.outlineColor());
-		} else {
-			this.resetFontSettings();
-		}
-		const textState = this.createTextState(name, x, y, w);
+		if (hex !== String.empty) return hex;
+		return ColorManager.normalColor();
+	}
+	/**
+	* Draws text-coded text starting in the given color, and reports how wide it drew.<br/>
+	* {@link Window_Base#drawTextEx} opens by resetting the font, and that reset returns the text color to
+	* normal- so a color set before calling it never survives into the draw. This takes the same steps with
+	* the color applied after the reset instead.
+	* @param {string} text The text to draw, escape codes included.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} width The width the text may take.
+	* @param {string} color The color the text starts in.
+	* @returns {number}
+	*/
+	drawTextExInColor(text, x, y, width, color) {
+		this.resetFontSettings();
+		this.changeTextColor(color);
+		const textState = this.createTextState(text, x, y, width);
 		this.processAllText(textState);
 		this.resetTextColor();
+		return textState.outputWidth;
 	}
 	/**
 	* Draws the target's level in the window.
 	* @param {number} x The x coordinate.
 	* @param {number} y The y coordinate.
+	* @returns {number} The width the level took; 0 when there was no level to draw.
 	*/
 	drawTargetLevel(x, y) {
-		if (!this.canDrawTargetLevel()) return;
+		if (!this.canDrawTargetLevel()) return 0;
 		const { level } = this.j()._battler;
-		if (level) {
-			const levelString = `\\FS[14]Lv.${level.padZero(3)}`;
-			this.drawTextEx(levelString, x, y, this.targetFrameLevelColumnWidth());
-		}
+		if (!level) return 0;
+		const levelString = `\\FS[14]Lv.${level.padZero(3)}`;
+		return this.drawTargetLevelText(levelString, x, y);
+	}
+	/**
+	* Draws the already-built level string at the given spot, in the level's color.<br/>
+	* Kept apart from {@link #drawTargetLevel} so a frame with a different layout can decide where the
+	* level goes without re-deciding whether there is a level to draw at all.
+	* @param {string} levelString The level text, escape codes included.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @returns {number} The width the level took.
+	*/
+	drawTargetLevelText(levelString, x, y) {
+		const color = this.targetLevelColor();
+		const width = this.contentsWidth() - x;
+		return this.drawTextExInColor(levelString, x, y, width, color);
+	}
+	/**
+	* The color the target's level is drawn in.<br/>
+	* The normal text color by default. This is the hook for extensions that have something to say about a
+	* level- J-Level-Sync marks a synced level in its own color- so they can color the level without building
+	* or drawing it themselves.
+	* @returns {string}
+	*/
+	targetLevelColor() {
+		return ColorManager.normalColor();
 	}
 	/**
 	* Determines whether or not we can draw the level of the target.
@@ -2363,15 +1306,6 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		return true;
 	}
 	/**
-	* Draws the target's icon in the window.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	*/
-	drawTargetIcon(x, y) {
-		if (!this.hasTargetIcon()) return;
-		this.drawIcon(this.targetIcon(), x, y + 4);
-	}
-	/**
 	* Determines whether or not we have an icon to draw for the current target.
 	* @returns {boolean}
 	*/
@@ -2394,14 +1328,13 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		}
 	}
 	/**
-	* Calculate the X coordinate for gauges.
+	* Calculate the X coordinate for gauges.<br/>
+	* The gauges are children of the window rather than of its contents, and the contents start the window's
+	* padding in from its edge- so shifting by the padding is what lines the gauges up with the name row.
 	* @returns {number}
 	*/
 	targetBattlerGaugesX() {
-		if (this.hasTargetIcon()) {
-			return ImageManager.iconWidth;
-		}
-		return -8;
+		return this.padding;
 	}
 	/**
 	* Calculate the Y coordinate for gauges.
@@ -2414,49 +1347,75 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		return 44;
 	}
 	/**
+	* How far below the top of the gauges the afflictions start.<br/>
+	* The mp gauge hangs beneath the hp gauge when it is shown, so the gauges run deeper with it than without.
+	* @returns {number}
+	*/
+	targetGaugeStackHeight() {
+		const { hp, mp } = Window_TargetFrame.GaugeSizes;
+		if (this.targetConfiguration().showMp) return hp.height + 2 + mp.height + 4;
+		return hp.height + 4;
+	}
+	/**
 	* Draws the target's various gauges.
 	* @param {number} x The x coordinate.
 	* @param {number} y The y coordinate.
 	*/
 	drawTargetBattlerGauges(x, y) {
+		const mpY = y + Window_TargetFrame.GaugeSizes.hp.height + 2;
 		this.drawTargetHpGauge(x, y);
-		this.drawTargetMpGauge(x, y + 22);
+		this.drawTargetMpGauge(x, mpY);
 		this.drawTargetTpGauge(x - 10, y + 32);
 	}
 	/**
 	* Draws the hp gauge of the target.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
 	*/
 	drawTargetHpGauge(x, y) {
 		const gauge = this.getOrCreateTargetHpGaugeSprite();
-		if (!this.targetConfiguration().showHp) {
-			gauge.hide();
-			return;
-		}
-		gauge.setup(this.j()._battler, Sprite_FlowingGauge.Types.HP);
-		gauge.move(x, y);
+		const { showHp } = this.targetConfiguration();
+		this.placeTargetGauge(gauge, "hp", showHp, x, y);
 	}
 	/**
 	* Draws the mp gauge of the target.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
 	*/
 	drawTargetMpGauge(x, y) {
 		const gauge = this.getOrCreateTargetMpGaugeSprite();
-		if (!this.targetConfiguration().showMp) {
-			gauge.hide();
-			return;
-		}
-		gauge.setup(this.j()._battler, Sprite_FlowingGauge.Types.MP);
-		gauge.move(x, y);
+		const { showMp } = this.targetConfiguration();
+		this.placeTargetGauge(gauge, "mp", showMp, x, y);
 	}
 	/**
 	* Draws the tp gauge of the target.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
 	*/
 	drawTargetTpGauge(x, y) {
 		const gauge = this.getOrCreateTargetTpGaugeSprite();
-		if (!this.targetConfiguration().showTp) {
+		const { showTp } = this.targetConfiguration();
+		this.placeTargetGauge(gauge, "tp", showTp, x, y);
+	}
+	/**
+	* Points one of the target's gauges at the framed battler and puts it on screen- or hides it, when the target
+	* does not show that gauge.<br/>
+	* A map gauge that has been hidden also stops updating, and showing it again does not start it back up, so
+	* both happen here explicitly. Without that, the gauge would draw once and then freeze.
+	* @param {Sprite_MapGauge} gauge The gauge to place.
+	* @param {string} statusType The resource the gauge shows, such as "hp".
+	* @param {boolean} isShown Whether the target shows this gauge at all.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
+	placeTargetGauge(gauge, statusType, isShown, x, y) {
+		if (!isShown) {
 			gauge.hide();
 			return;
 		}
-		gauge.setup(this.j()._battler, Sprite_FlowingGauge.Types.TP);
+		gauge.setup(this.j()._battler, statusType);
+		gauge.show();
+		gauge.activateGauge();
 		gauge.move(x, y);
 	}
 };
@@ -2479,17 +1438,22 @@ if (J.HUD && J.HUD.EXT.TARGET) {
 		this._afflictionPresenter = new StateAfflictionHudPresenter(this, this._j._spriteCache);
 	};
 	/**
-	* Builds the layout spec for target frame affliction rows.
+	* Builds the layout spec for the target frame's affliction strip.<br/>
+	* The frame keeps it compact: one row shared by debuffs and buffs, half-size icons, and a colored square
+	* behind each icon to tell the two apart.
 	* @returns {StateAfflictionHudLayoutSpec}
 	*/
 	Window_TargetFrame.prototype.targetAfflictionLayoutSpec = function() {
 		const layout = new StateAfflictionHudLayoutSpec();
-		layout.originX = 32;
-		if (this.hasTargetIcon()) {
-			layout.originX += ImageManager.iconWidth;
-		}
-		layout.originY = this.targetBattlerGaugesY() + 44;
-		layout.rowGap = 24;
+		layout.originX = this.targetBattlerGaugesX();
+		layout.originY = this.targetBattlerGaugesY() + this.targetGaugeStackHeight();
+		layout.singleRow = true;
+		layout.iconScale = .5;
+		layout.polarityBacking = true;
+		layout.iconPitch = 30;
+		layout.timerOffsetY = 5;
+		layout.timerFontSizeReduction = 12;
+		layout.stackFontSizeReduction = 12;
 		return layout;
 	};
 	/**
