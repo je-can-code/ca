@@ -15,9 +15,11 @@
  * - **plugin drift** - `js/plugins/j/` is exactly one build of rmmz-plugins, nothing stale beside it
  * - **notetags** - every id a tag names resolves, and every tag matches a pattern a plugin declares
  * - **config references** - every id a plugin config names in an MZ table resolves
+ * - **text codes** - every `\Code[arg]` in text the game draws names something that exists
  *
  * What a tag means comes from `js/plugins/j/manifest.json`, which rmmz-plugins' build writes and its
  * `hotfix` mirrors in with the plugins. This validator holds no knowledge of any plugin's tags itself.
+ * Text codes are the one vocabulary written down here, because the manifest publishes tags only.
  *
  * Usage:
  *   bun run validate

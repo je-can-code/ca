@@ -18,9 +18,10 @@ by a Lord? Unassigned — a free slot for future canon. Do not spend it cheaply.
 
 ## Quests
 
-### The anomaly chain: `hunt-001` … `hunt-013`
+### The anomaly chain: `hunt-001` … `hunt-012`
 Already authored in `config.quest.json`: three waves of named anomalies (Kappa → Wraith → Faerie → wave gates →
-Wisp, Goobat, Cobra → Thief, Crab, Bear), with `hunt-013` still TBD. This doc just anchors them to the NPC.
+Wisp, Goobat, Cobra → Thief, Crab, Bear). The TBD thirteenth was removed on 2026-09-28; anything past the
+third wave is an extension below. This doc just anchors them to the NPC.
 
 ### Proposed extensions (`???`)
 1. **Wave 4 — the Deluge Safari** (post-ch4): the Deluge Plains + Windward Tunnels named-enemy roster becomes the

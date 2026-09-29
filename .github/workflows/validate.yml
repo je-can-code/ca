@@ -22,14 +22,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # the validator reads the database, the plugin list and the mirrored plugins, and nothing else.
-      # img/ and audio/ are most of the working tree, so they are left out of the checkout entirely;
-      # git still tracks every file, which is what the committed-backup check reads.
+      # the validator reads the database, the plugin list, the mirrored plugins and the icon sheet, and
+      # nothing else. img/ and audio/ are most of the working tree, so they are left out of the checkout
+      # apart from img/system, which holds the icon sheet the text-code check reads to know which tiles
+      # are painted; git still tracks every file, which is what the committed-backup check reads.
       - name: Checkout
         uses: actions/checkout@v7
         with:
           sparse-checkout: |
             chef-adventure/data
+            chef-adventure/img/system
             chef-adventure/js
             tools
 
@@ -46,6 +48,7 @@ jobs:
         run: bun run validate:selftest
 
       # parse floor, committed backups, plugin drift against the rmmz-plugins manifest, every id a
-      # notetag names, and every id a plugin config names in an MZ table.
+      # notetag names, every id a plugin config names in an MZ table, and every text code in the text
+      # the game draws.
       - name: Validate
         run: bun run validate

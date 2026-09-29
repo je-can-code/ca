@@ -15,6 +15,7 @@ import { checkHousekeeping } from './checks/housekeeping.js';
 import { checkNotetags } from './checks/notetags.js';
 import { checkParse } from './checks/parse.js';
 import { checkPlugins } from './checks/plugins.js';
+import { checkTextCodes } from './checks/textcodes.js';
 import { parseJson } from './project.js';
 
 /**
@@ -70,20 +71,20 @@ const withPluginFiles = (project, edit) =>
 };
 
 /**
- * A copy of the project with one comment line added to the first page of a map event.
+ * A copy of the project with one command added to the front of the first page of a map event.
  * @param {object} project The loaded project.
  * @param {number} mapId The map holding the event.
- * @param {number} eventId The event to add the line to.
- * @param {string} line The comment line.
+ * @param {number} eventId The event to add the command to.
+ * @param {object} command The event command.
  * @returns {object}
  */
-const withEventComment = (project, mapId, eventId, line) =>
+const withFirstPageCommand = (project, mapId, eventId, command) =>
 {
   const map = project.maps.get(mapId);
   const event = map.events[eventId];
   const [ firstPage, ...otherPages ] = event.pages;
 
-  const page = { ...firstPage, list: [ { code: 108, indent: 0, parameters: [ line ] }, ...firstPage.list ] };
+  const page = { ...firstPage, list: [ command, ...firstPage.list ] };
   const events = [ ...map.events ];
   events[eventId] = { ...event, pages: [ page, ...otherPages ] };
 
@@ -94,26 +95,48 @@ const withEventComment = (project, mapId, eventId, line) =>
 };
 
 /**
- * The first armor row that exists but was never authored, which is what a dead drop points at. When
- * the table has none, an id past its end serves just as well.
- * @param {object[]} armors The armor table.
+ * A copy of the project with one comment line added to the first page of a map event.
+ * @param {object} project The loaded project.
+ * @param {number} mapId The map holding the event.
+ * @param {number} eventId The event to add the line to.
+ * @param {string} line The comment line.
+ * @returns {object}
+ */
+const withEventComment = (project, mapId, eventId, line) =>
+  withFirstPageCommand(project, mapId, eventId, { code: 108, indent: 0, parameters: [ line ] });
+
+/**
+ * A copy of the project with one message line added to the first page of a map event.
+ * @param {object} project The loaded project.
+ * @param {number} mapId The map holding the event.
+ * @param {number} eventId The event to add the line to.
+ * @param {string} line The message line, text codes and all.
+ * @returns {object}
+ */
+const withMessageLine = (project, mapId, eventId, line) =>
+  withFirstPageCommand(project, mapId, eventId, { code: 401, indent: 0, parameters: [ line ] });
+
+/**
+ * The first row of a table that exists but was never authored, which is what a dead reference points
+ * at. When the table has none, an id past its end serves just as well.
+ * @param {object[]} rows The table.
  * @returns {number}
  */
-const findBlankArmorId = armors =>
+const findBlankRowId = rows =>
 {
-  const blank = armors.findIndex((row, id) => id > 0 && row && row.name === '');
+  const blank = rows.findIndex((row, id) => id > 0 && row && row.name === '');
 
   return blank > 0
     ? blank
-    : armors.length;
+    : rows.length;
 };
 
 /**
- * The first armor row that is real, for the near miss.
- * @param {object[]} armors The armor table.
+ * The first row of a table that is real, for the near miss.
+ * @param {object[]} rows The table.
  * @returns {number}
  */
-const findRealArmorId = armors => armors.findIndex((row, id) => id > 0 && row && row.name !== '');
+const findRealRowId = rows => rows.findIndex((row, id) => id > 0 && row && row.name !== '' && row.name.startsWith('===') === false);
 
 //endregion planting
 
@@ -141,8 +164,8 @@ const newFindings = (check, project, planted) =>
 const buildControls = project =>
 {
   const { tables } = project;
-  const blankArmorId = findBlankArmorId(tables.Armors);
-  const realArmorId = findRealArmorId(tables.Armors);
+  const blankArmorId = findBlankRowId(tables.Armors);
+  const realArmorId = findRealRowId(tables.Armors);
 
   // any enemy that already drops an armor is a real row to re-aim at a dead one.
   const dropper = tables.Enemies.find(enemy => enemy && ARMOR_DROP.test(enemy.note));
@@ -166,6 +189,17 @@ const buildControls = project =>
   // the gate control needs any event on any map; the first one found will do.
   const [ gateMapId, gateMap ] = [ ...project.maps ].find(([ , map ]) => map.events.some(event => event && event.pages.length > 0));
   const gateEvent = gateMap.events.find(event => event && event.pages.length > 0);
+
+  // the text-code controls speak on that same event: a line naming a row, a bubble, an icon, a colour.
+  const blankItemId = findBlankRowId(tables.Items);
+  const realItemId = findRealRowId(tables.Items);
+  const blankSkillId = findBlankRowId(tables.Skills);
+  const describedSkill = tables.Skills.find(skill => skill && skill.name !== '');
+  const absentEventId = gateMap.events.length;
+  const offSheetIcon = project.iconSheet
+    ? project.iconSheet.drawn.length
+    : 0;
+  const speak = line => withMessageLine(project, gateMapId, gateEvent.id, line);
 
   return [
     {
@@ -263,6 +297,48 @@ const buildControls = project =>
       check: checkParse,
       planted: { ...project, parseFailures: [ { file: 'Planted.json', error: parseJson('{"truncated": [1, 2').error } ] },
       expect: [ 'Planted.json does not parse' ],
+    },
+    {
+      label: `a message line naming a blank item row (Map #${gateMapId} event #${gateEvent.id}, \\Item[${blankItemId}])`,
+      check: checkTextCodes,
+      planted: speak(`I miss the days of \\Item[${blankItemId}].`),
+      expect: [ `Map #${gateMapId}`, `event #${gateEvent.id}`, `\\Item[${blankItemId}] names Items #${blankItemId}` ],
+    },
+    {
+      label: `the same line naming a real item row (Items #${realItemId})`,
+      check: checkTextCodes,
+      planted: speak(`I miss the days of \\Item[${realItemId}].`),
+      expect: null,
+    },
+    {
+      label: `a skill description naming a blank skill row (Skills #${describedSkill.id} -> Skills #${blankSkillId})`,
+      check: checkTextCodes,
+      planted: withRow(project, 'Skills', { ...describedSkill, description: `Enhances \\Skill[${blankSkillId}].` }),
+      expect: [ `Skills #${describedSkill.id}`, `\\Skill[${blankSkillId}] names Skills #${blankSkillId}` ],
+    },
+    {
+      label: `a bubble aimed at an event the map does not hold (\\pop[e${absentEventId}])`,
+      check: checkTextCodes,
+      planted: speak(`\\pop[e${absentEventId}]Over here.`),
+      expect: [ `\\pop[e${absentEventId}] names event #${absentEventId}, which Map #${gateMapId} does not hold` ],
+    },
+    {
+      label: 'a text code nothing reads, \\Itme[1]',
+      check: checkTextCodes,
+      planted: speak('Have an \\Itme[1].'),
+      expect: [ '\\Itme[1] matches no text code' ],
+    },
+    {
+      label: `an icon past the end of the sheet (\\I[${offSheetIcon}])`,
+      check: checkTextCodes,
+      planted: speak(`\\I[${offSheetIcon}] Shiny.`),
+      expect: [ `\\I[${offSheetIcon}] names icon ${offSheetIcon}, which is off the sheet` ],
+    },
+    {
+      label: 'a colour outside the windowskin palette, \\C[32]',
+      check: checkTextCodes,
+      planted: speak('\\C[32]Loud\\C[0].'),
+      expect: [ '\\C[32] names colour 32, which is outside the windowskin palette' ],
     },
   ];
 };

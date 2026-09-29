@@ -5,6 +5,8 @@
  * by swapping one row in memory and prove the check notices, without ever touching a file on disk.
  */
 
+import { readIconSheet } from './png.js';
+
 //region paths
 
 /**
@@ -24,6 +26,13 @@ export const BUILT_PLUGINS_DIR = 'chef-adventure/js/plugins/j';
  * @type {string}
  */
 export const MANIFEST_NAME = 'manifest.json';
+
+/**
+ * The icon sheet every `\I[n]` and every `iconIndex` draws from, relative to the repository root. MZ
+ * fixes the name.
+ * @type {string}
+ */
+export const ICON_SHEET = 'chef-adventure/img/system/IconSet.png';
 
 /**
  * The MZ-owned database tables, by the name `data/<Name>.json` gives each one.
@@ -200,6 +209,12 @@ export const loadProject = async root =>
     ? JSON.parse(await manifestFile.text())
     : null;
 
+  // the icon sheet is optional the same way: absent, the text-code check reports it rather than crashes.
+  const sheetFile = Bun.file(`${root}/${ICON_SHEET}`);
+  const iconSheet = await sheetFile.exists()
+    ? readIconSheet(new Uint8Array(await sheetFile.arrayBuffer()), ICON_SHEET)
+    : null;
+
   // every built file but the manifest itself, hashed the way the manifest hashes them.
   const pluginFiles = new Map();
   for (const file of await listFiles(builtDir, '**/*'))
@@ -219,6 +234,7 @@ export const loadProject = async root =>
     plugins,
     actionMapId: findActionMapId(plugins),
     manifest,
+    iconSheet,
     pluginFiles,
     trackedFiles: listTrackedFiles(root),
   };
