@@ -466,6 +466,7 @@ J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Battler = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Action = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_CharacterBase = new Map();
+J.PASSIVE.EXT.CONDITIONAL.Aliased.Scene_Boot = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Window_PassiveDetail = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.StateAfflictionProvider = new Map();
 /**
@@ -3084,224 +3085,637 @@ StateAfflictionProvider.qualifies = function(trackedState, battler) {
 };
 
 //#endregion
-//#region src/plugins/passive/ext/conditional/models/AutoApplyStateDisplay.js
+//#region src/plugins/passive/ext/conditional/core/ConditionPhrases.js
 /**
-* Player-facing prose for {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState} tuples.<br/>
-* Handles {@code time} and {@code stand} conditions; other kinds are skipped until a passive needs them.
+* Turns the condition an automatic rule, a passive gate or a stack count hangs on into the phrase a player reads, in
+* the words the game's config keeps for each kind: "every 5 seconds", "while an ally is within 3 tiles", "per nearby
+* enemy".
+*
+* Every tuple is read the way its own reader reads it ({@link AutoRuleManager}, {@link PassiveGateEvaluator} and
+* {@link PassiveStackCountEvaluator}), so a phrase never claims a number the rule does not use. Frames are spoken as
+* seconds and distances as tiles, each through a phrase of its own, so the unit's word belongs to the game as well.
+*
+* A count of exactly one asks for its phrase's `.one` variant and never falls back to the plural, since "1 seconds"
+* is worse than no line at all. A gate reading battlers other than its holder asks for its scope's variant the same
+* way, since the plain phrase would describe the holder instead. Only a trigger's throttle may be left unsaid: it is
+* detail, and a line without it is still true.
 */
-var AutoApplyStateDisplay = class AutoApplyStateDisplay {
+var ConditionPhrases = class {
 	/**
-	* Formats map-timer param as a player-facing seconds phrase.
-	* @param {number} frames Interval in frames (60 frames ≈ 1 second).
-	* @returns {string}
+	* How many frames make a second.
+	* @type {number}
 	*/
-	static intervalPhrase(frames) {
-		const sec = frames / 60;
-		if (Number.isInteger(sec)) {
-			return `${sec} seconds`;
+	static FramesPerSecond = 60;
+	/**
+	* The trigger kinds whose number is an interval to wait out, rather than a throttle on an event.
+	* @type {string[]}
+	*/
+	static IntervalTriggerKinds = ["time", "stand"];
+	/**
+	* The trigger kinds firing on one resource being lost or restored, keyed to the resource each watches.
+	* @type {Object<string, string>}
+	*/
+	static ResourceTriggerKinds = {
+		hpDmg: "hp",
+		mpDmg: "mp",
+		tpDmg: "tp",
+		onHealHp: "hp",
+		onHealMp: "mp",
+		onHealTp: "tp"
+	};
+	/**
+	* The proximity kinds that count allies, whose automatic rules always measure the default radius.
+	* @type {string[]}
+	*/
+	static AllyProximityKinds = ["alliesNearby", "alliesNearbyBelow"];
+	/**
+	* The gate kinds comparing a resource against a percentage, keyed to the resource each reads.
+	* @type {Object<string, string>}
+	*/
+	static ResourceGateKinds = {
+		hpAbove: "hp",
+		hpBelow: "hp",
+		mpAbove: "mp",
+		mpBelow: "mp",
+		tpAbove: "tp",
+		tpBelow: "tp"
+	};
+	/**
+	* The gate kinds counting battlers, near or targeting the holder, against a threshold.
+	* @type {string[]}
+	*/
+	static CountingGateKinds = [
+		"alliesNearby",
+		"enemiesNearby",
+		"alliesNearbyBelow",
+		"enemiesNearbyBelow",
+		"enemiesTargetingMe",
+		"enemiesTargetingMeBelow"
+	];
+	/**
+	* The gate kinds measured in frames since, or within, something last happened.
+	* @type {string[]}
+	*/
+	static TimingGateKinds = [
+		"sinceLastMoved",
+		"sinceLastHit",
+		"sinceLastAttacked",
+		"movedWithin",
+		"hitWithin",
+		"attackedWithin",
+		"onHealHp",
+		"onHealMp",
+		"onHealTp"
+	];
+	/**
+	* The stack count kinds scaled by how much of a resource is missing or present, keyed to the resource each reads.
+	* @type {Object<string, string>}
+	*/
+	static ResourceCountKinds = {
+		lessIsMoreHp: "hp",
+		lessIsMoreMp: "mp",
+		lessIsMoreTp: "tp",
+		moreIsMoreHp: "hp",
+		moreIsMoreMp: "mp",
+		moreIsMoreTp: "tp"
+	};
+	/**
+	* The name each resource goes by, asked of the manager that owns it.
+	* @type {Object<string, function(): string>}
+	*/
+	static ResourceNames = {
+		hp: () => TextManager.hp,
+		mp: () => TextManager.mp,
+		tp: () => TextManager.tp
+	};
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* The phrase for the condition an automatic rule fires on, from a tuple shaped `[payload, kind, param, …]` as every
+	* automatic rule tag writes it.
+	* @param {any[]} tuple The rule's parsed tuple.
+	* @returns {{text: string, kind: string}}
+	*/
+	static trigger(tuple) {
+		const [, kind, param] = tuple;
+		if (AutoRuleManager.isProximityKind(kind)) return this.proximityTrigger(tuple);
+		if (kind === "move") return this.moveTrigger(param);
+		if (this.IntervalTriggerKinds.includes(kind)) return this.intervalTrigger(kind, param);
+		return this.eventTrigger(kind, param);
+	}
+	/**
+	* The phrase for a trigger that fires once for every so many whole tiles its holder travels.
+	* @param {number} tilesPerFiring The whole tiles traveled between two firings.
+	* @returns {{text: string, kind: string}}
+	*/
+	static moveTrigger(tilesPerFiring) {
+		const tiles = this.tiles(tilesPerFiring);
+		return NotetagDescriber.phrase("trigger.move", { tiles });
+	}
+	/**
+	* The phrase for a trigger that fires once every interval.
+	* @param {string} kind The trigger kind.
+	* @param {number} frames The interval, in frames.
+	* @returns {{text: string, kind: string}}
+	*/
+	static intervalTrigger(kind, frames) {
+		const seconds = this.seconds(frames);
+		return NotetagDescriber.phrase(`trigger.${kind}`, { seconds });
+	}
+	/**
+	* The phrase for a trigger that counts battlers in range, singular when it asks for exactly one.
+	* @param {any[]} tuple The rule's parsed tuple, `[payload, kind, count, cooldown, radius?]`.
+	* @returns {{text: string, kind: string}}
+	*/
+	static proximityTrigger(tuple) {
+		const [, kind, count] = tuple;
+		const key = this.countedKey(`trigger.${kind}`, count);
+		const tokens = this.proximityTokens(tuple);
+		return NotetagDescriber.phrase(key, tokens);
+	}
+	/**
+	* The tokens every proximity rule's words may name: how many battlers, within how far, and how often.
+	*
+	* An automatic rule counting allies always measures the default radius, whatever the tag writes after it, so its
+	* tiles are the default's too.
+	* @param {any[]} tuple The rule's parsed tuple, `[payload, kind, count, cooldown, radius?]`.
+	* @returns {Object<string, {text: string, kind: string}>}
+	*/
+	static proximityTokens(tuple) {
+		const [, kind, count, cooldown, radius] = tuple;
+		const measuredRadius = this.AllyProximityKinds.includes(kind) ? undefined : radius;
+		return {
+			count: this.quantity(count),
+			tiles: this.radius(measuredRadius),
+			seconds: this.seconds(cooldown)
+		};
+	}
+	/**
+	* The phrase for a trigger that fires on an event, saying its throttle when the game's words for that are written.
+	*
+	* An event watching one resource, such as losing Life or having Magi restored, may name that resource as
+	* `{resource}`.
+	* @param {string} kind The trigger kind.
+	* @param {number} throttleFrames The fewest frames between two firings, or 0 for none.
+	* @returns {{text: string, kind: string}}
+	*/
+	static eventTrigger(kind, throttleFrames) {
+		const key = `trigger.${kind}`;
+		const throttledKey = `${key}.throttled`;
+		const tokens = this.eventTokens(kind);
+		if (throttleFrames > 0 && NotetagDescriber.hasTemplate(throttledKey)) {
+			const seconds = this.seconds(throttleFrames);
+			return NotetagDescriber.phrase(throttledKey, {
+				...tokens,
+				seconds
+			});
 		}
-		const rounded = Math.round(sec * 100) / 100;
-		return `~${rounded} seconds`;
+		return NotetagDescriber.phrase(key, tokens);
 	}
 	/**
-	* Wraps one highlight fragment with italic, bold, and color for drawTextEx.
-	* @param {Window_Base} window Host window supplying text style helpers.
-	* @param {number} colorIndex Palette index for {@link Window_Base#colorizeText}.
-	* @param {string} text Inner phrase to emphasize.
-	* @returns {string}
+	* The tokens an event trigger's words may name: the resource it watches, when it watches one.
+	* @param {string} kind The trigger kind.
+	* @returns {Object<string, {text: string, kind: string}>}
 	*/
-	static highlightPhrase(window, colorIndex, text) {
-		return window.colorizeText(colorIndex, window.boldenText(window.italicizeText(text)));
+	static eventTokens(kind) {
+		if (Object.hasOwn(this.ResourceTriggerKinds, kind) === false) return {};
+		const resource = this.resourceToken(this.ResourceTriggerKinds[kind]);
+		return { resource };
 	}
 	/**
-	* Formats one parsed time autoApplyState tuple as drawTextEx prose.
-	* Applied state renders via {@code \\state[STATE_ID]} (J-Message icon + name).
-	* @param {number} stateId Database state id from the parsed tuple.
-	* @param {number} param Frame interval from the parsed tuple.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @returns {string}
+	* The phrase for the condition a passive gate holds on, from a rule shaped `[kind, param, …]` as a source rule
+	* writes it, and as a state rule writes it after its state.
+	* @param {any[]} rule The gate's parsed rule.
+	* @returns {{text: string, kind: string}}
 	*/
-	static formatTimeProse(stateId, param, window) {
-		const interval = AutoApplyStateDisplay.highlightPhrase(window, 6, AutoApplyStateDisplay.intervalPhrase(param));
-		return `Every ${interval}, gain \\state[${stateId}].`;
-	}
-	/**
-	* Formats one parsed stand autoApplyState tuple as drawTextEx prose.
-	* @param {number} stateId Database state id from the parsed tuple.
-	* @param {number} param Frame interval from the parsed tuple.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @returns {string}
-	*/
-	static formatStandProse(stateId, param, window) {
-		const interval = AutoApplyStateDisplay.highlightPhrase(window, 6, AutoApplyStateDisplay.intervalPhrase(param));
-		return `While standing still, gain \\state[${stateId}] every ${interval}.`;
-	}
-	/**
-	* Builds drawTextEx prose lines for every time autoApplyState tag on a database row.
-	* @param {RPG_BaseItem} dataRow State, skill, or equip row bearing notes.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @returns {string[]}
-	*/
-	static collectTimeProseLines(dataRow, window) {
-		return AutoApplyStateDisplay.#collectProseLinesByCondition(dataRow, window, "time", AutoApplyStateDisplay.formatTimeProse);
-	}
-	/**
-	* Builds drawTextEx prose lines for every stand autoApplyState tag on a database row.
-	* @param {RPG_BaseItem} dataRow State, skill, or equip row bearing notes.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @returns {string[]}
-	*/
-	static collectStandProseLines(dataRow, window) {
-		return AutoApplyStateDisplay.#collectProseLinesByCondition(dataRow, window, "stand", AutoApplyStateDisplay.formatStandProse);
-	}
-	/**
-	* Shared collector — filters autoApplyState tuples by condition kind and formats prose.
-	* @param {RPG_BaseItem} dataRow State, skill, or equip row bearing notes.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @param {string} conditionKind The condition kind to match ('time' or 'stand').
-	* @param {(stateId: number, param: number, window: Window_Base) => string} formatter Formats one
-	* matching tuple into a prose line; the caller supplies the kind-specific formatter to use.
-	* @returns {string[]}
-	*/
-	static #collectProseLinesByCondition(dataRow, window, conditionKind, formatter) {
-		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState);
-		const lines = [];
-		for (const tuple of tuples) {
-			const stateId = Number(tuple[0]);
-			const condition = String(tuple[1]).toLowerCase();
-			const param = Number(tuple[2]);
-			if (Number.isNaN(stateId) || stateId < 1) continue;
-			if (condition !== conditionKind) continue;
-			if (Number.isNaN(param) || param < 1) continue;
-			lines.push(formatter(stateId, param, window));
+	static gate(rule) {
+		const [kind, param] = rule;
+		if (Object.hasOwn(this.ResourceGateKinds, kind)) return this.resourceGate(rule);
+		if (this.CountingGateKinds.includes(kind)) return this.countingGate(rule);
+		if (this.TimingGateKinds.includes(kind)) {
+			const seconds = this.seconds(param);
+			return NotetagDescriber.phrase(`gate.${kind}`, { seconds });
 		}
-		return lines;
+		return NotetagDescriber.phrase(`gate.${kind}`, {});
+	}
+	/**
+	* The phrase for a gate comparing a resource against a percentage.
+	*
+	* A gate reading battlers around its holder asks for its scope's own phrase, and says nothing when that is not
+	* written, since the plain phrase would be about the holder instead.
+	* @param {any[]} rule The gate's parsed rule, `[kind, percent, scope?, range?]`.
+	* @returns {{text: string, kind: string}}
+	*/
+	static resourceGate(rule) {
+		const [kind, percent, scope, range] = rule;
+		const isAboutOthers = scope !== undefined && scope !== "self";
+		const key = isAboutOthers ? `gate.${kind}.${scope}` : `gate.${kind}`;
+		const tokens = {
+			percent: this.quantity(`${percent}%`),
+			resource: this.resourceToken(this.ResourceGateKinds[kind]),
+			tiles: this.radius(range)
+		};
+		return NotetagDescriber.phrase(key, tokens);
+	}
+	/**
+	* The phrase for a gate counting battlers against a threshold, singular when the threshold is exactly one.
+	* @param {any[]} rule The gate's parsed rule, `[kind, count, radius?]`.
+	* @returns {{text: string, kind: string}}
+	*/
+	static countingGate(rule) {
+		const [kind, count, radius] = rule;
+		const key = this.countedKey(`gate.${kind}`, count);
+		const tokens = {
+			count: this.quantity(count),
+			tiles: this.radius(radius)
+		};
+		return NotetagDescriber.phrase(key, tokens);
+	}
+	/**
+	* The phrase for what a stack count counts, from a tuple shaped `[state, kind, per, radius?]`.
+	*
+	* A resource is counted in steps of a percentage, which reads the same for any step. Everything else is counted
+	* per so many things, which reads in the singular when the step is exactly one.
+	* @param {any[]} tuple The count's parsed tuple.
+	* @returns {{text: string, kind: string}}
+	*/
+	static count(tuple) {
+		const [, kind, per, radius] = tuple;
+		if (Object.hasOwn(this.ResourceCountKinds, kind)) return this.resourceCount(kind, per);
+		const key = this.countedKey(`count.${kind}`, per);
+		const tokens = {
+			per: this.quantity(per),
+			tiles: this.radius(radius)
+		};
+		return NotetagDescriber.phrase(key, tokens);
+	}
+	/**
+	* The phrase for a stack count scaled by a resource, in steps of a percentage.
+	* @param {string} kind The count kind.
+	* @param {number} percentPerStack The percentage of the resource each stack takes.
+	* @returns {{text: string, kind: string}}
+	*/
+	static resourceCount(kind, percentPerStack) {
+		const tokens = {
+			per: this.quantity(`${percentPerStack}%`),
+			resource: this.resourceToken(this.ResourceCountKinds[kind])
+		};
+		return NotetagDescriber.phrase(`count.${kind}`, tokens);
+	}
+	/**
+	* A number of frames, spoken as seconds to two decimals at most, in the unit's own words.
+	* @param {number} frames The frames.
+	* @returns {{text: string, kind: string}}
+	*/
+	static seconds(frames) {
+		const seconds = Math.round(frames / this.FramesPerSecond * 100) / 100;
+		return this.unit("unit.seconds", seconds);
+	}
+	/**
+	* A number of tiles, in the unit's own words.
+	* @param {number} tiles The tiles.
+	* @returns {{text: string, kind: string}}
+	*/
+	static tiles(tiles) {
+		return this.unit("unit.tiles", tiles);
+	}
+	/**
+	* The tiles a rule measures, the plugin's default radius when the tag writes none.
+	* @param {number|undefined} radius The radius the tag writes, if it writes one.
+	* @returns {{text: string, kind: string}}
+	*/
+	static radius(radius) {
+		const tiles = radius === undefined ? PassiveRuleJabsAccess.defaultProximity() : radius;
+		return this.tiles(tiles);
+	}
+	/**
+	* An amount in its unit's own words, singular for exactly one.
+	* @param {string} key The unit's phrase key.
+	* @param {number} amount The amount.
+	* @returns {{text: string, kind: string}}
+	*/
+	static unit(key, amount) {
+		const unitKey = this.countedKey(key, amount);
+		const n = {
+			text: `${amount}`,
+			kind: NotetagDescriber.TokenKinds.MEASURE
+		};
+		return NotetagDescriber.phrase(unitKey, { n });
+	}
+	/**
+	* The key of a phrase's singular variant when its count is exactly one, and of the phrase itself otherwise.
+	* @param {string} key The phrase's key.
+	* @param {number} count The count the phrase reads.
+	* @returns {string}
+	*/
+	static countedKey(key, count) {
+		return count === 1 ? `${key}.one` : key;
+	}
+	/**
+	* A number or percentage named in a phrase, bold in the quantity's color.
+	* @param {number|string} amount The amount.
+	* @returns {{text: string, kind: string}}
+	*/
+	static quantity(amount) {
+		return {
+			text: `${amount}`,
+			kind: NotetagDescriber.TokenKinds.QUANTITY
+		};
+	}
+	/**
+	* A resource named in a phrase, as the manager that owns its name calls it.
+	* @param {string} resource One of hp, mp or tp.
+	* @returns {{text: string, kind: string}}
+	*/
+	static resourceToken(resource) {
+		return {
+			text: this.ResourceNames[resource](),
+			kind: NotetagDescriber.TokenKinds.SUBJECT
+		};
 	}
 };
 
 //#endregion
-//#region src/plugins/passive/ext/conditional/models/AutoInflictStateDisplay.js
+//#region src/plugins/passive/ext/conditional/core/describeConditionalNotetags.js
 /**
-* Player-facing prose for {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState} tuples.<br/>
-* Reuses {@link AutoApplyStateDisplay}'s generic interval/highlight formatting helpers- those are
-* plain text utilities, not specific to the self-apply tag they were originally written for.
+* The lines describing the notetags this plugin reads, registered with {@link NotetagDescriber} at boot.
+*
+* No words are written here. Each sentence is the game's, kept in its config under the tag's key, and the condition
+* a tag hangs on is a phrase of the game's too, which {@link ConditionPhrases} fills in and every sentence names as a
+* token. A sentence ends with its condition, so a phrase is always a lowercase clause and never needs capitalizing.
+*
+* None of these lines hands the screen a value to color: their numbers are all tokens, which makes every line plain
+* text any window can draw as it is.
 */
-var AutoInflictStateDisplay = class AutoInflictStateDisplay {
+var ConditionalNotetagDescriptions = class {
 	/**
-	* Formats one parsed negaStateInflicted autoInflictState tuple as drawTextEx prose.
-	* @param {number} stateId Database state id from the parsed tuple (the payload to apply).
-	* @param {number} cooldownFrames Minimum frames between dispatches from the parsed tuple.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @returns {string}
+	* The constructor is not designed to be called.
+	* This is a static class.
 	*/
-	static formatNegativeInflictProse(stateId, cooldownFrames, window) {
-		const payload = AutoInflictStateDisplay.#highlightState(window, stateId);
-		return `Whenever this battler inflicts a negative state on a foe, also inflict ${payload}` + AutoInflictStateDisplay.#cooldownClause(cooldownFrames, window);
+	constructor() {
+		throw new Error("This is a static class.");
 	}
 	/**
-	* Formats one parsed posiStateInflicted autoInflictState tuple as drawTextEx prose.
-	* @param {number} stateId Database state id from the parsed tuple (the payload to apply).
-	* @param {number} cooldownFrames Minimum frames between dispatches from the parsed tuple.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @returns {string}
+	* Every tag this plugin describes, each paired with its describer, in the order their lines are listed: what gates
+	* the passives first, then what fires on its own, then what takes stacks away.
+	* @returns {Array<[RegExp, function(RegExpExecArray): NotetagLine[]]>}
 	*/
-	static formatPositiveInflictProse(stateId, cooldownFrames, window) {
-		const payload = AutoInflictStateDisplay.#highlightState(window, stateId);
-		return `Whenever this battler inflicts a positive state on someone, also inflict ${payload}` + AutoInflictStateDisplay.#cooldownClause(cooldownFrames, window);
+	static describedTags() {
+		const { RegExp: tags } = J.PASSIVE.EXT.CONDITIONAL;
+		return [
+			[tags.PassiveSourceRule, (match) => this.sourceRuleLines(match)],
+			[tags.PassiveStateRule, (match) => this.stateRuleLines(match)],
+			[tags.PassiveStateCount, (match) => this.stateCountLines(match)],
+			[tags.AutoApplyState, (match) => this.selfTriggerLines(match, "autoApplyState")],
+			[tags.AutoApplyStateOnNearby, (match) => this.nearbyLines(match)],
+			[tags.AutoExecuteSkill, (match) => this.skillTriggerLines(match)],
+			[tags.AutoInflictState, (match) => this.selfTriggerLines(match, "autoInflictState")],
+			[tags.AutoModifyCooldowns, (match) => this.cooldownLines(match)],
+			[tags.RemoveOnSkillExecution, (match) => this.removalLines(match, "removeOnSkillExecution")],
+			[tags.RemoveOnSkillResolution, (match) => this.removalLines(match, "removeOnSkillResolution")],
+			[tags.RemoveStateOnMove, (match) => this.moveRemovalLines(match)]
+		];
 	}
 	/**
-	* Formats one parsed anyStateInflicted autoInflictState tuple as drawTextEx prose.
-	* @param {number} stateId Database state id from the parsed tuple (the payload to apply).
-	* @param {number} cooldownFrames Minimum frames between dispatches from the parsed tuple.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @returns {string}
+	* The regexes of every tag this plugin describes, in the order their lines are listed.<br/>
+	* What a screen showing only this plugin's lines asks {@link NotetagDescriber.linesForTags} for.
+	* @returns {RegExp[]}
 	*/
-	static formatAnyInflictProse(stateId, cooldownFrames, window) {
-		const payload = AutoInflictStateDisplay.#highlightState(window, stateId);
-		return `Whenever this battler inflicts any state on someone, also inflict ${payload}` + AutoInflictStateDisplay.#cooldownClause(cooldownFrames, window);
+	static structures() {
+		return this.describedTags().map(([structure]) => structure);
 	}
 	/**
-	* Wraps the payload state's inline \\state[ID] fragment in the same highlight styling used
-	* elsewhere, so inflict-state prose visually matches auto-apply-state prose.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @param {number} stateId Database state id to render inline.
-	* @returns {string}
+	* Registers the describer of every tag this plugin reads.
 	*/
-	static #highlightState(window, stateId) {
-		return AutoApplyStateDisplay.highlightPhrase(window, 6, `\\state[${stateId}]`);
+	static registerAll() {
+		this.describedTags().forEach(([structure, describe]) => NotetagDescriber.register(structure, describe));
 	}
 	/**
-	* Builds the trailing cooldown clause for prose, or an empty string when the rule has no
-	* throttle (cooldownFrames of 0 means "every time").
-	* @param {number} cooldownFrames Minimum frames between dispatches.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @returns {string}
+	* The line describing a gate on every passive its source grants, in the sentence the game's config keeps under
+	* `passiveSourceRule`. The sentence may name `{gate}`.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the rule.
+	* @returns {NotetagLine[]}
 	*/
-	static #cooldownClause(cooldownFrames, window) {
-		if (cooldownFrames <= 0) return ".";
-		const interval = AutoApplyStateDisplay.highlightPhrase(window, 6, AutoApplyStateDisplay.intervalPhrase(cooldownFrames));
-		return ` (at most once every ${interval}).`;
+	static sourceRuleLines(match) {
+		const rule = this.tupleOf(match);
+		const gate = ConditionPhrases.gate(rule);
+		return NotetagDescriber.line("passiveSourceRule", { tokens: { gate } });
 	}
 	/**
-	* Builds drawTextEx prose lines for every autoInflictState tag on a database row, regardless
-	* of which inflict condition each tuple uses.
-	* @param {RPG_BaseItem} dataRow State, skill, or equip row bearing notes.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @returns {string[]}
+	* The line describing a gate on one passive its source grants, in the sentence the game's config keeps under
+	* `passiveStateRule`. The sentence may name `{state}` and `{gate}`.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the state and its rule.
+	* @returns {NotetagLine[]}
 	*/
-	static collectProseLines(dataRow, window) {
-		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState);
-		const lines = [];
-		for (const tuple of tuples) {
-			const stateId = Number(tuple[0]);
-			const condition = String(tuple[1]).toLowerCase();
-			const cooldownFrames = Number(tuple[2]);
-			if (Number.isNaN(stateId) || stateId < 1) continue;
-			if (Number.isNaN(cooldownFrames) || cooldownFrames < 0) continue;
-			if (condition === "negastateinflicted") {
-				lines.push(AutoInflictStateDisplay.formatNegativeInflictProse(stateId, cooldownFrames, window));
-			} else if (condition === "posistateinflicted") {
-				lines.push(AutoInflictStateDisplay.formatPositiveInflictProse(stateId, cooldownFrames, window));
-			} else if (condition === "anystateinflicted") {
-				lines.push(AutoInflictStateDisplay.formatAnyInflictProse(stateId, cooldownFrames, window));
+	static stateRuleLines(match) {
+		const [stateId, ...rule] = this.tupleOf(match);
+		const state = this.stateToken(stateId);
+		const gate = ConditionPhrases.gate(rule);
+		return NotetagDescriber.line("passiveStateRule", { tokens: {
+			state,
+			gate
+		} });
+	}
+	/**
+	* The line describing how many stacks of a passive its source contributes, in the sentence the game's config keeps
+	* under `passiveStateCount`. The sentence may name `{state}` and `{count}`.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the state and its count.
+	* @returns {NotetagLine[]}
+	*/
+	static stateCountLines(match) {
+		const tuple = this.tupleOf(match);
+		const [stateId] = tuple;
+		const state = this.stateToken(stateId);
+		const count = ConditionPhrases.count(tuple);
+		return NotetagDescriber.line("passiveStateCount", { tokens: {
+			state,
+			count
+		} });
+	}
+	/**
+	* The line describing an automatic rule that applies a state, to its holder or to whoever its holder just acted
+	* on, in the sentence the game's config keeps under the given key. The sentence may name `{state}` and
+	* `{trigger}`. The rule works in its holder's favor.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the rule.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static selfTriggerLines(match, templateKey) {
+		const tuple = this.tupleOf(match);
+		const [stateId] = tuple;
+		const state = this.stateToken(stateId);
+		const trigger = ConditionPhrases.trigger(tuple);
+		const holderImpact = NotetagLine.Impacts.HELPS;
+		return NotetagDescriber.line(templateKey, {
+			holderImpact,
+			tokens: {
+				state,
+				trigger
 			}
-		}
-		return lines;
+		});
 	}
-};
-
-//#endregion
-//#region src/plugins/passive/ext/conditional/models/RemoveStateOnMoveDisplay.js
-/**
-* Player-facing prose for {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove} tuples.
-*/
-var RemoveStateOnMoveDisplay = class RemoveStateOnMoveDisplay {
 	/**
-	* Formats one parsed removeStateOnMove tuple as drawTextEx prose.
-	* @param {number} stateId Database state id to be stripped on movement.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
+	* The line describing an automatic rule that uses a skill, in the sentence the game's config keeps under
+	* `autoExecuteSkill`. The sentence may name `{skill}` and `{trigger}`. The rule works in its holder's favor.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the rule.
+	* @returns {NotetagLine[]}
+	*/
+	static skillTriggerLines(match) {
+		const tuple = this.tupleOf(match);
+		const [skillId] = tuple;
+		const skill = {
+			text: `\\skill[${skillId}]`,
+			kind: NotetagDescriber.TokenKinds.CODE
+		};
+		const trigger = ConditionPhrases.trigger(tuple);
+		const holderImpact = NotetagLine.Impacts.HELPS;
+		return NotetagDescriber.line("autoExecuteSkill", {
+			holderImpact,
+			tokens: {
+				skill,
+				trigger
+			}
+		});
+	}
+	/**
+	* The line describing an aura that applies a state to the battlers around its holder, in the sentence the game's
+	* config keeps for its kind: `autoApplyStateOnNearby.enemiesNearby` and the like, singular when it asks for exactly
+	* one battler. The sentence may name `{state}`, `{count}`, `{tiles}` and `{seconds}`. The aura works in its
+	* holder's favor.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the rule.
+	* @returns {NotetagLine[]}
+	*/
+	static nearbyLines(match) {
+		const tuple = this.tupleOf(match);
+		const [stateId, kind, count] = tuple;
+		const key = ConditionPhrases.countedKey(`autoApplyStateOnNearby.${kind}`, count);
+		const tokens = {
+			state: this.stateToken(stateId),
+			...ConditionPhrases.proximityTokens(tuple)
+		};
+		const holderImpact = NotetagLine.Impacts.HELPS;
+		return NotetagDescriber.line(key, {
+			holderImpact,
+			tokens
+		});
+	}
+	/**
+	* The line describing an automatic rule that shortens or lengthens its holder's cooldowns, in the sentence the
+	* game's config keeps for its direction, unit and reach: `autoModifyCooldowns.reduce.percent`,
+	* `autoModifyCooldowns.increase.flat.combat` and so on, a reach of every slot needing no suffix of its own. The
+	* sentence may name `{amount}`, `{trigger}` and `{slot}`.
+	*
+	* A shorter cooldown works in its holder's favor, and a longer one against it.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the rule.
+	* @returns {NotetagLine[]}
+	*/
+	static cooldownLines(match) {
+		const tuple = this.tupleOf(match);
+		const [amount, , , unit, range, slot] = tuple;
+		const key = this.cooldownKey(amount, unit, range);
+		const tokens = {
+			amount: this.cooldownAmount(amount, unit),
+			trigger: ConditionPhrases.trigger(tuple),
+			slot: this.slotToken(slot)
+		};
+		const holderImpact = amount < 0 ? NotetagLine.Impacts.HELPS : NotetagLine.Impacts.HURTS;
+		return NotetagDescriber.line(key, {
+			holderImpact,
+			tokens
+		});
+	}
+	/**
+	* The key of a cooldown rule's sentence: its direction, then its unit, then its reach unless that is every slot,
+	* which the rule's reader assumes when none is written.
+	* @param {number} amount The signed change, negative for shorter.
+	* @param {string} unit Either percent or flat.
+	* @param {string|undefined} range The slots reached, if written.
 	* @returns {string}
 	*/
-	static formatProse(stateId, window) {
-		const stateName = window.colorizeText(14, window.boldenText(`\\state[${stateId}]`));
-		return `Moving removes all ${stateName} stacks.`;
+	static cooldownKey(amount, unit, range) {
+		const direction = amount < 0 ? "reduce" : "increase";
+		const reach = range === undefined || range === "all" ? String.empty : `.${range}`;
+		return `autoModifyCooldowns.${direction}.${unit}${reach}`;
 	}
 	/**
-	* Builds drawTextEx prose lines for every removeStateOnMove tag on a database row.
-	* @param {RPG_BaseItem} dataRow State, skill, or equip row bearing notes.
-	* @param {Window_Base} window Host window supplying bold/color text helpers.
-	* @returns {string[]}
+	* The one slot a cooldown rule reaches, named as its tag writes it, or nothing at all when the rule reaches more
+	* than one: an empty token, so a sentence naming a slot the rule never gave says nothing rather than a wrong word.
+	* @param {string|undefined} slot The slot the tag names, if it names one.
+	* @returns {{text: string, kind: string}}
 	*/
-	static collectProseLines(dataRow, window) {
-		if (!J.PASSIVE || !J.PASSIVE.EXT || !J.PASSIVE.EXT.CONDITIONAL) return [];
-		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove);
-		const lines = [];
-		for (const tuple of tuples) {
-			const stateId = Number(tuple[0]);
-			if (Number.isNaN(stateId) || stateId < 1) continue;
-			lines.push(RemoveStateOnMoveDisplay.formatProse(stateId, window));
-		}
-		return lines;
+	static slotToken(slot) {
+		const text = slot === undefined ? String.empty : slot;
+		return {
+			text,
+			kind: NotetagDescriber.TokenKinds.SUBJECT
+		};
+	}
+	/**
+	* How much a cooldown rule changes each cooldown by: a share of the cooldown's full length, or so many seconds.
+	* @param {number} amount The signed change.
+	* @param {string} unit Either percent or flat, the flat amount being frames.
+	* @returns {{text: string, kind: string}}
+	*/
+	static cooldownAmount(amount, unit) {
+		const size = Math.abs(amount);
+		if (unit === "percent") return ConditionPhrases.quantity(`${size}%`);
+		return ConditionPhrases.seconds(size);
+	}
+	/**
+	* The line describing a chance to lose a stack of the carrying state when its holder uses a skill, in the
+	* sentence the game's config keeps under the given key, or under its `.any` variant when any skill at all will
+	* do. The sentence may name `{skillType}` and `{chance}`.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the skill type and chance.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static removalLines(match, templateKey) {
+		const [skillTypeId, chance] = this.tupleOf(match);
+		const key = skillTypeId === 0 ? `${templateKey}.any` : templateKey;
+		const tokens = {
+			skillType: {
+				text: `\\skillType[${skillTypeId}]`,
+				kind: NotetagDescriber.TokenKinds.CODE
+			},
+			chance: ConditionPhrases.quantity(`${chance}%`)
+		};
+		return NotetagDescriber.line(key, { tokens });
+	}
+	/**
+	* The line describing a state its holder loses by moving, in the sentence the game's config keeps under
+	* `removeStateOnMove`. The sentence may name `{state}`.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the state.
+	* @returns {NotetagLine[]}
+	*/
+	static moveRemovalLines(match) {
+		const [stateId] = this.tupleOf(match);
+		const state = this.stateToken(stateId);
+		return NotetagDescriber.line("removeStateOnMove", { tokens: { state } });
+	}
+	/**
+	* A tag's tuple, parsed the way every one of this plugin's readers parses it.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the bracketed tuple.
+	* @returns {any[]}
+	*/
+	static tupleOf(match) {
+		const [, writtenTuple] = match;
+		return JsonMapper.parseObject(writtenTuple);
+	}
+	/**
+	* A state named in a line, as the text code that draws its icon and name when the line is drawn.
+	* @param {number} stateId The state's id.
+	* @returns {{text: string, kind: string}}
+	*/
+	static stateToken(stateId) {
+		return {
+			text: `\\state[${stateId}]`,
+			kind: NotetagDescriber.TokenKinds.CODE
+		};
 	}
 };
 
@@ -3309,57 +3723,56 @@ var RemoveStateOnMoveDisplay = class RemoveStateOnMoveDisplay {
 //#region src/plugins/passive/ext/conditional/windows/Window_PassiveDetail.js
 /**
 * Extends {@link Window_PassiveDetail#drawStateHeader}.<br/>
-* Injects autoApplyState (stand condition), autoInflictState, and removeStateOnMove prose
-* under the header.
+* Also draws, under the header, a line for every tag of this plugin's on the state: what it grants or uses on its own
+* and on what condition, what gates or counts its passives, and what takes its stacks away. The words are the game's,
+* from its tag lines config.
 */
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Window_PassiveDetail.set("drawStateHeader", Window_PassiveDetail.prototype.drawStateHeader);
 Window_PassiveDetail.prototype.drawStateHeader = function(state) {
 	J.PASSIVE.EXT.CONDITIONAL.Aliased.Window_PassiveDetail.get("drawStateHeader").call(this, state);
-	this.drawAutoApplyStandProse(state);
-	this.drawAutoInflictStateProse(state);
-	this.drawRemoveStateOnMoveProse(state);
+	this.drawConditionalLines(state);
 };
 /**
-* Draws player-facing prose for each stand {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState} tag.
-* Skipped when the state carries no stand auto-apply rules.
+* Draws the line describing each of this plugin's tags on the state, one beneath the next, in the order the plugin
+* lists them.
+*
+* Every line arrives as finished text, so the window only draws it: what a line says, and whether a tag says anything
+* at all, is up to the describers and the config.
 * @param {RPG_State} state The state being detailed.
 */
-Window_PassiveDetail.prototype.drawAutoApplyStandProse = function(state) {
-	const lines = AutoApplyStateDisplay.collectStandProseLines(state, this);
-	if (lines.length === 0) return;
+Window_PassiveDetail.prototype.drawConditionalLines = function(state) {
+	const structures = ConditionalNotetagDescriptions.structures();
+	const lines = NotetagDescriber.linesForTags(state, structures);
 	const width = this.innerWidth - 4;
-	lines.forEach((text) => {
-		this.drawTextEx(text, 4, this.currentY, width);
-		this.currentY += this.textSizeEx(text).height + 4;
+	lines.forEach(({ text }) => {
+		this.drawWrappedLine(text, width);
+		this.currentY += 4;
 	});
 };
 /**
-* Draws player-facing prose for each {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState} tag.
-* Skipped when the state carries no auto-inflict rules.
-* @param {RPG_State} state The state being detailed.
+* Draws one line across the panel, carried onto the rows beneath it when it is too long for one rather than running
+* off the panel's edge.
+* @param {string} text The line, text codes and all.
+* @param {number} width The width the line may take.
 */
-Window_PassiveDetail.prototype.drawAutoInflictStateProse = function(state) {
-	const lines = AutoInflictStateDisplay.collectProseLines(state, this);
-	if (lines.length === 0) return;
-	const width = this.innerWidth - 4;
-	lines.forEach((text) => {
-		this.drawTextEx(text, 4, this.currentY, width);
-		this.currentY += this.textSizeEx(text).height + 4;
+Window_PassiveDetail.prototype.drawWrappedLine = function(text, width) {
+	const pieces = TextWrapper.wrapStyled(text, width, (piece) => this.textSizeEx(piece).width);
+	pieces.forEach((piece) => {
+		this.drawTextEx(piece, 4, this.currentY, width);
+		this.currentY += this.textSizeEx(piece).height;
 	});
 };
+
+//#endregion
+//#region src/plugins/passive/ext/conditional/scenes/Scene_Boot.js
 /**
-* Draws player-facing prose for each {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove} tag.
-* Skipped when the state carries no move-removal rules.
-* @param {RPG_State} state The state being detailed.
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Describes this plugin's tags once the database they are read from exists.
 */
-Window_PassiveDetail.prototype.drawRemoveStateOnMoveProse = function(state) {
-	const lines = RemoveStateOnMoveDisplay.collectProseLines(state, this);
-	if (lines.length === 0) return;
-	const width = this.innerWidth - 4;
-	lines.forEach((text) => {
-		this.drawTextEx(text, 4, this.currentY, width);
-		this.currentY += this.textSizeEx(text).height + 4;
-	});
+J.PASSIVE.EXT.CONDITIONAL.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.PASSIVE.EXT.CONDITIONAL.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	ConditionalNotetagDescriptions.registerAll();
 };
 
 //#endregion

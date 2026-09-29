@@ -800,7 +800,8 @@ var ActionLogBuilder = class {
 	setupExperienceGained(targetName, expGained) {
 		const exp = `\\C[6]${expGained}\\C[0]`;
 		const defender = this.#wrapName(targetName, 16);
-		const message = `${defender} gained \\*${exp}\\* experience.`;
+		const expName = TextManager.exp;
+		const message = `${defender} gained \\*${exp}\\* ${expName}.`;
 		this.setMessage(message);
 		return this;
 	}
@@ -812,7 +813,8 @@ var ActionLogBuilder = class {
 	*/
 	setupSdpAcquired(targetName, amount) {
 		const defender = this.#wrapName(targetName, 16);
-		const message = `${defender} acquired \\*${amount}\\* SDP points.`;
+		const sdpName = TextManager.sdpPoints();
+		const message = `${defender} acquired \\*${amount}\\* ${sdpName}.`;
 		this.setMessage(message);
 		return this;
 	}
@@ -981,7 +983,8 @@ var LootLogBuilder = class {
 	*/
 	setupGoldFound(goldFound) {
 		const gold = `\\C[14]${goldFound}\\C[0]`;
-		const message = `Found \\*${gold}\\* gold.`;
+		const goldName = TextManager.currencyUnit;
+		const message = `Found \\*${gold}\\* ${goldName}.`;
 		this.setMessage(message);
 		return this;
 	}

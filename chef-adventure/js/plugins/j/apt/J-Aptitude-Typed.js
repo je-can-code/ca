@@ -900,7 +900,8 @@ if (J.ABS) {
 	JABS_Engine.prototype.createLogApTyped = function(apPoints, battler, apTypeKey) {
 		if (!J.LOG) return;
 		const { name, icon } = ApManager.apTypeDisplay(apTypeKey);
-		const message = `\\C[16]${battler.battlerName()}\\C[0] gained \\C[29]\\*${apPoints}\\*\\C[0] AP \\i[${icon}] [${name}].`;
+		const apName = TextManager.apPoints();
+		const message = `\\C[16]${battler.battlerName()}\\C[0] gained \\C[29]\\*${apPoints}\\*\\C[0] ${apName} \\i[${icon}] [${name}].`;
 		const apLog = new ActionLogBuilder().setMessage(message).build();
 		$mapLogs.action.addLog(apLog);
 	};

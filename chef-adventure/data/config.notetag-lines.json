@@ -1,0 +1,334 @@
+[
+  {
+    "key": "absorbElements",
+    "template": "Absorbs {elements}."
+  },
+  {
+    "key": "autoApplyState",
+    "template": "Grants {state} {trigger}."
+  },
+  {
+    "key": "autoApplyStateOnNearby.enemiesNearby.one",
+    "template": "Inflicts {state} on every enemy within {tiles}, every {seconds}."
+  },
+  {
+    "key": "autoExecuteSkill",
+    "template": "Uses {skill} {trigger}."
+  },
+  {
+    "key": "autoInflictState",
+    "template": "Inflicts {state} {trigger}."
+  },
+  {
+    "key": "autoModifyCooldowns.reduce.flat",
+    "template": "Shortens every cooldown by {amount} {trigger}."
+  },
+  {
+    "key": "autoModifyCooldowns.reduce.percent",
+    "template": "Shortens every cooldown by {amount} {trigger}."
+  },
+  {
+    "key": "boostElement",
+    "template": "{value} {element} damage dealt."
+  },
+  {
+    "key": "count.enemiesNearby",
+    "template": "per {per} enemies within {tiles}"
+  },
+  {
+    "key": "count.enemiesNearby.one",
+    "template": "per enemy within {tiles}"
+  },
+  {
+    "key": "count.enemiesTargetingMe",
+    "template": "per {per} enemies targeting you"
+  },
+  {
+    "key": "count.enemiesTargetingMe.one",
+    "template": "per enemy targeting you"
+  },
+  {
+    "key": "count.lessIsMoreHp",
+    "template": "per {per} of {resource} missing"
+  },
+  {
+    "key": "count.negativeStateCount",
+    "template": "per {per} ailments"
+  },
+  {
+    "key": "count.negativeStateCount.one",
+    "template": "per ailment"
+  },
+  {
+    "key": "critAlwaysIfState",
+    "template": "If the target is afflicted with {state}, then \\C[2]critical hits\\C[0] are \\C[3]GUARANTEED\\C[0]."
+  },
+  {
+    "key": "critAlwaysIfStateType",
+    "template": "If the target is afflicted with any {type} state, then \\C[2]critical hits\\C[0] are \\C[3]GUARANTEED\\C[0]."
+  },
+  {
+    "key": "critChanceIfState",
+    "template": "{value} \\C[1]critical hit\\C[0] chance against targets with {state}."
+  },
+  {
+    "key": "critChanceIfStateType",
+    "template": "{value} \\C[1]critical hit\\C[0] chance against targets with any {type} state."
+  },
+  {
+    "key": "critMultiplier",
+    "template": "\\C[1]Critical hits\\C[0] deal {value} more damage."
+  },
+  {
+    "key": "critMultiplierBase",
+    "template": "The base multiplier for \\C[1]critical hits\\C[0] is {value} damage."
+  },
+  {
+    "key": "critReduction",
+    "template": "Extra damage taken from \\C[1]critical hits\\C[0] {value}."
+  },
+  {
+    "key": "critReductionBase",
+    "template": "The base reduction on \\C[1]critical hits\\C[0] taken is {value}."
+  },
+  {
+    "key": "dropMultiplier",
+    "template": "{value} \\C[1]item drop chance\\C[0] for the whole party."
+  },
+  {
+    "key": "dropQuantity",
+    "template": "Every \\C[1]item dropped\\C[0] comes with {value} extra."
+  },
+  {
+    "key": "dropUpgrade",
+    "template": "Every \\C[1]item dropped\\C[0] is upgraded {value} tier."
+  },
+  {
+    "key": "forceCritProcs",
+    "template": "On-crit effects \\C[3]ALWAYS\\C[0] land when landing a \\C[2]critical hit\\C[0]."
+  },
+  {
+    "key": "gate.allOffCooldown",
+    "template": "while every combat skill is ready"
+  },
+  {
+    "key": "gate.alliesNearby",
+    "template": "while {count} allies are within {tiles}"
+  },
+  {
+    "key": "gate.alliesNearby.one",
+    "template": "while an ally is within {tiles}"
+  },
+  {
+    "key": "gate.attackedWithin",
+    "template": "within {seconds} of using a skill"
+  },
+  {
+    "key": "gate.enemiesNearbyBelow",
+    "template": "while fewer than {count} enemies are within {tiles}"
+  },
+  {
+    "key": "gate.enemiesNearbyBelow.one",
+    "template": "while no enemy is within {tiles}"
+  },
+  {
+    "key": "gate.hpAbove.allAllies",
+    "template": "while every ally within {tiles} is at or above {percent} {resource}"
+  },
+  {
+    "key": "gate.hpBelow",
+    "template": "while {resource} is at or below {percent}"
+  },
+  {
+    "key": "gate.sinceLastHit",
+    "template": "after {seconds} without taking damage"
+  },
+  {
+    "key": "gate.sinceLastMoved",
+    "template": "after standing still for {seconds}"
+  },
+  {
+    "key": "goldMultiplier",
+    "template": "{value} \\C[1]gold\\C[0] from enemies for the whole party."
+  },
+  {
+    "key": "hideFromPassiveList",
+    "template": ""
+  },
+  {
+    "key": "naturalBuffPlus",
+    "template": "{stat} Buff+ {value}"
+  },
+  {
+    "key": "naturalBuffRate",
+    "template": "{stat} Buff% {value}"
+  },
+  {
+    "key": "naturalGrowthPlus",
+    "template": "{stat} Growth+ {value} /lv"
+  },
+  {
+    "key": "naturalGrowthRate",
+    "template": "{stat} Growth% {value} /lv"
+  },
+  {
+    "key": "onCritApply",
+    "template": "\\C[1]Critical hits\\C[0] have a {value} chance to inflict {state}."
+  },
+  {
+    "key": "onCritSelf",
+    "template": "\\C[1]Critical hits\\C[0] have a {value} chance to grant {state} to self."
+  },
+  {
+    "key": "passive",
+    "template": "Grants {states}."
+  },
+  {
+    "key": "passiveSourceRule",
+    "template": "Only active {gate}."
+  },
+  {
+    "key": "passiveStateCount",
+    "template": "One stack of {state} {count}."
+  },
+  {
+    "key": "passiveStateRule",
+    "template": "{state} is only active {gate}."
+  },
+  {
+    "key": "pierceElement",
+    "template": "Negates {value} {element} resistance."
+  },
+  {
+    "key": "proficiencyBonus",
+    "template": "{value} \\C[1]proficiency\\C[0] from every skill used."
+  },
+  {
+    "key": "proficiencyGainingBlock",
+    "template": "Skills used by this earn no \\C[1]proficiency\\C[0]."
+  },
+  {
+    "key": "proficiencyGivingBlock",
+    "template": "Skills used against this earn no \\C[1]proficiency\\C[0]."
+  },
+  {
+    "key": "removeOnSkillExecution",
+    "template": "Using a {skillType} skill has a {chance} chance to remove a stack."
+  },
+  {
+    "key": "removeOnSkillResolution.any",
+    "template": "Finishing any skill has a {chance} chance to remove a stack."
+  },
+  {
+    "key": "removeStateOnMove",
+    "template": "Moving removes {state}."
+  },
+  {
+    "key": "rewardMultiplier",
+    "template": "Enemies yield {value} {reward}."
+  },
+  {
+    "key": "slayer",
+    "template": "{value} damage {element}."
+  },
+  {
+    "key": "strictElements",
+    "template": "Only takes damage from {elements}."
+  },
+  {
+    "key": "thisCritApply",
+    "template": "This skill's \\C[1]critical hits\\C[0] have a {value} chance to inflict {state}."
+  },
+  {
+    "key": "thisCritChanceIfState",
+    "template": "This skill has {value} \\C[1]critical hit\\C[0] chance against targets with {state}."
+  },
+  {
+    "key": "thisCritChanceIfStateType",
+    "template": "This skill has {value} \\C[1]critical hit\\C[0] chance against targets with any {type} state."
+  },
+  {
+    "key": "thisCritSelf",
+    "template": "This skill's \\C[1]critical hits\\C[0] have a {value} chance to grant {state} to self."
+  },
+  {
+    "key": "thisCritsAlwaysIfState",
+    "template": "If the target is afflicted with {state}, then this skill is \\C[3]GUARANTEED\\C[0] to land a \\C[2]critical hit\\C[0]."
+  },
+  {
+    "key": "thisCritsAlwaysIfStateType",
+    "template": "If the target is afflicted with any {type} state, then this skill is \\C[3]GUARANTEED\\C[0] to land a \\C[2]critical hit\\C[0]."
+  },
+  {
+    "key": "thisPierceElement",
+    "template": "This skill negates {value} {element} resistance."
+  },
+  {
+    "key": "trigger.anyDmg",
+    "template": "on taking damage"
+  },
+  {
+    "key": "trigger.anyDmg.throttled",
+    "template": "on taking damage, at most once every {seconds}"
+  },
+  {
+    "key": "trigger.enemiesNearby",
+    "template": "every {seconds} while {count} enemies are within {tiles}"
+  },
+  {
+    "key": "trigger.enemiesNearby.one",
+    "template": "every {seconds} while an enemy is within {tiles}"
+  },
+  {
+    "key": "trigger.hpDmg",
+    "template": "on losing {resource}"
+  },
+  {
+    "key": "trigger.hpDmg.throttled",
+    "template": "on losing {resource}, at most once every {seconds}"
+  },
+  {
+    "key": "trigger.move",
+    "template": "for every {tiles} traveled"
+  },
+  {
+    "key": "trigger.negaStateInflicted",
+    "template": "on inflicting an ailment"
+  },
+  {
+    "key": "trigger.onKill",
+    "template": "on defeating an enemy"
+  },
+  {
+    "key": "trigger.onKnockback",
+    "template": "on knocking an enemy back"
+  },
+  {
+    "key": "trigger.stand",
+    "template": "every {seconds} spent standing still"
+  },
+  {
+    "key": "trigger.time",
+    "template": "every {seconds}"
+  },
+  {
+    "key": "uniquePassive",
+    "template": "Grants {states}, which never stacks."
+  },
+  {
+    "key": "unit.seconds",
+    "template": "{n} seconds"
+  },
+  {
+    "key": "unit.seconds.one",
+    "template": "{n} second"
+  },
+  {
+    "key": "unit.tiles",
+    "template": "{n} tiles"
+  },
+  {
+    "key": "unit.tiles.one",
+    "template": "{n} tile"
+  }
+]

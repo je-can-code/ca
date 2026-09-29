@@ -359,7 +359,8 @@ J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.4.
 J.ELEM.Aliased = {
 	Game_Action: new Map(),
 	Game_Actor: new Map(),
-	Game_Enemy: new Map()
+	Game_Enemy: new Map(),
+	Scene_Boot: new Map()
 };
 J.ELEM.RegExp = {};
 J.ELEM.RegExp.AttackElementIds = /<attackElements:[ ]?(\[[\d, ]+])>/i;
@@ -927,6 +928,168 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
 	const slayerMultiplier = attacker.slayerMultiplierAgainst(target);
 	const slainDamage = baseDamage * slayerMultiplier;
 	return Math.round(slainDamage);
+};
+
+//#endregion
+//#region src/plugins/elem/core/core/describeElemNotetags.js
+/**
+* The lines describing the notetags this plugin reads, registered with {@link NotetagDescriber} at boot.
+*
+* No words are written here. Each sentence is the game's, kept in its config under the tag's key; this class reads
+* the tag and supplies what the sentence names.
+*/
+var ElemNotetagDescriptions = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Registers the describer of every tag this plugin reads that has its words so far.
+	*/
+	static registerAll() {
+		NotetagDescriber.register(J.ELEM.RegExp.AbsorbElementIds, (match) => this.absorbLines(match));
+		NotetagDescriber.register(J.ELEM.RegExp.BoostElement, (match) => this.elementPercentLines(match, "boostElement"));
+		NotetagDescriber.register(J.ELEM.RegExp.Slayer, (match) => this.elementPercentLines(match, "slayer"));
+		NotetagDescriber.register(J.ELEM.RegExp.StrictElementIds, (match) => this.strictLines(match));
+		NotetagDescriber.register(J.ELEM.RegExp.PierceElement, (match) => this.pierceLines(match, "pierceElement"));
+		NotetagDescriber.register(J.ELEM.RegExp.ThisPierceElement, (match) => this.pierceLines(match, "thisPierceElement"));
+	}
+	/**
+	* The line describing an absorb tag, in the sentence the game's config keeps under `absorbElements`: every listed
+	* element heals whoever carries the tag instead of hurting them.
+	*
+	* The sentence may name `{elements}`, every listed element in the order the tag lists them, each as the text code
+	* that draws its icon, color and name. Absorbing always helps whoever carries it.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is `[ELEMENT_ID, ...]`.
+	* @returns {NotetagLine[]}
+	*/
+	static absorbLines(match) {
+		const [, writtenIds] = match;
+		const elementIds = JsonMapper.parseObject(writtenIds);
+		return this.elementListLines("absorbElements", elementIds);
+	}
+	/**
+	* The line describing a strict element tag, in the sentence the game's config keeps under `strictElements`: the
+	* only elements whose attacks can harm whoever carries the tag, every other element hitting for nothing.
+	*
+	* Non-elemental attacks skip the element math entirely, so they still land. The sentence may name `{elements}`,
+	* every listed element in the order the tag lists them, each as the text code that draws its icon, color and name.
+	* Shrugging off every other element always helps whoever carries it.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is `[ELEMENT_ID, ...]`.
+	* @returns {NotetagLine[]}
+	*/
+	static strictLines(match) {
+		const [, writtenIds] = match;
+		const elementIds = JsonMapper.parseObject(writtenIds);
+		return this.elementListLines("strictElements", elementIds);
+	}
+	/**
+	* The line for either tag listing elements its holder is protected by, led by the first element's face.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @param {number[]} elementIds The elements, in the order the tag lists them.
+	* @returns {NotetagLine[]}
+	*/
+	static elementListLines(templateKey, elementIds) {
+		const [firstElementId] = elementIds;
+		const iconIndex = IconManager.element(firstElementId);
+		const elements = this.elementListToken(elementIds);
+		const holderImpact = NotetagLine.Impacts.HELPS;
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact,
+			tokens: { elements }
+		});
+	}
+	/**
+	* The line describing a tag multiplying damage by an element, in the sentence the game's config keeps under the
+	* given key: an element boost multiplies every skill bearing the element, and a slayer multiplies every hit on
+	* anything belonging to the element's family, whatever the hit is made of.
+	*
+	* The sentence may name `{value}`, the multiplier as a percentage (`+50%`), and `{element}`, the element as the
+	* text code that draws its icon, color and name.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is `[ELEMENT_ID, PERCENT]`.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static elementPercentLines(match, templateKey) {
+		const [, writtenPair] = match;
+		const [elementId, percent] = JsonMapper.parseObject(writtenPair);
+		const iconIndex = IconManager.element(elementId);
+		const element = this.elementListToken([elementId]);
+		const value = RPG_Trait.asDeltaPercent(percent);
+		const holderImpact = this.amountImpact(percent);
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact,
+			value,
+			tokens: { element }
+		});
+	}
+	/**
+	* The line describing a resistance-negating tag, or its this-skill twin, in the sentence the game's config keeps
+	* under the given key: how far a target's resistance to the element is pushed back toward neutral.
+	*
+	* The amount is points taken off the resistance rather than a share of it, and it never pushes past neutral, so
+	* a weakness or an absorbed element is never touched. The sentence may name `{value}`, the amount (`5%`), and
+	* `{element}`, the element as the text code that draws its icon, color and name.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is `[ELEMENT_ID, PERCENT]`.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static pierceLines(match, templateKey) {
+		const [, writtenPair] = match;
+		const [elementId, percent] = JsonMapper.parseObject(writtenPair);
+		const iconIndex = IconManager.element(elementId);
+		const element = this.elementListToken([elementId]);
+		const value = `${percent}%`;
+		const holderImpact = this.amountImpact(percent);
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact,
+			value,
+			tokens: { element }
+		});
+	}
+	/**
+	* Which way an element amount cuts for whoever carries it: one of {@link NotetagLine.Impacts}.
+	*
+	* A boost may be negative, a curse that softens every skill of the element; resistance negated never is.
+	* @param {number} percent The amount, in percent.
+	* @returns {number}
+	*/
+	static amountImpact(percent) {
+		if (percent > 0) return NotetagLine.Impacts.HELPS;
+		if (percent < 0) return NotetagLine.Impacts.HURTS;
+		return NotetagLine.Impacts.NEITHER;
+	}
+	/**
+	* A list of elements named in a line, each as the text code that draws its icon, color and name when the line is
+	* drawn, set apart by commas.
+	* @param {number[]} elementIds The elements' ids, in the order they are listed.
+	* @returns {{text: string, kind: string}}
+	*/
+	static elementListToken(elementIds) {
+		const codes = elementIds.map((elementId) => `\\element[${elementId}]`);
+		return {
+			text: codes.join(", "),
+			kind: NotetagDescriber.TokenKinds.CODE
+		};
+	}
+};
+
+//#endregion
+//#region src/plugins/elem/core/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Describes this plugin's tags once the database they are read from exists.
+*/
+J.ELEM.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.ELEM.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	ElemNotetagDescriptions.registerAll();
 };
 
 //#endregion

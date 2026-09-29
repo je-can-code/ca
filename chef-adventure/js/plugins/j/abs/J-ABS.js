@@ -10589,21 +10589,37 @@ var JABS_AiManager = class JABS_AiManager {
 	}
 	/**
 	* Execute the decided queued actions for this battler.
+	*
+	* An action takes aim at its target as it begins: at once for one with no cast time, which fires instantly
+	* and is not meant to be dodged, and as the windup starts for one with a cast time. A windup commits to the
+	* direction it began with- the cast is the player's window to read the telegraph and step out of it, or to
+	* parry- so once it finishes, the action fires where it was aimed rather than turning to wherever the target
+	* went.
 	* @param {JABS_Battler} battler The battler to take action.
 	*/
 	static executeAiPhase2Action(battler) {
-		battler.turnTowardTarget();
-		this.restampActionDirections(battler);
 		const [action] = battler.getDecidedAction();
 		if (!action) return;
 		if (action.isCastComplete()) {
+			if (action.getCastTime() <= 0) {
+				this.takeAim(battler);
+			}
 			battler.processQueuedActions();
 			battler.setWaitCountdown(15);
 			battler.setPhase(3);
 			return;
 		}
 		if (battler.isCastingOrChanneling()) return;
+		this.takeAim(battler);
 		battler.setCastCountdown(action.getCastTime());
+	}
+	/**
+	* Faces the battler toward its target, and re-orients its decided volley to that fresh facing.
+	* @param {JABS_Battler} battler The battler taking aim.
+	*/
+	static takeAim(battler) {
+		battler.turnTowardTarget();
+		this.restampActionDirections(battler);
 	}
 	/**
 	* Re-orients the decided action volley to the battler's current facing direction.

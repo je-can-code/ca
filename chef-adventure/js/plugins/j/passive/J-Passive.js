@@ -328,6 +328,7 @@ J.PASSIVE.Aliased.Game_BattlerBase = new Map();
 J.PASSIVE.Aliased.Game_Enemy = new Map();
 J.PASSIVE.Aliased.Game_Party = new Map();
 J.PASSIVE.Aliased.JABS_AiManager = new Map();
+J.PASSIVE.Aliased.Scene_Boot = new Map();
 J.PASSIVE.Aliased.Scene_Menu = new Map();
 J.PASSIVE.Aliased.Window_MenuCommand = new Map();
 J.PASSIVE.Aliased.Window_MoreEquipData = new Map();
@@ -3151,6 +3152,64 @@ Scene_Menu.prototype.createCommandWindow = function() {
 */
 Scene_Menu.prototype.commandPassive = function() {
 	Scene_Passive.callScene();
+};
+
+//#endregion
+//#region src/plugins/passive/core/core/describePassiveNotetags.js
+/**
+* The lines describing the notetags this plugin reads, registered with {@link NotetagDescriber} at boot.
+*
+* No words are written here. Each sentence is the game's, kept in its config under the tag's key; this class reads
+* the tag and supplies what the sentence names.
+*/
+var PassiveNotetagDescriptions = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Registers the describer of every tag this plugin reads that has its words so far.
+	*/
+	static registerAll() {
+		NotetagDescriber.register(J.PASSIVE.RegExp.PassiveStateIds, (match) => this.grantLines(match, "passive"));
+		NotetagDescriber.register(J.PASSIVE.RegExp.UniquePassiveStateIds, (match) => this.grantLines(match, "uniquePassive"));
+		NotetagDescriber.register(J.PASSIVE.RegExp.HideFromPassiveList, () => NotetagDescriber.line("hideFromPassiveList", {}));
+	}
+	/**
+	* The line describing a tag granting passive states, in the sentence the game's config keeps under the given key.
+	*
+	* The sentence may name `{states}`, every granted state in the order the tag lists them, each as the text code that
+	* draws its icon and name. What a granted state does is for its own lines to say, so the grant itself cuts neither
+	* way, and the states' own icons leave the line none of its own to lead with.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is `[STATE_ID, ...]`.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static grantLines(match, templateKey) {
+		const [, writtenIds] = match;
+		const stateIds = JsonMapper.parseObject(writtenIds);
+		const codes = stateIds.map((stateId) => `\\state[${stateId}]`);
+		const states = {
+			text: codes.join(", "),
+			kind: NotetagDescriber.TokenKinds.CODE
+		};
+		return NotetagDescriber.line(templateKey, { tokens: { states } });
+	}
+};
+
+//#endregion
+//#region src/plugins/passive/core/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Describes this plugin's tags once the database they are read from exists.
+*/
+J.PASSIVE.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.PASSIVE.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	PassiveNotetagDescriptions.registerAll();
 };
 
 //#endregion

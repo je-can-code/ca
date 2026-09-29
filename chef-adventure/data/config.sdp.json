@@ -412,7 +412,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.05,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],
@@ -454,7 +454,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.05,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         },
         {
@@ -998,7 +998,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.05,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],
@@ -1040,7 +1040,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.05,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         },
         {
@@ -1703,7 +1703,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.3,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": true
         },
         {
@@ -1757,7 +1757,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.35,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": true
         },
         {
@@ -1817,7 +1817,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.4,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": true
         }
       ],
@@ -1865,7 +1865,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.4,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": true
         },
         {
@@ -1919,7 +1919,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.5,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": true
         },
         {
@@ -2445,7 +2445,7 @@
         {
           "parameterKey": "ctr",
           "perRank": 0.4,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         },
         {
@@ -2582,7 +2582,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.3,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],
@@ -2744,7 +2744,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -0.45,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],
@@ -4113,7 +4113,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -2.45,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         },
         {
@@ -9034,7 +9034,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -2.2,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],
@@ -9608,7 +9608,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -2.1,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],
@@ -10349,7 +10349,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -1.15,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],
@@ -10403,7 +10403,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -1.45,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],
@@ -10923,7 +10923,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -1.15,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],
@@ -10977,7 +10977,7 @@
         {
           "parameterKey": "ctr",
           "perRank": -1.45,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],

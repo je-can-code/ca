@@ -810,6 +810,61 @@ JABS_Battler.prototype.getTargetFrameIcon = function() {
 };
 
 //#endregion
+//#region src/plugins/hud/ext/target/helpers/TargetNameLayout.js
+/**
+* How the target's name fits its row: the size it is drawn at, and where it sits on the row.
+*
+* The name follows the target's icons and level on one row, so it has only the width they leave it. A name too
+* long for that is drawn a size smaller at a time until it fits, rather than being cut off at the frame's edge.
+*/
+var TargetNameLayout = class {
+	/**
+	* The size the name is drawn at whenever it fits as it is.
+	* @type {number}
+	*/
+	static LARGEST_FONT_SIZE = 24;
+	/**
+	* The smallest size a long name shrinks to, still clearly larger than the level beside it, so the name keeps
+	* reading as the row's headline. A name too long even at this size is cut off at the frame's edge.
+	* @type {number}
+	*/
+	static SMALLEST_FONT_SIZE = 16;
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* The largest size, from {@link #LARGEST_FONT_SIZE} down to {@link #SMALLEST_FONT_SIZE}, at which the name fits
+	* the width it has- or the smallest size, when it fits at none of them.
+	* @param {function(number): number} widthAt How wide the name draws at a given font size.
+	* @param {number} availableWidth The width the name has.
+	* @returns {number}
+	*/
+	static fittingFontSize(widthAt, availableWidth) {
+		const sizeCount = this.LARGEST_FONT_SIZE - this.SMALLEST_FONT_SIZE + 1;
+		const sizes = Array.from({ length: sizeCount }, (unused, index) => this.LARGEST_FONT_SIZE - index);
+		const fittingSize = sizes.find((fontSize) => widthAt(fontSize) <= availableWidth);
+		if (fittingSize === undefined) return this.SMALLEST_FONT_SIZE;
+		return fittingSize;
+	}
+	/**
+	* How far down the row a name drawn smaller moves, so it stays centered on the line a full-size name sits on,
+	* which is where the icons and level beside it are centered.
+	*
+	* A smaller size draws on a shorter line from the same top, which would lift its middle by half the
+	* difference; this puts it back, to the whole pixel, so the text stays crisp.
+	* @param {number} fontSize The size the name is drawn at.
+	* @returns {number}
+	*/
+	static offsetY(fontSize) {
+		return Math.floor((this.LARGEST_FONT_SIZE - fontSize) / 2);
+	}
+};
+
+//#endregion
 //#region src/plugins/hud/ext/target/windows/Window_TargetFrame.js
 /**
 * A window that displays a target and their relevant information.
@@ -1198,18 +1253,29 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		return true;
 	}
 	/**
-	* Draws the target's name in the window.
+	* Draws the target's name in the window, at the largest size that fits the rest of its row- see
+	* {@link TargetNameLayout}.
 	* @param {number} x The x coordinate.
 	* @param {number} y The y coordinate.
 	*/
 	drawTargetName(x, y) {
-		let name = `\\FS[24]${this.targetName()}`;
-		if (J.MESSAGE) {
-			name = `\\*${name}`;
-		}
-		const color = this.targetNameColor();
 		const width = this.contentsWidth() - x;
-		this.drawTextExInColor(name, x, y, width, color);
+		const widthAt = (fontSize) => this.textSizeEx(this.targetNameText(fontSize)).width;
+		const fontSize = TargetNameLayout.fittingFontSize(widthAt, width);
+		const color = this.targetNameColor();
+		const name = this.targetNameText(fontSize);
+		const nameY = y + TargetNameLayout.offsetY(fontSize);
+		this.drawTextExInColor(name, x, nameY, width, color);
+	}
+	/**
+	* The target's name as it is drawn, escape codes included, at the given size.
+	* @param {number} fontSize The size to draw the name at.
+	* @returns {string}
+	*/
+	targetNameText(fontSize) {
+		const name = `\\FS[${fontSize}]${this.targetName()}`;
+		if (J.MESSAGE) return `\\*${name}`;
+		return name;
 	}
 	/**
 	* The color the target's name is drawn in.<br/>

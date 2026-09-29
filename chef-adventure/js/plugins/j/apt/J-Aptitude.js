@@ -137,6 +137,12 @@
  *  <apr(Buff|Growth)(Plus|Rate):[FORMULA]>
  * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
  * ============================================================================
+ * THE APTITUDE SCENE
+ * The aptitude scene lists every source an actor carries and how far along
+ * each of its teachables is. It is a debug view: it has no menu command, and
+ * is opened from the dev console instead:
+ *  Scene_Aptitude.callScene()
+ * ============================================================================
  * CHANGELOG:
  * - 1.5.0
  *    Added natural growth tags for aptitude rate (apr).
@@ -185,16 +191,6 @@
  * - 1.0.0
  *    The initial release.
  * ============================================================================
- *
- * @param parentConfig
- * @text SETUP
- *
- * @param menu-switch
- * @parent parentConfig
- * @type switch
- * @text Menu Switch ID
- * @desc When this switch is ON, then this command is visible in the menu.
- * @default 107
  *
  * @param levelConfig
  * @text LEVEL-RELATED SETUP
@@ -682,11 +678,6 @@ var JAptitude_PluginMetadata = class extends PluginMetadata {
 	*/
 	initializeMetadata() {
 		/**
-		* The id of a switch that represents whether or not this system is accessible in the menu.
-		* @type {number}
-		*/
-		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
-		/**
 		* The maximum level difference between actor and enemy that allows AP gain.
 		* @type {number}
 		*/
@@ -739,8 +730,6 @@ J.APT.Aliased.Game_Action = new Map();
 J.APT.Aliased.Game_Actor = new Map();
 J.APT.Aliased.JABS_Battler = new Map();
 J.APT.Aliased.JABS_Engine = new Map();
-J.APT.Aliased.Scene_Menu = new Map();
-J.APT.Aliased.Window_MenuCommand = new Map();
 /**
 * All regular expressions used by this plugin.
 */
@@ -1179,6 +1168,36 @@ var ApManager = class ApManager {
 		return true;
 	}
 	/**
+	* Determines whether an actor knows a skill for good: learned, rather than lent. This is what a teachable
+	* marks KNOWN, since there is nothing left for any source to teach.
+	*
+	* A skill lent by the actor's class, gear or states is theirs only for as long as they keep it on, so its
+	* teachable keeps showing how far along learning it for good is. AP flows into it all the while either way:
+	* {@link #applyApToSource} only ever skips a skill already learned through an aptitude.
+	* @param {Game_Actor} actor The actor being read.
+	* @param {number} skillId The id of the skill a teachable teaches.
+	* @returns {boolean}
+	*/
+	static isSkillKnownForGood(actor, skillId) {
+		return actor.isLearnedSkill(skillId);
+	}
+	/**
+	* The teachings a source offers, cheapest first: the order its ladder of skills is drawn in.
+	*
+	* Teachables fed the same AP gather it at the same pace, so among them cheapest first is also soonest first-
+	* the skills already learned settle at the top, and the next one to learn sits just beneath them. Teachings
+	* costing the same keep the order they were written in.
+	*
+	* A sorted copy, for display. The source's own list stays in written order, which is the order
+	* {@link #applyApToSource} hands AP out in and announces learns in.
+	* @param {RPG_Base} source The aptitude source whose teachings are listed.
+	* @returns {AptitudeTeachable[]}
+	*/
+	static teachingsByCost(source) {
+		const teachables = [...source.aptitudeTeachings];
+		return teachables.sort((left, right) => left.requiredAp - right.requiredAp);
+	}
+	/**
 	* Derives a stable key for a source.
 	* @param {RPG_Base} source The source to derive a key for.
 	* @returns {string} The stable key.
@@ -1428,6 +1447,14 @@ var ApManager = class ApManager {
 //#endregion
 //#region src/plugins/apt/core/managers/TextManager.js
 /**
+* Gets the proper name for the points this plugin grants: what the combat log, rewards and every other screen call
+* them.
+* @returns {string}
+*/
+TextManager.apPoints = function() {
+	return "AP";
+};
+/**
 * Display label for aptitude rate — bonus multiplier on aptitude point gains.
 * @returns {string}
 */
@@ -1444,6 +1471,14 @@ TextManager.aptRateDescription = function() {
 
 //#endregion
 //#region src/plugins/apt/core/managers/IconManager.js
+/**
+* Icon index for the points this plugin grants, worn wherever they appear: the AP popup, reward lines and the
+* like.
+* @returns {number}
+*/
+IconManager.apPoints = function() {
+	return 86;
+};
 /**
 * Icon index for aptitude rate bonus in parameter and CMS displays.
 * @returns {number}
@@ -1592,7 +1627,9 @@ if (J.ABS) {
 	*/
 	JABS_Engine.prototype.createLogAp = function(apPoints, battler) {
 		if (!J.LOG) return;
-		const apLog = new ActionLogBuilder().setMessage(`\\C[16]${battler.battlerName()}\\C[0] gained \\C[29]\\*${apPoints}\\*\\C[0] AP.`).build();
+		const apName = TextManager.apPoints();
+		const message = `\\C[16]${battler.battlerName()}\\C[0] gained \\C[29]\\*${apPoints}\\*\\C[0] ${apName}.`;
+		const apLog = new ActionLogBuilder().setMessage(message).build();
 		$mapLogs.action.addLog(apLog);
 	};
 }
@@ -1979,7 +2016,8 @@ var Window_AptitudeAggregateDetails = class extends Window_Base {
 		this.drawTextEx(`\\C[${activityColorIndex}]\\I[${iconIndex}]${name}\\C[0]`, 0, y, leftW);
 		this.drawExtensionData(sourceProgress, 0 + leftW, y);
 		const learned = sourceProgress.learned() === true;
-		const knownElsewhere = learned === false && sourceProgress.currentAp() < sourceProgress.requiredAp() && this.actor().hasSkill(sourceProgress.skillId());
+		const skillId = sourceProgress.skillId();
+		const knownElsewhere = learned === false && sourceProgress.currentAp() < sourceProgress.requiredAp() && ApManager.isSkillKnownForGood(this.actor(), skillId);
 		let rightText;
 		if (learned === true) {
 			rightText = "DONE";
@@ -2210,13 +2248,13 @@ var Window_AptitudeSourceDetails = class extends Window_Base {
 	drawSourceDetails() {
 		const source = this.source();
 		const baseY = this.nextY();
-		this.drawTextEx(`\\I[79]\\C[16]Skills\\C[0]`, 0, baseY, this.contentsWidth());
+		this.drawTextEx(`\\I[79]\\C[16]Skills\\C[0]`, this.contentLeft(), baseY, this.contentsWidth());
 		const updatedY = baseY + this.lineHeight();
 		this.setNextY(updatedY);
-		const teachables = source.aptitudeTeachings;
+		const teachables = ApManager.teachingsByCost(source);
 		if (teachables.length === 0) {
 			this.resetTextColor();
-			this.drawText("No teachable skills available.", 0, this.nextY(), this.contentsWidth());
+			this.drawText("No teachable skills available.", this.contentLeft(), this.nextY(), this.contentsWidth());
 			return;
 		}
 		teachables.forEach(this.drawTeachable, this);
@@ -2228,7 +2266,7 @@ var Window_AptitudeSourceDetails = class extends Window_Base {
 	drawTeachable(teachable) {
 		const actor = this.actor();
 		const sourceKey = ApManager.deriveKey(this.source());
-		const x = 0;
+		const x = this.contentLeft();
 		const nextY = this.nextY();
 		const leftW = Math.floor(this.contentsWidth() * .6);
 		const { requiredAp, skillId } = teachable;
@@ -2239,7 +2277,7 @@ var Window_AptitudeSourceDetails = class extends Window_Base {
 		this.drawExtensionData(teachable, sourceKey, x + leftW, nextY);
 		const currentAp = hasLearning ? learning.currentAp : 0;
 		const learned = hasLearning && learning.isLearned() === true;
-		const knownElsewhere = learned === false && this.actor().hasSkill(skillId);
+		const knownElsewhere = learned === false && ApManager.isSkillKnownForGood(actor, skillId);
 		let rightText;
 		if (learned === true) {
 			rightText = "DONE";
@@ -2255,8 +2293,8 @@ var Window_AptitudeSourceDetails = class extends Window_Base {
 			rightColor = 6;
 		}
 		this.changeTextColor(ColorManager.textColor(rightColor));
-		const rightW = this.contentsWidth() - leftW;
-		this.drawText(rightText, 0, nextY, rightW, Window_Base.TextAlignments.Right);
+		const statusRight = this.teachableStatusRight();
+		this.drawText(rightText, 0, nextY, statusRight, Window_Base.TextAlignments.Right);
 		const shouldDrawGauge = learned === false && knownElsewhere === false;
 		if (shouldDrawGauge === true) {
 			this.drawTeachableGauge(currentAp, requiredAp);
@@ -2270,7 +2308,7 @@ var Window_AptitudeSourceDetails = class extends Window_Base {
 	*/
 	drawTeachableGauge(currentAp, requiredAp) {
 		const nextY = this.nextY();
-		const gaugeX = Math.floor(this.contentsWidth() * .4);
+		const gaugeX = this.teachableGaugeX();
 		const gaugeY = nextY + Math.round(this.lineHeight() / 2) - Math.round(this.gaugeHeight() / 2);
 		const rect = new Rectangle(gaugeX, gaugeY, this.gaugeWidth(), this.gaugeHeight());
 		const progressRate = Math.max(0, Math.min(currentAp / requiredAp, 1));
@@ -2285,6 +2323,34 @@ var Window_AptitudeSourceDetails = class extends Window_Base {
 	* @param {number} y - The row's y coordinate.
 	*/
 	drawExtensionData(teachable, sourceKey, x, y) {}
+	/**
+	* The x the details' section headers and rows start at.
+	*
+	* The window's own left edge. A window drawing the ladder somewhere its rows should sit further in
+	* overrides this, alongside {@link #teachableStatusRight} and {@link #teachableGaugeX}.
+	* @returns {number}
+	*/
+	contentLeft() {
+		return 0;
+	}
+	/**
+	* The x a teachable's status ends at, right-aligned against it: its AP progress, or DONE or KNOWN.
+	*
+	* Two fifths of the way across, with the gauge starting from there- spaced for the full width the aptitude
+	* scene gives this window. A window drawing the ladder somewhere narrower overrides this and
+	* {@link #teachableGaugeX} together, so the two never cross.
+	* @returns {number}
+	*/
+	teachableStatusRight() {
+		return this.contentsWidth() - Math.floor(this.contentsWidth() * .6);
+	}
+	/**
+	* The x a teachable's progress gauge starts at, just past the status in front of it.
+	* @returns {number}
+	*/
+	teachableGaugeX() {
+		return Math.floor(this.contentsWidth() * .4);
+	}
 	/**
 	* The width of the gauges in this window.
 	* @returns {number}
@@ -3051,40 +3117,6 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 	onListOk() {
 		SoundManager.playOk();
 		this.currentListWindow().activate();
-	}
-};
-
-//#endregion
-//#region src/plugins/apt/core/scenes/Scene_Menu.js
-/**
-* Extends {@link #createCommandWindow}.</br>
-* Adds a handler for the Aptitude menu command.
-*/
-J.APT.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
-Scene_Menu.prototype.createCommandWindow = function() {
-	J.APT.Aliased.Scene_Menu.get("createCommandWindow").call(this);
-	this.commandWindow().setHandler("aptitude", this.commandAptitude.bind(this));
-};
-/**
-* Opens the Aptitude scene.
-*/
-Scene_Menu.prototype.commandAptitude = function() {
-	Scene_Aptitude.callScene();
-};
-
-//#endregion
-//#region src/plugins/apt/core/windows/Window_MenuCommand.js
-/**
-* Extends {@link #addOriginalCommands}.</br>
-* Adds the Aptitude menu command if enabled via plugin parameter.
-*/
-J.APT.Aliased.Window_MenuCommand.set("addOriginalCommands", Window_MenuCommand.prototype.addOriginalCommands);
-Window_MenuCommand.prototype.addOriginalCommands = function() {
-	J.APT.Aliased.Window_MenuCommand.get("addOriginalCommands").call(this);
-	const switchId = J.APT.Metadata.menuSwitchId;
-	if (switchId === 0 || $gameSwitches.value(switchId)) {
-		const builtCommand = new WindowCommandBuilder("Aptitude").setSymbol("aptitude").setHelpText("Track this character's progress toward learning new skills.").setMenuSection(MenuSection.Actor).setIconIndex(186).build();
-		this.addBuiltCommand(builtCommand);
 	}
 };
 

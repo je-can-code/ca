@@ -78,7 +78,7 @@ Map_TextPop.Types.Ap = "ap";
 TextPopBuilder.prototype.isAptitude = function() {
 	this.setPopupType(Map_TextPop.Types.Ap);
 	this.setTextColorIndex(17);
-	this.setIconIndex(86);
+	this.setIconIndex(IconManager.apPoints());
 	this.forRewardUpRing();
 	return this;
 };

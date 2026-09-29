@@ -270,7 +270,8 @@ const checkBosses = (project, jabs, findings) =>
 };
 
 /**
- * Difficulty: every affix state a layer grants weight to.
+ * Difficulty: the two states every layer grants, and every affix state a layer grants weight to.
+ * A layer that grants one side of every fight nothing records 0 for that side.
  * @param {object} project The loaded project.
  * @param {object[]} difficulty The parsed `config.difficulty.json`, a bare array of layers.
  * @param {Findings} findings Where failures go.
@@ -279,13 +280,19 @@ const checkDifficulty = (project, difficulty, findings) =>
 {
   difficulty.forEach(layer =>
   {
+    const where = `config.difficulty.json layer "${layer.key}"`;
+
+    // the states every actor and every enemy carry while the layer is enabled.
+    findings.resolve(project, `${where} actorStateId`, 'States', layer.actorStateId, { allowZero: true });
+    findings.resolve(project, `${where} enemyStateId`, 'States', layer.enemyStateId, { allowZero: true });
+
     // a layer that leaves affixes alone omits the block entirely.
     const grants = layer.affixEffects
       ? layer.affixEffects.grants ?? []
       : [];
 
     grants.forEach(grant => findings.resolve(project,
-      `config.difficulty.json layer "${layer.key}" affix grant stateId`, 'States', grant.stateId));
+      `${where} affix grant stateId`, 'States', grant.stateId));
   });
 };
 

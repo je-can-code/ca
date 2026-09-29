@@ -26,9 +26,8 @@ Unlocking the `Spacial Flux Engine` is straight-forward, the player only needs t
 - in `Raevula`, enter the building to the left of `The Comfy Bear` inn.
 - interact with the robot to the left of the actual unit that is the `Spacial Flux Engine`.
 
-Just unlocking the `Spacial Flux Engine` will bestow the player with two difficulty layers automatically:
-- `Favor of the Food Lord I`
-- `Challenge of the Food Lord I`
+Unlocking the `Spacial Flux Engine` bestows no layers by itself: every `Flux` comes from delivering its `Flux Drive`
+to the Difficulty Lord.
 
 ## <a name="how-it-works" /> Gimmick of the Spacial Flux Engine
 There are a multitude of `Fluxes` that will be available in this game, of which the player can mix and match to their
@@ -37,25 +36,12 @@ to be a `Flux` for it, likely multiple. The main gimmick of this system is that 
 simultaneously. How does that work exactly, if you have one difficulty that raises one stat, and another that reduces
 it?
 
-At this time, all effects applied by difficulties are against numeric values, such as parameters (attack/defense/etc 
-rates) and rewards (exp/gold/drop/etc rates). A single `Flux` will define one or more **percent-based 100-base
-multipliers**, such as "actor attack = 125%", which translates to +25% attack for all actors. If you applied that
-`Flux` and applied a second `Flux` that had "actor attack = 50%", which translates to -50% attack for all actors, what
-would that look like? Here is how the math would look:
+Each `Flux` works like a passive that everyone carries. While it is applied, every actor carries one
+state and every enemy carries another, and those states are where the `Flux`'s effects live. Nothing
+shows on screen - no icon, no status entry, nothing to cure - but the effects are always there.
 
-```
-actor base attack default = 100;
-first flux modifier = 125;
-second flux modifier = 50;
-
-result = 1.00 * 1.25 * 0.50 = 0.625;
-```
-
-> **`Flux` modifiers are sequentially multiplicative!**
-
-The above fact is important to keep in mind when applying increasingly more `Fluxes`. Additionally, that logic applies
-to ALL modifiers, not just the attack used in the example. All b/ex/sp parameters, my custom parameters, and rewards
-found on `Spacial Flux Routines` are subject to **sequentially multiplied modifiers**!
+No two `Fluxes` touch the same parameter, so applying several never has to decide how their numbers
+combine: each one's effects land exactly as written, alone or together.
 
 ## <a name="all-layers" /> All `Spacial Flux Routines`
 For convenience, a list is provided of all `Fluxes` in Chef Adventure.
