@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.2 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
+ * [v1.4.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -311,6 +311,9 @@
  *    Taking even a single step immediately strips it and resets the stand timer.
  * ============================================================================
  * CHANGELOG:
+ * - 1.4.0
+ *    Its tags are described in words, conditions and all, and the Passives view draws
+ *    those lines under each state, wrapping any too long for the panel.
  * - 1.3.2
  *    Dropped a redundant round from the remaining-seconds display, which was already
  *    rounded by the time it got there.
@@ -448,6 +451,13 @@ var JPassiveConditional_PluginMetadata = class extends PluginMetadata {
 * The core where all of my extensions live: in the `J` object.
 */
 globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "4.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (hasBaseRequirement === false) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+})();
 /**
 * The plugin umbrella that governs conditional passive states on the map.
 */
@@ -455,7 +465,7 @@ J.PASSIVE.EXT.CONDITIONAL = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.3.2");
+J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

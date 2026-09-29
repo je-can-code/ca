@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v2.2.2 PASSIVE-DIFFICULTY] Difficulty layers as passive states for everyone.
+ * @plugindesc [v3.0.0 PASSIVE-DIFFICULTY] Difficulty layers as passive states for everyone.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -190,6 +190,10 @@
  *   have to diagnose from inside a playthrough.
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.0
+ *    BREAKING: replaces J-Difficulty and J-Difficulty-Affix; plugin commands now come
+ *    from J-Passive-Difficulty. Each layer is a pair of hidden passive states, and the
+ *    difficulty screen says what they do in words. Locked layers show behind a padlock.
  * - 2.2.2
  *    Dropped a redundant round from the parameter and reward factors. The inputs are
  *    whole percentages, so it never had anything to round.
@@ -1067,7 +1071,7 @@ var J_DiffPluginMetadata = class J_DiffPluginMetadata extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "4.0.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -1085,7 +1089,7 @@ J.PASSIVE.EXT.DIFFICULTY = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.PASSIVE.EXT.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Passive-Difficulty", "2.2.2");
+J.PASSIVE.EXT.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Passive-Difficulty", "3.0.0");
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */

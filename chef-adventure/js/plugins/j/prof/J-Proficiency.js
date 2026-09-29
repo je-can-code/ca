@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.5.0 PROF] Enables skill proficiency tracking.
+ * @plugindesc [v2.6.0 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -161,6 +161,8 @@
  * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
  * ============================================================================
  * CHANGELOG:
+ * - 2.6.0
+ *    Its tags are described in words.
  * - 2.5.0
  *    Added natural growth tags for proficiency bonus (prof).
  * - 2.4.3
@@ -441,6 +443,13 @@ var J_ProficiencyPluginMetadata = class J_ProficiencyPluginMetadata extends Plug
 * The core where all of my extensions live: in the `J` object.
 */
 globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "4.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (hasBaseRequirement === false) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+})();
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
@@ -478,7 +487,7 @@ J.PROF.Helpers.loadExternalConfig = (configPath = J_ProficiencyPluginMetadata.CO
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.5.0");
+J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.6.0");
 J.PROF.Helpers.loadExternalConfig();
 /**
 * The various aliases associated with this plugin.

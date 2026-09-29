@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 POPUPS-APT] Aptitude point gain popups.
+ * [v1.0.3 POPUPS-APT] Aptitude point gain popups.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -26,6 +26,8 @@
  * This plugin has no notetags of its own.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    The AP popup takes its icon from IconManager.
  * - 1.0.2
  *    AP reward popups route through `JABS_PopupMergeController.routeRewardPop` when J-Popups-ABS merge is enabled.
  * - 1.0.1
@@ -58,7 +60,7 @@ J.POPUPS.EXT.APT = J.POPUPS.EXT.APT || {};
 /**
 * The metadata associated with this extension plugin.
 */
-J.POPUPS.EXT.APT.Metadata = new J_PopupsApt_PluginMetadata("J-Popups-APT", "1.0.2");
+J.POPUPS.EXT.APT.Metadata = new J_PopupsApt_PluginMetadata("J-Popups-APT", "1.0.3");
 J.POPUPS.EXT.APT.Aliased = J.POPUPS.EXT.APT.Aliased || {};
 J.POPUPS.EXT.APT.Aliased.JABS_Engine = new Map();
 

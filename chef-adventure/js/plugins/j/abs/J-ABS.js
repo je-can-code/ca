@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.25.0 ABS] Enables combat to be carried out on the map.
+ * [v4.25.1 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,8 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.25.1
+ *    Enemies take aim when a cast skill goes off, not when the cast begins.
  * - 4.25.0
  *    An event whose page stops applying now forgets the battler that page described,
  *    rather than still reading as one. Added hooks for holding a page change back and
@@ -4582,7 +4584,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.25.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.25.1");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -24888,7 +24890,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.25.0";
+var PLUGIN_VERSION = "4.25.1";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion

@@ -1,7 +1,7 @@
 //region annoations
 /*:
  * @target MZ
- * @plugindesc [v1.2.1 MAP] Renders a passability-driven minimap on the screen.
+ * @plugindesc [v1.2.2 MAP] Renders a passability-driven minimap on the screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -151,6 +151,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.2
+ *    Minimap walls follow the engine's passability instead of the tileset's flags.
  * - 1.2.1
  *    Corrected PLUGIN_NAME from J-MAP to J-Map, matching the name the ship has
  *    always been built and shipped under.
@@ -294,7 +296,7 @@ J.MAP.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.MAP.Metadata = new J_MAP__PluginMetadata("J-Map", "1.2.1");
+J.MAP.Metadata = new J_MAP__PluginMetadata("J-Map", "1.2.2");
 /**
 * A collection of all aliased methods for this plugin.
 */

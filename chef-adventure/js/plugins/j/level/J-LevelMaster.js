@@ -1,7 +1,7 @@
 //region initialization
 /*:
  * @target MZ
- * @plugindesc [v1.6.3 LEVEL] Allows levels to have greater control and purpose.
+ * @plugindesc [v1.6.4 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -377,6 +377,8 @@
  * This same logic is again applied to gold from each defeated enemy.
  * ============================================================================
  * CHANGELOG:
+ * - 1.6.4
+ *    Max TP from a growth curve is now the base that other bonuses build on.
  * - 1.6.3
  *    Routed the growth-curve formula error through J-Base's new Diagnostics, so
  *    it names J-LevelMaster in the console.
@@ -575,7 +577,7 @@ J.LEVEL.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.6.3");
+J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.6.4");
 /**
 * The maximum level definable in the level. Any level below this can be determined without extra calculations.
 * @type {number}

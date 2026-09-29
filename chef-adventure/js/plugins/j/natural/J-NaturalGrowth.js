@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v3.0.0 NATURAL] Enables level-based growth of all parameters.
+ * @plugindesc [v3.1.0 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -280,6 +280,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.1.0
+ *    Its buff and growth tags are described in words, and a negative rate stops a
+ *    parameter at 0.
  * - 3.0.0
  *    Any plugin can now bind natural growth to its own parameters, and plugin
  *    order no longer matters. Every tag is written in the numbers the status
@@ -381,6 +384,13 @@ var J_NaturalGrowthPluginMetadata = class extends PluginMetadata {
 * The core where all of my extensions live: in the `J` object.
 */
 globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "4.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (hasBaseRequirement === false) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+})();
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
@@ -388,7 +398,7 @@ J.NATURAL = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.NATURAL.Metadata = new J_NaturalGrowthPluginMetadata("J-NaturalGrowth", "3.0.0");
+J.NATURAL.Metadata = new J_NaturalGrowthPluginMetadata("J-NaturalGrowth", "3.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

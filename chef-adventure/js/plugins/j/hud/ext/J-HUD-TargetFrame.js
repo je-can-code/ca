@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 HUD-TARGET] A HUD frame that displays your battle target.
+ * [v2.1.0 HUD-TARGET] A HUD frame that displays your battle target.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -205,6 +205,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    A target name too long for the frame shrinks to fit.
  * - 2.0.0
  *    The target frame no longer needs gauge images. Its gauges draw like the rest of
  *    the HUD's, trail and all, its afflictions share one compact row, and icons now
@@ -316,7 +318,7 @@ J.HUD.EXT.TARGET = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudTarget_PluginMetadata}
 */
-J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "2.0.0");
+J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "2.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

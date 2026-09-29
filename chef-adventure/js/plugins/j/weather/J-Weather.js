@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 WEATHER] Named ambience and weather, declared per map.
+ * [v1.0.1 WEATHER] Named ambience and weather, declared per map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -114,6 +114,8 @@
  * finish.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Weather sounds stop at the title screen, at game over and when a battle starts.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -193,7 +195,7 @@ J.WEATHER.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.WEATHER.Metadata = new J_WEATHER_PluginMetadata("J-Weather", "1.0.0");
+J.WEATHER.Metadata = new J_WEATHER_PluginMetadata("J-Weather", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.5.0 APT] A plugin that grants the ability to learn by gaining points.
+ * [v2.0.0 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -144,6 +144,9 @@
  *  Scene_Aptitude.callScene()
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    BREAKING: removed the main-menu Aptitude command and its menu-switch parameter.
+ *    Teachings list cheapest first, and AP takes its name and icon from the managers.
  * - 1.5.0
  *    Added natural growth tags for aptitude rate (apr).
  * - 1.4.0
@@ -719,7 +722,7 @@ J.APT.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.5.0");
+J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "2.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

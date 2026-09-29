@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.4.0 ELEM] Enables greater control over elements.
+ * @plugindesc [v1.5.0 ELEM] Enables greater control over elements.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -283,6 +283,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Its tags are described in words.
  * - 1.4.0
  *    Added <slayer:[ELEMENT_ID, PERCENT]>, a damage bonus against targets weak
  *    to an element. Keyed on what the target is rather than what the attack is
@@ -339,7 +341,7 @@ var J_ElementalisticsPluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "4.0.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -352,7 +354,7 @@ J.ELEM = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.4.0");
+J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.5.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

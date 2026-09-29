@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.0 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
+ * [v1.3.1 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -46,6 +46,8 @@
  * entirely plugin-parameter driven.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.1
+ *    Fixed tiles at the map's edge counting as enterable from off the map.
  * - 1.3.0
  *    setPosition no longer rounds a character onto the tile grid. Under pixel
  *    movement the logical and real coordinates are the same position, so
@@ -226,7 +228,7 @@ J.PIXEL.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.3.0");
+J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.3.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.6.0 DROPS] Enables greater control over loot drops.
+ * @plugindesc [v2.7.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -219,6 +219,8 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.7.0
+ *    Its tags are described in words.
  * - 2.6.0
  *    Added natural growth tags for gold rate (gdr). Fixed drop rate growth, which
  *    never applied when J-NaturalGrowth loaded after this plugin, and drop rate
@@ -439,6 +441,13 @@ var J_DropsControlPluginMetadata = class J_DropsControlPluginMetadata extends Pl
 * The core where all of my extensions live: in the `J` object.
 */
 globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "4.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (hasBaseRequirement === false) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+})();
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
@@ -450,7 +459,7 @@ J.DROPS.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.6.0");
+J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.7.0");
 /**
 * All regular expressions used by this plugin.
 */

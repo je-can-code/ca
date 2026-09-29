@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.3.0 PASSIVE] Grants passive states from various database objects.
+ * [v2.4.0 PASSIVE] Grants passive states from various database objects.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -171,6 +171,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.4.0
+ *    Its tags are described in words.
  * - 2.3.0
  *    Passive sources are no longer written to savefiles; they are entirely
  *    derived from equipment, states, and skills, and are now rebuilt on load
@@ -295,6 +297,13 @@ var JPassive_PluginMetadata = class extends PluginMetadata {
 * The core where all of my extensions live: in the `J` object.
 */
 globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "4.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (hasBaseRequirement === false) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+})();
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
@@ -307,7 +316,7 @@ J.PASSIVE.EXT = {};
 * The `metadata` associated with this plugin, such as version and plugin parameter values.
 * @type {JPassive_PluginMetadata}
 */
-J.PASSIVE.Metadata = new JPassive_PluginMetadata("J-Passive", "2.3.0");
+J.PASSIVE.Metadata = new JPassive_PluginMetadata("J-Passive", "2.4.0");
 /**
 * All regular expressions used by this plugin.
 */

@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.4.0 CRIT] Manages critical damage multiplier/reduction of battlers.
+ * @plugindesc [v1.5.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -525,6 +525,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Its tags are described in words. The base critical reduction now applies and
+ *    defaults to 0, and SDP critical bonuses are no longer 100 times too small.
  * - 1.4.0
  *    critReduction and critReductionBase accept negative values, so a debuff can
  *    make critical hits land harder. Fixed the Rate variants of the cdm and ctr
@@ -649,7 +652,7 @@ var J_CriticalFactorsPluginMetadata = class J_CriticalFactorsPluginMetadata exte
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.19.0";
+	const requiredBaseVersion = "4.0.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -662,7 +665,7 @@ J.CRIT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.4.0");
+J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.5.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.20.0 BASE] The base class for all J plugins.
+ * [v4.0.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.0.0
+ *    BREAKING: requires data/config.notetag-lines.json. Added NotetagDescriber,
+ *    TextWrapper.wrapStyled, and a description and icon on every class. Sp-parameters
+ *    stop at 0, crit and evasion rates show as points, and facet scenes set up once.
  * - 3.20.0
  *    Map gauges now leave a trail. A loss leaves the lost amount behind in red to
  *    drain away, and a gain shows in green ahead of the bar as it fills in.
@@ -2090,7 +2094,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.20.0";
+J.BASE.Metadata.Version = "4.0.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */

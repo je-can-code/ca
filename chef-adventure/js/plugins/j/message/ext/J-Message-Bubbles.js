@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.1 MESSAGE-BUBBLES] A J-Message extension that floats messages above whoever is speaking.
+ * [v1.3.0 MESSAGE-BUBBLES] A J-Message extension that floats messages above whoever is speaking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -90,6 +90,8 @@
  * the characters those bubbles were pointing at have stopped existing.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Choices shown with a bubble line up with it and stay on screen.
  * - 1.2.1
  *    A plugin that walks the scene calling refresh() on everything it finds no
  *    longer crashes on a message bubble.
@@ -162,7 +164,7 @@ J.MESSAGE.EXT.BUBBLES = {};
 /**
 * The metadata associated with this plugin.
 */
-J.MESSAGE.EXT.BUBBLES.Metadata = new J_MessageBubblesPluginMetadata("J-Message-Bubbles", "1.2.1");
+J.MESSAGE.EXT.BUBBLES.Metadata = new J_MessageBubblesPluginMetadata("J-Message-Bubbles", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
