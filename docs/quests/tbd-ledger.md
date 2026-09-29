@@ -24,7 +24,8 @@
 
 - **Icons:** every folk quest, the `folk` category, and the `ch5` tag all sit at `iconIndex: 0`.
 - **`main-008`** has `recommendedLevel: 0` (pre-existing; every other main is filled in).
-- **`hunt-013`** is the pre-existing "Anomaly: TBD" placeholder (slay id 100 is a blank enemy row).
+- **`hunt-013`**, the "Anomaly: TBD" placeholder whose slay id named a `=== OPEN` enemy row, was removed
+  on 2026-09-28; the anomaly chain ends at `hunt-012` until a real thirteenth is designed.
 - **Hunting Lord extensions** (wave 4 "Deluge Safari", guild ranks) are NOT authored — they need the
   Deluge Plains named-enemy roster to exist first.
 - **CE161–163 ("Journal 1/2/3") + CE31 "Recipes init"** are residue of the retired Recipe Journals —

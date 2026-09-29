@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.0 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
+ * [v1.3.1 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -46,6 +46,8 @@
  * entirely plugin-parameter driven.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.1
+ *    Fixed tiles at the map's edge counting as enterable from off the map.
  * - 1.3.0
  *    setPosition no longer rounds a character onto the tile grid. Under pixel
  *    movement the logical and real coordinates are the same position, so
@@ -226,7 +228,7 @@ J.PIXEL.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.3.0");
+J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.3.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -349,11 +351,7 @@ var PIXEL_CollisionManager = class {
 	static _loadDefaultCollisionTable() {
 		for (let y = 0; y < $dataMap.height; y++) {
 			for (let x = 0; x < $dataMap.width; x++) {
-				const canEnterFromBelow = $gameMap.isPassable(x, y + 1, J.PIXEL.Directions.UP);
-				const canEnterFromAbove = $gameMap.isPassable(x, y - 1, J.PIXEL.Directions.DOWN);
-				const canEnterFromLeft = $gameMap.isPassable(x - 1, y, J.PIXEL.Directions.RIGHT);
-				const canEnterFromRight = $gameMap.isPassable(x + 1, y, J.PIXEL.Directions.LEFT);
-				const canBeEntered = canEnterFromBelow || canEnterFromAbove || canEnterFromLeft || canEnterFromRight;
+				const canBeEntered = this._canBeEntered(x, y);
 				if (canBeEntered === false) {
 					this._fillTile(x, y, this.Codes.Solid);
 					continue;
@@ -365,6 +363,35 @@ var PIXEL_CollisionManager = class {
 				this._applyTileCollision(x, y, passDown, passLeft, passRight, passUp);
 			}
 		}
+	}
+	/**
+	* Whether a character on any neighboring tile could step into this one.
+	* @param {number} x The integer tile x.
+	* @param {number} y The integer tile y.
+	* @returns {boolean}
+	*/
+	static _canBeEntered(x, y) {
+		const { DOWN, LEFT, RIGHT, UP } = J.PIXEL.Directions;
+		return [
+			DOWN,
+			LEFT,
+			RIGHT,
+			UP
+		].some((side) => this._canEnterFrom(x, y, side));
+	}
+	/**
+	* Whether a character on the neighboring tile to one side could step into this one.
+	* @param {number} x The integer tile x.
+	* @param {number} y The integer tile y.
+	* @param {2|4|6|8} side The side of this tile the step would come in from.
+	* @returns {boolean}
+	*/
+	static _canEnterFrom(x, y, side) {
+		const neighborX = $gameMap.roundXWithDirection(x, side);
+		const neighborY = $gameMap.roundYWithDirection(y, side);
+		if ($gameMap.isValid(neighborX, neighborY) === false) return false;
+		const towardThisTile = 10 - side;
+		return $gameMap.isPassable(neighborX, neighborY, towardThisTile);
 	}
 	/**
 	* Computes the flattened index into the subcell table for a fractional coordinate.

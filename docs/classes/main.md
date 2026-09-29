@@ -17,7 +17,7 @@
 - **Classes are weapon-agnostic.** Any skill in your library can theoretically be used with any weapon in hand. Classes are complete identities, not extensions of a specific weapon.
 - **Equipment access comes from fork passives**, not trunks. Trunks have a union view of their forks' equipment for reference, but unlock nothing themselves. Taking an Equip passive cross-class is how gear access travels to other builds.
 - **System unlock:** story-gated. Fourth-wall moment where the two veterans acknowledge they "didn't have this in the old days." Specific branches unlocked via NPC trainers / story beats in Raevula and surrounding regions.
-- **Respec:** free or low-cost via menu after unlock. Discovery is gated; experimentation is not.
+- **Changing classes:** free, but only at a mirror. A class is something Jerald and Rupert talk themselves into, so they need something to talk to. The menu's Class command reviews every unlocked class (parameters, learnings, growth) from anywhere. Discovery is gated; experimentation is not.
 - **Block sizes:** trunks get 10 slots (3 actives, 5 passives, 2 wiggle room); forks get 20 slots (4 actives, 10 passives, 6 wiggle room).
 
 ---
@@ -260,7 +260,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 ## Resolved questions
 
 - **Trunk naming:** trunks are shown to players as legit classes, same as forks — they're just "before" the forks in the tree, not hidden intermediate steps.
-- **Unlock criteria:** the first trunk unlocks via the innkeeper main-scenario quest (killing bearcats), pre-dating the "veterans acknowledge the system" story beat. Every subsequent branch (remaining trunks, all forks) unlocks via NPC trainers scattered through Raevula.
+- **Unlock criteria:** all three trunks unlock together at the first reflection in the inn's bathroom, right after the innkeeper hands over the bearcat quest. Forks unlock afterwards: master a trunk (every teachable learned) and a trainer offers a quest that unlocks its forks, e.g. Fucking Oni → Raving Lunatic and Painbringer. One quest per fork or one per trunk is still open.
 - **Skill ID bands:** class skills start at **301** and run through however many bands are needed to cover all trunk + fork actives — placed after the weapon lots (1–180) and clear of existing character kit bands.
 - **Respec:** none. No respec of classes — you learn what you learn, permanently, per the mastery/cross-pollination model. Class-changing (which class is "active") is a separate mechanic from unlocking/mastering.
 

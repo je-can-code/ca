@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.6.0 DROPS] Enables greater control over loot drops.
+ * @plugindesc [v2.7.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -219,6 +219,8 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.7.0
+ *    Its tags are described in words.
  * - 2.6.0
  *    Added natural growth tags for gold rate (gdr). Fixed drop rate growth, which
  *    never applied when J-NaturalGrowth loaded after this plugin, and drop rate
@@ -439,6 +441,13 @@ var J_DropsControlPluginMetadata = class J_DropsControlPluginMetadata extends Pl
 * The core where all of my extensions live: in the `J` object.
 */
 globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "4.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (hasBaseRequirement === false) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+})();
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
@@ -450,7 +459,7 @@ J.DROPS.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.6.0");
+J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.7.0");
 /**
 * All regular expressions used by this plugin.
 */
@@ -1226,11 +1235,11 @@ TextManager.goldRate = function() {
 	return "Gold UP";
 };
 /**
-* Help text explaining how gold rate improves battle and chest payouts.
+* Help text explaining how gold rate improves the gold defeated enemies pay out.
 * @returns {string[]}
 */
 TextManager.goldRateDescription = function() {
-	return ["Bonus multiplier applied to gold rewards.", "Higher values yield more gold from battles and chests."];
+	return ["Bonus multiplier applied to gold rewards.", "Higher values yield more gold from defeated enemies."];
 };
 /**
 * Display label for drop rate — bonus multiplier on item drop chances.
@@ -1286,15 +1295,111 @@ var DropsParameterRegistration = class {
 };
 
 //#endregion
+//#region src/plugins/drops/core/core/describeDropsNotetags.js
+/**
+* The lines describing the notetags this plugin reads, registered with {@link NotetagDescriber} at boot.
+*
+* No words are written here. Each sentence is the game's, kept in its config under the tag's key; this class reads
+* the tag and supplies what the sentence names.
+*/
+var DropsNotetagDescriptions = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Registers the describer of every tag this plugin reads that has its words so far.
+	*/
+	static registerAll() {
+		NotetagDescriber.register(J.DROPS.RegExp.DropMultiplier, (match) => this.partyRateLines(match, "dropMultiplier", IconManager.dropRate()));
+		NotetagDescriber.register(J.DROPS.RegExp.GoldMultiplier, (match) => this.partyRateLines(match, "goldMultiplier", IconManager.goldRate()));
+		NotetagDescriber.register(J.DROPS.RegExp.DropUpgrade, (match) => this.haulLines(match, "dropUpgrade"));
+		NotetagDescriber.register(J.DROPS.RegExp.DropQuantity, (match) => this.haulLines(match, "dropQuantity"));
+	}
+	/**
+	* The line describing a party reward rate tag, in the sentence the game's config keeps under the given key.
+	*
+	* Only a party member's tags count, and every member's add together into one rate the whole party shares, so the
+	* amount is shown as the percent this one tag adds (`+30%`). The sentence may name `{value}`.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is its amount, in percent.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @param {number} iconIndex The rate's own icon.
+	* @returns {NotetagLine[]}
+	*/
+	static partyRateLines(match, templateKey, iconIndex) {
+		const [, writtenAmount] = match;
+		const amount = Number(writtenAmount);
+		const value = RPG_Trait.asDeltaPercent(amount);
+		const holderImpact = this.rateImpact(amount);
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact,
+			value
+		});
+	}
+	/**
+	* The line describing a tag that improves the haul of a kill, in the sentence the game's config keeps under the
+	* given key: every item dropped is carried up its ladder, or comes with extra copies.
+	*
+	* The amount is a count of tiers or copies (`+2`). The sentence may name `{value}`.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is its amount.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static haulLines(match, templateKey) {
+		const [, writtenAmount] = match;
+		const amount = Number(writtenAmount);
+		const iconIndex = IconManager.rewardParam(2);
+		const value = RPG_Trait.asDelta(amount);
+		const holderImpact = this.haulImpact(amount);
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact,
+			value
+		});
+	}
+	/**
+	* Which way a haul bonus cuts for whoever carries it: one of {@link NotetagLine.Impacts}.
+	*
+	* Both sides of a kill contribute, but it is the enemy that gives its loot up, and every one of these tags Chef
+	* Adventure writes sits on an enemy's affix. So a better haul hurts the enemy carrying it, which is what reads a
+	* bigger bounty as good news for the party, the way a reward multiplier does.
+	* @param {number} amount The tiers or copies added, which may be negative.
+	* @returns {number}
+	*/
+	static haulImpact(amount) {
+		if (amount > 0) return NotetagLine.Impacts.HURTS;
+		if (amount < 0) return NotetagLine.Impacts.HELPS;
+		return NotetagLine.Impacts.NEITHER;
+	}
+	/**
+	* Which way a party reward rate cuts for whoever carries it: one of {@link NotetagLine.Impacts}.
+	*
+	* The rate may be negative: a curse that thins out what the party brings home.
+	* @param {number} amount The rate, in percent.
+	* @returns {number}
+	*/
+	static rateImpact(amount) {
+		if (amount > 0) return NotetagLine.Impacts.HELPS;
+		if (amount < 0) return NotetagLine.Impacts.HURTS;
+		return NotetagLine.Impacts.NEITHER;
+	}
+};
+
+//#endregion
 //#region src/plugins/drops/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* Registers J-Drops stats with the parameter catalog after vanilla seeding.
+* Registers J-Drops stats with the parameter catalog after vanilla seeding, and describes this plugin's tags.
 */
 J.DROPS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.DROPS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
 	DropsParameterRegistration.registerAll();
+	DropsNotetagDescriptions.registerAll();
 	J.EXTEND.Metadata.registerNonCombiningKey(J.DROPS.RegExp.ExtraDrop);
 	J.DROPS.Metadata.buildDropLadders(J.DROPS.Metadata.dropLadderTables());
 };

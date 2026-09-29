@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.3.0 PASSIVE] Grants passive states from various database objects.
+ * [v2.4.0 PASSIVE] Grants passive states from various database objects.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -171,6 +171,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.4.0
+ *    Its tags are described in words.
  * - 2.3.0
  *    Passive sources are no longer written to savefiles; they are entirely
  *    derived from equipment, states, and skills, and are now rebuilt on load
@@ -295,6 +297,13 @@ var JPassive_PluginMetadata = class extends PluginMetadata {
 * The core where all of my extensions live: in the `J` object.
 */
 globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "4.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (hasBaseRequirement === false) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+})();
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
@@ -307,7 +316,7 @@ J.PASSIVE.EXT = {};
 * The `metadata` associated with this plugin, such as version and plugin parameter values.
 * @type {JPassive_PluginMetadata}
 */
-J.PASSIVE.Metadata = new JPassive_PluginMetadata("J-Passive", "2.3.0");
+J.PASSIVE.Metadata = new JPassive_PluginMetadata("J-Passive", "2.4.0");
 /**
 * All regular expressions used by this plugin.
 */
@@ -328,6 +337,7 @@ J.PASSIVE.Aliased.Game_BattlerBase = new Map();
 J.PASSIVE.Aliased.Game_Enemy = new Map();
 J.PASSIVE.Aliased.Game_Party = new Map();
 J.PASSIVE.Aliased.JABS_AiManager = new Map();
+J.PASSIVE.Aliased.Scene_Boot = new Map();
 J.PASSIVE.Aliased.Scene_Menu = new Map();
 J.PASSIVE.Aliased.Window_MenuCommand = new Map();
 J.PASSIVE.Aliased.Window_MoreEquipData = new Map();
@@ -3151,6 +3161,64 @@ Scene_Menu.prototype.createCommandWindow = function() {
 */
 Scene_Menu.prototype.commandPassive = function() {
 	Scene_Passive.callScene();
+};
+
+//#endregion
+//#region src/plugins/passive/core/core/describePassiveNotetags.js
+/**
+* The lines describing the notetags this plugin reads, registered with {@link NotetagDescriber} at boot.
+*
+* No words are written here. Each sentence is the game's, kept in its config under the tag's key; this class reads
+* the tag and supplies what the sentence names.
+*/
+var PassiveNotetagDescriptions = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Registers the describer of every tag this plugin reads that has its words so far.
+	*/
+	static registerAll() {
+		NotetagDescriber.register(J.PASSIVE.RegExp.PassiveStateIds, (match) => this.grantLines(match, "passive"));
+		NotetagDescriber.register(J.PASSIVE.RegExp.UniquePassiveStateIds, (match) => this.grantLines(match, "uniquePassive"));
+		NotetagDescriber.register(J.PASSIVE.RegExp.HideFromPassiveList, () => NotetagDescriber.line("hideFromPassiveList", {}));
+	}
+	/**
+	* The line describing a tag granting passive states, in the sentence the game's config keeps under the given key.
+	*
+	* The sentence may name `{states}`, every granted state in the order the tag lists them, each as the text code that
+	* draws its icon and name. What a granted state does is for its own lines to say, so the grant itself cuts neither
+	* way, and the states' own icons leave the line none of its own to lead with.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is `[STATE_ID, ...]`.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static grantLines(match, templateKey) {
+		const [, writtenIds] = match;
+		const stateIds = JsonMapper.parseObject(writtenIds);
+		const codes = stateIds.map((stateId) => `\\state[${stateId}]`);
+		const states = {
+			text: codes.join(", "),
+			kind: NotetagDescriber.TokenKinds.CODE
+		};
+		return NotetagDescriber.line(templateKey, { tokens: { states } });
+	}
+};
+
+//#endregion
+//#region src/plugins/passive/core/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Describes this plugin's tags once the database they are read from exists.
+*/
+J.PASSIVE.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.PASSIVE.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	PassiveNotetagDescriptions.registerAll();
 };
 
 //#endregion

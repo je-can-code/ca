@@ -1,7 +1,7 @@
 //region initialization
 /*:
  * @target MZ
- * @plugindesc [v1.6.3 LEVEL] Allows levels to have greater control and purpose.
+ * @plugindesc [v1.6.4 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -260,6 +260,10 @@
  * growth curve tag, when present, is evaluated LIVE for every level, not
  * just beyond 99.
  *
+ * Either way, a curve is only the base. An MTP curve stands in for J-Base's
+ * configured base max TP, and every <maxTp> tag and natural growth or buff
+ * still adds on top of it.
+ *
  * Formula context:
  *   a.level = the level being evaluated (this is the ONLY binding available-
  *             no b, no v, unlike most other formula tags in this ecosystem)
@@ -284,8 +288,8 @@
  * slope-extrapolation fallback.
  *
  *  <mtpGrowthCurve:[a.level * 2]>
- * This class's max TP is always (level * 2), evaluated live at every level-
- * not just beyond 99.
+ * This class's base max TP is (level * 2), evaluated live at every level-
+ * not just beyond 99. Gear, states and natural buffs add on top.
  *
  * ============================================================================
  * SAMPLE CALCULATIONS:
@@ -373,6 +377,8 @@
  * This same logic is again applied to gold from each defeated enemy.
  * ============================================================================
  * CHANGELOG:
+ * - 1.6.4
+ *    Max TP from a growth curve is now the base that other bonuses build on.
  * - 1.6.3
  *    Routed the growth-curve formula error through J-Base's new Diagnostics, so
  *    it names J-LevelMaster in the console.
@@ -571,7 +577,7 @@ J.LEVEL.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.6.3");
+J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.6.4");
 /**
 * The maximum level definable in the level. Any level below this can be determined without extra calculations.
 * @type {number}
@@ -725,6 +731,22 @@ var GrowthCurveFormula = class {
 			Diagnostics.error("J-LevelMaster", `error evaluating growth curve formula: ${formula}`, error);
 			return 0;
 		}
+	}
+	/**
+	* The base max TP a class's `<mtpGrowthCurve:[formula]>` tag gives at a level: the formula's value there,
+	* rounded to a whole number and never below zero.
+	*
+	* This is the one place an MTP curve becomes a number, so an actor's max TP and anything measuring a class
+	* by its curve always agree on what the curve is worth.
+	* @param {RPG_Class} dataClass The class database object to read the tag from.
+	* @param {number} level The level to evaluate the curve at.
+	* @returns {number|null} The base max TP at that level, or null if the class has no MTP growth curve tag.
+	*/
+	static baseMaxTpForClass(dataClass, level) {
+		const formula = this.readMtpForClass(dataClass);
+		if (formula === null) return null;
+		const curveValue = this.evaluate(formula, level);
+		return Math.max(0, Math.round(curveValue));
 	}
 };
 
@@ -945,21 +967,23 @@ Game_Actor.prototype.paramBase = function(paramId) {
 	return beyondRow[beyondIdx];
 };
 /**
-* Extends {@link #maxTp}.<br/>
-* When the actor's current class carries an `<mtpGrowthCurve:[formula]>` tag, that formula is the
-* sole source of this actor's MTP at every level- it replaces J-Base's flat `base + tag-sum`
-* calculation entirely (no additive stacking with `<maxTp:N>`/`<mtpBuffPlus:[...]>`), since MTP has no
-* `params[]` array to defer to for any level range the way the 8 base params do. Falls through to the
-* original calculation unchanged when the current class has no such tag.
+* Extends {@link #getBaseMaxTp}.<br/>
+* When the actor's current class carries an `<mtpGrowthCurve:[formula]>` tag, that formula at the actor's
+* level is their base max TP, in place of the flat base J-Base is configured with.
+*
+* It is only the base, the same as a base parameter's curve is: every `<maxTp>` tag, and every natural
+* growth and buff, still adds on top of it. MTP has no `params[]` array to bake a curve into, so the formula
+* is evaluated live at every level rather than only past 99. A class with no such tag keeps the configured
+* base.
 * @returns {number}
 */
-J.LEVEL.Aliased.Game_Actor.set("maxTp", Game_Actor.prototype.maxTp);
-Game_Actor.prototype.maxTp = function() {
-	const growthCurveFormula = GrowthCurveFormula.readMtpForClass(this.currentClass());
-	if (growthCurveFormula) {
-		return Math.max(0, Math.round(GrowthCurveFormula.evaluate(growthCurveFormula, this.getLevel())));
+J.LEVEL.Aliased.Game_Actor.set("getBaseMaxTp", Game_Actor.prototype.getBaseMaxTp);
+Game_Actor.prototype.getBaseMaxTp = function() {
+	const curveBaseMaxTp = GrowthCurveFormula.baseMaxTpForClass(this.currentClass(), this.getLevel());
+	if (curveBaseMaxTp === null) {
+		return J.LEVEL.Aliased.Game_Actor.get("getBaseMaxTp").call(this);
 	}
-	return J.LEVEL.Aliased.Game_Actor.get("maxTp").call(this);
+	return curveBaseMaxTp;
 };
 /**
 * The base or default level for this battler.

@@ -836,11 +836,11 @@
         {
           "id": 4,
           "type": "Quest",
-          "description": "Have the smith help you with making your first weapons.",
+          "description": "Have the smith teach you the forge.",
           "logs": {
             "inactive": "",
             "active": "Looks like just bringing gramps home isn't enough- he wants to enlist your services for more mind-numbing tutorial shit.",
-            "completed": "Well, at least you got to stretch your legs and also got some levels and weapons out of it.",
+            "completed": "Well, at least you got to stretch your legs, and technically you're smiths now.",
             "failed": "",
             "missed": ""
           },
@@ -1167,7 +1167,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 561,
+              "id": 581,
               "amount": 1
             },
             "quest": {
@@ -2137,7 +2137,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 563,
+              "id": 582,
               "amount": 1
             },
             "quest": {
@@ -2840,7 +2840,7 @@
           "logs": {
             "inactive": "",
             "active": "Return to \\C[1]The Metal Petal\\C[0] and deliver the ore.",
-            "completed": "The simple things you do to build relationships with permanent NPCs...",
+            "completed": "Delivered. She doesn't want rocks. She wants iron.",
             "failed": "",
             "missed": ""
           },
@@ -2873,18 +2873,56 @@
         },
         {
           "id": 2,
-          "type": "Indiscriminate",
-          "description": "Smithing doesn't seem too hard, just make a \\weapon[2] and \\weapon[122], and show them off to Viskra, right?",
+          "type": "Fetch",
+          "description": "Viskra wants iron, not rocks. Five ore go in, two ingots come out, and she wants four of them.",
           "logs": {
             "inactive": "",
-            "active": "Gotta 'upgrade' our weapons- better hit the apprentice forge, then show Viskra the fruits of your labor.",
-            "completed": "Easy as pie.",
+            "active": "Smelt the ore at Viskra's forge- she wants four ingots, not ten rocks.",
+            "completed": "Four ingots. Turns out a forge is just a very angry oven.",
             "failed": "",
             "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Smith up the \\weapon[2] and \\weapon[122], then show them to Viskra."
+              "hint": "Smelt four \\item[31] at the apprentice forge in \\C[1]The Metal Petal\\C[0]."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": 0,
+              "id": 31,
+              "amount": 4
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 3,
+          "type": "Indiscriminate",
+          "description": "Show Viskra the ingots and collect your forge pass.",
+          "logs": {
+            "inactive": "",
+            "active": "Four ingots in hand- go rub them in Viskra's face.",
+            "completed": "She kept the iron. You kept the tools, a stack of blueprints, and the run of a forge. Fair.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Hand the ingots to Viskra."
             },
             "destination": {
               "mapId": -1,
@@ -4599,62 +4637,6 @@
             }
           },
           "hiddenByDefault": true,
-          "isOptional": false
-        }
-      ],
-      "iconIndex": 0
-    },
-    {
-      "name": "Anomaly: TBD",
-      "key": "hunt-013",
-      "categoryKey": "hunt",
-      "tagKeys": [
-        "ch4"
-      ],
-      "unknownHint": "Check with the Hunting Lord.",
-      "overview": "A new anomaly to slay has been identified!\r\nThe anomaly is TBD.\r\n\r\nSupposedly it hangs out near TBD.",
-      "recommendedLevel": 35,
-      "objectives": [
-        {
-          "id": 0,
-          "type": "Slay",
-          "description": "Find the TBD anomaly and defeat it!",
-          "logs": {
-            "inactive": "",
-            "active": "Find and defeat the TBD anomaly!",
-            "completed": "The TBD didn't stand a chance.",
-            "failed": "",
-            "missed": ""
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": ""
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "x2": -1,
-              "y1": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": -1,
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 100,
-              "amount": 1
-            },
-            "quest": {
-              "keys": [
-                "hunt-001",
-                "hunt-002",
-                "hunt-003"
-              ]
-            }
-          },
-          "hiddenByDefault": false,
           "isOptional": false
         }
       ],

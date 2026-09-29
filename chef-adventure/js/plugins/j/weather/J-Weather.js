@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 WEATHER] Named ambience and weather, declared per map.
+ * [v1.0.1 WEATHER] Named ambience and weather, declared per map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -114,6 +114,8 @@
  * finish.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Weather sounds stop at the title screen, at game over and when a battle starts.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -193,13 +195,15 @@ J.WEATHER.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.WEATHER.Metadata = new J_WEATHER_PluginMetadata("J-Weather", "1.0.0");
+J.WEATHER.Metadata = new J_WEATHER_PluginMetadata("J-Weather", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.WEATHER.Aliased = {};
 J.WEATHER.Aliased.Game_Map = new Map();
+J.WEATHER.Aliased.Scene_Gameover = new Map();
 J.WEATHER.Aliased.Scene_Map = new Map();
+J.WEATHER.Aliased.Scene_Title = new Map();
 J.WEATHER.Aliased.Spriteset_Map = new Map();
 J.WEATHER.Aliased.Window_Base = new Map();
 /**
@@ -2715,6 +2719,51 @@ J.WEATHER.Aliased.Scene_Map.set("update", Scene_Map.prototype.update);
 Scene_Map.prototype.update = function() {
 	J.WEATHER.Aliased.Scene_Map.get("update").call(this);
 	WeatherDirector.trackPlayer();
+};
+/**
+* Extends {@link #stopAudioOnBattleStart}.<br/>
+* Also silences the weather as a battle begins, at the moment the engine silences the map's own background
+* sound.
+*
+* Nothing needs doing to bring it back: returning to the map is an arrival like any other, and the weather is
+* worked out again, and fades back in, on every arrival.
+*/
+J.WEATHER.Aliased.Scene_Map.set("stopAudioOnBattleStart", Scene_Map.prototype.stopAudioOnBattleStart);
+Scene_Map.prototype.stopAudioOnBattleStart = function() {
+	J.WEATHER.Aliased.Scene_Map.get("stopAudioOnBattleStart").call(this);
+	WeatherAudioChannel.stop();
+};
+
+//#endregion
+//#region src/plugins/weather/core/scenes/Scene_Gameover.js
+/**
+* Extends {@link #playGameoverMusic}.<br/>
+* Also silences the weather, at the moment the engine silences the map's own background sound.
+*
+* The weather plays on a channel of its own that `AudioManager` has never heard of, so the engine stopping
+* "the" background sound here stops the map's river and leaves the rain going- on through the game over and
+* onto the title screen.
+*/
+J.WEATHER.Aliased.Scene_Gameover.set("playGameoverMusic", Scene_Gameover.prototype.playGameoverMusic);
+Scene_Gameover.prototype.playGameoverMusic = function() {
+	J.WEATHER.Aliased.Scene_Gameover.get("playGameoverMusic").call(this);
+	WeatherAudioChannel.stop();
+};
+
+//#endregion
+//#region src/plugins/weather/core/scenes/Scene_Title.js
+/**
+* Extends {@link #playTitleMusic}.<br/>
+* Also silences the weather, at the moment the engine silences the map's own background sound.
+*
+* Every way back to the title arrives here: a game over, the menu's To Title, and anything else sending the
+* player there. A game over has already stopped the weather by now, but To Title only fades the engine's own
+* sounds on the way out, and the weather's channel is not one of them.
+*/
+J.WEATHER.Aliased.Scene_Title.set("playTitleMusic", Scene_Title.prototype.playTitleMusic);
+Scene_Title.prototype.playTitleMusic = function() {
+	J.WEATHER.Aliased.Scene_Title.get("playTitleMusic").call(this);
+	WeatherAudioChannel.stop();
 };
 
 //#endregion

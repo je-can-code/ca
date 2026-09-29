@@ -31,18 +31,32 @@ const ROW_TABLES = new Set([
  * The lists inside `System.json` a table name refers to, whether an entry must carry a name, and
  * whether id 0 means something.
  *
- * Switches are the exception on names: an unnamed switch is still a perfectly good switch, while an
- * unnamed element or skill type is a slot nobody filled in. Elements are the exception on zero: element
- * 0 is RPG Maker's built-in "None", a real choice a skill's damage can carry, so `<strictElements:[0]>`
- * names something even though the list's slot 0 is blank.
+ * Switches and variables are the exception on names: an unnamed switch is still a perfectly good
+ * switch, while an unnamed element or skill type is a slot nobody filled in. Elements are the exception
+ * on zero: element 0 is RPG Maker's built-in "None", a real choice a skill's damage can carry, so
+ * `<strictElements:[0]>` names something even though the list's slot 0 is blank.
  * @type {Object<string, { list: string, named: boolean, zeroIsReal: boolean }>}
  */
 const SYSTEM_LISTS = {
   Elements: { list: 'elements', named: true, zeroIsReal: true },
   SkillTypes: { list: 'skillTypes', named: true, zeroIsReal: false },
   WeaponTypes: { list: 'weaponTypes', named: true, zeroIsReal: false },
+  ArmorTypes: { list: 'armorTypes', named: true, zeroIsReal: false },
+  EquipTypes: { list: 'equipTypes', named: true, zeroIsReal: false },
   Switches: { list: 'switches', named: false, zeroIsReal: false },
+  Variables: { list: 'variables', named: false, zeroIsReal: false },
 };
+
+/**
+ * How a row that holds a slot open announces itself: `=== TBD Aspect`, `=== OPEN`, `=== Aerial`.
+ *
+ * Such a row exists and carries a name, so "does the row exist" and "is it blank" both wave it
+ * through, and it draws its name wherever it is referenced. That is exactly the failure worth
+ * catching: a quest once read "slay the === TBD Aspect", and an anomaly board named three placeholder
+ * enemies, because the rows those ids used to hold had been moved out from under them.
+ * @type {string}
+ */
+const PLACEHOLDER_PREFIX = '===';
 
 /**
  * Every table name this file knows how to resolve, including `Self`, which callers turn into the
@@ -107,6 +121,7 @@ const resolveRow = (rows, table, id) =>
 
   if (id <= 0 || !row) return `${table} #${id}, which does not exist`;
   if (row.name === '') return `${table} #${id}, which is a blank row`;
+  if (row.name.startsWith(PLACEHOLDER_PREFIX)) return `${table} #${id}, which is a placeholder row ("${row.name}")`;
 
   return '';
 };

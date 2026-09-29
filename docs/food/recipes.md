@@ -16,8 +16,8 @@ A bare name is a **pinned slot** — that exact item and nothing else.
 A **Bolded Name** is another recipe's output.
 
 **Tools** are one per recipe and the tool *is* the method: wok (sear/fry), pot (boil), donabe (stew),
-skillet (saute), hibachi (grill), obliterator (puree), cocotte (bake/roast), vaporera (steam),
-caidao (chop/raw), icebox (chill).
+skillet (saute), hibachi (grill), obliterator (puree), whisk (whip/aerate), cocotte (bake/roast),
+vaporera (steam), caidao (chop/raw), icebox (chill).
 
 ---
 
@@ -282,15 +282,15 @@ Tortellini asks for `any paste` and you can fold jam into one.
 | # | Name | Tool | Types | 1 | 2 | 3 | 4 | 5 | Description |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | Cream | icebox | cream milk | 3x any milk | 1x any liquid |  |  |  | Left cold and undisturbed until the fat rises far enough to be skimmed off the top. It is the least active recipe in this entire document and it still counts as cooking. |
-| 2 | Creamed Cream | obliterator | butter cream | 3x any cream | 1x any spice |  |  |  | Cream beaten past whipped, past stiff, and out the other side until it breaks into fat and liquid. The moment it turns is unmistakable and slightly alarming the first time. |
+| 2 | Creamed Cream | whisk | butter cream | 3x any cream | 1x any spice |  |  |  | Cream beaten past whipped, past stiff, and out the other side until it breaks into fat and liquid. The moment it turns is unmistakable and slightly alarming the first time. |
 | 3 | Cheddar | pot | cheese fungus | 3x any milk | 1x any citrus | 1x any spice | 1x any herb |  | Curdled with acid, cut, stacked and pressed, then left alone for far longer than feels reasonable. The first cheese anybody learns and the one they never stop making. |
-| 4 | Whipped Yogy | obliterator | yogurt fungus | 3x any yogurt | 1x any milk |  |  |  | Beaten with a little milk until it loosens and goes airy under the blade. Officially a fungus, which the roster insists upon and nobody wants to think about. |
+| 4 | Whipped Yogy | whisk | yogurt fungus | 3x any yogurt | 1x any milk |  |  |  | Beaten with a little milk until it loosens and goes airy under the whisk. Officially a fungus, which the roster insists upon and nobody wants to think about. |
 | 5 | Fondue | donabe |  | 3x any cheese | 1x any citrus | 1x any liquid | 1x any bread | 1x any spice | Melted slowly with liquid and something sharp, because cheese without acid seizes into rubber rather than melting. Eaten communally, which is either intimate or a hygiene incident depending entirely on the party. |
 | 6 | Grilled Cheese | skillet |  | 2x any cheese | 2x any bread | 1x any butter |  |  | Butter on the outside, cheese on the inside, and patience over medium heat. Rushing it produces a burnt sandwich with a cold middle, and everybody has made exactly one. |
 | 7 | Cheese Sauce | pot | liquid | 3x any cheese | 1x any milk | 1x any butter | 1x any grain |  | Melted into thickened milk until it pours smooth and coats the back of a spoon. It goes over vegetables, over noodles, and over several things that did not ask for it. |
 | 8 | Milk Pudding | pot |  | 3x any milk | 1x any grain | 1x any sugar | 1x any spice |  | Grain cooked slowly in milk until it thickens itself and the spoon stands unaided. Somebody's grandmother invented every version of this independently and all of them are correct. |
 | 9 | Custard | vaporera | gel | 3x any milk | 2x any egg | 1x any sugar |  |  | Steamed low until it sets to a wobble and then stopped immediately. The line between custard and sweet scrambled egg is about ninety seconds wide. |
-| 10 | Whipped Cream | obliterator | cream | 3x any cream | 1x any sugar |  |  |  | Beaten until it holds a peak and stopped precisely one stroke before it would not. Everything about this recipe is knowing when to quit. |
+| 10 | Whipped Cream | whisk | cream | 3x any cream | 1x any sugar |  |  |  | Beaten until it holds a peak and stopped precisely one stroke before it would not. Everything about this recipe is knowing when to quit. |
 | 11 | Ice Cream | icebox |  | 3x any cream | 2x any sugar | 1x any egg |  |  | Churned while freezing so the ice never gets a chance to form properly. Stop stirring for long enough and you have made a sweet brick instead. |
 | 12 | Browned Butter | skillet | oil | 3x any butter | 1x any spice |  |  |  | Cooked past melted until the solids toast and the whole pan smells of hazelnuts. Thirty seconds beyond that and it smells like a mistake instead. |
 | 13 | Strained Yogurt | caidao | cream | 4x any yogurt | 1x any spice |  |  |  | Hung in cloth overnight until the liquid drains away and what remains will hold a shape. Half the volume and twice the everything. |
@@ -304,7 +304,7 @@ Tortellini asks for `any paste` and you can fold jam into one.
 | 16 | Refined Butter | pot | butter cream | 3x creamed cream | 1x any spice |  |  |  | Melted, skimmed, and the clear fat poured carefully off the solids beneath. It keeps almost forever and burns at a far higher heat, which is the entire point of the exercise. |
 | 17 | Brie | cocotte | cheese fungus | 3x malk | 1x any fungus | 1x any spice |  |  | Surface-ripened until a bloom forms and the inside goes to liquid underneath it. Deliberately and carefully mouldy, which is a thing the roster evidently already knew. |
 | 18 | Parmesan | cocotte | cheese fungus | 3x moo juice | 1x salt | 1x any liquid |  |  | Pressed hard, salted heavily, and then aged for longer than any other item in this lane. It is the only cheese here that is genuinely a long-term investment. |
-| 19 | Kream | obliterator | cream milk | 3x thicc cream | 1x any sugar |  |  |  | Whipped with sugar until it stiffens into something that holds a shape indefinitely. The deliberate misspelling is the roster's problem and not this recipe's. |
+| 19 | Kream | whisk | cream milk | 3x thicc cream | 1x any sugar |  |  |  | Whipped with sugar until it stiffens into something that holds a shape indefinitely. The deliberate misspelling is the roster's problem and not this recipe's. |
 | 20 | Dragon Juice Custard | vaporera |  | 3x dragon juice | 2x any egg | 1x any sugar |  |  | Steamed until it sets, and it sets considerably faster than it has any right to. The tongue stays faintly warm a full minute afterwards for reasons nobody has chased down. |
 | 21 | Bug Juice Ice Cream | icebox |  | 3x bug juice | 2x any sugar | 1x any cream |  |  | Churned cold into something pale green that tastes far better than its name suggests. Every single person has to be told twice before they will try it. |
 | 22 | Parmesan Crisps | skillet | crunch | 4x parmesan | 1x any herb |  |  |  | Grated into a dry pan in small piles and left alone until they fuse and go lacy. Two ingredients, and one of them is arguably unnecessary. |
@@ -319,12 +319,12 @@ Tortellini asks for `any paste` and you can fold jam into one.
 
 | # | Name | Tool | Types | 1 | 2 | 3 | 4 | Description |
 |---|---|---|---|---|---|---|---|---|
-| 29 | Fat Paste | obliterator | butter cream paste | 3x refined butter | 2x thicc cream | 1x any spice |  | Clarified butter beaten back together with cream into something spreadable and obscene. It is not a good idea and it has never claimed to be one. |
+| 29 | Fat Paste | whisk | butter cream paste | 3x refined butter | 2x thicc cream | 1x any spice |  | Clarified butter beaten back together with cream into something spreadable and obscene. It is not a good idea and it has never claimed to be one. |
 | 30 | Devil Slick | pot | butter cream | 3x fat paste | 2x dragon juice | 1x any spice |  | Rendered down with dragon milk until it goes dark, thin and faintly hot to the touch. It fries harder than anything else in the kitchen and it browns things it was not aimed at. |
 | 31 | Volatile Cuhream | icebox | cream milk | 3x kream | 2x dragon juice | 1x any spice |  | Held just above freezing while something in the dragon milk refuses to settle. It is stable for as long as it is cold and for no longer than that. |
 | 32 | Velvet Yoggert | donabe | yogurt fungus | 3x basic yogert | 2x thicc cream | 1x any sugar |  | Cultured slowly at a temperature that somebody has to physically sit and watch. The reward is a texture that coats a spoon and declines to run off it. |
 | 33 | Liquigurt | obliterator | yogurt liquid | 3x velvet yoggert | 2x malk | 1x any sugar |  | Thinned until it can be drunk rather than spooned, and then thinned slightly further. Somewhere between a yogurt and a beverage, and legally recognised as neither. |
-| 34 | Collapsing Cream | obliterator |  | 3x volatile cuhream | 2x powdered sugar | 1x any spice |  | It whips in about four seconds and it collapses in about nine. Everything about serving this is a logistics problem rather than a cooking one. |
+| 34 | Collapsing Cream | whisk |  | 3x volatile cuhream | 2x powdered sugar | 1x any spice |  | It whips in about four seconds and it collapses in about nine. Everything about serving this is a logistics problem rather than a cooking one. |
 | 35 | Cheesy Bread | cocotte |  | 3x brie | 2x parmesan | 1x any bread | 1x any herb | The youngest cheese and the oldest baked in the same dish, where one floods and one fuses. They have nothing in common and the pot does not care. |
 | 36 | Dragon Ice | icebox |  | 3x dragon juice | 2x kream | 1x any sugar | 1x any egg | Churned hard and frozen harder, and still faintly warm on the way down. The contradiction is the entire dessert and the kitchen has stopped apologising for it. |
 
@@ -366,7 +366,7 @@ Tortellini asks for `any paste` and you can fold jam into one.
 | 16 | Melon Juice | obliterator | liquid | 4x any rind | 1x any citrus |  |  | Blended and strained into something so pale it looks like water and tastes like summer. It separates within the hour and must be drunk before it manages it. |
 | 17 | Fruit Salad | caidao |  | 4x any fruit | 1x any crunch | 1x any citrus | 1x any herb | Everything in the bag, cut to the same size, tossed in acid so that nothing browns. The most honest recipe in this lane and it requires nothing but a knife. |
 | 18 | Fruit Jam | pot | sweet paste | 4x any fruit | 3x any sugar | 1x any citrus |  | Cooked with sugar until it sets on a cold plate and not one minute longer. The test involves a saucer, something freezing, and a considerable amount of nerve. |
-| 19 | Fruit Fool | obliterator |  | 3x any fruit | 2x any cream | 1x any sugar | 1x any crunch | Fruit crushed rough and folded through whipped cream just enough to streak it, never enough to mix it. Stirring it properly is the only way to ruin it and everyone is tempted. |
+| 19 | Fruit Fool | whisk |  | 3x any fruit | 2x any cream | 1x any sugar | 1x any crunch | Fruit crushed rough and folded through whipped cream just enough to streak it, never enough to mix it. Stirring it properly is the only way to ruin it and everyone is tempted. |
 
 ### Tier 2 — 11
 
@@ -424,12 +424,12 @@ Tortellini asks for `any paste` and you can fold jam into one.
 | 7 | Plain Cake | cocotte |  | 3x any sugar | 2x any grain | 2x any egg | 1x any butter |  | Sugar, flour, egg, butter, and no cleverness whatsoever. Every cake anybody makes is this one with something else added to it. |
 | 8 | Slime Pudding | icebox |  | 3x any jelly | 1x any milk | 1x any sugar | 1x any spice |  | Set cold into something that holds a shape and wobbles under the spoon. This is the dish that convinced everybody slime was food, which took some considerable doing. |
 | 9 | Boiled Slime Sweets | pot |  | 3x any jelly | 3x any sugar | 1x any herb | 1x any spice |  | Cooked hard, cooled fast, and cut into pieces that stick to teeth for hours afterwards. Herb and spice rather than fruit, because a boiled sweet has to taste of something that survives the heat. |
-| 10 | Slime Foam | obliterator | gel | 4x any jelly | 1x any sugar | 1x any egg |  |  | Whipped until it triples in volume and then holds a peak indefinitely. Physically improbable and structurally load-bearing in half the desserts below it. |
+| 10 | Slime Foam | whisk | gel | 4x any jelly | 1x any sugar | 1x any egg |  |  | Whipped until it triples in volume and then holds a peak indefinitely. Physically improbable and structurally load-bearing in half the desserts below it. |
 | 11 | Melted Chocolate | donabe | liquid | 4x any chocolate | 1x any cream | 1x any butter |  |  | Melted slowly over the gentlest heat available and stirred until it turns glossy. Rush it and it seizes into something grainy that no amount of stirring recovers. |
 | 12 | Hot Chocolate | pot |  | 3x any chocolate | 2x any milk | 1x any sugar | 1x any spice |  | Melted directly into hot milk rather than stirred in as a powder, which is the entire difference. Thick enough that a spoon leaves a trail behind it. |
 | 13 | Chocolate Cake | cocotte |  | 3x any chocolate | 2x any grain | 2x any egg | 1x any butter |  | Baked until the middle is barely set and the top has cracked all the way across. Underbaking it slightly is not a mistake; it is the recipe. |
 | 14 | Chocolate Truffles | caidao |  | 3x any chocolate | 2x any cream | 1x any sugar |  |  | Rolled by hand into rough spheres and dusted before they have a chance to melt. They are supposed to be ugly and the ugly ones genuinely taste better. |
-| 15 | Chocolate Mousse | obliterator |  | 3x any chocolate | 2x any egg | 1x any cream | 1x any sugar |  | Whipped and folded until it holds air, then set cold for several hours. Folding too hard undoes every bit of the work in about ten seconds. |
+| 15 | Chocolate Mousse | whisk |  | 3x any chocolate | 2x any egg | 1x any cream | 1x any sugar |  | Whipped and folded until it holds air, then set cold for several hours. Folding too hard undoes every bit of the work in about ten seconds. |
 | 16 | Snap Cookies | cocotte | crunch | 3x any grain | 2x any sugar | 1x any butter | 1x any spice |  | Stiff dough rolled thin, chilled hard, and cut into whatever shape the kitchen owns a cutter for. It snaps rather than bends, which is the entire difference and the reason it travels. |
 | 17 | Shortbread | cocotte |  | 3x any butter | 2x any grain | 1x any sugar |  |  | Three ingredients, more butter than flour, and nothing in it that could rise even if asked. Bake it pale — colour is a mistake here and nowhere else. |
 | 18 | Drop Cookies | cocotte |  | 2x any sugar | 2x any grain | 1x any egg | 1x any butter | 1x any crunch | Dropped in rough spoonfuls, studded with something that shatters, and pulled out while the middles still look wrong, because they go on setting after they leave the heat. Everybody holds a fixed opinion about the correct degree of underdone and everybody is wrong except themselves. |

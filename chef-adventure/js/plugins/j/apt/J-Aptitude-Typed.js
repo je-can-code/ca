@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 APT-TYPED] Adds typed (element/weapon type/skill type) AP gains and teachables.
+ * [v1.2.1 APT-TYPED] Adds typed (element/weapon type/skill type) AP gains and teachables.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -171,6 +171,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    AP gain messages take AP's name from TextManager.
  * - 1.2.0
  *    Enemy typing reads prefixed elements (vs , x , tool-) from the weakness
  *    side and standard elements from the resistance side, since a prefix marks
@@ -496,7 +498,7 @@ J.APT.EXT.TYPED = J.APT.EXT.TYPED || {};
 * The plugin umbrella that governs all things related to this extension plugin.
 * Name and Version are owned by the metadata instance.
 */
-J.APT.EXT.TYPED.Metadata = new JAptitudeTyped_PluginMetadata("J-Aptitude-Typed", "1.2.0");
+J.APT.EXT.TYPED.Metadata = new JAptitudeTyped_PluginMetadata("J-Aptitude-Typed", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -900,7 +902,8 @@ if (J.ABS) {
 	JABS_Engine.prototype.createLogApTyped = function(apPoints, battler, apTypeKey) {
 		if (!J.LOG) return;
 		const { name, icon } = ApManager.apTypeDisplay(apTypeKey);
-		const message = `\\C[16]${battler.battlerName()}\\C[0] gained \\C[29]\\*${apPoints}\\*\\C[0] AP \\i[${icon}] [${name}].`;
+		const apName = TextManager.apPoints();
+		const message = `\\C[16]${battler.battlerName()}\\C[0] gained \\C[29]\\*${apPoints}\\*\\C[0] ${apName} \\i[${icon}] [${name}].`;
 		const apLog = new ActionLogBuilder().setMessage(message).build();
 		$mapLogs.action.addLog(apLog);
 	};

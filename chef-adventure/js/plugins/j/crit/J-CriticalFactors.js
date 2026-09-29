@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.4.0 CRIT] Manages critical damage multiplier/reduction of battlers.
+ * @plugindesc [v1.5.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -203,9 +203,14 @@
  * thisCritMultiplier tags above)- it runs through the standard evaluator with:
  *   a = the battler these bonuses are being calculated for
  *   b = the battler's base value for this parameter, in percent
- *       (baseCriticalMultiplier() for cdm tags, baseCriticalReduction() for
- *       ctr tags- 0.5 by default for both, so b is 50)
+ *       (baseCriticalMultiplier() for cdm tags- 0.5 by default, so b is 50;
+ *       baseCriticalReduction() for ctr tags- 0 by default, so b is 0)
  *   v = $gameVariables._data
+ *
+ * NOTE ABOUT CTR RATES:
+ * Since the base crit reduction is 0 by default, a ctr "Rate" tag adds nothing
+ * until something grants a base through a <critReductionBase> tag. Use a
+ * "Plus" tag to grant crit reduction outright.
  *
  * EXAMPLE:
  *  <cdmGrowthRate:[5]>
@@ -520,6 +525,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Its tags are described in words. The base critical reduction now applies and
+ *    defaults to 0, and SDP critical bonuses are no longer 100 times too small.
  * - 1.4.0
  *    critReduction and critReductionBase accept negative values, so a debuff can
  *    make critical hits land harder. Fixed the Rate variants of the cdm and ctr
@@ -567,8 +575,8 @@
  * @decimals 2
  * @min 0
  * @text Base Critical Damage Reduction
- * @desc The default critical damage reduction (%) for battlers with no <critReductionBase> tags. 50 = -50% of the bonus.
- * @default 50.00
+ * @desc The critical damage reduction (%) every battler starts from, against every crit. 0 = crits land in full; 25 = -25% of the bonus.
+ * @default 0.00
  */
 
 //#region src/plugins/crit/core/_metadata/_pluginMetadata.js
@@ -584,10 +592,12 @@ var J_CriticalFactorsPluginMetadata = class J_CriticalFactorsPluginMetadata exte
 	static #DEFAULT_CDM_FACTOR = .5;
 	/**
 	* The factor used for critical damage reduction when the plugin parameter is absent or
-	* unreadable. Static for the same reason as {@link #DEFAULT_CDM_FACTOR}.
+	* unreadable. None: the base reduction counts against every critical hit a battler takes, so
+	* anything above zero would blunt every crit in the game before a single tag asked it to.
+	* Static for the same reason as {@link #DEFAULT_CDM_FACTOR}.
 	* @type {number}
 	*/
-	static #DEFAULT_CTR_FACTOR = .5;
+	static #DEFAULT_CTR_FACTOR = 0;
 	/**
 	* Constructor.
 	*/
@@ -642,7 +652,7 @@ var J_CriticalFactorsPluginMetadata = class J_CriticalFactorsPluginMetadata exte
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.19.0";
+	const requiredBaseVersion = "4.0.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -655,7 +665,7 @@ J.CRIT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.4.0");
+J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.5.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -978,14 +988,18 @@ Game_Action.prototype.applyCriticalDamageMultiplier = function(baseDamage) {
 	return baseDamage * critMultiplier;
 };
 /**
-* Calculates the amount of critical damage that will be removed from the bonus crit damage.
+* Calculates the amount of critical damage that will be removed from the bonus crit damage.<br/>
+* The defender's base reduction counts against every crit it takes, the same way the attacker's
+* base multiplier counts toward every crit it lands.
 * @param {number} criticalDamage The critical damage to be added.
 * @returns {number} The amount of critical damage after mitigations.
 */
 Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage) {
 	const defender = this.targetBattler();
 	if (!defender) return criticalDamage;
-	const baseCriticalReductionRate = 1 - defender.ctr;
+	let critReduction = defender.baseCriticalReduction();
+	critReduction += defender.ctr;
+	const baseCriticalReductionRate = 1 - critReduction;
 	const criticalReductionRate = Math.max(baseCriticalReductionRate, 0);
 	return criticalDamage * criticalReductionRate;
 };
@@ -1102,7 +1116,8 @@ Game_Action.prototype.targetHasActiveStateType = function(target, type) {
 /**
 * Gets all SDP bonuses for the given crit parameter id.
 * @param {number} critParamId The id of the crit parameter.
-* @param {number} baseParam The base value of the crit parameter in question.
+* @param {number} baseParam The base value of the crit parameter in question, in the percent points the
+* panels are summed in.
 * @returns {number}
 */
 Game_Actor.prototype.critSdpBonuses = function(critParamId, baseParam) {
@@ -1120,11 +1135,11 @@ var CritParameterRegistration = class {
 	* Registers CDM and CTR with the parameter catalog.
 	*/
 	static registerAll() {
-		const criticalDamageMultiplier = ParameterDefinition.Builder().key("cdm").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.critParam(0)).description(() => TextManager.critParamDescription(0)).iconIndex(() => IconManager.critParam(0)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdm).sdpBinding(SdpParameterBinding.byKey("cdm", (actor) => actor.baseCriticalMultiplier())).build();
+		const criticalDamageMultiplier = ParameterDefinition.Builder().key("cdm").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.critParam(0)).description(() => TextManager.critParamDescription(0)).iconIndex(() => IconManager.critParam(0)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdm).sdpBinding(SdpParameterBinding.byKey("cdm", (actor) => actor.baseCriticalMultiplier() * 100)).build();
 		ParameterRegistry.register(criticalDamageMultiplier);
 		const criticalDamageNatural = new NaturalParameterBinding(J.CRIT.RegExp.CritDamageMultiplierBuffPlus, J.CRIT.RegExp.CritDamageMultiplierBuffRate, J.CRIT.RegExp.CritDamageMultiplierGrowthPlus, J.CRIT.RegExp.CritDamageMultiplierGrowthRate, (battler) => battler.baseCriticalMultiplier());
 		ParameterRegistry.bindNatural("cdm", criticalDamageNatural);
-		const criticalToleranceRate = ParameterDefinition.Builder().key("ctr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.ctr).sdpBinding(SdpParameterBinding.byKey("ctr", (actor) => actor.baseCriticalReduction())).build();
+		const criticalToleranceRate = ParameterDefinition.Builder().key("ctr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.ctr).sdpBinding(SdpParameterBinding.byKey("ctr", (actor) => actor.baseCriticalReduction() * 100)).build();
 		ParameterRegistry.register(criticalToleranceRate);
 		const criticalToleranceNatural = new NaturalParameterBinding(J.CRIT.RegExp.CritTakenRateBuffPlus, J.CRIT.RegExp.CritTakenRateBuffRate, J.CRIT.RegExp.CritTakenRateGrowthPlus, J.CRIT.RegExp.CritTakenRateGrowthRate, (battler) => battler.baseCriticalReduction());
 		ParameterRegistry.bindNatural("ctr", criticalToleranceNatural);
@@ -1180,7 +1195,7 @@ Game_BattlerBase.prototype.criticalDamageMultiplier = function() {
 * The base critical taken rate.
 * A battler's critical taken rate acts as the base crit reduction for all incoming
 * critical hits. The individual battler's `ctr` is added to this amount to calculate
-* the damage a critical hit can potentially deal.
+* how much of a critical hit's bonus damage the battler shrugs off.
 * Sourced from the plugin parameter so designers can retune the default without
 * touching code- see {@link J_CriticalFactorsPluginMetadata#baseCtrFactor}.
 * @returns {number} The base reduction for this battler.
@@ -1219,7 +1234,8 @@ Game_Battler.prototype.baseCriticalMultiplier = function() {
 */
 Game_Battler.prototype.criticalDamageMultiplier = function() {
 	const cdmBonuses = this.getCriticalDamageMultiplier();
-	const cdmSdpBonuses = this.critSdpBonuses(0, this.baseCriticalMultiplier());
+	const baseCdmPoints = this.baseCriticalMultiplier() * 100;
+	const cdmSdpBonuses = this.critSdpBonuses(0, baseCdmPoints);
 	const cdmFactor = (cdmBonuses + cdmSdpBonuses) / 100;
 	const cdmNaturalBonus = this.naturalBonus("cdm");
 	return cdmFactor + cdmNaturalBonus;
@@ -1254,7 +1270,8 @@ Game_Battler.prototype.baseCriticalReduction = function() {
 */
 Game_Battler.prototype.criticalDamageReduction = function() {
 	const ctrBonuses = this.getCriticalDamageReduction();
-	const ctrSdpBonuses = this.critSdpBonuses(1, this.baseCriticalReduction());
+	const baseCtrPoints = this.baseCriticalReduction() * 100;
+	const ctrSdpBonuses = this.critSdpBonuses(1, baseCtrPoints);
 	const ctrFactor = (ctrBonuses + ctrSdpBonuses) / 100;
 	const ctrNaturalBonus = this.naturalBonus("ctr");
 	return ctrFactor + ctrNaturalBonus;
@@ -1280,15 +1297,302 @@ Game_Battler.prototype.isForceCritProcs = function() {
 };
 
 //#endregion
+//#region src/plugins/crit/core/core/describeCritNotetags.js
+/**
+* The lines describing the notetags this plugin reads, registered with {@link NotetagDescriber} at boot.
+*
+* No words are written here. Each sentence is the game's, kept in its config under the tag's key; this class reads
+* the tag and supplies what the sentence names.
+*/
+var CritNotetagDescriptions = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Registers the describer of every tag this plugin reads that has its words so far.
+	*/
+	static registerAll() {
+		NotetagDescriber.register(J.CRIT.RegExp.CritDamageMultiplier, (match) => this.critAmountLines(match, "critMultiplier"));
+		NotetagDescriber.register(J.CRIT.RegExp.CritDamageMultiplierBase, (match) => this.critAmountLines(match, "critMultiplierBase"));
+		NotetagDescriber.register(J.CRIT.RegExp.CritDamageReduction, (match) => this.critReductionLines(match));
+		NotetagDescriber.register(J.CRIT.RegExp.CritDamageReductionBase, (match) => this.critReductionBaseLines(match));
+		NotetagDescriber.register(J.CRIT.RegExp.OnCritApply, (match) => this.critStateLines(match, "onCritApply"));
+		NotetagDescriber.register(J.CRIT.RegExp.OnCritSelf, (match) => this.critStateLines(match, "onCritSelf"));
+		NotetagDescriber.register(J.CRIT.RegExp.ThisCritApply, (match) => this.critStateLines(match, "thisCritApply"));
+		NotetagDescriber.register(J.CRIT.RegExp.ThisCritSelf, (match) => this.critStateLines(match, "thisCritSelf"));
+		NotetagDescriber.register(J.CRIT.RegExp.ForceCritProcs, () => this.forceCritProcsLines());
+		NotetagDescriber.register(J.CRIT.RegExp.CritChanceIfState, (match) => this.critChanceIfStateLines(match, "critChanceIfState"));
+		NotetagDescriber.register(J.CRIT.RegExp.ThisCritChanceIfState, (match) => this.critChanceIfStateLines(match, "thisCritChanceIfState"));
+		NotetagDescriber.register(J.CRIT.RegExp.CritChanceIfStateType, (match) => this.critChanceIfStateTypeLines(match, "critChanceIfStateType"));
+		NotetagDescriber.register(J.CRIT.RegExp.ThisCritChanceIfStateType, (match) => this.critChanceIfStateTypeLines(match, "thisCritChanceIfStateType"));
+		NotetagDescriber.register(J.CRIT.RegExp.CritAlwaysIfState, (match) => this.critAlwaysIfStateLines(match, "critAlwaysIfState"));
+		NotetagDescriber.register(J.CRIT.RegExp.ThisCritsAlwaysIfState, (match) => this.critAlwaysIfStateLines(match, "thisCritsAlwaysIfState"));
+		NotetagDescriber.register(J.CRIT.RegExp.CritAlwaysIfStateType, (match) => this.critAlwaysIfStateTypeLines(match, "critAlwaysIfStateType"));
+		NotetagDescriber.register(J.CRIT.RegExp.ThisCritsAlwaysIfStateType, (match) => this.critAlwaysIfStateTypeLines(match, "thisCritsAlwaysIfStateType"));
+	}
+	/**
+	* The line describing a crit multiplier tag, or its base counterpart, in the sentence the game's config keeps
+	* under the given key.
+	*
+	* The sentence may name `{value}`, the amount (`+50%`).
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is its amount, in percent.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static critAmountLines(match, templateKey) {
+		const [, writtenAmount] = match;
+		const amount = Number(writtenAmount);
+		const iconIndex = IconManager.critParam(0);
+		const value = RPG_Trait.asDeltaPercent(amount);
+		const holderImpact = this.amountImpact(amount);
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact,
+			value
+		});
+	}
+	/**
+	* Which way a crit amount cuts for whoever carries it: one of {@link NotetagLine.Impacts}.
+	*
+	* Harder or likelier crits help their holder, and an amount of nothing changes nothing. The tags only ever carry
+	* whole numbers of zero or more, so there is no amount that hurts.
+	* @param {number} amount The amount, in percent.
+	* @returns {number}
+	*/
+	static amountImpact(amount) {
+		if (amount > 0) return NotetagLine.Impacts.HELPS;
+		return NotetagLine.Impacts.NEITHER;
+	}
+	/**
+	* The line describing a crit reduction tag, in the sentence the game's config keeps under `critReduction`.
+	*
+	* A reduction trims only the extra damage a critical hit deals, never the hit itself, so the sentence speaks of
+	* that damage and shows it moving: a reduction of 30 is `-30%`, and a negative one, which lets crits land harder,
+	* is `+10%`. The sentence may name `{value}`.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is its amount, in percent.
+	* @returns {NotetagLine[]}
+	*/
+	static critReductionLines(match) {
+		const [, writtenAmount] = match;
+		const amount = Number(writtenAmount);
+		const value = RPG_Trait.asDeltaPercent(-amount);
+		return this.reductionLines("critReduction", amount, value);
+	}
+	/**
+	* The line describing a base crit reduction tag, in the sentence the game's config keeps under
+	* `critReductionBase`.
+	*
+	* The base is a reduction in its own right, so its amount is shown as written (`+20%`). The sentence may name
+	* `{value}`.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is its amount, in percent.
+	* @returns {NotetagLine[]}
+	*/
+	static critReductionBaseLines(match) {
+		const [, writtenAmount] = match;
+		const amount = Number(writtenAmount);
+		const value = RPG_Trait.asDeltaPercent(amount);
+		return this.reductionLines("critReductionBase", amount, value);
+	}
+	/**
+	* The line for either crit reduction tag, drawn with crit block's own face.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @param {number} amount The reduction as written, in percent, which decides which way the line cuts.
+	* @param {string} value The amount as the sentence shows it.
+	* @returns {NotetagLine[]}
+	*/
+	static reductionLines(templateKey, amount, value) {
+		const iconIndex = IconManager.critParam(1);
+		const holderImpact = this.reductionImpact(amount);
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact,
+			value
+		});
+	}
+	/**
+	* Which way a crit reduction cuts for whoever carries it: one of {@link NotetagLine.Impacts}.
+	*
+	* Unlike a multiplier, a reduction may be negative: a debuff that lets critical hits land harder.
+	* @param {number} amount The reduction, in percent.
+	* @returns {number}
+	*/
+	static reductionImpact(amount) {
+		if (amount > 0) return NotetagLine.Impacts.HELPS;
+		if (amount < 0) return NotetagLine.Impacts.HURTS;
+		return NotetagLine.Impacts.NEITHER;
+	}
+	/**
+	* The line describing an on-crit state tag, in the sentence the game's config keeps under the given key: every
+	* critical hit rolls a chance to apply a state, to whoever was hit or to whoever landed it.
+	*
+	* The sentence may name `{value}`, the chance (`50%`), and `{state}`, the state itself. A proc is carried for its
+	* holder's sake, whichever battler it lands on, so the line always helps whoever carries it.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is `[STATE_ID, CHANCE]`.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static critStateLines(match, templateKey) {
+		const [, writtenPair] = match;
+		const [stateId, chance] = JsonMapper.parseObject(writtenPair);
+		const iconIndex = IconManager.critParam(0);
+		const state = this.stateToken(stateId);
+		const value = `${chance}%`;
+		const holderImpact = NotetagLine.Impacts.HELPS;
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact,
+			value,
+			tokens: { state }
+		});
+	}
+	/**
+	* The line describing a conditional crit chance tag, in the sentence the game's config keeps under the given key:
+	* better odds of a critical hit against a target already carrying a given state.
+	*
+	* The sentence may name `{value}`, the bonus chance (`+30%`), and `{state}`, the state the target must carry.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is `[STATE_ID, BONUS_CHANCE]`.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static critChanceIfStateLines(match, templateKey) {
+		const [, writtenPair] = match;
+		const [stateId, bonusChance] = JsonMapper.parseObject(writtenPair);
+		const state = this.stateToken(stateId);
+		return this.critChanceLines(templateKey, bonusChance, { state });
+	}
+	/**
+	* The line describing a conditional crit chance tag keyed by state type, in the sentence the game's config keeps
+	* under the given key: better odds of a critical hit against a target carrying any state of a given type.
+	*
+	* A type is a classifier the game's own states declare with `<type:NAME>` rather than a row anywhere in the
+	* database, so no text code can draw it: it is named exactly as the tag writes it. The sentence may name
+	* `{value}`, the bonus chance (`+50%`), and `{type}`, the classifier.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is `[TYPE, BONUS_CHANCE]`.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static critChanceIfStateTypeLines(match, templateKey) {
+		const [, writtenPair] = match;
+		const [stateType, bonusChance] = JsonMapper.parseObject(writtenPair);
+		const type = {
+			text: stateType,
+			kind: NotetagDescriber.TokenKinds.SUBJECT
+		};
+		return this.critChanceLines(templateKey, bonusChance, { type });
+	}
+	/**
+	* The line for any conditional crit chance tag, drawn with crit chance's own face.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @param {number} bonusChance The bonus to crit chance, in percent.
+	* @param {Object<string, {text: string, kind: string}>} tokens What the target must carry, however it is named.
+	* @returns {NotetagLine[]}
+	*/
+	static critChanceLines(templateKey, bonusChance, tokens) {
+		const iconIndex = IconManager.xparam(2);
+		const value = RPG_Trait.asDeltaPercent(bonusChance);
+		const holderImpact = this.amountImpact(bonusChance);
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact,
+			value,
+			tokens
+		});
+	}
+	/**
+	* The lines describing a guaranteed-crit tag keyed by state, in the sentence the game's config keeps under the
+	* given key: every hit able to crit is a critical hit against a target carrying any of the listed states.
+	*
+	* Any one of the states is enough, so each gets a line of its own, and every one of those lines is true alone.
+	* The sentence may name `{state}`; there is no amount to show.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is `[STATE_ID, ...]`.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static critAlwaysIfStateLines(match, templateKey) {
+		const [, writtenIds] = match;
+		const stateIds = JsonMapper.parseObject(writtenIds);
+		return stateIds.flatMap((stateId) => {
+			const state = this.stateToken(stateId);
+			return this.critAlwaysLines(templateKey, { state });
+		});
+	}
+	/**
+	* The line describing a guaranteed-crit tag keyed by state type, in the sentence the game's config keeps under the
+	* given key: every hit able to crit is a critical hit against a target carrying any state of the given type.
+	*
+	* Like every type, it is named exactly as the tag writes it. The sentence may name `{type}`; there is no amount to
+	* show.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the type.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @returns {NotetagLine[]}
+	*/
+	static critAlwaysIfStateTypeLines(match, templateKey) {
+		const [, stateType] = match;
+		const type = {
+			text: stateType,
+			kind: NotetagDescriber.TokenKinds.SUBJECT
+		};
+		return this.critAlwaysLines(templateKey, { type });
+	}
+	/**
+	* The line for any guaranteed-crit tag, drawn with crit chance's own face.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @param {Object<string, {text: string, kind: string}>} tokens What the target must carry, however it is named.
+	* @returns {NotetagLine[]}
+	*/
+	static critAlwaysLines(templateKey, tokens) {
+		const iconIndex = IconManager.xparam(2);
+		const holderImpact = NotetagLine.Impacts.HELPS;
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact,
+			tokens
+		});
+	}
+	/**
+	* A state named in a line, as the text code that draws its icon and name from the database when the line is drawn.
+	* @param {number} stateId The state's id.
+	* @returns {{text: string, kind: string}}
+	*/
+	static stateToken(stateId) {
+		return {
+			text: `\\state[${stateId}]`,
+			kind: NotetagDescriber.TokenKinds.CODE
+		};
+	}
+	/**
+	* The line describing the tag that makes every on-crit state roll succeed, in the sentence the game's config
+	* keeps under `forceCritProcs`.
+	*
+	* The tag carries no amount, so the sentence has nothing to name, and a guaranteed proc always helps whoever
+	* carries it.
+	* @returns {NotetagLine[]}
+	*/
+	static forceCritProcsLines() {
+		const iconIndex = IconManager.critParam(0);
+		const holderImpact = NotetagLine.Impacts.HELPS;
+		return NotetagDescriber.line("forceCritProcs", {
+			iconIndex,
+			holderImpact
+		});
+	}
+};
+
+//#endregion
 //#region src/plugins/crit/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* Registers J-Crit stats with the parameter catalog after vanilla seeding.
+* Registers J-Crit stats with the parameter catalog after vanilla seeding, and describes this plugin's tags.
 */
 J.CRIT.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.CRIT.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
 	CritParameterRegistration.registerAll();
+	CritNotetagDescriptions.registerAll();
 	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.ThisCritChanceIfState);
 	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.ThisCritChanceIfStateType);
 	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.CritChanceIfState);

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.1 MESSAGE-BUBBLES] A J-Message extension that floats messages above whoever is speaking.
+ * [v1.3.0 MESSAGE-BUBBLES] A J-Message extension that floats messages above whoever is speaking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -90,6 +90,8 @@
  * the characters those bubbles were pointing at have stopped existing.
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Choices shown with a bubble line up with it and stay on screen.
  * - 1.2.1
  *    A plugin that walks the scene calling refresh() on everything it finds no
  *    longer crashes on a message bubble.
@@ -162,7 +164,7 @@ J.MESSAGE.EXT.BUBBLES = {};
 /**
 * The metadata associated with this plugin.
 */
-J.MESSAGE.EXT.BUBBLES.Metadata = new J_MessageBubblesPluginMetadata("J-Message-Bubbles", "1.2.1");
+J.MESSAGE.EXT.BUBBLES.Metadata = new J_MessageBubblesPluginMetadata("J-Message-Bubbles", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -170,6 +172,7 @@ J.MESSAGE.EXT.BUBBLES.Aliased = {};
 J.MESSAGE.EXT.BUBBLES.Aliased.Game_Interpreter = new Map();
 J.MESSAGE.EXT.BUBBLES.Aliased.Game_Message = new Map();
 J.MESSAGE.EXT.BUBBLES.Aliased.Scene_Map = new Map();
+J.MESSAGE.EXT.BUBBLES.Aliased.Window_ChoiceList = new Map();
 J.MESSAGE.EXT.BUBBLES.Aliased.Window_Message = new Map();
 /**
 * All regular expressions used by this plugin.
@@ -855,6 +858,7 @@ var BubblePlacement = class BubblePlacement {
 	* @param {number} anchorY The vertical position of whoever is speaking, in screen pixels.
 	* @param {number} screenWidth How wide the visible area is.
 	* @param {number} screenHeight How tall the visible area is.
+	* @param {boolean} preferBelow Whether the author asked for this one to sit under its speaker.
 	* @returns {{x: number, y: number}}
 	*/
 	static place(width, height, anchorX, anchorY, screenWidth, screenHeight, preferBelow) {
@@ -887,6 +891,35 @@ var BubblePlacement = class BubblePlacement {
 			return BubblePlacement.holdOnScreen(wanted, height, screenHeight);
 		}
 		return BubblePlacement.holdOnScreen(other, height, screenHeight);
+	}
+	/**
+	* Where the choices shown with a floating message go across: lined up with its bubble, rather than with the screen.
+	*
+	* The Show Choices position still decides where they line up- the bubble's left edge, its middle, or its right
+	* edge- and the screen still wins wherever the two disagree, the same as it does for the bubble itself.
+	* @param {number} positionType The Show Choices position: 0 for left, 1 for middle, 2 for right.
+	* @param {number} bubbleX Where the bubble's left edge is.
+	* @param {number} bubbleWidth How wide the bubble is.
+	* @param {number} choicesWidth How wide the choices are.
+	* @param {number} screenWidth How wide the visible area is.
+	* @returns {number}
+	*/
+	static choicesX(positionType, bubbleX, bubbleWidth, choicesWidth, screenWidth) {
+		const aligned = BubblePlacement.alignedChoicesX(positionType, bubbleX, bubbleWidth, choicesWidth);
+		return BubblePlacement.holdOnScreen(aligned, choicesWidth, screenWidth);
+	}
+	/**
+	* Where the choices would line up with a bubble, before the screen has its say.
+	* @param {number} positionType The Show Choices position: 0 for left, 1 for middle, 2 for right.
+	* @param {number} bubbleX Where the bubble's left edge is.
+	* @param {number} bubbleWidth How wide the bubble is.
+	* @param {number} choicesWidth How wide the choices are.
+	* @returns {number}
+	*/
+	static alignedChoicesX(positionType, bubbleX, bubbleWidth, choicesWidth) {
+		if (positionType === 1) return bubbleX + (bubbleWidth - choicesWidth) / 2;
+		if (positionType === 2) return bubbleX + bubbleWidth - choicesWidth;
+		return bubbleX;
 	}
 	/**
 	* Whether a bubble placed here would be entirely visible.
@@ -2813,6 +2846,28 @@ Window_Message.prototype.retainMessageBubble = function() {
 	const entry = this.bubbleEntry();
 	entry.frame = this.messageGlyphLayer().frame();
 	SpentBubbleManager.retain(this.bubbleToken(), entry);
+};
+
+//#endregion
+//#region src/plugins/message/ext/bubbles/windows/Window_ChoiceList.js
+/**
+* Extends {@link #windowX}.<br/>
+* Also keeps the choices with a floating message, lined up with its bubble rather than with an edge of the screen.
+*
+* The engine stacks the choices under or over the message window wherever that window is, but measures across from the
+* screen- so beside a bubble floating over its speaker, the choices sat at the bubble's height and at the screen's far
+* edge. The Show Choices position still decides where they go; it just means the bubble's left, middle or right now.
+* @returns {number}
+*/
+J.MESSAGE.EXT.BUBBLES.Aliased.Window_ChoiceList.set("windowX", Window_ChoiceList.prototype.windowX);
+Window_ChoiceList.prototype.windowX = function() {
+	const messageWindow = this.messageWindow();
+	if (messageWindow.isFloatingMessage() === false) {
+		return J.MESSAGE.EXT.BUBBLES.Aliased.Window_ChoiceList.get("windowX").call(this);
+	}
+	const positionType = $gameMessage.choicePositionType();
+	const choicesWidth = this.windowWidth();
+	return BubblePlacement.choicesX(positionType, messageWindow.x, messageWindow.width, choicesWidth, Graphics.boxWidth);
 };
 
 //#endregion

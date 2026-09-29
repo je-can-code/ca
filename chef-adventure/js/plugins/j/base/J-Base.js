@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.20.0 BASE] The base class for all J plugins.
+ * [v4.0.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.0.0
+ *    BREAKING: requires data/config.notetag-lines.json. Added NotetagDescriber,
+ *    TextWrapper.wrapStyled, and a description and icon on every class. Sp-parameters
+ *    stop at 0, crit and evasion rates show as points, and facet scenes set up once.
  * - 3.20.0
  *    Map gauges now leave a trail. A loss leaves the lost amount behind in red to
  *    drain away, and a gain shows in green ahead of the bar as it fills in.
@@ -1304,6 +1308,34 @@ var RPGManager = class RPGManager {
 		return strings;
 	}
 	/**
+	* Gathers every whole match of the regex from the given database object, one per matching note line, in the
+	* order the lines are written.
+	*
+	* Every other reader here hands back one capture, already interpreted. This one hands back the match itself,
+	* every capture group included and none of them parsed, for a caller that has to see a tag the way its own
+	* plugin reads it: a formula stays the text it was written as, and a tag with several groups keeps them all.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The RegExp structure to find matches for.
+	* @returns {RegExpExecArray[]} Every match, or an empty array when there are none.
+	*/
+	static getMatchesFromNoteByRegex(databaseData, structure) {
+		if (this.#canParsedatabaseData(databaseData) === false) return [];
+		const key = `match[]:${structure.source}::${structure.flags}`;
+		return this.cached(databaseData, key, () => this.#getMatchesFromNoteByRegex(databaseData, structure));
+	}
+	/**
+	* Gathers every whole match of the regex from the given database object.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The RegExp structure to find matches for.
+	* @returns {RegExpExecArray[]}
+	*/
+	static #getMatchesFromNoteByRegex(databaseData, structure) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		return lines.map((line) => scan.exec(line)).filter((match) => match !== null);
+	}
+	/**
 	* Gets the last numeric value based on the provided regex structure.
 	*
 	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
@@ -2062,7 +2094,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.20.0";
+J.BASE.Metadata.Version = "4.0.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -3097,8 +3129,49 @@ var ParameterTraitMap = class ParameterTraitMap {
 * Words longer than the width are not broken. A word that cannot fit gets a line to itself and
 * overflows it, which is visibly wrong at a glance and therefore fixable, where a silently chopped
 * word would read as a typo in the content.
+*
+* Text codes ride along with the word they are written against, since none of them holds a space. Every
+* line is drawn on its own and starts plain, so {@link TextWrapper.wrapStyled} picks a color or bold back
+* up on the line after the break that cut through it.
 */
 var TextWrapper = class TextWrapper {
+	/**
+	* A text code setting the color of what follows it.
+	*
+	* <pre>
+	* Structure:
+	*  \C[COLOR_INDEX]
+	*
+	* Example:
+	*  \C[2]critical hits\C[0]
+	*
+	* Translation:
+	*  "critical hits" in color 2, then the default color again.
+	* </pre>
+	* @type {RegExp}
+	*/
+	static ColorCodePattern = /\\C\[(\d+)]/gi;
+	/**
+	* The text code toggling bold on or off.
+	*
+	* <pre>
+	* Structure:
+	*  \*
+	*
+	* Example:
+	*  \*GUARANTEED\*
+	*
+	* Translation:
+	*  "GUARANTEED" in bold, then regular weight again.
+	* </pre>
+	* @type {RegExp}
+	*/
+	static BoldCodePattern = /\\\*/g;
+	/**
+	* The text code toggling bold, as it is written.
+	* @type {string}
+	*/
+	static BoldCode = "\\*";
 	/**
 	* The constructor is not designed to be called.
 	* This is a static class.
@@ -3150,6 +3223,63 @@ var TextWrapper = class TextWrapper {
 		const remainder = lines.slice(maxLines - 1).join(" ");
 		kept.push(remainder);
 		return kept;
+	}
+	/**
+	* Breaks the given text into lines no wider than the given width, as {@link TextWrapper.wrap} does, and starts
+	* each line with whatever color or bold the line before it left open.
+	*
+	* Every line is drawn on its own, and drawing starts plain, so without this a colored phrase broken across two
+	* lines would lose its color partway through, and a bold one its weight.
+	*
+	* Lines are measured before anything is carried onto them. A color costs no width, but bold does, so a bold phrase
+	* cut by a break may draw its second line a little wider than it was measured.
+	* @param {string} text The text being wrapped, text codes and all.
+	* @param {number} maxWidth The width a line may occupy.
+	* @param {function(string): number} measure Answers the rendered width of a candidate line.
+	* @returns {string[]} One entry per line; empty when there was nothing to wrap.
+	*/
+	static wrapStyled(text, maxWidth, measure) {
+		const lines = TextWrapper.wrap(text, maxWidth, measure);
+		let carried = String.empty;
+		return lines.map((line) => {
+			const styled = `${carried}${line}`;
+			carried = TextWrapper.openStyles(styled);
+			return styled;
+		});
+	}
+	/**
+	* The text codes picking up where a line leaves off: the color it ends in, then bold when it ends bold. Nothing
+	* at all for a line that ends plain.
+	* @param {string} line A line of text, text codes and all.
+	* @returns {string}
+	*/
+	static openStyles(line) {
+		const color = TextWrapper.#openColor(line);
+		const bold = TextWrapper.#openBold(line);
+		return `${color}${bold}`;
+	}
+	/**
+	* The color code a line ends in: the last one it sets, or nothing when it sets none, or when the last one it sets
+	* is the default color, 0.
+	* @param {string} line A line of text, text codes and all.
+	* @returns {string}
+	*/
+	static #openColor(line) {
+		const colorCodes = [...line.matchAll(TextWrapper.ColorCodePattern)];
+		if (colorCodes.length === 0) return String.empty;
+		const [code, colorIndex] = colorCodes.at(-1);
+		if (colorIndex === "0") return String.empty;
+		return code;
+	}
+	/**
+	* The bold code when a line ends bold, which is whenever it toggles bold an odd number of times.
+	* @param {string} line A line of text, text codes and all.
+	* @returns {string}
+	*/
+	static #openBold(line) {
+		const toggles = [...line.matchAll(TextWrapper.BoldCodePattern)];
+		if (toggles.length % 2 === 0) return String.empty;
+		return TextWrapper.BoldCode;
 	}
 };
 
@@ -5173,6 +5303,91 @@ var NaturalParameterBinding = class {
 		* @type {function(Game_Battler): number}
 		*/
 		this.getBase = getBase;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/models/NotetagLine.js
+/**
+* One line telling a player what one notetag does.
+*
+* A line is shaped like every effect row this ecosystem already draws: an optional icon, the words, an optional
+* short value, and which way the effect cuts for whoever carries it. The words are drawn with
+* {@link Window_Base#drawTextEx}, so they may carry text codes such as `\C[n]` or `\I[n]`.
+*
+* Most lines read as a sentence, the way a game like Hades writes its descriptions: wordy, with the parts that
+* matter standing out. The words arrive finished from {@link NotetagDescriber.line}, except for the value, whose
+* place they mark with {@link NotetagLine.ValueToken}. The value is left for the screen showing the line to color,
+* because only that screen knows whose side the line is on: the same boost that helps whoever carries it reads as
+* good on an actor's passive, and as harder on an enemy's difficulty state. A line whose words carry no token keeps
+* its value apart from them instead, the way a stat row keeps its number on the right.
+*/
+var NotetagLine = class NotetagLine {
+	/**
+	* The ways an effect can cut for whoever carries it.
+	* @type {{HELPS: number, HURTS: number, NEITHER: number}}
+	*/
+	static Impacts = {
+		HELPS: 1,
+		HURTS: -1,
+		NEITHER: 0
+	};
+	/**
+	* Where a line's value sits inside its words, for a line that reads as a sentence.
+	* @type {string}
+	*/
+	static ValueToken = "{value}";
+	/**
+	* The icon drawn beside the words, or 0 for none.
+	* @type {number}
+	*/
+	iconIndex = 0;
+	/**
+	* The words, text codes and all, with {@link NotetagLine.ValueToken} where the value sits in a sentence.
+	* @type {string}
+	*/
+	text = String.empty;
+	/**
+	* The value the words describe, or empty when the words say it all.
+	* @type {string}
+	*/
+	value = String.empty;
+	/**
+	* Which way the effect cuts for whoever carries it: one of {@link NotetagLine.Impacts}.
+	* @type {number}
+	*/
+	holderImpact = NotetagLine.Impacts.NEITHER;
+	/**
+	* Builds a line from its parts.
+	* @param {object} parts The line's parts; any left out keeps its default.
+	* @param {number} [parts.iconIndex] The icon drawn beside the words.
+	* @param {string} parts.text The words, text codes and all.
+	* @param {string} [parts.value] The value the words describe.
+	* @param {number} [parts.holderImpact] Which way the effect cuts for whoever carries it.
+	*/
+	constructor({ iconIndex = 0, text, value = String.empty, holderImpact = NotetagLine.Impacts.NEITHER }) {
+		this.iconIndex = iconIndex;
+		this.text = text;
+		this.value = value;
+		this.holderImpact = holderImpact;
+	}
+	/**
+	* The words of a sentence with its value in place: bold, and in the color the screen showing it chose.
+	* @param {string} text The words, carrying {@link NotetagLine.ValueToken}.
+	* @param {string} value The value to put in its place.
+	* @param {number} colorIndex The color the screen draws the value in.
+	* @returns {string}
+	*/
+	static withValueInPlace(text, value, colorIndex) {
+		const standout = `\\C[${colorIndex}]\\*${value}\\*\\C[0]`;
+		return text.replace(NotetagLine.ValueToken, () => standout);
+	}
+	/**
+	* Whether this line reads as a sentence with its value inside it, rather than keeping its value apart.
+	* @returns {boolean}
+	*/
+	hasValueInPlace() {
+		return this.text.includes(NotetagLine.ValueToken);
 	}
 };
 
@@ -8718,6 +8933,8 @@ var RPG_Class = class extends RPG_Traited {
 	*/
 	constructor(classData, index) {
 		super(classData, index);
+		this.description = classData.description ?? String.empty;
+		this.iconIndex = classData.iconIndex ?? 0;
 		this.expParams = classData.expParams;
 		this.learnings = classData.learnings.map((learning) => new RPG_ClassLearning(learning));
 		this.params = classData.params;
@@ -10050,6 +10267,301 @@ var NoteResolver = class NoteResolver {
 };
 
 //#endregion
+//#region src/plugins/_base/core/managers/NotetagDescriber.js
+/**
+* Turns the notetags on a database row into the lines telling a player what each one does.
+*
+* The plugin that declares a tag is the one that knows what it means, so each describes its own: it registers a
+* describer against the `RegExp` its reader uses, and this class asks every registered describer about a row.
+* Nothing here knows any tag by name.
+*
+* The words themselves belong to the game rather than to any plugin, so they live in its data: one template per
+* tag in {@link NotetagDescriber.TemplatesPath}, written the way SDP's mastery prose is written, with tokens filled
+* from the tag just read. A describer reads the tag, works out its numbers and names, and decides which way the
+* effect cuts; {@link NotetagDescriber.line} turns that into the finished sentence. A rebalance never leaves a
+* sentence quoting a stale number, and rewording one never needs a build.
+*
+* A describer answers with a list of lines, which is how it says three different things: one line, the usual case;
+* several, for a tag naming several things at once; or none, when there is nothing to say. A template written
+* empty is a decision that its tag says nothing, and a key missing from the config is a sentence not written yet.
+* The two only look alike on screen.
+*
+* Lines come back grouped by describer, in the order the describers were registered, and within one describer in
+* the order the note is written. Every occurrence of a tag is its own line: tags are never merged the way traits
+* are, because how several copies of a tag combine is up to the plugin that reads it.
+*/
+var NotetagDescriber = class {
+	/**
+	* Where the game keeps the sentence for every tag that has one.
+	* @type {string}
+	*/
+	static TemplatesPath = "data/config.notetag-lines.json";
+	/**
+	* The kinds a token other than the value can be, each standing out its own way: the same palette SDP's mastery
+	* prose reads in.
+	*
+	* A code is the exception: a text code such as `\state[ID]`, which draws its own icon, name and color when the
+	* line is drawn, so it is placed exactly as written. A name the database owns is written this way rather than
+	* copied out of the table, so the line always shows whatever the row is called today.
+	* @type {{SUBJECT: string, MEASURE: string, QUANTITY: string, LIST: string, CODE: string}}
+	*/
+	static TokenKinds = {
+		SUBJECT: "subject",
+		MEASURE: "measure",
+		QUANTITY: "quantity",
+		LIST: "list",
+		CODE: "code"
+	};
+	/**
+	* The color each token kind is drawn in. On the class, so a game wanting different colors changes them once.
+	* @type {Object<string, number>}
+	*/
+	static KindColorIndices = {
+		subject: 1,
+		measure: 6,
+		quantity: 3,
+		list: 2
+	};
+	/**
+	* The token kinds that are values, and so are bolded as well as colored, the way every value in a line is.
+	* @type {string[]}
+	*/
+	static BoldKinds = ["measure", "quantity"];
+	/**
+	* A token in a template: a name in braces.
+	*
+	* <pre>
+	* Structure:
+	*  {NAME}
+	*
+	* Example:
+	*  Enemies yield {value} {reward}.
+	*
+	* Translation:
+	*  {value} stays in place for the screen to color; {reward} is filled from the describer's tokens.
+	* </pre>
+	* @type {RegExp}
+	*/
+	static TokenPattern = /\{([a-zA-Z]+)}/g;
+	/**
+	* Gets the describers, keyed by the regex each one describes.
+	* @returns {Map<RegExp, function(RegExpExecArray, RPG_Base): NotetagLine[]>}
+	*/
+	static describers() {
+		return this._describers;
+	}
+	/**
+	* Gets the templates, keyed by the name a describer asks for each by.
+	* @returns {Map<string, string>}
+	*/
+	static templates() {
+		return this._templates;
+	}
+	/**
+	* Sets the templates, keyed by the name a describer asks for each by.
+	* @param {Map<string, string>} templates The templates.
+	*/
+	static setTemplates(templates) {
+		this._templates = templates;
+	}
+	/**
+	* Every registered describer, keyed by the `RegExp` its plugin reads the tag with.
+	* @type {Map<RegExp, function(RegExpExecArray, RPG_Base): NotetagLine[]>}
+	*/
+	static _describers = new Map();
+	/**
+	* Every template, keyed by the name a describer asks for it by. Empty until the game's config is loaded.
+	* @type {Map<string, string>}
+	*/
+	static _templates = new Map();
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Registers the describer for one tag.
+	*
+	* A describer receives one occurrence of the tag as its regex matched it, every capture unparsed, along with
+	* the row it sits on, and answers with the lines describing it.
+	*
+	* Registering one tag twice throws, because the second describer would silently replace the first one's words.
+	* @param {RegExp} structure The regex the tag's own plugin reads it with.
+	* @param {function(RegExpExecArray, RPG_Base): NotetagLine[]} describe The describer.
+	*/
+	static register(structure, describe) {
+		if (this.describers().has(structure)) {
+			throw new Error(`NotetagDescriber: duplicate describer for ${structure}.`);
+		}
+		this.describers().set(structure, describe);
+	}
+	/**
+	* The lines describing every described tag on a database row.
+	* @param {RPG_Base} dataRow The row whose note is read.
+	* @returns {NotetagLine[]}
+	*/
+	static linesFor(dataRow) {
+		const entries = [...this.describers().entries()];
+		return entries.flatMap(([structure, describe]) => this.linesForTag(dataRow, structure, describe));
+	}
+	/**
+	* The lines describing only the given tags on a database row, grouped in the order the tags are given.
+	*
+	* For a screen that shows one plugin's effects in a place of their own, where every other plugin's lines would be
+	* out of place beside them.
+	* @param {RPG_Base} dataRow The row whose note is read.
+	* @param {RegExp[]} structures The regexes of the tags to describe, each already registered by its plugin.
+	* @returns {NotetagLine[]}
+	*/
+	static linesForTags(dataRow, structures) {
+		return structures.flatMap((structure) => {
+			const describe = this.describers().get(structure);
+			return this.linesForTag(dataRow, structure, describe);
+		});
+	}
+	/**
+	* The lines one describer answers for every occurrence of its tag on a row.
+	* @param {RPG_Base} dataRow The row whose note is read.
+	* @param {RegExp} structure The regex the tag is read with.
+	* @param {function(RegExpExecArray, RPG_Base): NotetagLine[]} describe The tag's describer.
+	* @returns {NotetagLine[]}
+	*/
+	static linesForTag(dataRow, structure, describe) {
+		const matches = RPGManager.getMatchesFromNoteByRegex(dataRow, structure);
+		return matches.flatMap((match) => describe(match, dataRow));
+	}
+	/**
+	* Loads every sentence from the game's config.
+	*
+	* Hard-required, like every other config this codebase reads: a missing or unreadable file stops the boot,
+	* rather than leaving every tag silent with nothing to say why.
+	*/
+	static loadTemplates() {
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Base").configName("notetag lines").validator((parsed) => this.validateTemplates(parsed)).mapper((parsed) => this.templatesByKey(parsed)).build();
+		const templates = ExternalJsonConfigLoader.load(this.TemplatesPath, options);
+		this.setTemplates(templates);
+	}
+	/**
+	* Whether a sentence or phrase has been written for a key, even one written empty.<br/>
+	* Lets a describer choose between a variant it cannot do without and one that may fall back to its plainer form.
+	* @param {string} key The key.
+	* @returns {boolean}
+	*/
+	static hasTemplate(key) {
+		return this.templates().has(key);
+	}
+	/**
+	* Refuses a config naming one key twice, since the second sentence would silently replace the first.
+	* @param {{key: string, template: string}[]} parsed The parsed config.
+	*/
+	static validateTemplates(parsed) {
+		const keys = parsed.map(({ key }) => key);
+		const duplicates = keys.filter((key, index) => keys.indexOf(key) !== index);
+		if (duplicates.length > 0) {
+			const listed = duplicates.join(", ");
+			throw new Error(`duplicate key(s): ${listed}.`);
+		}
+	}
+	/**
+	* The parsed config as a lookup from each key to its sentence.
+	* @param {{key: string, template: string}[]} parsed The parsed config.
+	* @returns {Map<string, string>}
+	*/
+	static templatesByKey(parsed) {
+		const entries = parsed.map(({ key, template }) => [key, template]);
+		return new Map(entries);
+	}
+	/**
+	* The line a describer answers with for one occurrence of its tag, built from the tag's template.
+	*
+	* It answers no line when there is nothing to say, which happens four ways: no template has been written for the
+	* key yet; one was written empty, to say the tag says nothing; the template names the value and the describer
+	* gave none; or it names a token the describer did not supply. The last two fail closed, the way SDP's mastery
+	* prose does, because a sentence with a hole in it would show the player a wrong number.
+	* @param {string} templateKey The key of the tag's sentence in the config.
+	* @param {object} parts What the describer read off the tag.
+	* @param {number} [parts.iconIndex] The icon drawn beside the line.
+	* @param {number} [parts.holderImpact] Which way the effect cuts for whoever carries it.
+	* @param {string} [parts.value] The value the screen colors, where the template writes `{value}`.
+	* @param {Object<string, {text: string, kind: string}>} [parts.tokens] Every other token the template may name.
+	* @returns {NotetagLine[]}
+	*/
+	static line(templateKey, parts) {
+		const { iconIndex = 0, holderImpact = NotetagLine.Impacts.NEITHER, value = String.empty, tokens = {} } = parts;
+		if (this.templates().has(templateKey) === false) return [];
+		const template = this.templates().get(templateKey);
+		const namesValue = template.includes(NotetagLine.ValueToken);
+		if (namesValue && value === String.empty) return [];
+		const text = this.fillTemplate(template, tokens);
+		if (text === String.empty) return [];
+		return [new NotetagLine({
+			iconIndex,
+			text,
+			value,
+			holderImpact
+		})];
+	}
+	/**
+	* A phrase from the game's config, filled in like a sentence and handed back as a token a sentence can name: a
+	* clause written in the game's own words, such as the condition an effect fires on.
+	*
+	* The phrase comes back as a code, placed exactly as written, since its own tokens are already colored. A phrase
+	* never names `{value}`, which belongs to the line it ends up in. It comes back empty when there is nothing to say:
+	* no phrase written for the key, one written empty, or one naming a token that was not supplied, and an empty token
+	* is a hole in any sentence naming it, so that sentence says nothing either.
+	* @param {string} key The key of the phrase in the config.
+	* @param {Object<string, {text: string, kind: string}>} tokens Every token the phrase may name.
+	* @returns {{text: string, kind: string}}
+	*/
+	static phrase(key, tokens) {
+		if (this.hasTemplate(key) === false) return {
+			text: String.empty,
+			kind: this.TokenKinds.CODE
+		};
+		const template = this.templates().get(key);
+		const text = this.fillTemplate(template, tokens);
+		return {
+			text,
+			kind: this.TokenKinds.CODE
+		};
+	}
+	/**
+	* Fills every token in a template but the value, or answers nothing when the template names a token that was not
+	* supplied, or was supplied empty, such as a phrase with nothing written for it.
+	* @param {string} template The template.
+	* @param {Object<string, {text: string, kind: string}>} tokens The tokens supplied.
+	* @returns {string}
+	*/
+	static fillTemplate(template, tokens) {
+		let isComplete = true;
+		const filled = template.replace(this.TokenPattern, (whole, name) => {
+			if (whole === NotetagLine.ValueToken) return whole;
+			if (Object.hasOwn(tokens, name) === false || tokens[name].text === String.empty) {
+				isComplete = false;
+				return whole;
+			}
+			return this.tokenText(tokens[name]);
+		});
+		if (isComplete === false) return String.empty;
+		return filled;
+	}
+	/**
+	* One filled token: in its kind's color, and bold when its kind is a value, unless it is a code that draws itself.
+	* @param {{text: string, kind: string}} token The token.
+	* @returns {string}
+	*/
+	static tokenText(token) {
+		const { text, kind } = token;
+		if (kind === this.TokenKinds.CODE) return text;
+		const colorIndex = this.KindColorIndices[kind];
+		if (this.BoldKinds.includes(kind)) return `\\C[${colorIndex}]\\*${text}\\*\\C[0]`;
+		return `\\C[${colorIndex}]${text}\\C[0]`;
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/core/database/miscellaneous/RPG_SoundEffect.js
 /**
 * The structure of the data points required to play a sound effect using the {@link SoundManager}.
@@ -10421,12 +10933,11 @@ TextManager.usableEffectByCode = function(code) {
 //#endregion
 //#region src/plugins/_base/core/managers/TraitManager.js
 /**
-* A static class that centralizes display data (name and icon) for traits and
-* notetag-driven effects across the ecosystem.
+* Display names and icons for the slip effects JABS reads off a state's notes, shared by every window that
+* shows one.
 *
-* The goal is a single authoritative place where Jeremy can adjust how any
-* given tag or trait type presents itself, so every window that renders trait
-* data stays consistent without needing updates in multiple files.
+* How a trait reads is {@link RPG_Trait}'s to say, and how a notetag reads is {@link NotetagDescriber}'s, where
+* each plugin registers the lines for its own tags.
 */
 var TraitManager = class {
 	/**
@@ -10890,14 +11401,14 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 		VanillaParameterRegistration.registerXparam("hit", 0, ParameterGroups.PRECISION, 0, ParameterFormat.SCALED_POINTS);
 		VanillaParameterRegistration.registerBparam("agi", 6, ParameterGroups.PRECISION, 1);
 		VanillaParameterRegistration.registerSparam("grd", 1, ParameterGroups.PRECISION, 2, ParameterFormat.SCALED_OFFSET);
-		VanillaParameterRegistration.registerXparam("cri", 2, ParameterGroups.PRECISION, 4);
-		VanillaParameterRegistration.registerXparam("cev", 3, ParameterGroups.PRECISION, 5);
+		VanillaParameterRegistration.registerXparam("cri", 2, ParameterGroups.PRECISION, 4, ParameterFormat.SCALED_POINTS);
+		VanillaParameterRegistration.registerXparam("cev", 3, ParameterGroups.PRECISION, 5, ParameterFormat.SCALED_POINTS);
 		VanillaParameterRegistration.registerBparam("def", 3, ParameterGroups.DEFENSIVE, 0);
 		VanillaParameterRegistration.registerBparam("mdf", 5, ParameterGroups.DEFENSIVE, 1);
 		VanillaParameterRegistration.registerSparam("pdr", 6, ParameterGroups.DEFENSIVE, 2, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
 		VanillaParameterRegistration.registerSparam("mdr", 7, ParameterGroups.DEFENSIVE, 3, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
-		VanillaParameterRegistration.registerXparam("eva", 1, ParameterGroups.DEFENSIVE, 4);
-		VanillaParameterRegistration.registerXparam("mev", 4, ParameterGroups.DEFENSIVE, 5);
+		VanillaParameterRegistration.registerXparam("eva", 1, ParameterGroups.DEFENSIVE, 4, ParameterFormat.SCALED_POINTS);
+		VanillaParameterRegistration.registerXparam("mev", 4, ParameterGroups.DEFENSIVE, 5, ParameterFormat.SCALED_POINTS);
 		VanillaParameterRegistration.registerSparam("fdr", 8, ParameterGroups.DEFENSIVE, 6, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
 		VanillaParameterRegistration.registerSparam("tgr", 0, ParameterGroups.FATE, 0, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.SIGNED);
 		VanillaParameterRegistration.registerBparam("luk", 7, ParameterGroups.FATE, 2);
@@ -12367,14 +12878,17 @@ Game_BattlerBase.prototype.traitsDeltaSum = function(code, id) {
 * sums the deltas, then restores the 1.0 baseline — giving linear, predictable stacking
 * while keeping the 1.0 return value that engine healing/cost/damage formulas expect.
 *
+* The result is floored at 0: stacked reductions can take a rate to nothing, never past it. A
+* negative damage rate would heal on every hit, and a negative cost rate would refund on every cast.
+*
 * @param {number} sparamId The sparam index (0–9).
-* @returns {number} The additively aggregated sparam value.
+* @returns {number} The additively aggregated sparam value, minimum 0.
 */
 J.BASE.Aliased.Game_BattlerBase.set("sparam", Game_BattlerBase.prototype.sparam);
 Game_BattlerBase.prototype.sparam = function(sparamId) {
 	const { delta, local } = this.equipParameterContribution(Game_BattlerBase.TRAIT_SPARAM, sparamId);
 	const global = 1 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_SPARAM, sparamId) - delta;
-	return global + local;
+	return Math.max(0, global + local);
 };
 /**
 * Overwrites {@link Game_BattlerBase#xparam}.<br/>
@@ -13189,6 +13703,18 @@ Game_Item.prototype.dataClass = function() {
 */
 Game_Item.prototype.setDataClass = function(newDataClass) {
 	this._dataClass = newDataClass;
+};
+/**
+* Gets the object this item carries beyond the database, which is nothing until a plugin gives game items
+* something to carry.
+*
+* {@link Game_Actor.haveEquipsChanged} compares these to notice one carried object being swapped for another
+* under the same id. J-Base carries nothing, so every item answers alike and only ids and data classes
+* decide; J-Extend overrides this to hand back the overlay-merged row it carries.
+* @returns {RPG_EquipItem|RPG_UsableItem|null} The carried object, or null when nothing is carried.
+*/
+Game_Item.prototype.underlyingObject = function() {
+	return null;
 };
 
 //#endregion
@@ -14055,11 +14581,13 @@ Scene_Skill.prototype.skillTypeWindow = function() {
 //#region src/plugins/_base/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* Seeds vanilla engine parameters before downstream plugins extend the catalog.
+* Seeds vanilla engine parameters before downstream plugins extend the catalog, and loads the sentences every
+* notetag is described with.
 */
 J.BASE.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	VanillaParameterRegistration.registerAll();
+	NotetagDescriber.loadTemplates();
 	J.BASE.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
 };
 
@@ -14235,14 +14763,6 @@ var Window_ControlLegend = class extends Window_Base {
 * literals here, and there should be none in anything built on this.
 */
 var Scene_MenuFacetBase = class extends Scene_MenuBase {
-	/**
-	* Extends {@link #initialize}.<br/>
-	* Also initializes this scene's members.
-	*/
-	initialize() {
-		super.initialize();
-		this.initMembers();
-	}
 	/**
 	* Extends {@link #initMembers}.<br/>
 	* Also initializes the members shared by every facet scene.
@@ -17345,7 +17865,7 @@ Window_Command.prototype.drawItem = function(index) {
 	const isSubtext = this.isCommandSubtext(index);
 	const subtexts = this.commandSubtext(index);
 	const extraLines = this.commandLines(index);
-	let commandNameX = rectX + 40;
+	let commandNameX = rectX + this.commandNameIndent(true);
 	let commandNameY = rectY;
 	const hasSubtexts = subtexts.length > 0 && isSubtext;
 	const hasMultilineText = extraLines.length > 0 && !isSubtext;
@@ -17369,7 +17889,7 @@ Window_Command.prototype.drawItem = function(index) {
 		const iconY = rectY;
 		this.drawIcon(commandIcon, commandNameX - 36, iconY);
 	}
-	if (!commandIcon && !hasFaceData) commandNameX = rectX + 4;
+	if (!commandIcon && !hasFaceData) commandNameX = rectX + this.commandNameIndent(false);
 	this.drawTextEx(commandName, commandNameX, commandNameY, rectWidth);
 	if (rightText) {
 		const textWidth = this.textWidth(rightText);
@@ -17400,6 +17920,18 @@ Window_Command.prototype.drawItem = function(index) {
 			this.drawTextEx(extraLine, extraLineX, extraLineY, rectWidth);
 		}, this);
 	}
+};
+/**
+* How far in from its row's left edge a command's name starts: past the icon when an icon or face leads it, and
+* only a small padding when nothing does.<br/>
+* Its own answer, so a window laying its words out ahead of drawing them, such as one wrapping a long name to fit
+* its row, measures from the same place the name is drawn.
+* @param {boolean} hasIcon Whether an icon or face leads the command's name.
+* @returns {number}
+*/
+Window_Command.prototype.commandNameIndent = function(hasIcon) {
+	if (hasIcon === true) return 40;
+	return 4;
 };
 /**
 * Builds the name of the command at the given index.

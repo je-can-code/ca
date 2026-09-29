@@ -1,7 +1,7 @@
 //region annoations
 /*:
  * @target MZ
- * @plugindesc [v1.2.1 MAP] Renders a passability-driven minimap on the screen.
+ * @plugindesc [v1.2.2 MAP] Renders a passability-driven minimap on the screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -151,6 +151,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.2
+ *    Minimap walls follow the engine's passability instead of the tileset's flags.
  * - 1.2.1
  *    Corrected PLUGIN_NAME from J-MAP to J-Map, matching the name the ship has
  *    always been built and shipped under.
@@ -294,7 +296,7 @@ J.MAP.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.MAP.Metadata = new J_MAP__PluginMetadata("J-Map", "1.2.1");
+J.MAP.Metadata = new J_MAP__PluginMetadata("J-Map", "1.2.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -709,6 +711,128 @@ Game_Event.prototype.getAreaEventRect = function() {
 		w,
 		h
 	};
+};
+
+//#endregion
+//#region src/plugins/map/core/services/MinimapPassability.js
+/**
+* Which edges of each tile on the current map a step can be taken across.
+*
+* Every answer comes from {@link Game_Map#isPassable} rather than from the tileset's flags. Other
+* plugins alias passability to add rules of their own- J-Regions seals denied terrain tags and
+* region ids that way- and flags read directly would draw everything those rules close off as
+* open floor.
+*/
+var MinimapPassability = class MinimapPassability {
+	/**
+	* The blocked-edge mask of a tile that cannot be stepped onto or off of from any side.
+	*
+	* Masks share the engine's tileset layout: 0x01 down, 0x02 left, 0x04 right, 0x08 up.
+	* @type {number}
+	*/
+	static ImpassableMask = 15;
+	/**
+	* The four directions a step can be taken in, in numpad notation: down, left, right, up.
+	* @type {number[]}
+	*/
+	static Directions = [
+		2,
+		4,
+		6,
+		8
+	];
+	/**
+	* The map width, in tiles, when the snapshot was taken.
+	* @type {number}
+	*/
+	#width = 0;
+	/**
+	* The exits the engine allowed out of every tile, one byte of direction bits per tile, row-major.
+	* @type {Uint8Array}
+	*/
+	#exits = new Uint8Array(0);
+	/**
+	* Takes the snapshot, asking the engine about each tile's four exits exactly once.
+	*/
+	constructor() {
+		this.#width = $gameMap.width();
+		const tileCount = this.#width * $gameMap.height();
+		this.#exits = Uint8Array.from({ length: tileCount }, (_, index) => this.#exitsAtIndex(index));
+	}
+	/**
+	* The bit a direction occupies in an exit or blocked-edge mask.
+	* @param {number} direction The direction, in numpad notation.
+	* @returns {number}
+	*/
+	static #directionBit(direction) {
+		return 1 << direction / 2 - 1;
+	}
+	/**
+	* Asks the engine which ways a step may leave the tile at a snapshot index.
+	* @param {number} index The tile's row-major position in the snapshot.
+	* @returns {number}
+	*/
+	#exitsAtIndex(index) {
+		const x = index % this.#width;
+		const y = Math.floor(index / this.#width);
+		return MinimapPassability.Directions.reduce((exits, direction) => {
+			if ($gameMap.isPassable(x, y, direction) === false) return exits;
+			return exits | MinimapPassability.#directionBit(direction);
+		}, 0);
+	}
+	/**
+	* Whether the engine allowed a step out of a tile in a direction.
+	* @param {number} x The tile's x coordinate.
+	* @param {number} y The tile's y coordinate.
+	* @param {number} direction The direction of the step, in numpad notation.
+	* @returns {boolean}
+	*/
+	#canLeave(x, y, direction) {
+		const exits = this.#exits[y * this.#width + x];
+		return (exits & MinimapPassability.#directionBit(direction)) !== 0;
+	}
+	/**
+	* Whether a step can be taken from a tile across one of its edges.
+	*
+	* Both tiles have to agree to it, exactly as they do for the engine's own movement check: the tile
+	* being left must allow the exit, and the tile being entered must allow the step back.
+	* @param {number} x The x coordinate of the tile being left.
+	* @param {number} y The y coordinate of the tile being left.
+	* @param {number} direction The direction of the step, in numpad notation.
+	* @returns {boolean}
+	*/
+	canCross(x, y, direction) {
+		const nextX = $gameMap.roundXWithDirection(x, direction);
+		const nextY = $gameMap.roundYWithDirection(y, direction);
+		if ($gameMap.isValid(nextX, nextY) === false) return false;
+		if (this.#canLeave(x, y, direction) === false) return false;
+		const reverseDirection = 10 - direction;
+		return this.#canLeave(nextX, nextY, reverseDirection);
+	}
+	/**
+	* Which edges of a tile a step cannot be taken across, as direction bits.
+	* @param {number} x The tile's x coordinate.
+	* @param {number} y The tile's y coordinate.
+	* @returns {number}
+	*/
+	blockedMask(x, y) {
+		return MinimapPassability.Directions.reduce((mask, direction) => {
+			if (this.canCross(x, y, direction) === true) return mask;
+			return mask | MinimapPassability.#directionBit(direction);
+		}, 0);
+	}
+	/**
+	* Whether a tile has no edge a step can be taken across.
+	*
+	* Nothing can walk onto or off of such a tile, so it is drawn solid rather than as a square of
+	* floor boxed in by walls.
+	* @param {number} x The tile's x coordinate.
+	* @param {number} y The tile's y coordinate.
+	* @returns {boolean}
+	*/
+	isImpassable(x, y) {
+		return this.blockedMask(x, y) === MinimapPassability.ImpassableMask;
+	}
 };
 
 //#endregion
@@ -1285,7 +1409,7 @@ var Sprite_MiniMap = class extends Sprite {
 	* Rebuilds the full cached bitmap of the map (with padding), drawing:
 	* - Background
 	* - Base floor tiles
-	* - Edge strokes according to passability flags
+	* - Wall strokes along every edge the engine will not let a step cross
 	* Subclasses may override drawCell(...) to fully customize tile rendering.
 	*/
 	buildCache() {
@@ -1299,24 +1423,23 @@ var Sprite_MiniMap = class extends Sprite {
 		const pixelHeight = cacheTilesH * this.SCALE;
 		this.setCacheBitmap(new Bitmap(pixelWidth, pixelHeight));
 		this.cacheBitmap().fillRect(0, 0, pixelWidth, pixelHeight, this.toCss(this.BG_COLOR));
-		/** @type {number[]} */
-		const flags = $gameMap.tilesetFlags();
+		const passability = new MinimapPassability();
 		const loopH = $gameMap.isLoopHorizontal();
 		const loopV = $gameMap.isLoopVertical();
-		this.drawMapCopyAt(pad, pad, flags);
+		this.drawMapCopyAt(pad, pad, passability);
 		if (loopH) {
-			this.drawMapCopyAt(pad - mapWidth, pad, flags);
-			this.drawMapCopyAt(pad + mapWidth, pad, flags);
+			this.drawMapCopyAt(pad - mapWidth, pad, passability);
+			this.drawMapCopyAt(pad + mapWidth, pad, passability);
 		}
 		if (loopV) {
-			this.drawMapCopyAt(pad, pad - mapHeight, flags);
-			this.drawMapCopyAt(pad, pad + mapHeight, flags);
+			this.drawMapCopyAt(pad, pad - mapHeight, passability);
+			this.drawMapCopyAt(pad, pad + mapHeight, passability);
 		}
 		if (loopH && loopV) {
-			this.drawMapCopyAt(pad - mapWidth, pad - mapHeight, flags);
-			this.drawMapCopyAt(pad + mapWidth, pad - mapHeight, flags);
-			this.drawMapCopyAt(pad - mapWidth, pad + mapHeight, flags);
-			this.drawMapCopyAt(pad + mapWidth, pad + mapHeight, flags);
+			this.drawMapCopyAt(pad - mapWidth, pad - mapHeight, passability);
+			this.drawMapCopyAt(pad + mapWidth, pad - mapHeight, passability);
+			this.drawMapCopyAt(pad - mapWidth, pad + mapHeight, passability);
+			this.drawMapCopyAt(pad + mapWidth, pad + mapHeight, passability);
 		}
 	}
 	/**
@@ -1401,18 +1524,18 @@ var Sprite_MiniMap = class extends Sprite {
 	* originTileX/Y are in cache tile space, relative to the cache’s (0,0).
 	* @param {number} originTileX The origin tile x driving this step.
 	* @param {number} originTileY The origin tile y driving this step.
-	* @param {number[]} flags - tileset flags (pre-fetched)
+	* @param {MinimapPassability} passability The engine's answers about which tile edges can be crossed.
 	*/
-	drawMapCopyAt(originTileX, originTileY, flags) {
+	drawMapCopyAt(originTileX, originTileY, passability) {
 		const mapWidth = $gameMap.width();
 		const mapHeight = $gameMap.height();
 		for (let y = 0; y < mapHeight; y++) {
 			for (let x = 0; x < mapWidth; x++) {
 				const sx = (originTileX + x) * this.SCALE;
 				const sy = (originTileY + y) * this.SCALE;
-				const mask = this.blockedMaskAt(x, y, flags);
-				if (this.drawCell(x, y, sx, sy, mask)) continue;
-				if (mask === 15) {
+				const mask = passability.blockedMask(x, y);
+				if (this.drawCell(x, y, sx, sy, mask) === true) continue;
+				if (passability.isImpassable(x, y) === true) {
 					this.cacheBitmap().fillRect(sx, sy, this.SCALE, this.SCALE, this.toCss(this.IMPASSABLE_COLOR));
 				} else {
 					this.cacheBitmap().fillRect(sx, sy, this.SCALE, this.SCALE, this.toCss(this.FLOOR_COLOR));
@@ -1751,31 +1874,6 @@ var Sprite_MiniMap = class extends Sprite {
 		}
 	}
 	/**
-	* Computes the blocked-direction mask for a tile using the same precedence
-	* as Game_Map.prototype.checkPassage.
-	* Bits:
-	* - 0x01 = down blocked
-	* - 0x02 = left blocked
-	* - 0x04 = right blocked
-	* - 0x08 = up blocked
-	* 0x0f indicates wholly impassable.
-	* @param {number} x - Tile X.
-	* @param {number} y - Tile Y.
-	* @param {number[]} [flagsRef] - Optional pre-fetched tilesetFlags array.
-	* @returns {number} The blocked-direction mask.
-	*/
-	blockedMaskAt(x, y, flagsRef) {
-		if (!$gameMap.isValid(x, y)) return 15;
-		const flags = flagsRef || $gameMap.tilesetFlags();
-		const tiles = $gameMap.allTiles(x, y);
-		for (const tileId of tiles) {
-			const flag = flags[tileId] || 0;
-			if (flag & 16) continue;
-			return flag & 15;
-		}
-		return 15;
-	}
-	/**
 	* Converts #rrggbb or #rrggbbaa into a CSS color string.
 	* @param {string} hex - Hex color string (#rrggbb or #rrggbbaa). Whitespace is ignored.
 	* @returns {string} CSS color string.
@@ -1877,7 +1975,7 @@ var Sprite_MiniMap = class extends Sprite {
 	* @param {number} y - Map tile Y.
 	* @param {number} sx - Pixel x origin within the cache bitmap (top-left of the tile).
 	* @param {number} sy - Pixel y origin within the cache bitmap (top-left of the tile).
-	* @param {number} blockedMask - Directional block mask for this tile.
+	* @param {number} blockedMask - Edges of this tile a step cannot cross; 0x0f when none can be crossed.
 	* @returns {boolean} True if the tile was fully handled; false to fall back to default rendering.
 	*/
 	drawCell(x, y, sx, sy, blockedMask) {

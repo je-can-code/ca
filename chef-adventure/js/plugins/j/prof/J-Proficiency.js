@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.5.0 PROF] Enables skill proficiency tracking.
+ * @plugindesc [v2.6.0 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -161,6 +161,8 @@
  * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
  * ============================================================================
  * CHANGELOG:
+ * - 2.6.0
+ *    Its tags are described in words.
  * - 2.5.0
  *    Added natural growth tags for proficiency bonus (prof).
  * - 2.4.3
@@ -441,6 +443,13 @@ var J_ProficiencyPluginMetadata = class J_ProficiencyPluginMetadata extends Plug
 * The core where all of my extensions live: in the `J` object.
 */
 globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "4.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (hasBaseRequirement === false) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+})();
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
@@ -478,7 +487,7 @@ J.PROF.Helpers.loadExternalConfig = (configPath = J_ProficiencyPluginMetadata.CO
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.5.0");
+J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.6.0");
 J.PROF.Helpers.loadExternalConfig();
 /**
 * The various aliases associated with this plugin.
@@ -1160,15 +1169,90 @@ var ProfParameterRegistration = class {
 };
 
 //#endregion
+//#region src/plugins/prof/core/core/describeProfNotetags.js
+/**
+* The lines describing the notetags this plugin reads, registered with {@link NotetagDescriber} at boot.
+*
+* No words are written here. Each sentence is the game's, kept in its config under the tag's key; this class reads
+* the tag and supplies what the sentence names.
+*/
+var ProfNotetagDescriptions = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Registers the describer of every tag this plugin reads that has its words so far.
+	*/
+	static registerAll() {
+		NotetagDescriber.register(J.PROF.RegExp.ProficiencyBonus, (match) => this.bonusLines(match));
+		NotetagDescriber.register(J.PROF.RegExp.ProficiencyGivingBlock, () => this.blockLines("proficiencyGivingBlock", NotetagLine.Impacts.HELPS));
+		NotetagDescriber.register(J.PROF.RegExp.ProficiencyGainingBlock, () => this.blockLines("proficiencyGainingBlock", NotetagLine.Impacts.HURTS));
+	}
+	/**
+	* The line describing a proficiency bonus tag, in the sentence the game's config keeps under `proficiencyBonus`:
+	* extra proficiency earned on top of the usual for every skill used.
+	*
+	* Only an actor ever earns proficiency, so the tag does nothing anywhere else. The sentence may name `{value}`, the
+	* bonus (`+3`).
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the bonus.
+	* @returns {NotetagLine[]}
+	*/
+	static bonusLines(match) {
+		const [, writtenBonus] = match;
+		const bonus = Number(writtenBonus);
+		const iconIndex = IconManager.proficiencyBoost();
+		const value = RPG_Trait.asDelta(bonus);
+		const holderImpact = this.bonusImpact(bonus);
+		return NotetagDescriber.line("proficiencyBonus", {
+			iconIndex,
+			holderImpact,
+			value
+		});
+	}
+	/**
+	* The line describing either proficiency block, in the sentence the game's config keeps under the given key.
+	*
+	* Neither block carries an amount, so the sentence has nothing to name.
+	* @param {string} templateKey The key of the tag's sentence.
+	* @param {number} holderImpact Which way the block cuts for whoever carries it.
+	* @returns {NotetagLine[]}
+	*/
+	static blockLines(templateKey, holderImpact) {
+		const iconIndex = IconManager.proficiencyBoost();
+		return NotetagDescriber.line(templateKey, {
+			iconIndex,
+			holderImpact
+		});
+	}
+	/**
+	* Which way a proficiency bonus cuts for whoever carries it: one of {@link NotetagLine.Impacts}.
+	*
+	* More proficiency helps its holder, and a bonus of nothing changes nothing. The tag only ever carries whole
+	* numbers of zero or more, so there is no bonus that hurts.
+	* @param {number} bonus The bonus.
+	* @returns {number}
+	*/
+	static bonusImpact(bonus) {
+		if (bonus > 0) return NotetagLine.Impacts.HELPS;
+		return NotetagLine.Impacts.NEITHER;
+	}
+};
+
+//#endregion
 //#region src/plugins/prof/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* Registers J-Prof stats with the parameter catalog and initializes proficiency data.
+* Registers J-Prof stats with the parameter catalog, describes this plugin's tags, and initializes proficiency data.
 */
 J.PROF.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.PROF.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
 	ProfParameterRegistration.registerAll();
+	ProfNotetagDescriptions.registerAll();
 	J.PROF.Metadata.initializeProficiencies();
 };
 

@@ -1,7 +1,7 @@
 //region introduction
 /*:
  * @target MZ
- * @plugindesc [v3.0.2 LOG] A log window for viewing on the map.
+ * @plugindesc [v3.0.3 LOG] A log window for viewing on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -113,6 +113,8 @@
  * JABS integration (when installed) and by plugin commands.
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.3
+ *    EXP, SDP, AP and gold take their names from TextManager.
  * - 3.0.2
  *    Renamed the declared dependency on J-MessageTextCodes to J-Message, which
  *    is what that plugin's file is called now. Left as it was, the base
@@ -286,7 +288,7 @@ J.LOG = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LOG.Metadata = new J_LogPluginMetadata("J-Log", "3.0.2");
+J.LOG.Metadata = new J_LogPluginMetadata("J-Log", "3.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -800,7 +802,8 @@ var ActionLogBuilder = class {
 	setupExperienceGained(targetName, expGained) {
 		const exp = `\\C[6]${expGained}\\C[0]`;
 		const defender = this.#wrapName(targetName, 16);
-		const message = `${defender} gained \\*${exp}\\* experience.`;
+		const expName = TextManager.exp;
+		const message = `${defender} gained \\*${exp}\\* ${expName}.`;
 		this.setMessage(message);
 		return this;
 	}
@@ -812,7 +815,8 @@ var ActionLogBuilder = class {
 	*/
 	setupSdpAcquired(targetName, amount) {
 		const defender = this.#wrapName(targetName, 16);
-		const message = `${defender} acquired \\*${amount}\\* SDP points.`;
+		const sdpName = TextManager.sdpPoints();
+		const message = `${defender} acquired \\*${amount}\\* ${sdpName}.`;
 		this.setMessage(message);
 		return this;
 	}
@@ -981,7 +985,8 @@ var LootLogBuilder = class {
 	*/
 	setupGoldFound(goldFound) {
 		const gold = `\\C[14]${goldFound}\\C[0]`;
-		const message = `Found \\*${gold}\\* gold.`;
+		const goldName = TextManager.currencyUnit;
+		const message = `Found \\*${gold}\\* ${goldName}.`;
 		this.setMessage(message);
 		return this;
 	}

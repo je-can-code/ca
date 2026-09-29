@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.25.0 ABS] Enables combat to be carried out on the map.
+ * [v4.25.1 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,8 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.25.1
+ *    Enemies take aim when a cast skill goes off, not when the cast begins.
  * - 4.25.0
  *    An event whose page stops applying now forgets the battler that page described,
  *    rather than still reading as one. Added hooks for holding a page change back and
@@ -4582,7 +4584,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.25.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.25.1");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -10589,21 +10591,37 @@ var JABS_AiManager = class JABS_AiManager {
 	}
 	/**
 	* Execute the decided queued actions for this battler.
+	*
+	* An action takes aim at its target as it begins: at once for one with no cast time, which fires instantly
+	* and is not meant to be dodged, and as the windup starts for one with a cast time. A windup commits to the
+	* direction it began with- the cast is the player's window to read the telegraph and step out of it, or to
+	* parry- so once it finishes, the action fires where it was aimed rather than turning to wherever the target
+	* went.
 	* @param {JABS_Battler} battler The battler to take action.
 	*/
 	static executeAiPhase2Action(battler) {
-		battler.turnTowardTarget();
-		this.restampActionDirections(battler);
 		const [action] = battler.getDecidedAction();
 		if (!action) return;
 		if (action.isCastComplete()) {
+			if (action.getCastTime() <= 0) {
+				this.takeAim(battler);
+			}
 			battler.processQueuedActions();
 			battler.setWaitCountdown(15);
 			battler.setPhase(3);
 			return;
 		}
 		if (battler.isCastingOrChanneling()) return;
+		this.takeAim(battler);
 		battler.setCastCountdown(action.getCastTime());
+	}
+	/**
+	* Faces the battler toward its target, and re-orients its decided volley to that fresh facing.
+	* @param {JABS_Battler} battler The battler taking aim.
+	*/
+	static takeAim(battler) {
+		battler.turnTowardTarget();
+		this.restampActionDirections(battler);
 	}
 	/**
 	* Re-orients the decided action volley to the battler's current facing direction.
@@ -24872,7 +24890,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.25.0";
+var PLUGIN_VERSION = "4.25.1";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion

@@ -11,6 +11,7 @@ import { checkHousekeeping } from './checks/housekeeping.js';
 import { checkNotetags } from './checks/notetags.js';
 import { checkParse } from './checks/parse.js';
 import { checkPlugins } from './checks/plugins.js';
+import { checkTextCodes } from './checks/textcodes.js';
 
 /**
  * Every check, in reading order. The ones that read database rows are marked, because they mean
@@ -23,6 +24,7 @@ export const CHECKS = [
   { name: 'plugin drift', run: checkPlugins, readsData: false },
   { name: 'notetags', run: checkNotetags, readsData: true },
   { name: 'config references', run: checkConfigs, readsData: true },
+  { name: 'text codes', run: checkTextCodes, readsData: true },
 ];
 
 /**
