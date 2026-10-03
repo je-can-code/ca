@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.0.0 BASE] The base class for all J plugins.
+ * [v4.1.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.1.0
+ *    Added accessors for where a reserved transfer will land the player.
  * - 4.0.0
  *    BREAKING: requires data/config.notetag-lines.json. Added NotetagDescriber,
  *    TextWrapper.wrapStyled, and a description and icon on every class. Sp-parameters
@@ -2094,7 +2096,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "4.0.0";
+J.BASE.Metadata.Version = "4.1.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -14063,6 +14065,32 @@ Game_Party.prototype.setLevel = function(level) {
 */
 Game_Player.prototype.isPlayer = function() {
 	return true;
+};
+/**
+* Gets the x coordinate a reserved transfer will land the player on.<br/>
+* Vanilla holds a reserved landing in fields it only ever reads itself, and offers an accessor for
+* none of it but the map ({@link Game_Player#newMapId}). Anything that has to look at a transfer
+* between its reservation and its arrival reads the rest through these.
+* @returns {number} The reserved x coordinate, in tiles.
+*/
+Game_Player.prototype.newX = function() {
+	return this._newX;
+};
+/**
+* Gets the y coordinate a reserved transfer will land the player on.
+* See {@link Game_Player#newX} for why these exist.
+* @returns {number} The reserved y coordinate, in tiles.
+*/
+Game_Player.prototype.newY = function() {
+	return this._newY;
+};
+/**
+* Gets the direction a reserved transfer will leave the player facing.
+* See {@link Game_Player#newX} for why these exist.
+* @returns {number} The reserved direction, where 0 keeps whatever the player already faces.
+*/
+Game_Player.prototype.newDirection = function() {
+	return this._newDirection;
 };
 
 //#endregion

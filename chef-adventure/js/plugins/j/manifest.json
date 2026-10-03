@@ -26,7 +26,7 @@
     "abs/ext/J-ABS-Tools.js": "620ebd0f71450cb8fa2a286c2dad50d210b1f3e7e721ef1a1d73985405bdfa88",
     "apt/J-Aptitude-Typed.js": "487b8698c65487c6868660aec7463836ffb6027c5f0d61f0887a129d12e472d9",
     "apt/J-Aptitude.js": "4b7113b7618f374b6f4889f7027ac3b647f71c4d848f2b382e59ce1882417310",
-    "base/J-Base.js": "f4f03de7aa0a78b5ef9df9e72281b520941ac1e02413de500a9cd73db5474a45",
+    "base/J-Base.js": "53d2b0b2997a4e71cc5a4f1e2396315d6d4530fd0740d47e4831616538df6744",
     "base/ext/J-Base-Save.js": "e9a387a79f23c5e89a1949a0f7703daa620f45d3c784cfa0f7603a3ef74ba94c",
     "ca-mods/J-CA-Mods.js": "9535f3dcdbeb678c19c7afc352de43fe71d081d6d9f2d5808a139892de5bf8b7",
     "class/J-Classes.js": "ab39d7f9b07fe5efef42834d669f9322294f6f6d16ff9110ce57b45e72f13f29",
@@ -60,7 +60,7 @@
     "lighting/J-Lighting.js": "5c3d86f3874244908ab6e470b462588cd0df16c1e46d2caa52edbbdceed29d8b",
     "lighting/ext/J-Lighting-Time.js": "e4f765b5936b5e35b4786c55901b4facb105f51192cb6582b0a55b39484ba3a6",
     "log/J-Log.js": "425750a5616bd24e2c7c570ef98418879a55af4fe12d0c16175de11dc576be57",
-    "map/J-Map.js": "ed483b623f7ad21e616f2ed086a75ebea21dcb143bca359567e6b488b21496dc",
+    "map/J-Map.js": "f762ba9c36b7b45cdde58fcbe47d8679d03fe32ed59310eb5aa865601b553f7e",
     "message/J-Message.js": "b5e734f980ffa10d8c92d47c65d9046dca542b2ba827a755def4815ace555aa5",
     "message/ext/J-Message-Bubbles.js": "a2c92dec0cd367205f4a1bf920f6e90819e155daffa142afc3181e516d41cce0",
     "message/ext/J-Message-Chatter.js": "1ec53db1eb8c0d7cb4bd62f5e3531a0141db133b664dd977b1d90b87f6518008",
@@ -78,7 +78,7 @@
     "passive/ext/J-Passive-Difficulty.js": "2a148e2dda204b1993de35ec1d462466da2d2214e737b5e824ede4d0274dbe35",
     "passive/ext/J-Passive-OTIB.js": "d7a3fdabb42fcd58b7b05a653b5ed266d78ae2373e53d38a3d695ddd5ed524ad",
     "passive/ext/J-Passive-SKS.js": "cd7016667b4e5e0138e108987f29d53b127257f96a458ba64d52d7a67b01b734",
-    "pixel/J-Pixelistics.js": "bba84a42c36e69eb849029dedfcf9fa02472dc5cad6cd2ce96ec0e92cf97ac49",
+    "pixel/J-Pixelistics.js": "260b9b13103cca3cf794fe3e02da50e103964300a59e3cd43cbf5061807389cd",
     "pixel/ext/J-Pixel-ABS.js": "10d366f032a5acc97799dcaed5d459226a913429266431558e2679f8dc9a4c55",
     "popups/J-Popups.js": "b71d8c7c526e4acb0565095baf16f6df2fffb16533e0b46ed14e37f5b2138acc",
     "popups/ext/J-Popups-ABS.js": "9dd5db18951905248eae5bd56fbaaa849ddcdd0c62a5d354babc04f307577ad5",
@@ -3880,14 +3880,6 @@
       "flags": "i"
     },
     {
-      "label": "J.MAP.RegExp.AreaEvent",
-      "names": [
-        "areaEvent"
-      ],
-      "pattern": "<areaEvent: ?(\\d+)x(\\d+)>",
-      "flags": "i"
-    },
-    {
       "label": "J.MAP.RegExp.BlockMinimap",
       "names": [
         "blockMinimap"
@@ -5326,6 +5318,22 @@
         "hitboxSize"
       ],
       "pattern": "<hitboxSize:[ ]?(\\[[ ]?[+-]?\\d+(?:\\.\\d+)?[ ]?,[ ]?[+-]?\\d+(?:\\.\\d+)?[ ]?]|[+-]?\\d+(?:\\.\\d+)?)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PIXEL.RegExp.AreaEvent",
+      "names": [
+        "areaEvent"
+      ],
+      "pattern": "<areaEvent:[ ]?(\\[[ ]?[1-9]\\d*[ ]?,[ ]?[1-9]\\d*[ ]?])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.PIXEL.RegExp.RelativeTransfer",
+      "names": [
+        "relativeTransfer"
+      ],
+      "pattern": "<relativeTransfer>",
       "flags": "i"
     },
     {

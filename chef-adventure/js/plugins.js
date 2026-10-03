@@ -137,6 +137,5 @@ var $plugins =
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
-{"name":"kame/KMS_AreaEvent","status":true,"description":"[v0.1 AREA] Expand the trigger area for events on map.","parameters":{}},
 {"name":"others/ShopScene_Extension","status":true,"description":"Shop screen expansion v1.0.4","parameters":{"ActorCharacterSpace":"24","ActorCharacterBeginOfs":"32","MaxVisibleActors":"4","EnableActorArrow":"true","VisibleEquipMode":"1","StatusWidth":"352"}}
 ];

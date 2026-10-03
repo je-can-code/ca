@@ -2,12 +2,13 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.1 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
+ * [v1.4.0 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @orderAfter J-Base-Save
+ * @orderAfter J-ABS
  * @help
  * ============================================================================
  * OVERVIEW
@@ -41,11 +42,57 @@
  *   src/plugins/pixel/ext/abs  — JABS bridge (loads after J-ABS + this)
  *
  * ============================================================================
- * NOTE ABOUT NOTETAGS:
- * This plugin has no notetags of its own- movement/collision tuning is
- * entirely plugin-parameter driven.
+ * AREA EVENTS
+ * An event normally stands on exactly one tile. A comment on one of its
+ * pages can stretch that into a rectangle, so stepping onto any tile of it
+ * counts as reaching the event: one wide exit along a map's edge, rather
+ * than a row of identical events.
+ *
+ * TAG USAGE:
+ * - Events on the map (page comment)
+ *
+ * TAG FORMAT:
+ *  <areaEvent:[WIDTH, HEIGHT]>
+ * Where WIDTH and HEIGHT are whole tiles, counted rightward and downward
+ * from the tile the event itself stands on. Both must be at least 1.
+ *
+ * TAG EXAMPLES:
+ *  <areaEvent:[5, 1]>
+ * This page covers the event's own tile and the four to the right of it.
+ *
+ * An area belongs to the page that declares it, so a page without the tag
+ * covers one tile again. It changes where the event counts as standing,
+ * never the size of its body.
+ *
+ * ----------------------------------------------------------------------------
+ * RELATIVE TRANSFERS
+ * A transfer from an area can remember where along it the player crossed,
+ * and land them just as far along on the other side.
+ *
+ * TAG USAGE:
+ * - Events on the map (page comment), alongside <areaEvent>
+ *
+ * TAG FORMAT:
+ *  <relativeTransfer>
+ * Point the page's Transfer Player at where the event's own tile should
+ * land. Every other tile of the area lands the same distance along, so
+ * walking off a wide edge arrives at the matching spot on the next map.
+ *
+ * TAG EXAMPLES:
+ *  <areaEvent:[20, 1]>
+ *  <relativeTransfer>
+ * Crossing eight tiles from the event lands the player eight tiles to the
+ * right of where the Transfer Player points.
+ *
+ * The two maps' openings should line up tile for tile. A landing that would
+ * fall off the destination map lands on its edge instead, and a warning in
+ * the console names the transfer.
  * ============================================================================
  * CHANGELOG:
+ * - 1.4.0
+ *    Added <areaEvent:[WIDTH, HEIGHT]>, letting an event's page cover a rectangle
+ *    of tiles. Added <relativeTransfer>, landing a transfer from an area as far
+ *    along as the player crossed it.
  * - 1.3.1
  *    Fixed tiles at the map's edge counting as enterable from off the map.
  * - 1.3.0
@@ -228,7 +275,7 @@ J.PIXEL.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.3.1");
+J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -237,10 +284,52 @@ J.PIXEL.Aliased = {
 	Game_CharacterBase: new Map(),
 	Game_Event: new Map(),
 	Game_Follower: new Map(),
+	Game_Interpreter: new Map(),
 	Game_Map: new Map(),
 	Game_Player: new Map(),
 	Spriteset_Map: new Map()
 };
+/**
+* All regular expressions used by this plugin.
+*/
+J.PIXEL.RegExp = {};
+/**
+* The area an event's page covers: a rectangle of whole tiles whose top-left corner is the tile the
+* event itself stands on. Both sizes must be at least one, since an event always covers its own tile;
+* anything else does not match, and the page covers that one tile.
+*
+* <pre>
+* Structure:
+*  <areaEvent:[WIDTH, HEIGHT]>
+*
+* Example:
+*  <areaEvent:[5, 1]>
+*
+* Translation:
+*  This page covers the event's own tile and the four to the right of it.
+* </pre>
+* @type {RegExp}
+*/
+J.PIXEL.RegExp.AreaEvent = /<areaEvent:[ ]?(\[[ ]?[1-9]\d*[ ]?,[ ]?[1-9]\d*[ ]?])>/i;
+/**
+* A transfer from this page lands as far along its destination as the player stood along the page's
+* area, measured from the event's own tile.
+*
+* <pre>
+* Structure:
+*  <relativeTransfer>
+*
+* Example:
+*  <areaEvent:[20, 1]>
+*  <relativeTransfer>
+*
+* Translation:
+*  Crossing this 20-tile edge eight tiles from the event lands the player eight tiles to the right of
+*  where its Transfer Player points.
+* </pre>
+* @type {RegExp}
+*/
+J.PIXEL.RegExp.RelativeTransfer = /<relativeTransfer>/i;
 /**
 * Directional constants matching RMMZ engine conventions.
 * Defined here so the pixel core does not depend on J-ABS for basic direction numerics.
@@ -2491,6 +2580,156 @@ Game_CharacterBase.prototype.angleToNearestDirection = function(angleDegrees) {
 //#endregion
 //#region src/plugins/pixel/core/objects/Game_Event.js
 /**
+* Extends {@link Game_Event.initMembers}.<br/>
+* Also seeds the area this event covers, which starts as its own tile and nothing more.
+*/
+J.PIXEL.Aliased.Game_Event.set("initMembers", Game_Event.prototype.initMembers);
+Game_Event.prototype.initMembers = function() {
+	J.PIXEL.Aliased.Game_Event.get("initMembers").call(this);
+	this.initAreaEventMembers();
+};
+/**
+* Initializes the members describing the area this event's active page covers.<br/>
+* None of it is ever saved: everything on an event's `_j` is map-session state, rebuilt with the event
+* at the next map setup, and every page re-reads its own area when it becomes active anyway.
+*/
+Game_Event.prototype.initAreaEventMembers = function() {
+	/**
+	* How many tiles wide the area this event's active page covers, counted rightward from the tile
+	* the event stands on.
+	* @type {number}
+	*/
+	this._j._pixel._areaEventWidth = 1;
+	/**
+	* How many tiles high the area this event's active page covers, counted downward from the tile the
+	* event stands on.
+	* @type {number}
+	*/
+	this._j._pixel._areaEventHeight = 1;
+	/**
+	* Whether a transfer from this event's active page lands as far along its destination as the player
+	* stood along the page's area.
+	* @type {boolean}
+	*/
+	this._j._pixel._relativeTransfer = false;
+};
+/**
+* Gets how many tiles wide the area this event's active page covers.
+* @returns {number} The width, in tiles.
+*/
+Game_Event.prototype.areaEventWidth = function() {
+	return this._j._pixel._areaEventWidth;
+};
+/**
+* Sets how many tiles wide the area this event's active page covers.
+* @param {number} areaEventWidth The width, in tiles.
+*/
+Game_Event.prototype.setAreaEventWidth = function(areaEventWidth) {
+	this._j._pixel._areaEventWidth = areaEventWidth;
+};
+/**
+* Gets how many tiles high the area this event's active page covers.
+* @returns {number} The height, in tiles.
+*/
+Game_Event.prototype.areaEventHeight = function() {
+	return this._j._pixel._areaEventHeight;
+};
+/**
+* Sets how many tiles high the area this event's active page covers.
+* @param {number} areaEventHeight The height, in tiles.
+*/
+Game_Event.prototype.setAreaEventHeight = function(areaEventHeight) {
+	this._j._pixel._areaEventHeight = areaEventHeight;
+};
+/**
+* Gets whether a transfer from this event's active page lands relative to where the player crossed
+* its area.
+* @returns {boolean} True if the transfer's landing moves with the player's position.
+*/
+Game_Event.prototype.isRelativeTransfer = function() {
+	return this._j._pixel._relativeTransfer;
+};
+/**
+* Sets whether a transfer from this event's active page lands relative to where the player crossed
+* its area.
+* @param {boolean} isRelativeTransfer Whether the transfer's landing moves with the player's position.
+*/
+Game_Event.prototype.setRelativeTransfer = function(isRelativeTransfer) {
+	this._j._pixel._relativeTransfer = isRelativeTransfer;
+};
+/**
+* Extends {@link Game_Event.setupPage}.<br/>
+* Also reads the area the newly active page covers. An area belongs to a page rather than to the event,
+* so an exit that only opens once a switch flips can widen with the page that opens it.
+*/
+J.PIXEL.Aliased.Game_Event.set("setupPage", Game_Event.prototype.setupPage);
+Game_Event.prototype.setupPage = function() {
+	J.PIXEL.Aliased.Game_Event.get("setupPage").call(this);
+	this.refreshAreaEvent();
+};
+/**
+* Reads the area this event's active page covers, and whether a transfer from it remembers where the
+* player crossed. A page that declares no area covers the tile the event stands on and nothing else,
+* which is exactly what every event does when nothing says otherwise.
+*
+* Every comment line on the page is read, wherever it sits, the same as every other tag J-Base offers a
+* plugin. Should a page somehow declare its area twice, the last one written is the one that counts.
+*/
+Game_Event.prototype.refreshAreaEvent = function() {
+	const commentNote = this.commentNote();
+	const declaredArea = RPGManager.getArrayFromNotesByRegex(commentNote, J.PIXEL.RegExp.AreaEvent, true);
+	const [width, height] = declaredArea ?? [1, 1];
+	this.setAreaEventWidth(width);
+	this.setAreaEventHeight(height);
+	const isRelativeTransfer = RPGManager.checkForBooleanFromNoteByRegex(commentNote, J.PIXEL.RegExp.RelativeTransfer);
+	this.setRelativeTransfer(isRelativeTransfer);
+};
+/**
+* Overwrites {@link Game_CharacterBase#pos}.<br/>
+* An event stands on every tile of the area its active page covers: a rectangle of
+* {@link Game_Event#areaEventWidth} by {@link Game_Event#areaEventHeight} tiles whose top-left corner is
+* the tile its body occupies. Without an area that rectangle is the one occupied tile, which is exactly
+* the rule every other character answers with.
+*
+* Every question the engine asks about where an event is comes through here- the triggers in
+* {@link Game_Player#startMapEvent}, the collision checks pathfinding makes, Get Location Info- so they
+* all see the same area at once, and none of them has to know that areas exist. The area only ever
+* changes where an event counts as standing, never its body: pixel movement blocks against hitboxes,
+* which never ask this.
+* @param {number} x The x tile coordinate to compare against (expected to be an integer).
+* @param {number} y The y tile coordinate to compare against (expected to be an integer).
+* @returns {boolean} True if the tile lies inside this event's area.
+*/
+Game_Event.prototype.pos = function(x, y) {
+	const left = this.occupiedTileX();
+	const top = this.occupiedTileY();
+	const isWithinColumns = x >= left && x < left + this.areaEventWidth();
+	const isWithinRows = y >= top && y < top + this.areaEventHeight();
+	return isWithinColumns && isWithinRows;
+};
+/**
+* Measures how far across this event's area a character stands, in whole tiles from its left edge.<br/>
+* A character outside the area is measured from whichever edge is nearest, so the answer is always a
+* column the area actually has- which is also what makes a character facing the area from beside it
+* count as standing at its end.
+* @param {Game_Character} character The character to measure.
+* @returns {number} The column, from 0 up to one less than the area's width.
+*/
+Game_Event.prototype.areaColumnOf = function(character) {
+	const column = character.occupiedTileX() - this.occupiedTileX();
+	return column.clamp(0, this.areaEventWidth() - 1);
+};
+/**
+* Measures how far down this event's area a character stands, in whole tiles from its top edge.<br/>
+* See {@link Game_Event#areaColumnOf}, which this mirrors for the other axis.
+* @param {Game_Character} character The character to measure.
+* @returns {number} The row, from 0 up to one less than the area's height.
+*/
+Game_Event.prototype.areaRowOf = function(character) {
+	const row = character.occupiedTileY() - this.occupiedTileY();
+	return row.clamp(0, this.areaEventHeight() - 1);
+};
+/**
 * Determines whether or not one this event is collided with other events given the point.
 * @param {number} x The x coordinate.
 * @param {number} y The y coordinate.
@@ -2616,6 +2855,50 @@ Game_Follower.prototype.getCollisionPivotY = function() {
 };
 
 //#endregion
+//#region src/plugins/pixel/core/objects/Game_Interpreter.js
+/**
+* Extends {@link Game_Interpreter#command201}.<br/>
+* A Transfer Player run from an area that remembers where the player crossed first hands the player how
+* far along that area they stand, so the landing can be moved just as far along once the destination has
+* loaded. The destination's size is not known until then, which is why the offset travels with the
+* player rather than being added to the coordinates here. Every other transfer passes straight through.
+*
+* This wraps whichever Transfer Player is already in place, including the one J-ABS swaps in while it
+* is enabled, which is why this plugin loads after J-ABS.
+* @param {any[]} params The Transfer Player command's parameters.
+* @returns {boolean} True once the transfer is reserved, false while it waits on a message to close.
+*/
+J.PIXEL.Aliased.Game_Interpreter.set("command201", Game_Interpreter.prototype.command201);
+Game_Interpreter.prototype.command201 = function(params) {
+	if (this.isRelativeTransfer()) {
+		this.handOverRelativeTransferOffset();
+	}
+	return J.PIXEL.Aliased.Game_Interpreter.get("command201").call(this, params);
+};
+/**
+* Determines whether the transfer this interpreter is running comes from an area whose page remembers
+* where the player crossed it.
+* @returns {boolean} True if the transfer should land relative to the player's position.
+*/
+Game_Interpreter.prototype.isRelativeTransfer = function() {
+	if (this.eventId() === 0) return false;
+	if (this.isOnCurrentMap() === false) return false;
+	const areaEvent = $gameMap.event(this.eventId());
+	return areaEvent.isRelativeTransfer();
+};
+/**
+* Hands the player how far along this interpreter's area they stand, for the landing to be moved by once
+* the destination has loaded.
+*/
+Game_Interpreter.prototype.handOverRelativeTransferOffset = function() {
+	const areaEvent = $gameMap.event(this.eventId());
+	const column = areaEvent.areaColumnOf($gamePlayer);
+	const row = areaEvent.areaRowOf($gamePlayer);
+	$gamePlayer.setTransferOffsetX(column);
+	$gamePlayer.setTransferOffsetY(row);
+};
+
+//#endregion
 //#region src/plugins/pixel/core/objects/Game_Map.js
 /**
 * Extends {@link Game_Map.setup}.<br/>
@@ -2631,6 +2914,31 @@ Game_Map.prototype.setup = function(mapId) {
 
 //#endregion
 //#region src/plugins/pixel/core/objects/Game_Player.js
+/**
+* Extends {@link Game_Player.initMembers}.<br/>
+* Also seeds the offset a relative transfer carries across maps, which is none until one is handed over.
+*/
+J.PIXEL.Aliased.Game_Player.set("initMembers", Game_Player.prototype.initMembers);
+Game_Player.prototype.initMembers = function() {
+	J.PIXEL.Aliased.Game_Player.get("initMembers").call(this);
+	this.initRelativeTransferMembers();
+};
+/**
+* Initializes the offset a relative transfer hands the player, which only ever holds anything between a
+* Transfer Player reserving the transfer and the player landing at the other end.
+*/
+Game_Player.prototype.initRelativeTransferMembers = function() {
+	/**
+	* How many tiles rightward to move the reserved landing once the destination has loaded.
+	* @type {number}
+	*/
+	this._j._pixel._transferOffsetX = 0;
+	/**
+	* How many tiles downward to move the reserved landing once the destination has loaded.
+	* @type {number}
+	*/
+	this._j._pixel._transferOffsetY = 0;
+};
 /**
 * Overwrites {@link Game_Player.checkEventTriggerHere}.<br/>
 * Checks the tile this character's body actually occupies (the collision pivot's tile) rather
@@ -2966,6 +3274,80 @@ Game_Player.prototype.stopFollowersPixelMoving = function() {
 */
 Game_Player.prototype.getCollisionPivotY = function() {
 	return .7;
+};
+/**
+* Extends {@link Game_Player.performTransfer}.<br/>
+* A transfer from an area that remembers where the player crossed moves its landing just as far along
+* before the player is placed. This is the first moment the destination map has loaded, so it is the
+* first moment its edges are known.
+*/
+J.PIXEL.Aliased.Game_Player.set("performTransfer", Game_Player.prototype.performTransfer);
+Game_Player.prototype.performTransfer = function() {
+	if (this.hasTransferOffset()) {
+		this.applyTransferOffset();
+	}
+	J.PIXEL.Aliased.Game_Player.get("performTransfer").call(this);
+};
+/**
+* Determines whether a relative transfer has handed the player an offset that is still to be applied.
+* Crossing at the event's own tile hands over nothing, since that landing is already the authored one.
+* @returns {boolean} True if the reserved landing still needs moving.
+*/
+Game_Player.prototype.hasTransferOffset = function() {
+	return this.transferOffsetX() !== 0 || this.transferOffsetY() !== 0;
+};
+/**
+* Moves the reserved landing by the offset a relative transfer handed over, keeps it on the destination
+* map, and spends the offset.<br/>
+* A landing that has to be pulled back onto the map means the opening on one side runs longer than the
+* opening on the other. The player lands on the destination's edge rather than off the world, and the
+* mismatch is reported, since it is an authoring fix rather than something to quietly absorb.
+*/
+Game_Player.prototype.applyTransferOffset = function() {
+	const shiftedX = this.newX() + this.transferOffsetX();
+	const shiftedY = this.newY() + this.transferOffsetY();
+	const landingX = shiftedX.clamp(0, $dataMap.width - 1);
+	const landingY = shiftedY.clamp(0, $dataMap.height - 1);
+	if (landingX !== shiftedX || landingY !== shiftedY) {
+		const message = "a relative transfer would have landed off its map, so it lands on the edge instead.";
+		const details = {
+			mapId: this.newMapId(),
+			x: shiftedX,
+			y: shiftedY
+		};
+		Diagnostics.warn("J-Pixelistics", message, details);
+	}
+	this.reserveTransfer(this.newMapId(), landingX, landingY, this.newDirection(), this.fadeType());
+	this.setTransferOffsetX(0);
+	this.setTransferOffsetY(0);
+};
+/**
+* Gets how many tiles rightward the reserved landing moves once the destination has loaded.
+* @returns {number} The offset, in tiles.
+*/
+Game_Player.prototype.transferOffsetX = function() {
+	return this._j._pixel._transferOffsetX;
+};
+/**
+* Sets how many tiles rightward the reserved landing moves once the destination has loaded.
+* @param {number} transferOffsetX The offset, in tiles.
+*/
+Game_Player.prototype.setTransferOffsetX = function(transferOffsetX) {
+	this._j._pixel._transferOffsetX = transferOffsetX;
+};
+/**
+* Gets how many tiles downward the reserved landing moves once the destination has loaded.
+* @returns {number} The offset, in tiles.
+*/
+Game_Player.prototype.transferOffsetY = function() {
+	return this._j._pixel._transferOffsetY;
+};
+/**
+* Sets how many tiles downward the reserved landing moves once the destination has loaded.
+* @param {number} transferOffsetY The offset, in tiles.
+*/
+Game_Player.prototype.setTransferOffsetY = function(transferOffsetY) {
+	this._j._pixel._transferOffsetY = transferOffsetY;
 };
 /**
 * Gets the last occupied tile x.

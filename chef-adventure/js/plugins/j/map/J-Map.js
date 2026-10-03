@@ -1,7 +1,7 @@
 //region annoations
 /*:
  * @target MZ
- * @plugindesc [v1.2.2 MAP] Renders a passability-driven minimap on the screen.
+ * @plugindesc [v2.0.0 MAP] Renders a passability-driven minimap on the screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -13,6 +13,7 @@
  * @orderAfter J-Base-Save
  * @orderAfter J-Omnipedia
  * @orderAfter J-OMNI-Quests
+ * @orderAfter J-Pixelistics
  * @help
  * ============================================================================
  * OVERVIEW
@@ -79,8 +80,8 @@
  * - Interactable Object
  *    An object event marker is rendered as a yellow diamond shape.
  * - Teleport
- *    A hollow light-blue square. Can be stretched to represent a
- *    multi-tile teleport zone with <areaEvent:WxH> (see below).
+ *    A hollow light-blue square. Stretches across a multi-tile teleport
+ *    zone from J-Pixelistics' <areaEvent> (see below).
  * - Quest Offer
  *    A yellow square marking a quest available to accept.
  * - Quest Progress
@@ -114,23 +115,16 @@
  *
  * ----------------------------------------------------------------------------
  * TELEPORT ZONE SIZE
- * By default, a <minimap:teleport> marker is drawn as a single-tile hollow
- * square. If the teleport actually spans multiple tiles, stretch its marker
- * to match using this tag on the same event.
- *
- * TAG USAGE:
- * - Events on the map (typically alongside <minimap:teleport>)
- *
- * TAG FORMAT:
- *  <areaEvent:WIDTHxHEIGHT>
- * Where WIDTH and HEIGHT are the tile dimensions of the zone. Defaults to
- * 1x1 (a single tile) if this tag is absent or malformed.
+ * A teleport marker covers exactly the tiles its event does. Most events
+ * cover a single tile, but with J-Pixelistics a page can cover a whole
+ * rectangle through <areaEvent:[WIDTH, HEIGHT]>, and the marker stretches
+ * across all of it with no tag of this plugin's own.
  *
  * TAG EXAMPLES:
- *  <minimap:teleport>
- *  <areaEvent:3x2>
+ *  <areaEvent:[3, 2]>
  * This teleport event's minimap marker is stretched to a 3-wide by 2-tall
- * hollow square instead of a single tile.
+ * hollow square instead of a single tile. See J-Pixelistics' help for the
+ * tag itself.
  *
  * ============================================================================
  * BLOCKING THE MINIMAP:
@@ -151,6 +145,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.0
+ *    BREAKING: <areaEvent:WxH> is no longer read here. Teleport markers stretch
+ *    across J-Pixelistics' <areaEvent:[W, H]> instead.
  * - 1.2.2
  *    Minimap walls follow the engine's passability instead of the tileset's flags.
  * - 1.2.1
@@ -296,7 +293,7 @@ J.MAP.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.MAP.Metadata = new J_MAP__PluginMetadata("J-Map", "1.2.2");
+J.MAP.Metadata = new J_MAP__PluginMetadata("J-Map", "2.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -312,7 +309,6 @@ J.MAP.Aliased.Window_JabsRemapActions = new Map();
 J.MAP.RegExp = {};
 J.MAP.RegExp.MinimapEvent = /<(?:mm|minimap):(npc|loot|object|teleport|questOffer|questProgress|questTurnIn)>/gi;
 J.MAP.RegExp.BlockMinimap = /<blockMinimap>/gi;
-J.MAP.RegExp.AreaEvent = /<areaEvent: ?(\d+)x(\d+)>/i;
 
 //#endregion
 //#region src/plugins/map/core/objects/Game_System.js
@@ -465,7 +461,8 @@ var MinimapEventType = class MinimapEventType {
 	*/
 	static Object = new MinimapEventType("object", "#dddd00cc", MinimapEventType.Shapes.Diamond);
 	/**
-	* The minimap event type of teleport, rendered as a hollow square. May stretch if <areaEvent:WxH> is present.
+	* The minimap event type of teleport, rendered as a hollow square. Stretches across every tile the event's
+	* area covers, when J-Pixelistics gives it one through `<areaEvent>`.
 	* @type {MinimapEventType}
 	*/
 	static Teleport = new MinimapEventType("teleport", "#66ccffcc", MinimapEventType.Shapes.HollowSquare);
@@ -687,29 +684,22 @@ Game_Event.prototype.hasQuestPluginCommand = function(commandNames) {
 	return found;
 };
 /**
-* Parses and returns the area rectangle for this event from <areaEvent:WxH>.
-* Defaults to 1x1 when not present or invalid.
-* @returns {{w:number,h:number}}
+* Gets the rectangle of tiles this event covers, for drawing its marker across the whole of it.<br/>
+* J-Pixelistics owns areas: it reads `<areaEvent>` off the active page and makes the event stand on every
+* tile of it. Without J-Pixelistics nothing gives an event more than its own tile, so the marker is that
+* one tile too.
+* @returns {{w:number,h:number}} The width and height, in tiles.
 */
 Game_Event.prototype.getAreaEventRect = function() {
-	let w = 1;
-	let h = 1;
-	const commands = this.getValidCommentCommands();
-	for (let i = 0; i < commands.length; i++) {
-		const [comment] = commands[i].parameters;
-		if (!comment) continue;
-		J.MAP.RegExp.AreaEvent.lastIndex = 0;
-		const match = J.MAP.RegExp.AreaEvent.exec(comment);
-		if (match) {
-			const [, unparsedW, unparsedH] = match;
-			w = Math.max(1, parseInt(unparsedW));
-			h = Math.max(1, parseInt(unparsedH));
-			break;
-		}
+	if (!J.PIXEL) {
+		return {
+			w: 1,
+			h: 1
+		};
 	}
 	return {
-		w,
-		h
+		w: this.areaEventWidth(),
+		h: this.areaEventHeight()
 	};
 };
 
