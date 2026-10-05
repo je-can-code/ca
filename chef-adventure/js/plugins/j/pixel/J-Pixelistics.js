@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.4.0 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
+ * [v1.5.0 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -89,6 +89,9 @@
  * the console names the transfer.
  * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Fixed path searches never reaching their goal from a fractional position. Path
+ *    searches are much faster and remember a failed search briefly. Requires J-Base 4.2.0.
  * - 1.4.0
  *    Added <areaEvent:[WIDTH, HEIGHT]>, letting an event's page cover a rectangle
  *    of tiles. Added <relativeTransfer>, landing a transfer from an area as far
@@ -275,7 +278,7 @@ J.PIXEL.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.4.0");
+J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.5.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -790,6 +793,69 @@ Game_Character.prototype.processMoveCommand = function(command) {
 */
 Game_Character.prototype.searchLimit = function() {
 	return 40;
+};
+/**
+* Overwrites {@link Game_Character#findDirectionTo}.<br/>
+* Searches between the tiles both ends actually stand on, through J-Base's {@link TilePathSearch}.
+*
+* The engine's search starts from the character's own coordinates and treats them as a tile, which
+* only holds while coordinates are whole numbers. Under pixel movement they rarely are, and a search
+* starting from 30.6 explores 30.6, 31.6, 32.6 and onward, so it can never arrive at a whole-numbered
+* goal. Every search then runs to its limit - with forty steps, the whole neighborhood - and settles
+* for whichever point it explored came closest. Rounding both ends onto the grid lets it arrive.
+*
+* Everything else is the engine's own: standing exactly on the goal answers nothing, the four
+* directions are tried in its order, and when no step gets any closer - which includes both ends
+* sharing a tile - it heads straight for the goal along whichever axis is farther off.
+*
+* Two things keep it cheap. A search that has just failed from the same tile toward the same goal is
+* answered from {@link PathSearchMemory} rather than asked again, and a search that does run looks
+* events up by tile through {@link Game_Map#searchWithEventIndex} instead of walking all of them at
+* every step it considers.
+* @param {number} goalX The x coordinate to reach.
+* @param {number} goalY The y coordinate to reach.
+* @returns {number} The direction to step in, or 0 when there is nowhere to go.
+*/
+Game_Character.prototype.findDirectionTo = function(goalX, goalY) {
+	if (this.x === goalX && this.y === goalY) return 0;
+	const startX = Math.round(this.x);
+	const startY = Math.round(this.y);
+	const request = {
+		startX,
+		startY,
+		goalX: Math.round(goalX),
+		goalY: Math.round(goalY),
+		searchLimit: this.searchLimit(),
+		mapWidth: $gameMap.width(),
+		directions: [
+			2,
+			4,
+			6,
+			8
+		],
+		stepFrom: (x, y, direction) => ({
+			x: $gameMap.roundXWithDirection(x, direction),
+			y: $gameMap.roundYWithDirection(y, direction)
+		}),
+		canStep: (x, y, direction) => this.canPass(x, y, direction),
+		distance: (x1, y1, x2, y2) => $gameMap.distance(x1, y1, x2, y2)
+	};
+	const { x: stepX, y: stepY } = PathSearchMemory.firstStep(this, "straight", Graphics.frameCount, request, (search) => $gameMap.searchWithEventIndex(() => TilePathSearch.firstStep(search)));
+	const deltaX = $gameMap.deltaX(stepX, startX);
+	const deltaY = $gameMap.deltaY(stepY, startY);
+	if (deltaY > 0) return 2;
+	if (deltaX < 0) return 4;
+	if (deltaX > 0) return 6;
+	if (deltaY < 0) return 8;
+	const deltaToGoalX = this.deltaXFrom(goalX);
+	const deltaToGoalY = this.deltaYFrom(goalY);
+	if (Math.abs(deltaToGoalX) > Math.abs(deltaToGoalY)) {
+		return deltaToGoalX > 0 ? 4 : 6;
+	}
+	if (deltaToGoalY !== 0) {
+		return deltaToGoalY > 0 ? 8 : 2;
+	}
+	return 0;
 };
 /**
 * Extends {@link #updateRoutineMove}.<br/>
@@ -2701,11 +2767,25 @@ Game_Event.prototype.refreshAreaEvent = function() {
 * @returns {boolean} True if the tile lies inside this event's area.
 */
 Game_Event.prototype.pos = function(x, y) {
-	const left = this.occupiedTileX();
-	const top = this.occupiedTileY();
-	const isWithinColumns = x >= left && x < left + this.areaEventWidth();
-	const isWithinRows = y >= top && y < top + this.areaEventHeight();
+	const { left, top, width, height } = this.areaBounds();
+	const isWithinColumns = x >= left && x < left + width;
+	const isWithinRows = y >= top && y < top + height;
 	return isWithinColumns && isWithinRows;
+};
+/**
+* Gets the rectangle of tiles this event stands on: its active page's area, with the tile its body
+* occupies as the top-left corner.<br/>
+* The one statement of that rule. {@link Game_Event#pos} answers from it a tile at a time, and the
+* lookup a path search builds answers from it for every tile at once, so the two cannot drift apart.
+* @returns {{left: number, top: number, width: number, height: number}} The area, in tiles.
+*/
+Game_Event.prototype.areaBounds = function() {
+	return {
+		left: this.occupiedTileX(),
+		top: this.occupiedTileY(),
+		width: this.areaEventWidth(),
+		height: this.areaEventHeight()
+	};
 };
 /**
 * Measures how far across this event's area a character stands, in whole tiles from its left edge.<br/>
@@ -2899,6 +2979,102 @@ Game_Interpreter.prototype.handOverRelativeTransferOffset = function() {
 };
 
 //#endregion
+//#region src/plugins/pixel/core/managers/PathSearchEventIndex.js
+/**
+* Which events stand on which tile, built once for the length of a single path search.
+*
+* A search asks whether it can step onto thousands of tiles, and every one of those questions ends in
+* {@link Game_Map#eventsXyNt}, which the engine answers by walking every event on the map. On a map
+* of a hundred and fifty events that is most of a search's cost; on a big map it is nearly all of it.
+* Nothing moves while a search runs, though, so the answer for every tile can be worked out once, up
+* front, and each question then becomes a lookup.
+*
+* **It answers exactly what the engine's walk answers.** An event is listed on a tile when it is not
+* passing through things and its area covers that tile, which is the engine's `posNt` with the area
+* read from {@link Game_Event#areaBounds} - the same rule {@link Game_Event#pos} answers from. Events
+* are listed in the map's own order, and a tile nobody stands on answers with an empty list. Tiles are
+* kept by their own coordinates rather than folded into one number, so an area reaching past the edge
+* of the map is listed where it reaches, exactly as the walk would find it there.
+*
+* Coordinates are whole tiles, which is all a search ever asks about and all {@link Game_Event#pos}
+* promises to understand.
+*/
+var PathSearchEventIndex = class PathSearchEventIndex {
+	/**
+	* The events standing on each tile, by row and then by column, or null when no search is running.
+	* @type {Map<number, Map<number, Game_Event[]>>|null}
+	*/
+	static #rows = null;
+	/**
+	* Determines whether a search is running with its lookup built.
+	* @returns {boolean} True if the lookup is answering, false if the engine's walk should.
+	*/
+	static isBuilt() {
+		return PathSearchEventIndex.#rows !== null;
+	}
+	/**
+	* Builds the lookup from the events currently on the map.
+	* @param {Game_Event[]} events Every event on the map, in the map's own order.
+	*/
+	static build(events) {
+		PathSearchEventIndex.#rows = new Map();
+		events.forEach(PathSearchEventIndex.#place);
+	}
+	/**
+	* Lists an event on every tile its area covers, unless it passes through things and so blocks nothing.
+	* @param {Game_Event} event The event to list.
+	*/
+	static #place(event) {
+		if (event.isThrough() === true) return;
+		const { left, top, width, height } = event.areaBounds();
+		for (let y = top; y < top + height; y++) {
+			for (let x = left; x < left + width; x++) {
+				PathSearchEventIndex.#tileAt(x, y).push(event);
+			}
+		}
+	}
+	/**
+	* Gets the list for a tile, starting an empty one the first time an event is placed on it.
+	* @param {number} x The tile's x coordinate.
+	* @param {number} y The tile's y coordinate.
+	* @returns {Game_Event[]} The events listed on that tile so far.
+	*/
+	static #tileAt(x, y) {
+		const rows = PathSearchEventIndex.#rows;
+		let row = rows.get(y);
+		if (row === undefined) {
+			row = new Map();
+			rows.set(y, row);
+		}
+		let tile = row.get(x);
+		if (tile === undefined) {
+			tile = [];
+			row.set(x, tile);
+		}
+		return tile;
+	}
+	/**
+	* Gets the events standing on a tile, as {@link Game_Map#eventsXyNt} would.
+	* @param {number} x The tile's x coordinate.
+	* @param {number} y The tile's y coordinate.
+	* @returns {Game_Event[]} A fresh list of the events there, empty when there are none.
+	*/
+	static eventsAt(x, y) {
+		const row = PathSearchEventIndex.#rows.get(y);
+		if (row === undefined) return [];
+		const tile = row.get(x);
+		if (tile === undefined) return [];
+		return [...tile];
+	}
+	/**
+	* Throws the lookup away once the search is done, since the next thing to move would make it wrong.
+	*/
+	static clear() {
+		PathSearchEventIndex.#rows = null;
+	}
+};
+
+//#endregion
 //#region src/plugins/pixel/core/objects/Game_Map.js
 /**
 * Extends {@link Game_Map.setup}.<br/>
@@ -2910,6 +3086,34 @@ Game_Map.prototype.setup = function(mapId) {
 	J.PIXEL.Aliased.Game_Map.get("setup").call(this, mapId);
 	PIXEL_CollisionManager.setupCollision();
 	this._pixelFootTouchTriggerCooldown = J.PIXEL.Metadata.FootTouchEventDelayFrames;
+};
+/**
+* Runs a path search with a lookup of which events stand on which tile, built for its length.<br/>
+* See {@link PathSearchEventIndex} for why. The lookup is thrown away the moment the search ends,
+* however it ends, since the next thing to move would make it wrong.
+* @param {function(): {x: number, y: number, reachedGoal: boolean}} search The search to run.
+* @returns {{x: number, y: number, reachedGoal: boolean}} Whatever the search answered.
+*/
+Game_Map.prototype.searchWithEventIndex = function(search) {
+	PathSearchEventIndex.build(this.events());
+	try {
+		return search();
+	} finally {
+		PathSearchEventIndex.clear();
+	}
+};
+/**
+* Extends {@link Game_Map#eventsXyNt}.<br/>
+* Answers from the path search lookup while one is built, and walks every event as the engine does
+* otherwise. Both give the same answer; the lookup just gives it without the walk.
+* @param {number} x The x tile coordinate.
+* @param {number} y The y tile coordinate.
+* @returns {Game_Event[]} The events standing on that tile that do not pass through things.
+*/
+J.PIXEL.Aliased.Game_Map.set("eventsXyNt", Game_Map.prototype.eventsXyNt);
+Game_Map.prototype.eventsXyNt = function(x, y) {
+	if (PathSearchEventIndex.isBuilt() === true) return PathSearchEventIndex.eventsAt(x, y);
+	return J.PIXEL.Aliased.Game_Map.get("eventsXyNt").call(this, x, y);
 };
 
 //#endregion

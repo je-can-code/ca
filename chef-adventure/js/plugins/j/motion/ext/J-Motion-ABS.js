@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 MOTION-ABS] Combat-driven motion: state effects, deaths, arrivals and departures.
+ * [v1.2.1 MOTION-ABS] Combat-driven motion: state effects, deaths, arrivals and departures.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -177,6 +177,8 @@
  * appears or vanishes on the frame its page changes, as it used to.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    Kept the loot expiry warning working with J-ABS 4.26.0.
  * - 1.2.0
  *    Enemies now fold into view when their page brings them onto the map, and fold
  *    away when it takes them off, instead of popping in and out. A folding enemy
@@ -395,7 +397,7 @@ J.MOTION.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.MOTION.EXT.ABS.Metadata = new J_MOTION_ABS_PluginMetadata("J-Motion-ABS", "1.2.0");
+J.MOTION.EXT.ABS.Metadata = new J_MOTION_ABS_PluginMetadata("J-Motion-ABS", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1427,7 +1429,7 @@ JABS_Engine.prototype.addEnemyToMap = function(x, y, enemyCloneEventId) {
 //#endregion
 //#region src/plugins/motion/ext/abs/sprites/Sprite_Character.js
 /**
-* Extends {@link #handleLootDuration}.<br/>
+* Extends {@link #updateLootFloat}.<br/>
 * Gives a loot drop a visible ending rather than letting it blink out.
 *
 * J-ABS's own duration handling is untouched: it still counts the drop down and still removes it
@@ -1435,12 +1437,14 @@ JABS_Engine.prototype.addEnemyToMap = function(x, y, enemyCloneEventId) {
 * something the player can see, which is what makes a missed drop a thing that was lost rather
 * than a thing that was never there.
 *
-* Hooked here because this is already the per-frame heartbeat of a live loot drop, so nothing new
-* has to be polled and nothing in J-ABS had to learn what a motion is.
+* Hooked here because this is already the per-frame heartbeat of a drawn loot drop, so nothing new
+* has to be polled and nothing in J-ABS had to learn what a motion is. A drop out of sight has a
+* sleeping sprite that skips this entirely, which costs nothing: there is nobody there to warn, and
+* the warning is brought up to date on the first frame the sprite wakes.
 */
-J.MOTION.EXT.ABS.Aliased.Sprite_Character.set("handleLootDuration", Sprite_Character.prototype.handleLootDuration);
-Sprite_Character.prototype.handleLootDuration = function() {
-	J.MOTION.EXT.ABS.Aliased.Sprite_Character.get("handleLootDuration").call(this);
+J.MOTION.EXT.ABS.Aliased.Sprite_Character.set("updateLootFloat", Sprite_Character.prototype.updateLootFloat);
+Sprite_Character.prototype.updateLootFloat = function() {
+	J.MOTION.EXT.ABS.Aliased.Sprite_Character.get("updateLootFloat").call(this);
 	LootMotionCoordinator.syncExpiryWarning(this);
 };
 

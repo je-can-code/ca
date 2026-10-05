@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.1.0 BASE] The base class for all J plugins.
+ * [v4.2.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 4.2.0
+ *    Characters far off-screen stop updating and drawing until they come back near.
+ *    Added TilePathSearch and PathSearchMemory.
  * - 4.1.0
  *    Added accessors for where a reserved transfer will land the player.
  * - 4.0.0
@@ -2096,7 +2099,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "4.1.0";
+J.BASE.Metadata.Version = "4.2.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -3945,6 +3948,361 @@ var CaptionPlaneRoster = class {
 			return a.y - b.y;
 		}
 		return a.spriteId - b.spriteId;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/core/TilePathSearch.js
+/**
+* Finds the first step of a shortest walk across the tile grid, by A*.
+*
+* Every path search in the game is this one search with a different idea of which ways a character
+* may step: the engine's four-way {@link Game_Character#findDirectionTo}, which J-Pixelistics routes
+* through here, and J-ABS's eight-way {@link Game_Character#findDiagonalDirectionTo}. Each caller
+* says how a step is taken and whether it is allowed, and this decides which step comes first.
+*
+* **It answers exactly what the engine's own search answers, ties included.** The engine expands the
+* open node with the lowest estimated cost, and between equals it expands whichever was opened first.
+* That second rule is what decides the path whenever two routes cost the same - which on an open
+* field is nearly always - so it is reproduced deliberately: every node remembers the order it was
+* opened in, and the heap breaks ties on that order rather than on wherever the heap happens to keep
+* it. A node reached again by a cheaper route keeps its original place in that order, just as it
+* keeps its place in the engine's list.
+*
+* **What differs is the cost.** The engine keeps its frontier in a plain array, so finding the cheapest
+* node means reading every open node, and every neighbor it looks at is searched for in two more
+* lists. The work grows with the square of the area explored, which is harmless at the engine's
+* default reach of twelve steps and ruinous at J-Pixelistics' forty, where one search toward a goal
+* it cannot reach explores the whole neighborhood. Here the frontier is a binary heap and both
+* lookups are hashed, so the same search costs only a little more than the area it explores.
+*/
+var TilePathSearch = class TilePathSearch {
+	/**
+	* Finds the tile a character should step onto first on the way toward a goal tile.<br/>
+	* When the goal is reachable within the search limit, that is the first tile of a shortest path.
+	* When it is not, it is the first tile toward the explored node the distance estimate rates
+	* closest to the goal, which is the engine's own answer for a goal that is walled off or too far.
+	* Keys are formed as `y * mapWidth + x`, held in a map and a set rather than an array sized to the
+	* map, so a step that lands off the map is keyed safely; the caller's `canStep` is what refuses it.
+	* @param {Object} request What to search for, and how a character may step.
+	* @param {number} request.startX The x tile the search starts from.
+	* @param {number} request.startY The y tile the search starts from.
+	* @param {number} request.goalX The x tile the search is trying to reach.
+	* @param {number} request.goalY The y tile the search is trying to reach.
+	* @param {number} request.searchLimit How many steps from the start a node may be and still be expanded.
+	* @param {number} request.mapWidth The map's width in tiles, which turns a tile into one key.
+	* @param {number[]} request.directions Every direction a step may take, in the order they are tried.
+	* @param {function(number, number, number): {x: number, y: number}} request.stepFrom The tile a step lands on.
+	* @param {function(number, number, number): boolean} request.canStep Whether a step may be taken from a tile.
+	* @param {function(number, number, number, number): number} request.distance The estimated steps between tiles.
+	* @returns {{x: number, y: number, reachedGoal: boolean}} The tile to step onto first, or the start's own
+	*   tile when none gets closer, and whether the search arrived at the goal or settled for the closest tile.
+	*/
+	static firstStep(request) {
+		const { startX, startY, goalX, goalY, mapWidth, distance } = request;
+		const start = {
+			parent: null,
+			x: startX,
+			y: startY,
+			g: 0,
+			f: distance(startX, startY, goalX, goalY),
+			order: 0
+		};
+		const search = {
+			request,
+			start,
+			best: start,
+			heap: [],
+			open: new Map(),
+			closed: new Set(),
+			opened: 0
+		};
+		TilePathSearch.#push(search.heap, start);
+		search.open.set(startY * mapWidth + startX, start);
+		let reachedGoal = false;
+		while (search.heap.length > 0 && reachedGoal === false) {
+			reachedGoal = TilePathSearch.#expandNext(search);
+		}
+		const { x, y } = TilePathSearch.#firstStepToward(search.best, start);
+		return {
+			x,
+			y,
+			reachedGoal
+		};
+	}
+	/**
+	* Expands the cheapest open node, opening or improving each neighbor it can step to.
+	* @param {Object} search The search in progress.
+	* @returns {boolean} True if the node expanded was the goal, which ends the search.
+	*/
+	static #expandNext(search) {
+		const { request, heap, open, closed } = search;
+		const { goalX, goalY, searchLimit, mapWidth } = request;
+		const { node: current, f } = TilePathSearch.#pop(heap);
+		const position = current.y * mapWidth + current.x;
+		if (f !== current.f) return false;
+		open.delete(position);
+		closed.add(position);
+		if (current.x === goalX && current.y === goalY) {
+			search.best = current;
+			return true;
+		}
+		if (current.g >= searchLimit) return false;
+		request.directions.forEach((direction) => TilePathSearch.#tryStep(search, current, direction));
+		return false;
+	}
+	/**
+	* Considers one step out of the node being expanded, opening the tile it lands on or improving the
+	* route to it.<br/>
+	* The checks run in the engine's order: a tile already expanded is skipped before anybody is asked
+	* whether it can be entered, which is also the cheaper way round.
+	* @param {Object} search The search in progress.
+	* @param {Object} current The node being expanded.
+	* @param {number} direction The direction of the step.
+	*/
+	static #tryStep(search, current, direction) {
+		const { request, heap, open, closed } = search;
+		const { goalX, goalY, mapWidth, stepFrom, canStep, distance } = request;
+		const { x, y } = stepFrom(current.x, current.y, direction);
+		const position = y * mapWidth + x;
+		if (closed.has(position) === true) return;
+		if (canStep(current.x, current.y, direction) === false) return;
+		const g = current.g + 1;
+		const known = open.get(position);
+		if (known !== undefined && g >= known.g) return;
+		const node = known ?? TilePathSearch.#openNode(search, position);
+		node.parent = current;
+		node.x = x;
+		node.y = y;
+		node.g = g;
+		node.f = g + distance(x, y, goalX, goalY);
+		TilePathSearch.#push(heap, node);
+		if (node.f - node.g < search.best.f - search.best.g) {
+			search.best = node;
+		}
+	}
+	/**
+	* Opens a node for a tile seen for the first time, giving it the next place in the opening order.
+	* @param {Object} search The search in progress.
+	* @param {number} position The tile's key.
+	* @returns {Object} The new, still-empty node.
+	*/
+	static #openNode(search, position) {
+		search.opened += 1;
+		const node = { order: search.opened };
+		search.open.set(position, node);
+		return node;
+	}
+	/**
+	* Walks back from a node to the tile stepped onto first on the way to it.
+	* @param {Object} node The node the search settled on.
+	* @param {Object} start The node the search began from.
+	* @returns {{x: number, y: number}} The first tile on the route, or the start's own tile.
+	*/
+	static #firstStepToward(node, start) {
+		let step = node;
+		while (step.parent !== null && step.parent !== start) {
+			step = step.parent;
+		}
+		return {
+			x: step.x,
+			y: step.y
+		};
+	}
+	/**
+	* Determines whether one heap entry belongs ahead of another: lower estimated cost first, and the
+	* node opened earlier first between equals, which is the engine's own order.
+	* @param {{node: Object, f: number}} left The first entry.
+	* @param {{node: Object, f: number}} right The second entry.
+	* @returns {boolean} True if the first entry should be expanded before the second.
+	*/
+	static #isAhead(left, right) {
+		if (left.f !== right.f) return left.f < right.f;
+		return left.node.order < right.node.order;
+	}
+	/**
+	* Adds a node to the heap at its current estimated cost.<br/>
+	* The cost is copied into the entry rather than read off the node later, because a cheaper route
+	* found afterwards lowers the node's cost and leaves this entry behind as stale.
+	* @param {{node: Object, f: number}[]} heap The heap.
+	* @param {Object} node The node to add.
+	*/
+	static #push(heap, node) {
+		heap.push({
+			node,
+			f: node.f
+		});
+		let index = heap.length - 1;
+		while (index > 0) {
+			const parentIndex = Math.floor((index - 1) / 2);
+			if (TilePathSearch.#isAhead(heap[index], heap[parentIndex]) === false) break;
+			TilePathSearch.#swap(heap, index, parentIndex);
+			index = parentIndex;
+		}
+	}
+	/**
+	* Removes and returns the entry that belongs first.
+	* @param {{node: Object, f: number}[]} heap The heap, which is never empty when this is asked.
+	* @returns {{node: Object, f: number}} The first entry.
+	*/
+	static #pop(heap) {
+		const [first] = heap;
+		const last = heap.pop();
+		if (heap.length > 0) {
+			heap[0] = last;
+			TilePathSearch.#siftDown(heap);
+		}
+		return first;
+	}
+	/**
+	* Sinks the entry at the top of the heap below every child that belongs ahead of it.
+	* @param {{node: Object, f: number}[]} heap The heap.
+	*/
+	static #siftDown(heap) {
+		let index = 0;
+		let firstIndex = TilePathSearch.#firstOfFamily(heap, index);
+		while (firstIndex !== index) {
+			TilePathSearch.#swap(heap, index, firstIndex);
+			index = firstIndex;
+			firstIndex = TilePathSearch.#firstOfFamily(heap, index);
+		}
+	}
+	/**
+	* Finds which of an entry and its two children belongs first.
+	* @param {{node: Object, f: number}[]} heap The heap.
+	* @param {number} index The index of the parent entry.
+	* @returns {number} The index of whichever of the three belongs first.
+	*/
+	static #firstOfFamily(heap, index) {
+		const leftIndex = index * 2 + 1;
+		const rightIndex = leftIndex + 1;
+		let firstIndex = index;
+		if (leftIndex < heap.length && TilePathSearch.#isAhead(heap[leftIndex], heap[firstIndex]) === true) {
+			firstIndex = leftIndex;
+		}
+		if (rightIndex < heap.length && TilePathSearch.#isAhead(heap[rightIndex], heap[firstIndex]) === true) {
+			firstIndex = rightIndex;
+		}
+		return firstIndex;
+	}
+	/**
+	* Exchanges two entries in the heap.
+	* @param {{node: Object, f: number}[]} heap The heap.
+	* @param {number} first The index of one entry.
+	* @param {number} second The index of the other.
+	*/
+	static #swap(heap, first, second) {
+		const held = heap[first];
+		heap[first] = heap[second];
+		heap[second] = held;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/core/PathSearchMemory.js
+/**
+* Remembers, for a moment, the path searches that could not reach their goal.
+*
+* A search toward a goal it cannot reach is the most expensive search there is: with nothing to arrive
+* at, it explores every tile within its limit before settling for the one closest to the goal. And the
+* character that asked is usually stuck, so it asks again the very next frame, from the same tile toward
+* the same goal, and gets the same answer at the same price. Remembering that answer for a few frames
+* turns a run of expensive searches into one.
+*
+* **The trade is a short delay, and only for a character standing still.** A remembered answer is only
+* reused while the character is on the same tile aiming at the same goal tile, so anybody actually
+* moving searches afresh on every new tile exactly as before. What changes is that a stuck character
+* notices a way opening up - another enemy stepping out of a corridor, say - up to
+* {@link PathSearchMemory.holdFrames} frames later than it otherwise would have.
+*
+* Searches that do reach their goal are never remembered. They are cheap, and the route they found can
+* stop being the best one the moment anything on it moves.
+*/
+var PathSearchMemory = class PathSearchMemory {
+	/**
+	* How many frames a search that could not reach its goal is remembered for. Half a second, at sixty
+	* frames to the second.
+	* @type {number}
+	*/
+	static holdFrames = 30;
+	/**
+	* The failed searches being remembered: for each character, the latest of each kind.<br/>
+	* Held weakly, so a character that leaves the map takes its memories with it, and never saved, since
+	* a memory measured in frames means nothing after a load.
+	* @type {WeakMap<Object, Map<string, Object>>}
+	*/
+	static #memories = new WeakMap();
+	/**
+	* Finds a character's first step toward a goal, answering from memory when the same search failed a
+	* moment ago, and remembering this one if it fails too.
+	* @param {Object} character The character searching.
+	* @param {string} kind Which search this is, since searches that step differently can answer
+	*   differently between the very same tiles.
+	* @param {number} frame The current frame count.
+	* @param {Object} request The search to run, in the shape {@link TilePathSearch.firstStep} takes.
+	* @param {function(Object): {x: number, y: number, reachedGoal: boolean}} search Runs the search when
+	*   there is no answer to remember.
+	* @returns {{x: number, y: number, reachedGoal: boolean}} The first step, and whether it leads to the goal.
+	*/
+	static firstStep(character, kind, frame, request, search) {
+		const remembered = PathSearchMemory.#recall(character, kind, request, frame);
+		if (remembered !== null) return remembered;
+		const result = search(request);
+		if (result.reachedGoal === false) {
+			PathSearchMemory.#remember(character, kind, request, result, frame);
+		}
+		return result;
+	}
+	/**
+	* Finds the remembered answer to this exact search, if there is one still fresh enough to use.
+	* @param {Object} character The character searching.
+	* @param {string} kind Which search this is.
+	* @param {Object} request The search being asked.
+	* @param {number} frame The current frame count.
+	* @returns {{x: number, y: number, reachedGoal: boolean}|null} The remembered answer, or null when this
+	*   character has not failed this exact search within the last {@link PathSearchMemory.holdFrames} frames.
+	*/
+	static #recall(character, kind, request, frame) {
+		const memories = PathSearchMemory.#memories.get(character);
+		if (memories === undefined) return null;
+		const memory = memories.get(kind);
+		if (memory === undefined) return null;
+		if (frame >= memory.until) return null;
+		if (memory.startX !== request.startX || memory.startY !== request.startY) return null;
+		if (memory.goalX !== request.goalX || memory.goalY !== request.goalY) return null;
+		return memory.result;
+	}
+	/**
+	* Remembers a failed search, replacing whatever this character last failed of the same kind.
+	* @param {Object} character The character that searched.
+	* @param {string} kind Which search this was.
+	* @param {Object} request The search that was asked.
+	* @param {{x: number, y: number, reachedGoal: boolean}} result What it answered.
+	* @param {number} frame The current frame count.
+	*/
+	static #remember(character, kind, request, result, frame) {
+		const { startX, startY, goalX, goalY } = request;
+		const memories = PathSearchMemory.#memoriesOf(character);
+		memories.set(kind, {
+			startX,
+			startY,
+			goalX,
+			goalY,
+			result,
+			until: frame + PathSearchMemory.holdFrames
+		});
+	}
+	/**
+	* Gets the memories held for a character, starting an empty set the first time it fails a search.
+	* @param {Object} character The character.
+	* @returns {Map<string, Object>} The character's memories, by kind of search.
+	*/
+	static #memoriesOf(character) {
+		const existing = PathSearchMemory.#memories.get(character);
+		if (existing !== undefined) return existing;
+		const memories = new Map();
+		PathSearchMemory.#memories.set(character, memories);
+		return memories;
 	}
 };
 
@@ -15853,9 +16211,18 @@ var Sprite_CharacterOverlay = class extends Sprite {
 	}
 	/**
 	* Extends {@link Sprite.update}.<br/>
-	* Also follows the character this layer captions.
+	* Also follows the character this layer captions, and sleeps whenever that character's sprite does.
+	*
+	* A caption describes something on screen, so a character too far away to be drawn has nothing
+	* worth captioning. Without this, every nameplate and gauge on the map would keep updating and
+	* keep being drawn somewhere off in the dark, which on a big map costs nearly as much as the
+	* character sprites themselves. Waking needs nothing special: the first awake frame copies the
+	* character's current state like any other.
 	*/
 	update() {
+		const isAsleep = this.characterSprite().isAsleep();
+		this.renderable = isAsleep === false;
+		if (isAsleep === true) return;
 		super.update();
 		this.updateFromCharacterSprite();
 	}
@@ -15988,6 +16355,63 @@ Sprite_Character.prototype.initMembers = function() {
 */
 Sprite_Character.prototype.characterOverlay = function() {
 	return this._j._characterOverlay;
+};
+/**
+* Determines whether this sprite's character is close enough to the screen to be worth drawing.<br/>
+* The engine's own {@link Game_CharacterBase#isNearTheScreen} is the measure: half a screen of margin
+* beyond every edge, the same reach it uses to decide which events may wander on their own. That
+* margin is what makes waking up invisible, since a sprite comes back long before it can be seen.
+*
+* The measure ignores the screen's zoom, and that is only safe while nothing zooms the camera out. A
+* zoom in shows less of the map, so the margin still covers it; a zoom out shows more than the margin
+* reaches, and the sprites in that band would be asleep in plain view. A camera that ever zooms out
+* needs this widened by the inverse of its zoom scale.
+* @returns {boolean} True if this sprite should be updated and drawn, false if it can sleep.
+*/
+Sprite_Character.prototype.shouldBeAwake = function() {
+	return this.character().isNearTheScreen();
+};
+/**
+* Determines whether this sprite is asleep: neither updated nor drawn, because its character is too
+* far from the screen for anybody to see it.<br/>
+* Sleep is held in PIXI's own `renderable` flag rather than a field of ours, because that flag is
+* already what decides drawing, and {@link Tilemap#updateChild} reads the same flag to decide updating.
+* @returns {boolean} True if this sprite is asleep, false if it is awake.
+*/
+Sprite_Character.prototype.isAsleep = function() {
+	return this.renderable === false;
+};
+/**
+* Brings this sprite's sleep in line with where its character currently stands.<br/>
+* Called by the spriteset once a frame, before the tilemap walks its children, so a sprite that wakes
+* this frame is also updated this frame and is never drawn from wherever it fell asleep.
+*/
+Sprite_Character.prototype.updateSleep = function() {
+	const shouldBeAwake = this.shouldBeAwake();
+	const isAsleep = this.isAsleep();
+	if (shouldBeAwake === true && isAsleep === true) {
+		this.wakeUp();
+		return;
+	}
+	if (shouldBeAwake === false && isAsleep === false) {
+		this.fallAsleep();
+	}
+};
+/**
+* Puts this sprite to sleep, so it is neither updated nor drawn until its character comes back.<br/>
+* Only the picture stops. Position, movement and everything else that makes a character what it is
+* live on the character rather than here, so the world carries on exactly as it would have.
+*/
+Sprite_Character.prototype.fallAsleep = function() {
+	this.renderable = false;
+};
+/**
+* Wakes this sprite up, so it is updated and drawn again from this frame on.<br/>
+* Also the seam for anything a sprite would otherwise let pile up while nobody was looking: J-Popups
+* extends it to throw away the popups queued for a character that was out of sight.
+*/
+Sprite_Character.prototype.wakeUp = function() {
+	this.renderable = true;
 };
 
 //#endregion
@@ -17076,19 +17500,37 @@ Spriteset_Map.prototype.setCaptionPlane = function(newCaptionPlane) {
 };
 /**
 * Extends {@link Spriteset_Map.update}.<br/>
-* Also brings the caption plane's roster in line with who is actually on the map.
+* Also puts far-off characters to sleep, and brings the caption plane's roster in line with who is
+* actually on the map.
 *
-* The reconcile happens *before* the original runs, and that ordering is load-bearing. The original
-* is what walks the spriteset's children, which is what updates every caption on the plane - and a
-* caption whose character sprite was destroyed since the last frame throws the moment it reads a
-* position off it. J-ABS destroys expired action and loot sprites routinely, so this is the normal
-* case rather than an unlucky one. Correcting the roster first means every caption that gets walked
-* still has a character to ask.
+* Both happen *before* the original runs, and that ordering is load-bearing. The original is what
+* walks the spriteset's children, which is what updates every character on the tilemap and every
+* caption on the plane.
+*
+* Sleep is settled first so the walk sees this frame's answer: a character stepping back into view
+* is awake in time to be updated before it is drawn, rather than drawn once from wherever it fell
+* asleep. And a caption whose character sprite was destroyed since the last frame throws the moment
+* it reads a position off it. J-ABS destroys expired action and loot sprites routinely, so this is
+* the normal case rather than an unlucky one. Correcting the roster first means every caption that
+* gets walked still has a character to ask.
 */
 J.BASE.Aliased.Spriteset_Map.set("update", Spriteset_Map.prototype.update);
 Spriteset_Map.prototype.update = function() {
+	this.updateCharacterSleep();
 	this.captionPlane().reconcileCaptions(this.characterSprites());
 	J.BASE.Aliased.Spriteset_Map.get("update").call(this);
+};
+/**
+* Wakes or sleeps every character sprite according to how near its character is to the screen.
+*
+* Nobody can see a character three screens away, yet without this its sprite would run its entire
+* update chain every frame regardless, and on a big map those sprites outnumber the visible ones
+* many times over. Asleep, a sprite costs one distance check a frame. Its character is untouched:
+* whatever an event does out of sight it still does, and the sprite simply reads where everything got
+* to the moment it wakes.
+*/
+Spriteset_Map.prototype.updateCharacterSleep = function() {
+	this.characterSprites().forEach((characterSprite) => characterSprite.updateSleep());
 };
 
 //#endregion
@@ -17098,6 +17540,35 @@ Spriteset_Map.prototype.update = function() {
 * Fuck those autoshadows.
 */
 Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy) {};
+/**
+* Overwrites {@link Tilemap#update}.<br/>
+* Advances the autotile animation, then updates only the children that are going to be drawn.
+*
+* The engine walks every child on every frame, and every character sprite on the map lives here, so
+* left alone each one runs its whole update chain - the engine's, and that of every plugin extending
+* {@link Sprite_Character} - whether its character stands beside the player or three screens away
+* where nobody can see it. On a big map that is most of the frame. {@link Spriteset_Map#updateCharacterSleep}
+* puts the far-off sprites to sleep by clearing `renderable`, and this is the half that honours it.
+*
+* `renderable` is what gets asked, rather than anything about sleep, because the children here are
+* not all character sprites: the tile layers themselves live here too, alongside animations and
+* balloons. `renderable` is a question every display object can answer, and PIXI already reads it to
+* decide what to draw, so "not drawn" and "not updated" become one rule nothing else has to know.
+*/
+Tilemap.prototype.update = function() {
+	this.animationCount++;
+	this.animationFrame = Math.floor(this.animationCount / 30);
+	this.children.forEach(this.updateChild, this);
+};
+/**
+* Updates one child of this tilemap, unless it is not going to be drawn this frame.
+* @param {PIXI.DisplayObject} child The child to bring up to date.
+*/
+Tilemap.prototype.updateChild = function(child) {
+	if (child.renderable === false) return;
+	if (!child.update) return;
+	child.update();
+};
 
 //#endregion
 //#region src/plugins/_base/core/windows/Window_Base.js
