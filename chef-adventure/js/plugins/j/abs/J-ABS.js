@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.25.1 ABS] Enables combat to be carried out on the map.
+ * [v4.26.1 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -48,6 +48,12 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.26.1
+ *    A battler that dies carrying states now dies once, so a kill counts once toward
+ *    slay quests and defeat tallies.
+ * - 4.26.0
+ *    Loot expires on time even out of sight. Diagonal path searches are faster and
+ *    remember a failed search briefly. Requires J-Base 4.2.0.
  * - 4.25.1
  *    Enemies take aim when a cast skill goes off, not when the cast begins.
  * - 4.25.0
@@ -4483,7 +4489,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "4.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -4584,7 +4590,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.25.1");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.26.1");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -19407,6 +19413,7 @@ var JABS_Engine = class JABS_Engine {
 		this.updateAiBattlers();
 		JABS_AiManager.rebuildSpatialIndex();
 		this.updateActions();
+		this.updateLootDrops();
 		this.updateJabsStates();
 		this.updateSkillExecutionLog();
 		this.updateRespawns();
@@ -20017,6 +20024,33 @@ var JABS_Engine = class JABS_Engine {
 		const actionEvents = this.getAllActionEvents();
 		if (actionEvents.length === 0) return;
 		actionEvents.forEach((action) => action.update());
+	}
+	/**
+	* Ages every loot drop lying on the map by one frame, and flags the ones whose time ran out.
+	*
+	* A drop's lifetime is game state, so it is counted here with everything else the battle map
+	* advances each frame, rather than by the sprite that draws it. That matters because sprites far
+	* from the screen are put to sleep and stop updating, and a drop left behind three screens away
+	* still has to run out on time instead of waiting for somebody to come back and look at it.
+	*/
+	updateLootDrops() {
+		$gameMap.lootEvents().forEach(this.updateLootDrop, this);
+	}
+	/**
+	* Ages one loot drop by a frame, and flags it for removal once its time has run out.
+	*
+	* The drop decides for itself whether it is aging at all: one that never expires, or one already
+	* claimed by somebody, simply ignores the countdown. Flagging is what hands it to the spriteset,
+	* which sweeps up every flagged drop on the next frame.
+	* @param {Game_Event} lootEvent The event carrying the loot drop.
+	*/
+	updateLootDrop(lootEvent) {
+		const lootDrop = lootEvent.getJabsLoot();
+		lootDrop.countdownDuration();
+		if (lootDrop.isExpired() === false) return;
+		if (lootEvent.getLootNeedsRemoving() === true) return;
+		lootEvent.setLootNeedsRemoving(true);
+		this.requestClearLoot = true;
 	}
 	/**
 	* Generates a new JABS action based on a skillId, and executes the skill.
@@ -24890,7 +24924,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.25.1";
+var PLUGIN_VERSION = "4.26.1";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
@@ -29164,6 +29198,18 @@ Game_Battler.prototype.initJabsMembers = function() {
 	*/
 	this._j._abs._lastDamageSource = null;
 	/**
+	* Whether this battler is partway through {@link #clearStates} handing its tracked states to
+	* {@link #removeState} one at a time.
+	*
+	* Every one of those removals ends in a vanilla `refresh()`, and a dying battler spends that walk in
+	* a window where its hp is already zero but the death state is not yet recorded- vanilla
+	* `addNewState` calls `die()` before it pushes the state `die()` is running for. A refresh inside
+	* that window would add the death state a second time and re-enter `die()`, firing every on-death
+	* hook once more for each tracked state, so the death state is held back while this is raised.
+	* @type {boolean}
+	*/
+	this._j._abs._clearingStates = false;
+	/**
 	* The cached result of {@link #getVisionModifier}.
 	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
 	* @type {number|null}
@@ -29929,6 +29975,7 @@ Game_Battler.prototype.stateTypeResistRate = function(stateId) {
 */
 J.ABS.Aliased.Game_Battler.set("isStateAddable", Game_Battler.prototype.isStateAddable);
 Game_Battler.prototype.isStateAddable = function(stateId) {
+	if (stateId === this.deathStateId() && this.isClearingStates()) return false;
 	if (this.isImmuneToAllStates()) return false;
 	if (stateId !== this.deathStateId() && this.isImmuneToNonDeathStates()) return false;
 	const state = $dataStates[stateId];
@@ -29982,6 +30029,21 @@ Game_Battler.prototype.removeState = function(stateId) {
 	this.flagSkillSlotsForRefresh();
 };
 /**
+* Whether this battler is partway through {@link #clearStates} walking its tracked states.<br/>
+* While it is, {@link #isStateAddable} refuses the death state- see `_clearingStates` for why.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isClearingStates = function() {
+	return this._j._abs._clearingStates;
+};
+/**
+* Sets whether this battler is partway through {@link #clearStates} walking its tracked states.
+* @param {boolean} clearing True while the walk is underway, false once it has finished.
+*/
+Game_Battler.prototype.flagClearingStates = function(clearing) {
+	this._j._abs._clearingStates = clearing;
+};
+/**
 * Extends `clearStates()` to also purge this battler's JABS-tracked map states.
 * Vanilla `clearStates()` (called by `die()`, `recoverAll()`, and `escape()`) wipes `_states`
 * directly without going through `removeState()`, which is the only place the JABS state
@@ -29996,11 +30058,13 @@ Game_Battler.prototype.clearStates = function() {
 	if ($jabsEngine && this.getUuid() !== String.empty) {
 		const trackedStateValues = $jabsEngine.getJabsStatesByUuid(this.getUuid()).values();
 		const trackedStates = Array.from(trackedStateValues);
+		this.flagClearingStates(true);
 		trackedStates.forEach((trackedState) => {
 			if (trackedState.expired) return;
 			if (trackedState.stateId === this.deathStateId()) return;
 			this.removeState(trackedState.stateId);
 		}, this);
+		this.flagClearingStates(false);
 	}
 	J.ABS.Aliased.Game_Battler.get("clearStates").call(this);
 };
@@ -30970,7 +31034,9 @@ Game_Character.prototype.findDiagonalDirectionToHeuristic = function(goalX, goal
 	}
 };
 /**
-* Intelligently determines the next step to take on a path to the destination `x,y`.
+* Intelligently determines the next step to take on a path to the destination `x,y`.<br/>
+* The search itself is J-Base's {@link TilePathSearch}, stepping all eight ways. This decides only
+* which tiles it runs between - both ends rounded onto the grid - and how its answer becomes a direction.
 * @param {number} goalX The `x` coordinate trying to be reached.
 * @param {number} goalY The `y` coordinate trying to be reached.
 * @returns {1|2|3|4|6|7|8|9} The direction decided.
@@ -30979,13 +31045,6 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY) {
 	if (this.isThrough() || this.isDebugThrough()) {
 		return this.findDiagonalDirectionToHeuristic(goalX, goalY);
 	}
-	const searchLimit = this.searchLimit();
-	const mapWidth = $gameMap.width();
-	const nodeList = [];
-	const openList = [];
-	const closedList = [];
-	const start = {};
-	let best = start;
 	const startXi = Math.round(this.x);
 	const startYi = Math.round(this.y);
 	const goalXi = Math.round(goalX);
@@ -30993,89 +31052,30 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY) {
 	if (startXi === goalXi && startYi === goalYi) {
 		return 0;
 	}
-	start.parent = null;
-	start.x = startXi;
-	start.y = startYi;
-	start.g = 0;
-	start.f = $gameMap.distance(start.x, start.y, goalXi, goalYi);
-	nodeList.push(start);
-	openList.push(start.y * mapWidth + start.x);
-	while (nodeList.length > 0) {
-		let bestIndex = 0;
-		for (let i = 0; i < nodeList.length; i++) {
-			if (nodeList[i].f < nodeList[bestIndex].f) {
-				bestIndex = i;
-			}
-		}
-		const current = nodeList[bestIndex];
-		const x1 = current.x;
-		const y1 = current.y;
-		const pos1 = y1 * mapWidth + x1;
-		const g1 = current.g;
-		nodeList.splice(bestIndex, 1);
-		openList.splice(openList.indexOf(pos1), 1);
-		closedList.push(pos1);
-		if (current.x === goalXi && current.y === goalYi) {
-			best = current;
-			break;
-		}
-		if (g1 >= searchLimit) {
-			continue;
-		}
-		for (let j = 1; j <= 9; j++) {
-			if (j === 5) {
-				continue;
-			}
-			let directions;
-			if (this.isDiagonalDirection(j)) {
-				directions = this.getDiagonalDirections(j);
-			} else {
-				directions = [j, j];
-			}
-			const [horz, vert] = directions;
-			const x2 = $gameMap.roundXWithDirection(x1, horz);
-			const y2 = $gameMap.roundYWithDirection(y1, vert);
-			const pos2 = y2 * mapWidth + x2;
-			if (closedList.contains(pos2)) {
-				continue;
-			}
-			if (this.isStraightDirection(j)) {
-				if (!this.canPass(x1, y1, j)) {
-					continue;
-				}
-			} else {
-				if (!this.canPassDiagonally(x1, y1, horz, vert)) {
-					continue;
-				}
-			}
-			let g2 = g1 + 1;
-			let index2 = openList.indexOf(pos2);
-			if (index2 < 0 || g2 < nodeList[index2].g) {
-				let neighbor;
-				if (index2 >= 0) {
-					neighbor = nodeList[index2];
-				} else {
-					neighbor = {};
-					nodeList.push(neighbor);
-					openList.push(pos2);
-				}
-				neighbor.parent = current;
-				neighbor.x = x2;
-				neighbor.y = y2;
-				neighbor.g = g2;
-				neighbor.f = g2 + $gameMap.distance(x2, y2, goalXi, goalYi);
-				if (!best || neighbor.f - neighbor.g < best.f - best.g) {
-					best = neighbor;
-				}
-			}
-		}
-	}
-	let node = best;
-	while (node.parent && node.parent !== start) {
-		node = node.parent;
-	}
-	const deltaX1 = $gameMap.deltaX(node.x, start.x);
-	const deltaY1 = $gameMap.deltaY(node.y, start.y);
+	const request = {
+		startX: startXi,
+		startY: startYi,
+		goalX: goalXi,
+		goalY: goalYi,
+		searchLimit: this.searchLimit(),
+		mapWidth: $gameMap.width(),
+		directions: [
+			1,
+			2,
+			3,
+			4,
+			6,
+			7,
+			8,
+			9
+		],
+		stepFrom: (x, y, direction) => this.stepFromInDirection(x, y, direction),
+		canStep: (x, y, direction) => this.canStepInDirection(x, y, direction),
+		distance: (x1, y1, x2, y2) => $gameMap.distance(x1, y1, x2, y2)
+	};
+	const node = PathSearchMemory.firstStep(this, "diagonal", Graphics.frameCount, request, (search) => TilePathSearch.firstStep(search));
+	const deltaX1 = $gameMap.deltaX(node.x, startXi);
+	const deltaY1 = $gameMap.deltaY(node.y, startYi);
 	if (deltaY1 > 0) {
 		return deltaX1 === 0 ? 2 : deltaX1 > 0 ? 3 : 1;
 	} else if (deltaY1 < 0) {
@@ -31086,6 +31086,36 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY) {
 		}
 	}
 	return this.findDiagonalDirectionToHeuristic(goalX, goalY);
+};
+/**
+* Gets the tile one step in any of the eight directions lands on.<br/>
+* A diagonal is its horizontal and vertical halves taken together, and a straight step is its own
+* half on both axes, since the map's rounding leaves alone the axis a direction does not move along.
+* @param {number} x The x tile the step starts from.
+* @param {number} y The y tile the step starts from.
+* @param {number} direction The direction of the step, as a numpad direction.
+* @returns {{x: number, y: number}} The tile the step lands on.
+*/
+Game_Character.prototype.stepFromInDirection = function(x, y, direction) {
+	const [horz, vert] = this.isDiagonalDirection(direction) ? this.getDiagonalDirections(direction) : [direction, direction];
+	return {
+		x: $gameMap.roundXWithDirection(x, horz),
+		y: $gameMap.roundYWithDirection(y, vert)
+	};
+};
+/**
+* Determines whether this character may take one step in any of the eight directions from a tile.<br/>
+* A straight step only has to clear the edge it crosses, while a diagonal answers to the map's
+* diagonal rule, which also looks at the corner it cuts.
+* @param {number} x The x tile the step starts from.
+* @param {number} y The y tile the step starts from.
+* @param {number} direction The direction of the step, as a numpad direction.
+* @returns {boolean} True if the step can be taken, false otherwise.
+*/
+Game_Character.prototype.canStepInDirection = function(x, y, direction) {
+	if (this.isStraightDirection(direction)) return this.canPass(x, y, direction);
+	const [horz, vert] = this.getDiagonalDirections(direction);
+	return this.canPassDiagonally(x, y, horz, vert);
 };
 
 //#endregion
@@ -35082,12 +35112,6 @@ Sprite_Character.prototype.getLootExpired = function() {
 	return this.getLootData().isExpired() ?? true;
 };
 /**
-* Executes the loot's countdown to expiry.
-*/
-Sprite_Character.prototype.performLootDurationCountdown = function() {
-	this.getLootData().countdownDuration();
-};
-/**
 * Removes this character's loot icon from the screen.
 *
 * Only the icon goes. The character's other children- the overlay layer chief among them- belong to
@@ -35131,28 +35155,13 @@ Sprite_Character.prototype.lootSwingDown = function(amount = 0) {
 	this.setOy(this.oy() + amount);
 };
 /**
-* Updates the loot to give the effect that it is floating in place.
+* Updates the loot to give the effect that it is floating in place.<br/>
+* The drop's lifetime is deliberately not counted here. It is game state, and
+* {@link JABS_Engine#updateLootDrops} ages every drop on the map whether or not its sprite is awake to
+* draw it, so a drop left behind out of sight still runs out on time.
 */
 Sprite_Character.prototype.updateLootFloat = function() {
-	this.handleLootDuration();
 	this.handleLootFloat();
-};
-/**
-* Handles loot duration and expiration for this sprite.
-*/
-Sprite_Character.prototype.handleLootDuration = function() {
-	this.performLootDurationCountdown();
-	if (this.getLootExpired()) {
-		this.expireLoot();
-	}
-};
-/**
-* Perform all steps to have this loot expired and removed.
-*/
-Sprite_Character.prototype.expireLoot = function() {
-	if (this.character().getLootNeedsRemoving()) return;
-	this.character().setLootNeedsRemoving(true);
-	$jabsEngine.requestClearLoot = true;
 };
 /**
 * Handles the float effect of the loot while on the map.
@@ -36697,6 +36706,24 @@ Spriteset_Map.prototype.setHitboxPulseLayer = function(newHitboxPulseLayer) {
 */
 if (J.BASE.EXT.SAVE) {
 	SaveSectionRouter.registerNamespace("_abs", "abs");
+}
+
+//#endregion
+//#region src/plugins/abs/core/registerJabsSaveCodecs.js
+/**
+* Keeps the flag {@link Game_Battler#isClearingStates} reads out of every savefile.<br/>
+* It is raised and lowered within a single synchronous {@link Game_Battler#clearStates} call, so it
+* is always false at rest and carries nothing worth surviving a load. Its cold value is false- exactly
+* what a battler that is not partway through that walk reads.
+*
+* `Game_Actor` is the only host that reaches a savefile: the field is assigned on `Game_Battler`, but
+* enemies are rebuilt from the map rather than persisted, and declarations do not inherit.
+*
+* J-Base-Save is the plugin that registers `Game_Actor`, and it is genuinely optional, so the
+* declaration waits on the same namespace check the save routes do.
+*/
+if (J.BASE.EXT.SAVE) {
+	SerializableRegistry.extend(Game_Actor, { transients: { "_j._abs._clearingStates": () => false } });
 }
 
 //#endregion

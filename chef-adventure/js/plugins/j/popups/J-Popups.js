@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.0 POPUPS] Map text popups for JABS and beyond.
+ * [v2.2.1 POPUPS] Map text popups for JABS and beyond.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -45,6 +45,9 @@
  * Resources) build popups on top of.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.1
+ *    Popups queued while a character was off-screen are dropped instead of bursting
+ *    in when it returns. Requires J-Base 4.2.0.
  * - 2.2.0
  *    Damage popups now draw above everything that takes light away, so a hit
  *    always reports itself even when whatever was hit cannot be seen.
@@ -114,7 +117,7 @@ J.POPUPS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.POPUPS.Metadata = new J_PopupsPluginMetadata("J-Popups", "2.2.0");
+J.POPUPS.Metadata = new J_PopupsPluginMetadata("J-Popups", "2.2.1");
 /**
 * Namespace for optional first-party extensions (J-Popups-ABS, J-Popups-APT, …).
 */
@@ -2064,6 +2067,28 @@ Sprite_Character.prototype.update = function() {
 	J.POPUPS.Aliased.Sprite_Character.get("update").call(this);
 	this.processIncomingTextPops();
 	this.updateTextPops();
+};
+/**
+* Extends {@link Sprite_Character#wakeUp}.<br/>
+* Also throws away every popup queued while this character was out of sight.
+*
+* A sleeping sprite processes nothing, so whatever happened to its character in the meantime - a
+* poison tick, a regen, a stray hit from across the map - is still waiting in the queue when it
+* wakes. Drawn now, that would be a burst of numbers all at once for things that happened a while
+* ago where nobody could see them, so they are dropped rather than shown late.
+*/
+J.POPUPS.Aliased.Sprite_Character.set("wakeUp", Sprite_Character.prototype.wakeUp);
+Sprite_Character.prototype.wakeUp = function() {
+	this.discardQueuedTextPops();
+	J.POPUPS.Aliased.Sprite_Character.get("wakeUp").call(this);
+};
+/**
+* Throws away every popup waiting on this sprite's character, without drawing any of them.
+*/
+Sprite_Character.prototype.discardQueuedTextPops = function() {
+	const character = this.character();
+	character.emptyDamagePops();
+	character.acknowledgeTextPops();
 };
 /**
 * Listens for a notification to process any new popups.
