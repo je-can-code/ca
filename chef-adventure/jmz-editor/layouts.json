@@ -19,18 +19,19 @@
                       "activeView": "map-tree",
                       "id": "1"
                     },
-                    "size": 258
+                    "size": 962
                   },
                   {
                     "type": "leaf",
                     "data": {
                       "views": [
-                        "palette"
+                        "palette",
+                        "stamps"
                       ],
-                      "activeView": "palette",
+                      "activeView": "stamps",
                       "id": "2"
                     },
-                    "size": 739
+                    "size": 35
                   },
                   {
                     "type": "leaf",
@@ -51,9 +52,10 @@
                 "data": {
                   "views": [
                     "start",
-                    "map-14"
+                    "map-20",
+                    "map-28"
                   ],
-                  "activeView": "map-14",
+                  "activeView": "map-28",
                   "id": "4"
                 },
                 "size": 1260
@@ -71,18 +73,19 @@
                       "activeView": "map-properties",
                       "id": "5"
                     },
-                    "size": 35
+                    "size": 516
                   },
                   {
                     "type": "leaf",
                     "data": {
                       "views": [
-                        "history"
+                        "history",
+                        "events"
                       ],
                       "activeView": "history",
                       "id": "6"
                     },
-                    "size": 35
+                    "size": 516
                   }
                 ],
                 "size": 360
@@ -101,108 +104,12 @@
             "tabComponent": "props.defaultTabComponent",
             "params": {
               "expanded": [
-                3,
-                5,
-                9,
-                11,
-                14,
-                18,
-                21,
-                28,
-                33,
-                36,
-                38,
-                39,
-                40,
-                41,
-                42,
-                45,
-                48,
-                51,
-                52,
-                63,
-                68,
-                69,
-                78,
-                79,
-                86,
-                89,
-                90,
-                92,
-                93,
-                95,
-                98,
-                102,
-                111,
-                112,
-                115,
-                116,
-                118,
-                119,
-                127,
-                152,
-                156,
-                157,
-                158,
-                167,
-                170,
-                175,
-                176,
-                183,
-                184,
-                185,
-                186,
-                187,
-                190,
-                194,
-                196,
-                198,
-                200,
-                209,
-                213,
-                215,
-                229,
-                232,
-                233,
-                237,
-                240,
-                242,
-                243,
-                244,
-                245,
-                246,
-                249,
-                256,
-                257,
-                259,
-                260,
-                261,
-                264,
-                267,
-                268,
-                281,
-                285,
-                287,
-                289,
-                293,
-                296,
-                297,
-                299,
-                301,
-                305,
-                306,
-                308,
-                312,
-                315,
-                316,
-                317,
-                320,
-                337,
-                339,
-                342,
-                358,
                 12,
-                333
+                13,
+                119,
+                19,
+                20,
+                40
               ]
             },
             "title": "Maps",
@@ -213,6 +120,13 @@
             "contentComponent": "palette",
             "tabComponent": "props.defaultTabComponent",
             "title": "Tiles",
+            "minimumWidth": 240
+          },
+          "stamps": {
+            "id": "stamps",
+            "contentComponent": "stamps",
+            "tabComponent": "props.defaultTabComponent",
+            "title": "Stamps",
             "minimumWidth": 240
           },
           "layers": {
@@ -228,14 +142,23 @@
             "tabComponent": "props.defaultTabComponent",
             "title": "Start"
           },
-          "map-14": {
-            "id": "map-14",
+          "map-20": {
+            "id": "map-20",
             "contentComponent": "map",
             "tabComponent": "props.defaultTabComponent",
             "params": {
-              "mapId": 14
+              "mapId": 20
             },
-            "title": "Crossroads"
+            "title": "Northeast Section"
+          },
+          "map-28": {
+            "id": "map-28",
+            "contentComponent": "map",
+            "tabComponent": "props.defaultTabComponent",
+            "params": {
+              "mapId": 28
+            },
+            "title": "Entrance"
           },
           "map-properties": {
             "id": "map-properties",
@@ -257,22 +180,24 @@
             "tabComponent": "props.defaultTabComponent",
             "title": "History",
             "minimumWidth": 240
+          },
+          "events": {
+            "id": "events",
+            "contentComponent": "events",
+            "tabComponent": "props.defaultTabComponent",
+            "title": "Events",
+            "minimumWidth": 300
           }
         },
-        "activeGroup": "4",
+        "activeGroup": "1",
         "collapsedGroups": {
+          "2": {
+            "height": 464,
+            "minimumHeight": 100,
+            "maximumHeight": 9007199254740991
+          },
           "3": {
-            "height": 310,
-            "minimumHeight": 100,
-            "maximumHeight": 9007199254740991
-          },
-          "5": {
-            "height": 997,
-            "minimumHeight": 100,
-            "maximumHeight": 9007199254740991
-          },
-          "6": {
-            "height": 516,
+            "height": 739,
             "minimumHeight": 100,
             "maximumHeight": 9007199254740991
           }
