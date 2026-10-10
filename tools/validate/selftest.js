@@ -117,6 +117,26 @@ const withMessageLine = (project, mapId, eventId, line) =>
   withFirstPageCommand(project, mapId, eventId, { code: 401, indent: 0, parameters: [ line ] });
 
 /**
+ * A copy of the project with a map event's note replaced.
+ * @param {object} project The loaded project.
+ * @param {number} mapId The map holding the event.
+ * @param {number} eventId The event whose note to replace.
+ * @param {string} note The new note.
+ * @returns {object}
+ */
+const withEventNote = (project, mapId, eventId, note) =>
+{
+  const map = project.maps.get(mapId);
+  const events = [ ...map.events ];
+  events[eventId] = { ...map.events[eventId], note };
+
+  const maps = new Map(project.maps);
+  maps.set(mapId, { ...map, events });
+
+  return { ...project, maps };
+};
+
+/**
  * The first row of a table that exists but was never authored, which is what a dead reference points
  * at. When the table has none, an id past its end serves just as well.
  * @param {object[]} rows The table.
@@ -237,6 +257,24 @@ const buildControls = project =>
       check: checkNotetags,
       planted: withEventComment(project, gateMapId, gateEvent.id, '<text:salt and pepper>'),
       expect: null,
+    },
+    {
+      label: `the map editor's blueprint link in an event's note (Map #${gateMapId} event #${gateEvent.id})`,
+      check: checkNotetags,
+      planted: withEventNote(project, gateMapId, gateEvent.id, `${gateEvent.note}\n<blueprint:[k3x9q2mf, 2]>`),
+      expect: null,
+    },
+    {
+      label: 'the same link in an event comment line, where the editor never writes it',
+      check: checkNotetags,
+      planted: withEventComment(project, gateMapId, gateEvent.id, '<blueprint:[k3x9q2mf,2]>'),
+      expect: [ 'page 1 comment', '<blueprint:[k3x9q2mf,2]>' ],
+    },
+    {
+      label: 'a link the editor would refuse to read, <blueprint:[k3x9q2mf]>, in an event\'s note',
+      check: checkNotetags,
+      planted: withEventNote(project, gateMapId, gateEvent.id, `${gateEvent.note}\n<blueprint:[k3x9q2mf]>`),
+      expect: [ 'note', '<blueprint:[k3x9q2mf]> matches no tag any plugin declares' ],
     },
     {
       label: `a crafting output re-aimed at a blank armor row (recipe "${recipe.key}")`,
