@@ -19,6 +19,12 @@
  * its label never arrives. The gate travels in the manifest, and a tag-carrying line it rejects is
  * reported as dropped.
  *
+ * **The map editor's links.** jmz-map-editor keeps one tag of its own, `<blueprint:[ID, EVENT, ...]>`,
+ * in the note of each event placed from a blueprint, tying the copy to the blueprint it follows. No
+ * plugin declares it, because no plugin reads an event's note, which is exactly why the editor keeps it
+ * there. Spelled as the editor writes it and sitting in an event's note, it is passed; anywhere else, or
+ * spelled any other way, it is judged like every other tag.
+ *
  * Only J-tag-shaped tokens are judged: `<name>` or `<name:payload>`, the name a single word. RPG Maker
  * and third-party plugins read tags with spaces in their names, and those are none of this check's
  * business.
@@ -66,6 +72,33 @@ const NOTE_TABLES = [
 const TAG_TOKEN = /<([A-Za-z][A-Za-z0-9_-]*)(?::([^<>]*))?>/g;
 
 /**
+ * The name of jmz-map-editor's blueprint link, read case-sensitively, as the editor reads it.
+ * @type {string}
+ */
+const EDITOR_LINK_NAME = 'blueprint';
+
+/**
+ * The payload of jmz-map-editor's blueprint link: the blueprint's id, the id of the event inside it that
+ * the copy follows, then any offsets and pins the copy keeps. This mirrors the editor's own reader,
+ * `LINK_VALUE` in jmz-data-editor's `app/src/mapEditor/core/blueprints/blueprintLink.ts`, so a link the
+ * editor would refuse to read is reported here too.
+ *
+ * <pre>
+ * Structure:
+ *  <blueprint:[BLUEPRINT_ID, EVENT_ID]>
+ *  <blueprint:[BLUEPRINT_ID, EVENT_ID, DIFFERENCE, ...]>
+ *
+ * Example:
+ *  <blueprint:[555zclgm, 20, p1.moveSpeed+1]>
+ *
+ * Translation:
+ *  a copy of event 20 in blueprint 555zclgm, moving one step faster than it
+ * </pre>
+ * @type {RegExp}
+ */
+const EDITOR_LINK_VALUE = /^\[([a-z0-9]+), ?([1-9][0-9]*)((?:, ?[^,[\]<>\r\n]+)*)\]$/u;
+
+/**
  * How far a misspelled tag name may stray from a real one and still earn a suggestion.
  * @type {number}
  */
@@ -93,9 +126,10 @@ const commentLines = list => list
  * Each source records the table its row belongs to, which is what a `Self` target resolves against;
  * maps, events and comments belong to no table and record an empty one. Map event comment lines are
  * marked `gated`, because `Game_Event` drops any line that fails J-Base's comment gate before a plugin
- * ever sees it.
+ * ever sees it. Map event notes are marked `editorLinks`, the one place jmz-map-editor writes its
+ * blueprint links.
  * @param {object} project The loaded project.
- * @returns {{ where: string, text: string, table: string, gated: boolean }[]}
+ * @returns {{ where: string, text: string, table: string, gated: boolean, editorLinks: boolean }[]}
  */
 export const collectTagSources = project =>
 {
@@ -105,7 +139,7 @@ export const collectTagSources = project =>
   // database rows, each carrying its own table.
   NOTE_TABLES.forEach(table => tables[table].forEach(row =>
   {
-    if (row && row.note) sources.push({ where: `${describeRow(table, row.id, row)} note`, text: row.note, table, gated: false });
+    if (row && row.note) sources.push({ where: `${describeRow(table, row.id, row)} note`, text: row.note, table, gated: false, editorLinks: false });
   }));
 
   // maps, their events, and every comment line on every event page.
@@ -114,7 +148,7 @@ export const collectTagSources = project =>
     const map = maps.get(mapId);
     const mapLabel = describeRow('Map', mapId, tables.MapInfos[mapId]);
 
-    if (map.note) sources.push({ where: `${mapLabel} note`, text: map.note, table: '', gated: false });
+    if (map.note) sources.push({ where: `${mapLabel} note`, text: map.note, table: '', gated: false, editorLinks: false });
 
     map.events.forEach(event =>
     {
@@ -122,10 +156,10 @@ export const collectTagSources = project =>
 
       const eventLabel = `${mapLabel} event #${event.id} "${event.name}"`;
 
-      if (event.note) sources.push({ where: `${eventLabel} note`, text: event.note, table: '', gated: false });
+      if (event.note) sources.push({ where: `${eventLabel} note`, text: event.note, table: '', gated: false, editorLinks: true });
 
       event.pages.forEach((page, index) => commentLines(page.list)
-        .forEach(text => sources.push({ where: `${eventLabel} page ${index + 1} comment`, text, table: '', gated: true })));
+        .forEach(text => sources.push({ where: `${eventLabel} page ${index + 1} comment`, text, table: '', gated: true, editorLinks: false })));
     });
   });
 
@@ -135,7 +169,7 @@ export const collectTagSources = project =>
     if (!commonEvent) return;
 
     const label = `${describeRow('CommonEvents', commonEvent.id, commonEvent)} comment`;
-    commentLines(commonEvent.list).forEach(text => sources.push({ where: label, text, table: '', gated: false }));
+    commentLines(commonEvent.list).forEach(text => sources.push({ where: label, text, table: '', gated: false, editorLinks: false }));
   });
 
   tables.Troops.forEach(troop =>
@@ -143,7 +177,7 @@ export const collectTagSources = project =>
     if (!troop) return;
 
     troop.pages.forEach((page, index) => commentLines(page.list)
-      .forEach(text => sources.push({ where: `${describeRow('Troops', troop.id, troop)} page ${index + 1} comment`, text, table: '', gated: false })));
+      .forEach(text => sources.push({ where: `${describeRow('Troops', troop.id, troop)} page ${index + 1} comment`, text, table: '', gated: false, editorLinks: false })));
   });
 
   return sources;
@@ -346,6 +380,19 @@ const resolveTag = (project, targets, payload, sourceTable) =>
 //endregion resolution
 
 /**
+ * Whether a tag-shaped token is jmz-map-editor's blueprint link, spelled exactly as the editor writes it.
+ * Where it may sit is the caller's question; this answers only for the spelling.
+ * @param {RegExpMatchArray} match The token's match against {@link TAG_TOKEN}.
+ * @returns {boolean}
+ */
+const isEditorLink = match =>
+{
+  const [ , name, payload = '' ] = match;
+
+  return name === EDITOR_LINK_NAME && EDITOR_LINK_VALUE.test(payload);
+};
+
+/**
  * Judges one tag-shaped token: recognised or not, and if recognised, whether its ids resolve.
  * @param {object} project The loaded project.
  * @param {object} vocabulary What the manifest says about tags.
@@ -431,6 +478,7 @@ export const checkNotetags = project =>
 
   let tokens = 0;
   let recognised = 0;
+  let editorLinks = 0;
   let checked = 0;
   let dropped = 0;
 
@@ -450,6 +498,14 @@ export const checkNotetags = project =>
 
     matches.forEach(match =>
     {
+      // the map editor's link in an event's note is the editor's to read, and no plugin's.
+      if (source.editorLinks && isEditorLink(match))
+      {
+        editorLinks++;
+
+        return;
+      }
+
       const verdict = judgeToken(project, vocabulary, match, source.table);
 
       if (verdict.recognised) recognised++;
@@ -462,6 +518,6 @@ export const checkNotetags = project =>
   return {
     findings,
     summary: `${tokens} tag(s) in ${sources.length} notes and comment lines, ${recognised} recognised, `
-      + `${dropped} comment line(s) dropped by J-Base, ${checked} id(s) resolved`,
+      + `${editorLinks} map editor link(s), ${dropped} comment line(s) dropped by J-Base, ${checked} id(s) resolved`,
   };
 };
