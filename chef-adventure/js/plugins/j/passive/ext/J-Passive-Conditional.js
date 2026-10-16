@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.4.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
+ * [v1.4.1 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -128,7 +128,7 @@ J.PASSIVE.EXT.CONDITIONAL = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.4.0");
+J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.4.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

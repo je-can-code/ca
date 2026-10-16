@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 APT] A plugin that grants the ability to learn by gaining points.
+ * [v2.0.1 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -544,7 +544,7 @@ J.APT.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "2.0.0");
+J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "2.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

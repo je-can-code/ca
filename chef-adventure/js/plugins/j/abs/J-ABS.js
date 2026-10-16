@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.26.1 ABS] Enables combat to be carried out on the map.
+ * [v4.26.2 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1423,7 +1423,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.26.1");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.26.2");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.2 REGIONS-STATES] Enables application of states via region ids.
+ * [v1.1.3 REGIONS-STATES] Enables application of states via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -68,7 +68,7 @@ J.REGIONS.EXT.STATES = {};
 /**
 * The metadata associated with this plugin, such as name and version.
 */
-J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Regions-States", "1.1.2");
+J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Regions-States", "1.1.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
