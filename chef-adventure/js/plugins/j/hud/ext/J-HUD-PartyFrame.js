@@ -1,4 +1,4 @@
-//region introduction
+//region annotations
 /*:
  * @target MZ
  * @plugindesc
@@ -14,60 +14,11 @@
  * @orderBefore J-ABS-Shield
  * @help
  * ============================================================================
- * OVERVIEW
- * This plugin is an extension of the J-HUD system.
- *
- * This is the Party Frame, which displays the leader and allied members that
- * the player currently has in their party.
- *
- * This plugin requires JABS.
- * This plugin requires the base HUD.
- * This plugin has no additional configuration required.
- * ----------------------------------------------------------------------------
- * DETAILS:
- * This includes the following data points for all actors:
- * - face portrait
- * - hp gauge
- * - mp gauge
- * - tp gauge
- *
- * And the additional following data points for the currently selected leader:
- * - current level
- * - experience gauge
- * - positive/negative state tracking
- * - in combat indicator
- * - shield gauge (if using J-ABS-Shield)
- * ============================================================================
- * NOTE ABOUT NOTETAGS:
- * This plugin has no notetags of its own- it purely reads live battler data
- * for display.
- * ============================================================================
- * CHANGELOG:
- * - 1.4.0
- *    Player interference is now resolved by the shared resolver in J-HUD instead of
- *    by this frame's own test against the player's screen position, which had this
- *    frame's corner written into it.
- * - 1.3.1
- *    Fixed boot and load failures left behind by the quick menu pare-down:
- *    Scene_Map#createJabsAbsMenu still called the six create-window methods
- *    that went with the removed assignment flows, so loading any save crashed
- *    before the map finished building. The quick menu has one window left.
- * - 1.3.0
- *    Leader affliction rendering now delegates to J-HUD core's shared
- *    StateAfflictionHudPresenter/StateAfflictionHudLayoutSpec instead of a
- *    duplicated local implementation (removed ~300 lines of local code).
- *    Window backdrop opacity default changed from 32 to fully transparent (0).
- * - 1.2.0
- *    Integrated J-ABS-Shields; supports display for shield gauge.
- *    Updated many classes to use modern class syntax.
- *    Updated visuals for clarity across many aspects of the HUD.
- * - 1.1.0
- *    Added visual tracking indicator for "in combat" for the leader.
- *    Retroactively added this changelog.
- * - 1.0.0
- *    Initial release.
+ * Please refer to J-HUD-PartyFrame's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/hud/ext/party/index.md
  * ============================================================================
  */
+//endregion annotations
 
 //#region src/plugins/hud/ext/party/_metadata/_pluginMetadata.js
 var JHudParty_PluginMetadata = class extends PluginMetadata {

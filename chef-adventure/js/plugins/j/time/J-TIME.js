@@ -1,7 +1,8 @@
-//region Introduction
+//region annotations
 /*:
  * @target MZ
- * @plugindesc [v2.1.0 TIME] A system for tracking time- real or artificial.
+ * @plugindesc
+ * [v2.1.0 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -9,265 +10,10 @@
  * @orderAfter J-ABS
  * @orderAfter J-ABS-InputManager
  * @help
- * =============================================================================
- * This is a system that tracks time, either artificial or real, and
- * manipulates various components of the game based on the time.
- *
- *   Temporally Integrated Monitoring of Ecosystems- aka TIME.
- *
- * =============================================================================
- * This plugin enables a TIME system. The TIME system functions much like you'd
- * expect: it tracks TIME. This TIME however, is configurable in many ways that
- * regular time is not.
- *
- * There are two forms of time-keeping, real and artificial.
- *
- * REAL TIME
- * Real time acts much like you'd expect: it reads the client's computer's
- * time and updates every half of a second to keep in sync with real time. All
- * of the features surrounding this TIME system (relating to time of day or
- * seasons) operate the same as artificial, but based on real time.
- *
- * ARTIFICIAL TIME
- * Artificial time acts similar to real time, but instead of reading the time
- * from your computer, it starts at a designated point that you specify and
- * ticks ever forward. The rate at which time ticks forward defaults to 60
- * frames per second, but you can reduce that if you want time to pass faster.
- * Alternatively (or in addition to), you can also adjust the amount of time
- * that passes per "tock". A "tock" is defined as "on-increment", so for
- * example, when the second counter increments past 59 to 60, you would expect
- * the minutes to go up by 1. That incrementing is a "tock", that is defined
- * by you. You can define how much that increment is for each unit of time:
- * seconds, minutes, hours, days, months, and years. I would encourage this be
- * explored before tweaking the defaults.
- *
- * VARIABLES
- * Unless disabled, both real and artificial TIME will track the various
- * components of the current TIME in variables, to allow for developing events
- * revolving around TIME. You can specify in the plugin parameters which
- * variables you want these to be assigned to. If you do not want one or more
- * of the TIME components tracked in variable, but do want to leverage the
- * functionality of variable assignment, then just assign the TIME components
- * that you do not care about to variable id of 0.
- *
- * TIME OF DAY
- * Additionally, this system tracks "time of day". "Time of Day" is defined
- * as a block of time (measured in hours) that is named.
- * There are six of these blocks of time that make up a day:
- * - Moontide (00:00am - 03:59am)
- * - Dawn (04:00am - 7:59am)
- * - Morning (08:00am - 11:59am)
- * - Afternoon (12:00pm - 15:59pm)
- * - Evening (16:00pm - 19:59pm)
- * - Night (20:00pm - 23:59pm)
- *
- * Alongside the "time of day" functionality, there is also an optional "tone"
- * adjustment to alter the screen tone based on "time of day". The tone will
- * change on the hour. This can be disabled entirely, or selectively with tags.
- * Keep in mind that, understandably, this does not play nicely with manual
- * tone-changes from outside this system. If you intend to control the tone
- * yourself, you should probably disable the tone-change functionality for
- * those maps.
- *
- * SEASON OF YEAR
- * Additionally, this system tracks the "season of the year". The "season of
- * the year" is defined likely much how you think it is: a block of time
- * (measured in months) that is named.
- * - Spring (march, april, may)
- * - Summer (june, july, august)
- * - Autumn (september, october, november)
- * - Winter (december, january, february)
- * Nothing special happens as months progress, you as the developer can decide
- * what to do when it is the summer months or the winter months if you want.
- *
- * TAGS
- * If you want the auto-tone changing, but want it disabled for certain maps,
- * then you can use this note tag which will cause the system to not change the
- * tone when transfering to that particular map:
- * <noToneChange>
- *
- * If you are using artificial TIME, and you need TIME to be stopped for some
- * reason or another, you can use this tag on a map and while on that map, TIME
- * will be considered "blocked", where TIME will not flow:
- * <timeBlock>
- *
- * =============================================================================
- * TIME-GATED EVENT PAGES AND CHOICES
- * Ever wanted an event page (or a "Show Choices" branch) to only be active
- * during a specific minute, hour, day, month, year, time of day, season, or
- * combination thereof? Well now you can! There are two parallel tag families-
- * "Page" tags gate an entire event page condition; "Choice" tags gate a
- * single choice in a "Show Choices" branch. Both families share identical
- * unit names and behavior, just swap "Page" for "Choice" in the tag name.
- *
- * NOTE ABOUT EXACT VS RANGE:
- * The plain unit tags (<minutePage>, <hourPage>, etc.) match only that exact
- * value. The "Range" variants (<minuteRangePage>, <hourRangePage>, etc.)
- * match an inclusive START-END span instead.
- *
- * TAG USAGE:
- * - Event pages (comment, gates the whole page like a normal page condition)
- * - "Show Choices" branches (comment, gates a single choice)
- *
- * EXACT-VALUE TAG FORMAT:
- *  <minutePage:MINUTE>            <minuteChoice:MINUTE>
- *  <hourPage:HOUR>                <hourChoice:HOUR>
- *  <dayPage:DAY>                  <dayChoice:DAY>
- *  <monthPage:MONTH>              <monthChoice:MONTH>
- *  <yearPage:YEAR>                <yearChoice:YEAR>
- *  <timeOfDayPage:TIME_OF_DAY>    <timeOfDayChoice:TIME_OF_DAY>
- *  <seasonOfYearPage:SEASON>      <seasonOfYearChoice:SEASON>
- * Where TIME_OF_DAY is a 0-5 index or one of: moontide, dawn, morning,
- *   afternoon, evening, night.
- * Where SEASON is a 0-3 index or one of: spring, summer, autumn, winter.
- *
- * RANGE TAG FORMAT (inclusive START-END):
- *  <minuteRangePage:START-END>    <minuteRangeChoice:START-END>
- *  <hourRangePage:START-END>      <hourRangeChoice:START-END>
- *  <dayRangePage:START-END>       <dayRangeChoice:START-END>
- *  <monthRangePage:START-END>     <monthRangeChoice:START-END>
- *  <yearRangePage:START-END>      <yearRangeChoice:START-END>
- *
- * COMPOSITE SHORTCUT TAG FORMAT:
- *  <timeRangePage:HH:MM-HH:MM>     <timeRangeChoice:HH:MM-HH:MM>
- *    Shortcut for gating on an hour:minute clock-time span within a single
- *    day (e.g. "9:00 to 17:30").
- *
- *  <fullDateRangePage:[MINUTE,HOUR,DAY,MONTH,YEAR]-[MINUTE,HOUR,DAY,MONTH,YEAR]>
- *  <fullDateRangeChoice:[MINUTE,HOUR,DAY,MONTH,YEAR]-[MINUTE,HOUR,DAY,MONTH,YEAR]>
- *    The most precise gate: an inclusive span across a full calendar
- *    date+time. Seconds are always treated as 0 at the start of the range and
- *    59 at the end (seconds are not independently configurable here).
- *
- * TAG EXAMPLES:
- *  <timeOfDayPage:morning>
- * This event page is only active while TIME considers it currently morning.
- *
- *  <hourRangePage:9-17>
- * This event page is only active between hour 9 and hour 17, inclusive.
- *
- *  <timeRangeChoice:9:00-17:30>
- * This choice is only shown between 9:00am and 5:30pm.
- *
- *  <fullDateRangePage:[0,9,29,5,2021]-[0,17,29,5,2021]>
- * This event page is only active from 9:00am to 5:00pm on day 29, month 5,
- * year 2021- and nowhere else on the calendar.
- * =============================================================================
- * COMMANDS
- * There are a number of plugin commands available to manipulate TIME:
- * - Jump to time of day
- *   Jumping to a specific time of day may result in skipping a day. This will
- *   fast-forward to a particular time of day. If that time of day has already
- *   passed (or it is currently that time of day), the system will proceed to
- *   the next day's time of day. (common use case is sleeping at an inn till
- *   morning)
- *
- * - Set Time
- *   This sets the time to a fixed point in time. This is not relative. You
- *   will likely need to be cautious when using this particular command.
- *
- * - Fast Forward Time
- *   This fast-forwards time by a given amount.
- *
- * - Rewind Time
- *   This rewinds time by a given amount.
- *
- * - Show TIME on Map
- *   This toggles the TIME window to be visible on the map.
- *
- * - Hide TIME on Map
- *   This toggles the TIME window to be invisible on the map.
- *   NOTE: TIME will still pass while the window is hidden.
- *
- * - Stop TIME
- *   This halts the flow of TIME.
- *   NOTE: This is not compatible with "real" time. If you use this command
- *   with real time, it will pause the counting for the duration and pick back
- *   up with the current time when TIME is unblocked.
- *
- * - Start TIME
- *   This re-enables the flow of TIME.
- *   NOTE: This is not compatible with "real" time. If you used the stop
- *   command to halt real time, when re-enabled, it will pick up wherever it is
- *   currently which may result in skipping time.
- *
- * - Unlock Screen Tone
- *   This (re-)allows the TIME system to control screen tone.
- *   NOTE: This does nothing if the plugin parameters are set to disable screen
- *   tone changing entirely.
- *
- * - Lock Screen Tone
- *   This locks the TIME system from controlling the screen tone.
- *
- * =============================================================================
- * CHANGELOG:
- * - 2.1.0
- *    The HUD is the clock and the phase on one line, and nothing else. The
- *    season and the full date are gone, the seconds with them - the alternating
- *    colon already says the clock is running. drawContent splits into named
- *    draws and the window sizes from a declared row count, so an extension can
- *    add a line. Added the clockIcon parameter.
- * - 2.0.0
- *    BREAKING: the day/night look moved out to J-Lighting-Time. This plugin keeps the
- *    clock, the variables, the conditionals and the HUD, and paints nothing.
- *    BREAKING: the phases are now Moontide, Dawn, Morning, Afternoon, Evening, Night.
- *    The hours each one covers are unchanged; twilight was two times of day wearing
- *    one word, and night was sitting on the block it describes.
- *    An overnight range like 18-5 now holds past midnight instead of ending there.
- *    setTime announces the change, so setting the clock while it is stopped repaints.
- * - 1.3.0
- *    Time conditionals are resolved from TimeMapper.ConditionalKinds, an ordered list
- *    a plugin can register its own conditional into, rather than from a hardcoded pair
- *    of branches per tag.
- * - 1.2.2
- *    Loading a save on a map tagged <noToneChange> keeps that map's tone. The tone
- *    was resolved only on transfer, and a load is not a transfer, so the screen
- *    reverted to the clock's ordinary tone until the player left and came back.
- * - 1.2.1
- *    Fixed time choice conditionals not hiding branches inside called common
- *    events.
- * - 1.2.0
- *    Added a day-of-week vocabulary to Time_Snapshot: DaysOfWeekName and
- *    DaysOfWeekId translate between names and ids (0-6 starting from Monday),
- *    and dayOfWeekId/dayOfWeekName derive which weekday a snapshot lands on.
- *    The artificial calendar anchors day 1 of month 1 of year 0 as a Monday
- *    and cycles a seven-day week; real-time mode asks the real calendar.
- * - 1.1.3
- *    Routed the season and time-of-day validation errors, the unrecognized TIME
- *    tag warning, and the fresh-clock notice through J-Base's new Diagnostics,
- *    so each names J-TIME in the console.
- * - 1.1.2
- *    Stopped re-running the clock's member backfill after extracting a save.
- *    Game_Time is registered as serializable, so its seed already runs on the
- *    bare instance before any saved field lands, making the second pass both
- *    redundant and dependent on every member being assigned defensively.
- * - 1.1.1
- *    Fixed a map tagged <noToneChange> suppressing the tone change outright,
- *    so no tint was ever issued and the previous map's tone stayed painted on
- *    screen: walking into a cave at midnight kept it midnight-blue. The tag now
- *    resolves to a neutral target tone that the existing pipeline applies, and
- *    the map transfer hook recomputes the tone rather than only flagging one
- *    as due.
- *    Fixed overnight time ranges, which had never worked. Date#addDays returns
- *    a new date instead of mutating, unlike addHours beside it, so discarding
- *    its result left every overnight range ending before it began.
- * - 1.1.0
- *    Added time-gated event pages/choices: exact-value, range, composite
- *    clock-time, and full-date-range tag families (Page and Choice variants)
- *    for minute/hour/day/month/year/timeOfDay/seasonOfYear.
- * - 1.0.4
- *    Fixed reversed check that only let time pass while blocked (oops!).
- * - 1.0.3
- *    Adapted for updates to J-ABS-InputManager (input namespace).
- * - 1.0.2
- *    Adapted input remappability update of J-ABS-InputManager.
- *    Removed connection between J-MAP and J-TIME toggling (HUD).
- *    Updated to support RMMZ v1.10.X base scripts (Scene_Splash).
- * - 1.0.1
- *    Fixed issue with "hours per tick" not being respected.
- * - 1.0.0
- *    J-TIME's initial release.
- * =============================================================================
+ * ============================================================================
+ * Please refer to J-TIME's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/time/core/index.md
+ * ============================================================================
  *
  * @param BASEconfigs
  * @text BASE SETUP
@@ -526,8 +272,6 @@
  * @desc Jump to the next instance of a chosen time of day (e.g., morning).
  * @arg TimeOfDay
  * @type select
- * @desc Use the dropdown to select a time of day to jump to.
- * This will jump to the next day rather than rewind.
  * @option Moontide (00:00am aka midnight)
  * @value 0
  * @option Dawn (04:00am)
@@ -540,6 +284,8 @@
  * @value 4
  * @option Night (20:00pm)
  * @value 5
+ * @desc Use the dropdown to select a time of day to jump to.
+ * This will jump to the next day rather than rewind.
  *
  * @command setTime
  * @text Set Time
@@ -625,8 +371,8 @@
  * @command startTime
  * @text Start TIME
  * @desc Starts the flow of time; only applicable to artificial time.
- *
  */
+//endregion annotations
 
 //#region src/plugins/time/core/_metadata/_pluginMetadata.js
 var J_TIME_PluginMetadata = class extends PluginMetadata {

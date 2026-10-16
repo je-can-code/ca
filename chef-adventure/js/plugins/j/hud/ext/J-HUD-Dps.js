@@ -1,5 +1,4 @@
 //region annotations
-/* eslint-disable max-len */
 /*:
  * @target MZ
  * @plugindesc
@@ -16,44 +15,10 @@
  * @orderAfter J-HUD
  * @help
  * ============================================================================
- * OVERVIEW
- * This plugin adds a damage readout to the map screen. It draws one row per
- * battle member and three columns of rates:
- *
- *   Now   - the rolling rate across the last few seconds of combat.
- *   Fight - the rate across the encounter in progress.
- *   Last  - the rate across the encounter before it.
- *
- * This plugin measures nothing itself. Every number on it is asked of the
- * tracker in J-ABS-Dps, which is where the rules about what counts and how it
- * is timed all live.
- *
- * ----------------------------------------------------------------------------
- * DETAILS:
- * IT IS OFF BY DEFAULT.
- * This is a tuning instrument, not part of the game's presentation. It stays
- * off until somebody is actually measuring something.
- *
- * THE FIGURES HOLD BETWEEN FIGHTS.
- * The clock behind them only runs while the party is in combat, so the table
- * does not bleed to zero on the walk to the next encounter. The Fight column
- * keeps showing the fight that just ended, and only moves down into Last when
- * the next one begins.
- *
- * A LOW NUMBER IS A READING, NOT A GAP.
- * Every member is measured against the same encounter clock. An ally who spent
- * the fight dead or idling divides what little they did by the whole fight and
- * reads low, which is the thing worth knowing.
- *
+ * Please refer to J-HUD-Dps's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/hud/ext/dps/index.md
  * ============================================================================
- * CHANGELOG:
- * - 1.1.0
- *    The readout fades while the player is standing on top of it, through the shared
- *    resolver in J-HUD.
- * - 1.0.0
- *    Initial release.
- * ============================================================================
- * PLUGIN PARAMETERS:
+ *
  * @param enabled
  * @type boolean
  * @text Show Readout
@@ -92,8 +57,6 @@
  * @desc Opacity of the windowskin frame and backdrop only (0 = invisible panel, 255 = opaque). The numbers stay fully visible.
  * @default 255
  */
-//=================================================================================================
-/* eslint-enable max-len */
 //endregion annotations
 
 //#region src/plugins/hud/ext/dps/_metadata/_pluginMetadata.js

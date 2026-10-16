@@ -1,167 +1,26 @@
-//region introduction
+//region annotations
 /*:
  * @target MZ
- * @plugindesc [v3.0.3 LOG] A log window for viewing on the map.
+ * @plugindesc
+ * [v3.0.3 LOG] A log window for viewing on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @base J-Message
  * @orderAfter J-Base
- * @orderAfter J-ABS
  * @orderAfter J-Message
+ * @orderAfter J-ABS
  * @help
  * ============================================================================
- * OVERVIEW
- * This plugin enables logging functionality.
- * It has three built in logging managers:
- * - Action Log
- * - Loot Log
- * - DiaLog
- *
- * Each of the logging managers is responsible for different types of logging
- * for the player to observe.
- *
- * This plugin was designed for JABS, but doesn't require it.
- * If added while using JABS, the log window will automatically register all
- * actions taken, damage/healing dealth, loot and such picked up, and more.
- *
- * Additionally, the log window is a command window under the covers, so it
- * also supports scrolling via mouse/touch.
- *
- * Controller/keyboard support for the log window is not supported.
- *
- * Depends on other plugins of mine:
- * - J-Base (used for drawing the logs properly onto the window)
- * - J-Message (used for translating text codes in logging)
- *
- * Integrates with others of mine plugins:
- * - J-ABS; enables logging of the player/allies/enemies' actions.
- * - J-SDP; enables logging of SDP gains.
+ * Please refer to J-Log's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/log/core/index.md
  * ============================================================================
- * THE ACTION LOG
- * This log is designed for the player to view various interactions that happen
- * through the course of playing the game. While this plugin doesn't require
- * it, it was designed to be used with JABS.
  *
- * Things that get reported to the Action Log (with JABS):
- * - a skill being used (player/allies/enemies)
- * - a target being defeated (player/allies/enemies)
- * - a skill being learned (player/allies/enemies)
- * - a level up (player/allies)
- * - a state being applied to oneself (player/allies/enemies)
- * - a retaliation (player/allies/enemies)
- * - a skill being parried (player/allies/enemies)
- * - a skill being dodged (player/allies/enemies)
- * - a skill not affecting a target (player/allies/enemies)
- * - the act of party cycling (player)
- * - the experience gained (the leader, others gain it, but no logs are added)
- * - the sdp points found (the leader, others gain it, but no logs are added)
- *
- * Without JABS, nothing is added by default and must be woven into wherever
- * a developer wants it to show up since most usages and executions would
- * happen in a non-Scene_Map context.
- *
- * This window is effectively just a Window_Command under the covers, which
- * means it is nothing more special than your average Show Choices window or
- * what have you. However, it is not accessible to the keyboard or controller,
- * which means only a mouse may interact with it (due to the fact that it
- * cannot be "selected").
- *
- * ============================================================================
- * THE LOOT LOG
- * This log is designed for the player to exclusively messages related to items
- * and their acquisition or loss.
- *
- * Things that get reported to the Loot Log (with JABS):
- * - the gold found (on enemy defeat)
- * - an item being used (player)
- *   - also if the last item in the party's possession was used (player)
- *
- * Without JABS, nothing is added by default. It was a conscious decision not
- * to integrate the loot log with the Game_Party#gainItem() function- so that
- * other devs may have control over when it the logs are added, in case there
- * were items that should be added silently.
- *
- * ============================================================================
- * THE DIALOG
- * This log is designed for the player to view messages that occur while things
- * on the map are still executing. This portion of the plugin has nothing to do
- * with JABS and is not influenced by it.
- *
- * To add messages to the DiaLog, you'll need to utilize a plugin command.
- * In it, you will find the parameters are similar to that of a regular message
- * window, except that it is smaller, and in the upper right corner. You can
- * specify the message (max of three lines), and optionally a face image and
- * index to accompany the message to enable chatter that doesn't interrupt the
- * flow of gameplay.
- *
- * It is worth noting that the DiaLog window is an extended version of the
- * Action Log window, and bears many of the same sorts of functionality,
- * including the ability to scroll with the mouse and not control it with the
- * keyboard/controller. It will automagically become invisible after lack of
- * interaction.
- *
- * When setting up events that add to the DiaLog, it is encouraged to consider
- * using parallel events that add the messages with Waits in between each
- * message to give it a proper dialogue-like effect rather than dumping all the
- * messages in at once, but not being able to see them because the player has
- * to scroll up.
- *
- * ============================================================================
- * NOTE ABOUT NOTETAGS:
- * This plugin has no notetags of its own- logging is driven entirely by
- * JABS integration (when installed) and by plugin commands.
- * ============================================================================
- * CHANGELOG:
- * - 3.0.3
- *    EXP, SDP, AP and gold take their names from TextManager.
- * - 3.0.2
- *    Renamed the declared dependency on J-MessageTextCodes to J-Message, which
- *    is what that plugin's file is called now. Left as it was, the base
- *    declaration named a plugin no project would have installed.
- * - 3.0.1
- *    Routed the non-array DiaLog warning through J-Base's new Diagnostics. That
- *    channel is for developer console output and is unrelated to the log windows
- *    this plugin draws for the player.
- * - 3.0.0
- *    BREAKING: the three log manager globals are gone. $actionLogManager,
- *    $diaLogManager and $lootLogManager are replaced by a single $mapLogs
- *    registry that owns all three channels: $mapLogs.action, $mapLogs.dialog
- *    and $mapLogs.loot. Any code calling the old names must be updated.
- *    The three feeds are still three separate managers with their own
- *    capacities and their own windows; only the bootstrap changed, from three
- *    top-level globals for one service down to one.
- * - 2.2.3
- *    Fixed Scene_Map's loot log window accessors reading and writing
- *    this._j._log._diaLog. Since createAllWindows builds the dia log first,
- *    the loot log clobbered its tracker and getDiaLogWindow returned the wrong
- *    window entirely. Nothing called the three accessors yet, so this never
- *    surfaced in play; it was a landmine for the next caller. The missing
- *    _lootLog property is now declared alongside its siblings.
- * - 2.2.2
- *    Added ActionLogBuilder#setupStatePurged, a log message for a state
- *    being removed via J-ABS's new <purgeStates> tag.
- * - 2.2.1
- *    Added SDP drop-related logging.
- * - 2.2.0
- *    Added DiaLog functionality, enabling passive chats to happen on the map.
- *    Added Loot Log functionality, where loot-related logs now show up.
- *    Refactored around the various log-related classes.
- * - 2.1.0
- *    Refactor the text log manager to use different syntax.
- * - 2.0.1
- *    Small refactor of creation method aliasing.
- * - 2.0.0
- *    Refactored heavily the setup of log window.
- * - 1.0.0
- *    The initial release.
- * ============================================================================
  * @param defaultInactivityTime
  * @type number
  * @text Inactivity Timer Duration
  * @desc The duration in frames of how long before the window autohides itself.
  * @default 300
- *
  *
  * @command showActionLog
  * @text Show Action Log Window
@@ -181,7 +40,6 @@
  * @command clearActionLog
  * @text Clear Action Logs
  * @desc Clears all the logs out of the action log.
- *
  *
  * @command showDiaLog
  * @text Show DiaLog Window
@@ -206,16 +64,15 @@
  * @default
  * @arg faceIndex
  * @type number
- * @text Face Index
- * @desc The index of the face on the given face file; use -1 for no face.
  * @min -1
  * @max 7
+ * @text Face Index
+ * @desc The index of the face on the given face file; use -1 for no face.
  * @default -1
  *
  * @command clearDiaLog
  * @text Clear DiaLog
  * @desc Clears all the logs out of the dialog log.
- *
  *
  * @command showLootLog
  * @text Show Loot Log Window
@@ -243,8 +100,8 @@
  * @command clearLootLog
  * @text Clear Loot Logs
  * @desc Clears all the logs out of the action log.
- *
  */
+//endregion annotations
 
 //#region src/plugins/log/core/_metadata/_pluginMetadata.js
 var J_LogPluginMetadata = class extends PluginMetadata {

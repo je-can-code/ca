@@ -13,22 +13,11 @@
  * @orderAfter J-Extend
  * @help
  * ============================================================================
- * OVERVIEW
- * This plugin is an extension of J-Extend for J-SKS.
- * It causes the skill equip detail window to display the overlayed skill
- * rather than the base skill when J-Extend is active.
- * ============================================================================
- * NOTE ABOUT NOTETAGS:
- * This plugin has no notetags of its own- it is pure integration glue
- * between J-Extend and J-SKS's skill equip detail window.
- * ============================================================================
- * CHANGELOG:
- * - 1.0.0
- *    Initial release.
+ * Please refer to J-Extend-SKS's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/extend/ext/sks/index.md
  * ============================================================================
  */
 //endregion annotations
-
 
 //#region src/plugins/extend/ext/sks/_metadata/_pluginMetadata.js
 var JExtendSks_PluginMetadata = class extends PluginMetadata {

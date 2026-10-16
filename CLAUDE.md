@@ -159,6 +159,7 @@ takes well under a second. Run it after any bulk edit to the data, and before co
 | notetags | a tag names a row that is blank or missing, or matches no pattern any J plugin declares |
 | config references | a `config.*.json` names a blank or missing row in an MZ table |
 | text codes | a `\Code[arg]` in text the game draws names a blank, missing or placeholder row, an icon the sheet does not paint, a colour off the palette, a bubble target no event answers to, or is a code nothing reads |
+| scripts | an event script spreads arguments into a call (`f(...values)`), which no J plugin method can take: rmmz-plugins has no rest parameters |
 
 A row named `=== ...` is a placeholder holding its slot open, and every check treats one as missing:
 it draws its name, which is precisely why "slay the === TBD Aspect" once shipped.

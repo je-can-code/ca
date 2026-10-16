@@ -21,9 +21,9 @@
  *
  * @param max-level-threshold
  * @type number
+ * @min -1
  * @text Max Level Threshold
  * @desc The max allowed difference in level between actor and enemy to gain AP from.
- * @min -1
  * @default 10
  *
  * @command mod-ap

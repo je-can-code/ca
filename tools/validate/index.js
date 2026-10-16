@@ -16,6 +16,7 @@
  * - **notetags** - every id a tag names resolves, and every tag matches a pattern a plugin declares
  * - **config references** - every id a plugin config names in an MZ table resolves
  * - **text codes** - every `\Code[arg]` in text the game draws names something that exists
+ * - **scripts** - no event script spreads its arguments into a call, which no J plugin method can take
  *
  * What a tag means comes from `js/plugins/j/manifest.json`, which rmmz-plugins' build writes and its
  * `hotfix` mirrors in with the plugins. This validator holds no knowledge of any plugin's tags itself.

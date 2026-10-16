@@ -1,4 +1,4 @@
-//region annoations
+//region annotations
 /*:
  * @target MZ
  * @plugindesc
@@ -10,37 +10,8 @@
  * @orderAfter J-HUD
  * @help
  * ============================================================================
- * OVERVIEW
- * This plugin is an extension of the J-HUD plugin.
- * It will display quests and their objectives and the player's progress as
- * in realtime.
- *
- * It will show and hide with the rest of the HUD, and will only reveal quests
- * that are flagged as "tracked" in the questopedia.
- *
- * Integrates with others of mine plugins:
- * - J-Base; to be honest this is just required for all my plugins.
- *
- * ----------------------------------------------------------------------------
- * DETAILS:
- * Quest and objective data is sourced from the Omni/Questopedia system (see
- * J-Omni-Quest), not from notetags of any kind- this plugin is purely a
- * display frame that reads tracked quest state and renders it.
- *
- * ============================================================================
- * NOTE ABOUT NOTETAGS:
- * This plugin has no notetags of its own.
- * ============================================================================
- * CHANGELOG:
- * - 1.1.0
- *    Player interference is now resolved by the shared resolver in J-HUD instead of
- *    by this frame's own test against the player's screen position, which had this
- *    frame's corner written into it.
- * - 1.0.1
- *    Wrote real help docs; the help text was still boilerplate placeholder.
- *    Removed leftover unused scaffold plugin params/command/regex.
- * - 1.0.0
- *    The initial release.
+ * Please refer to J-HUD-QuestFrame's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/hud/ext/quest/index.md
  * ============================================================================
  */
 //endregion annotations

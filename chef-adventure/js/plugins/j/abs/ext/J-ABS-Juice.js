@@ -16,289 +16,28 @@
  * @orderAfter J-ABS-Hitstop
  * @help
  * ============================================================================
- * OVERVIEW
- * J-ABS-Juice layers lightweight procedural motion on map battlers: target hit
- * reactions, caster strike/dodge/heal pulses, casting shimmer, and optional
- * IconSet weapon swing overlays driven by skills or equipped weapons.
- *
- * Load order:
- * Place after J-Motion (which owns character motion), and after
- * J-ABS-InputManager (dodge key binding), J-ABS-Poses (attack poses), and
- * J-ABS-Hitstop (impact timing). Juice wraps engine hooks that chain after
- * those extensions so gameplay semantics stay unchanged.
- *
- * Relationship to J-Motion:
- * Juice decides WHEN a battler reacts and HOW HARD; J-Motion decides what the
- * sprite looks like. Everything a battler does with its own body is declared on
- * J-Motion's composer under the `combat:reaction` source, so a reaction composes
- * with whatever ambient motion that battler already has rather than fighting it.
- * The four reactions register as ordinary motion types — `squish`, `tilt`,
- * `flip` and `charge` — which means an event page or a state can ask for them by
- * name too. The weapon swing overlay is the exception: it is a sprite this
- * plugin creates and owns, so it is driven directly rather than composed.
- *
- * ============================================================================
- * OVERLAYS OUTSIDE COMBAT
- * The overlay presets are available to events through the Apply Overlay plugin
- * command, which shows any IconSet cell over any character in any of the nine
- * presets. Naming an item, weapon, armor or skill reads that row's icon, which
- * keeps a cutscene pointing at the right picture after the database is edited;
- * a raw cell index is there for icons that belong to no row.
- *
- * Set Hold to true and the icon reaches its pose and stays there until Remove
- * Overlay withdraws it, which is what "the hero raises the amulet" looks like
- * when the scene is not ready to move on yet. The `present` preset lifts the
- * icon straight up over the character's head and is facing-agnostic.
- *
- * A held overlay survives everything that rebuilds the map's sprites — opening
- * and closing the menu, a map transfer, a scene change — because what is stored
- * is the request rather than the sprite, and sprites collect their overlays as
- * they are built. It follows the character, so a held icon on the player stays
- * with them across maps.
- *
- * It does NOT survive loading a save file, which matches how J-Motion's own
- * motions behave; nothing about the character's decoration is written to the
- * savefile by either plugin. A cutscene that holds something up should take it
- * down before it ends.
- *
- * Overlays are keyed by a source, exactly as J-Motion's motions are. Two
- * different sources can hold two icons on one character, and withdrawing one
- * leaves the other alone. Leave the source alone unless you need that.
- *
- * For the motions a character makes with its own BODY — squish, tilt, flip and
- * charge — use J-Motion's Apply Motion command instead. Those are registered
- * motion types and are already addressable by name from any event page.
- *
- * Coexistence with J-ABS-Poses:
- * Poses swap character sheets / patterns for readable attacks, which is a
- * different layer entirely from the transform J-Motion composes. Keep juice
- * intensities modest so pose readability stays primary.
- *
- * ============================================================================
- * REQUIRED EXTERNAL CONFIGURATION
- * J-ABS-Juice has NO plugin parameters. All tuning lives in the external JABS
- * configuration file at `data/config.jabs.json`, under a top-level `juice`
- * block. The plugin THROWS at startup when the block (or any required leaf) is
- * missing or malformed — this is intentional. Disabling juice is "remove the
- * plugin from your manifest", not "leave the config block out".
- *
- * Why? Plugin parameters cannot express structured data without becoming
- * fragile JSON-in-a-string blobs, and "juice off when a switch is on" was
- * never a real requirement: developers who do not want juice should just not
- * load the plugin.
- *
- * Required shape (all leaves required; missing keys are loud errors):
- *
- *   {
- *     "teams": [ ... ],
- *     "juice": {
- *       "target": {
- *         "physicalSquishIntensity": 0.12,
- *         "magicalSquishIntensity":  0.08,
- *         "squishFrames":            10,
- *         "healingRecipientScale":   0.65,
- *         "flurryDecayPercent":      72
- *       },
- *       "caster": {
- *         "dodgeSquishIntensity":          0.28,
- *         "dodgeSquishFrames":             12,
- *         "supportPulseIntensity":         0.06,
- *         "supportPulseFrames":            12,
- *         "strikeTiltRadians":             0.18,
- *         "strikeTiltFrames":              6,
- *         "weaponSwingPeakRadians":        0.65,
- *         "weaponSwingFrames":             10,
- *         "spriteVerticalOffsetPixels":    10,
- *         "unarmedStrikeSquishIntensity":  0.14,
- *         "unarmedStrikeSquishFrames":     9
- *       },
- *       "casting": {
- *         "pulseAmplitude": 0.045
- *       },
- *       "profiles": {
- *         "default": { "tiltMul": 1, "swingMul": 1 }
- *       }
- *     }
- *   }
- *
- * Field reference (all values dimensionless unless noted):
- * target.physicalSquishIntensity — scale pulse on physical hits.
- * target.magicalSquishIntensity  — scale pulse on magical hits.
- * target.squishFrames            — frames spent easing the target pulse.
- * target.healingRecipientScale   — multiplier applied when the action heals.
- * target.flurryDecayPercent      — per-repeat damping (1–100) for the same
- *                                  action UUID vs target within a 2-frame window.
- * caster.dodgeSquishIntensity    — caster squish on the dodge cooldown.
- * caster.dodgeSquishFrames       — frames easing the dodge squish.
- * caster.supportPulseIntensity   — caster squish on heal / support actions.
- * caster.supportPulseFrames      — frames easing support pulses.
- * caster.strikeTiltRadians       — peak body tilt for offensive actions (radians).
- * caster.strikeTiltFrames        — frames easing tilt recovery.
- * caster.weaponSwingPeakRadians  — peak overlay rotation for IconSet swings (radians).
- * caster.weaponSwingFrames       — frames the IconSet overlay spends swinging.
- * caster.spriteVerticalOffsetPixels — positive shifts the IconSet overlay down
- *                                     on screen (tall-head chibi sprites often need 8–14).
- * caster.unarmedStrikeSquishIntensity — squish intensity when no IconSet
- *                                       swing plays (icon unresolved).
- * caster.unarmedStrikeSquishFrames    — frames easing unarmed pulses.
- * casting.pulseAmplitude         — continuous shimmer amplitude while
- *                                  {@link JABS_Battler.isCasting} stays true.
- * profiles                       — keyed tilt/swing multiplier rows. Keys
- *                                  match `[A-Za-z0-9_-]+`. Each row needs both
- *                                  `tiltMul` and `swingMul`. A `default` row
- *                                  is mandatory (fallback when a skill's
- *                                  resolved style key has no matching row).
- *
- * Inferred profile keys (when a skill has no `<jabsJuiceWeaponStyle:...>` tag):
- *   - weapons: string weapon type id (example wtypeId 1 → "1").
- *   - armor:   "a" + armor type id  (example atypeId 4 → "a4").
- *
- * ============================================================================
- * SKILL TAGS (notes):
- * <jabsJuiceIcon:N>
- *   Forces weapon swing overlay icon index N on the IconSet sheet. When absent,
- *   the icon is inferred from the actor's equipped gear: dual-wield offhand uses
- *   weapon slot 2; a single offhand resolves the orb/shield armor icon by matching
- *   skill ids on armor rows or the equip slot when it is armor.
- *
- * <noJuice>
- *   Suppresses all juice motion on the caster when this skill executes.
- *   Equivalent to <juiceMotion:none>.
- *
- * <juiceMotion:NAME>
- *   Selects a preset weapon/caster motion. Valid values:
- *   Weapon overlay:  arc | arc-reverse | arc-oscillate | bash | present | recoil | spin |
- *                    spin-reverse | stab-forward
- *   Caster-body:     squish | pulse | flip | flip-reverse
- *   Suppress:        none  (equivalent to <noJuice>)
- *   Legacy keys: swing-top-down → arc; swing-bottom-up → arc-reverse; spin-360 → spin;
- *   spin-720 → spin; spin-360-reverse → spin-reverse.
- *   present lifts the icon upward on screen (screen-stable "brandish"; uses facing-up card).
- *   arc-oscillate sweeps the arc back and forth, alternating direction on each sweep (see
- *   juiceRepeatCount below for sweep count).
- *   On healing skills, omitting juiceMotion keeps caster-only support squish; any juiceMotion
- *   tag opts into full strike juice.
- *
- * <castMotion:NAME>
- *   Selects the body motion shown for the WHOLE of this skill's cast, as opposed to
- *   juiceMotion above, which plays once at execution. Valid values:
- *   squish  - a fixed-period squat, width swelling as height compresses, for the length
- *             of the cast. Reads as effort being spent rather than energy gathering.
- *   When omitted, the cast shows the default accelerating charge pulse.
- *
- * <castMotionPeriod:N>
- *   Frames per repetition of the cast motion (default 8, which is about seven squats a
- *   second). Smaller is faster. Only read when castMotion is set.
- *
- * <castMotionIntensity:PERCENT>
- *   Peak deformation of the cast motion as a percent of the sprite's true size: at the
- *   bottom of a 45 squat the sprite is 45% wider and correspondingly shorter. When
- *   omitted, the juice config's unarmedStrikeSquishIntensity is used, which is tuned for
- *   a poke rather than a workout. Only read when castMotion is set.
- *
- * <juiceSpan:N>
- *   Arc span in degrees for arc / arc-reverse / arc-oscillate (default 120; typical range 30–300).
- *
- * <juiceRepeatCount:N>
- *   Number of times to repeat the motion within the juice duration (default 1).
- *   For spin / spin-reverse: full rotations.
- *   For arc-oscillate: number of arc sweeps, alternating direction.
- *   For all other motions: full replays within the duration window.
- *
- * <juiceDuration:N>
- *   Overrides the swing animation duration in frames. When omitted, the global
- *   `weaponSwingFrames * 2` value from config.jabs.json is used.
- *
- * <juiceStabTipDegrees:N>
- *   Degrees from Pixi +x to bore/tip at rotation 0. Stab defaults to sword diagonal;
- *   bash / recoil default to barrel toward −x unless overridden. Accepts negative values.
- *
- * <juiceProfileGun>
- *   Side-profile firearm icon: mirror east/west instead of ~180° rotation (keeps the grip
- *   from reading upside-down when the art points left). Up/down still use ±90° rotation —
- *   pure side-view art cannot read as true top-down aim; use a separate sprite or tune degrees.
- *
- * <jabsJuiceWeaponStyle:key>
- *   Selects a multiplier row from the `profiles` map in `config.jabs.json` → `juice`.
- *   Keys are arbitrary identifiers (letters, digits, underscore, dash) and must already
- *   exist in the `profiles` map.
- *   When omitted, inferred keys match the swing icon row: weapon rows use the string weapon
- *   type id (e.g. wtypeId 1 → "1"); armor rows use "a" + armor type id (e.g. atypeId 4 → "a4")
- *   so armor buckets never collide with weapon type ids.
- *
- * ============================================================================
- * CHANGELOG:
- * - 1.3.0
- *    Added the Apply Overlay and Remove Overlay plugin commands, showing any IconSet
- *    cell over any character in one of nine presets, named by database row or by index.
- *    A held overlay survives anything that rebuilds the map's sprites, because what is
- *    stored is the request rather than the sprite.
- * - 1.2.1
- *    Corrected which hook the juice manager reads when resolving a motion.
- * - 1.2.0
- *    Caster and target body motion is now declared on J-Motion's composer rather
- *    than written onto the sprite directly, which makes J-Motion a hard dependency.
- *    A battler's reaction composes with whatever ambient motion it already carries
- *    instead of cancelling it, and the four reactions register as ordinary motion
- *    types - squish, tilt, flip and charge - so an event page or a state can ask
- *    for them by name. Every skill notetag is unchanged.
- *    The casting pulse is now renewed each frame with a short life rather than
- *    started once and cancelled, so a cast that ends by any route at all lapses on
- *    its own. It also holds its own source, so a battler struck while casting
- *    flinches in full instead of for a single frame, and it stops on death rather
- *    than shimmering through the corpse's collapse.
- *    The weapon swing overlay is unchanged and still drives its sprite directly.
- * - 1.1.1
- *    Simplified six guards that tested a value for null and undefined before
- *    asking whether it was finite, which Number.isFinite already answers for
- *    both. No behavioural change; the checks could never have decided anything.
- * - 1.1.0
- *    Added <noJuice> and <juiceMotion:none> to suppress caster motion outright.
- *    Added flip/flip-reverse caster-body full-rotation spin motions.
- *    Added arc-oscillate weapon motion (alternating-direction arc sweeps).
- *    Renamed <juiceSpinCount> to <juiceRepeatCount>, generalized to every motion.
- *    Added <juiceDuration:N> to override the per-cycle swing frame count.
- *    Support/utility skills (damage type None) no longer trigger a target
- *    hit-reaction squish that could cancel their own caster-side motion.
- *    Removed the juiceConfigValidation module; config shape is now
- *    guaranteed by the jmz-data-editor tool instead of validated at runtime.
- * - 1.0.1
- *    Fixed crash when the full menu (Scene_Menu) was opened while a juice motion was in flight.
- *    JuiceMotionManager.#effects is a static array that outlives any single scene instance;
- *    when SceneManager tears down Scene_Map, all Sprite_Character objects in the old spriteset
- *    have their Pixi transform nulled, and the next frameTick call on the still-queued effects
- *    would throw "Cannot read properties of null (reading 'scale')".
- *    Fix: Scene_Map.terminate() now calls JuiceMotionManager.clearAll() before sprites are
- *    destroyed, draining all pending effects and sprite locks proactively.
- *    Secondary safeguard: all sprite-bound effect subclasses (JuiceSquishMotionEffect,
- *    JuiceTiltMotionEffect, JuiceCastingPulseMotionEffect, JuiceWeaponSwingMotionEffect)
- *    implement isSpriteAlive() checked in frameTick; effects targeting a sprite with a null
- *    transform are silently discarded rather than allowed to crash.
- * - 1.0.0
- *    Initial release.
+ * Please refer to J-ABS-Juice's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/abs/ext/juice/index.md
  * ============================================================================
  *
  * @command applyOverlay
  * @text Apply Overlay
  * @desc Shows an icon over a character in one of the overlay presets.
- *
  * @arg target
  * @type select
  * @option Player
  * @option Follower
  * @option Event
  * @option This Event
- * @default This Event
  * @text Target
  * @desc Which character shows the icon.
- *
+ * @default This Event
  * @arg targetId
  * @type number
  * @min 1
- * @default 1
  * @text Target ID
  * @desc The follower's party slot or the event's id. Ignored for the player and this event.
- *
+ * @default 1
  * @arg iconSource
  * @type select
  * @option Item
@@ -306,17 +45,15 @@
  * @option Armor
  * @option Skill
  * @option Icon Index
- * @default Item
  * @text Icon Source
  * @desc Where the icon comes from. Naming a database row survives that row's icon being changed later.
- *
+ * @default Item
  * @arg iconId
  * @type number
  * @min 0
- * @default 1
  * @text Icon ID
  * @desc The database id of the row, or the IconSet cell index when the source is Icon Index.
- *
+ * @default 1
  * @arg motion
  * @type select
  * @option present
@@ -328,71 +65,63 @@
  * @option stab-forward
  * @option bash
  * @option recoil
- * @default present
  * @text Motion
  * @desc Which preset to pose the icon in. `present` lifts it straight up over the head.
- *
+ * @default present
  * @arg duration
  * @type number
  * @min 1
- * @default 20
  * @text Duration
  * @desc How many frames the motion takes. When held, this is how long reaching the pose takes.
- *
+ * @default 20
  * @arg repeats
  * @type number
  * @min 1
  * @max 8
- * @default 1
  * @text Repeats
  * @desc How many times the motion repeats within the duration. Rotations, for the spin presets.
- *
+ * @default 1
  * @arg spanDegrees
  * @type number
  * @min 30
  * @max 300
- * @default 120
  * @text Arc Span
  * @desc How wide the arc sweeps, in degrees. Only the arc presets read this.
- *
+ * @default 120
  * @arg hold
  * @type boolean
- * @default false
  * @text Hold
  * @desc Park at the final pose and stay there until Remove Overlay withdraws it.
- *
+ * @default false
  * @arg sourceKey
  * @type string
- * @default command
  * @text Source
  * @desc Who owns this overlay. Removing a source only removes what that source applied.
+ * @default command
  *
  * @command removeOverlay
  * @text Remove Overlay
  * @desc Takes down whatever a source was holding up on a character.
- *
  * @arg target
  * @type select
  * @option Player
  * @option Follower
  * @option Event
  * @option This Event
- * @default This Event
  * @text Target
  * @desc Which character to take the icon from.
- *
+ * @default This Event
  * @arg targetId
  * @type number
  * @min 1
- * @default 1
  * @text Target ID
  * @desc The follower's party slot or the event's id. Ignored for the player and this event.
- *
+ * @default 1
  * @arg sourceKey
  * @type string
- * @default command
  * @text Source
  * @desc Who is withdrawing. Only overlays applied under this same source are removed.
+ * @default command
  */
 //endregion annotations
 
@@ -649,12 +378,6 @@ J.ABS.EXT.JUICE.RegExp = {
 	*/
 	JuiceProfileGun: /<juiceProfileGun>/i
 };
-
-//#endregion
-//#region src/plugins/abs/ext/juice/_metadata/meta.js
-var PLUGIN_NAME = "J-ABS-Juice";
-var PLUGIN_VERSION = "1.3.0";
-var PLUGIN_DESC_TAG = "ABS-JUICE";
 
 //#endregion
 //#region src/plugins/abs/ext/juice/core/JuiceIconResolver.js

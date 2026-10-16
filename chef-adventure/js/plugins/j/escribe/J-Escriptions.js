@@ -1,74 +1,19 @@
-//region Introduction
+//region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.1.1 ESCRIBE] Enables "describing" the event with some text and/or an icon.
+ * @plugindesc
+ * [v1.1.1 ESCRIBE] Enables "describing" the event with some text and/or an icon.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
  * @help
  * ============================================================================
- * This plugin allows the functionality to have events with text and/or icons
- * over them. These can also be only visible when the player is within a
- * specified distance from the event.
- *
- * In order to utilize this functionality, add a comment to an event with one
- * of the following tags below to create text/icons that show up on the event:
- *
- * <text:EVENT_TEXT>
- * Where EVENT_TEXT is whatever text you want to show on this event.
- *
- * <icon:ICON_INDEX>
- * Where ICON_INDEX is the icon index of the icon to show on this event.
- *
- * <proximityText:DISTANCE>
- * Where DISTANCE is the distance in tiles/squares that the player must be
- * within in order to see the text on this event. DISTANCE is required- to
- * require the player stand directly on the event, use <proximityText:0>
- * explicitly.
- *
- * <proximityIcon:DISTANCE>
- * Where DISTANCE is the distance in tiles/squares that the player must be
- * within in order to see the icon on this event. DISTANCE is required- to
- * require the player stand directly on the event, use <proximityIcon:0>
- * explicitly.
+ * Please refer to J-Escriptions's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/escribe/core/index.md
  * ============================================================================
- * NOTE:
- * Proximity tags are optional. If they are not added to the event alongside
- * the text or icon tag, then the text/icon will always be visible while the
- * event is visible on the map.
- * ============================================================================
- * CHANGELOG:
- * - 1.1.1
- *    Escriptions now hang off the character overlay and centre on whole pixels, so
- *    they no longer stretch with an animating character or blur on half of them.
- * - 1.1.0
- *    Multiple <text> tags now render as multiple lines, rather than the last
- *    one silently winning. An icon rides above the whole block.
- *    Collapsed text and icons into one internal escription type.
- *    Fixed unreachable opacity branches and a negative-zero offset.
- * - 1.0.2
- *    Text escriptions are now horizontally centered on their event. The map
- *    coordinate was being added into a pixel offset, drifting every label one
- *    pixel to the right per tile from the left edge of the map.
- *    Escription height is now measured from the character sprite instead of
- *    being picked from the sheet's "$" prefix, which is a single-character
- *    marker rather than a tall-character one. Small "$" sheets floated their
- *    labels far too high, and sheets taller than 96 pixels wore theirs inside
- *    the sprite. Sheets 48 and 96 pixels tall are unaffected.
- *    <proximityText:DISTANCE> now fades its text in. It was being gated on the
- *    icon's proximity, so an event with proximity text and no icon never
- *    showed the text at all.
- * - 1.0.1
- *    <proximityText>/<proximityIcon> now require an explicit DISTANCE; the
- *    no-argument form (implicit distance 0) is no longer supported- use
- *    <proximityText:0>/<proximityIcon:0> instead.
- *    Removed a dead constructor-type check against Game_Event that was
- *    already unreachable behind an equivalent isEvent() check.
- * - 1.0.0
- *    Initial release.
- * ============================================================================
-*/
+ */
+//endregion annotations
 
 //#region src/plugins/escribe/core/_metadata/_pluginMetadata.js
 var J_EscriptionsPluginMetadata = class extends PluginMetadata {
