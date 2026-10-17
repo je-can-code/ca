@@ -11,6 +11,7 @@ import { checkHousekeeping } from './checks/housekeeping.js';
 import { checkNotetags } from './checks/notetags.js';
 import { checkParse } from './checks/parse.js';
 import { checkPlugins } from './checks/plugins.js';
+import { checkScripts } from './checks/scripts.js';
 import { checkTextCodes } from './checks/textcodes.js';
 
 /**
@@ -25,6 +26,7 @@ export const CHECKS = [
   { name: 'notetags', run: checkNotetags, readsData: true },
   { name: 'config references', run: checkConfigs, readsData: true },
   { name: 'text codes', run: checkTextCodes, readsData: true },
+  { name: 'scripts', run: checkScripts, readsData: true },
 ];
 
 /**

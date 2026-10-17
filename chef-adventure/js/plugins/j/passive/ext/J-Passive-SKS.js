@@ -1,7 +1,8 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 PASSIVE-SKS] Gates passive state application by SKS equip state.
+ * @plugindesc
+ * [v1.0.0 PASSIVE-SKS] Gates passive state application by SKS equip state.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -12,25 +13,11 @@
  * @orderAfter J-SkillSlots
  * @help
  * ============================================================================
- * OVERVIEW
- * Without this extension, a learned skill contributes its <passive:[...]>
- * effect the instant it is known, regardless of whether it is equipped into
- * an SKS slot.
- *
- * This extension narrows an actor's passive-state-sourced skills down to only
- * those currently equipped via SKS, alongside any skill exempt from slotting
- * entirely (tagged <unslotted>, or ineligible for slotting by skill type).
- * Exempt skills behave exactly as they do without this extension- always
- * contributing their passive effect once known. Enemies are unaffected, since
- * SKS's equip state only exists for actors.
- * ============================================================================
- * CHANGELOG:
- * - 1.0.0
- *    The initial release.
+ * Please refer to J-Passive-SKS's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/passive/ext/sks/index.md
  * ============================================================================
  */
 //endregion annotations
-
 
 //#region src/plugins/passive/ext/sks/_metadata/_pluginMetadata.js
 /**

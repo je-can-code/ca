@@ -15,6 +15,7 @@ import { checkHousekeeping } from './checks/housekeeping.js';
 import { checkNotetags } from './checks/notetags.js';
 import { checkParse } from './checks/parse.js';
 import { checkPlugins } from './checks/plugins.js';
+import { checkScripts } from './checks/scripts.js';
 import { checkTextCodes } from './checks/textcodes.js';
 import { parseJson } from './project.js';
 
@@ -221,6 +222,9 @@ const buildControls = project =>
     : 0;
   const speak = line => withMessageLine(project, gateMapId, gateEvent.id, line);
 
+  // the script controls run on that same event, as a one-line Script command.
+  const runScript = line => withFirstPageCommand(project, gateMapId, gateEvent.id, { code: 355, indent: 0, parameters: [ line ] });
+
   return [
     {
       label: `a drop re-aimed at a blank armor row (Enemies #${dropper.id} -> Armors #${blankArmorId})`,
@@ -377,6 +381,24 @@ const buildControls = project =>
       check: checkTextCodes,
       planted: speak('\\C[32]Loud\\C[0].'),
       expect: [ '\\C[32] names colour 32, which is outside the windowskin palette' ],
+    },
+    {
+      label: `a script spreading its values into a call (Map #${gateMapId} event #${gateEvent.id})`,
+      check: checkScripts,
+      planted: runScript('$gameParty.updateVariableWithCraftedCountByCategories(9, ...categories);'),
+      expect: [ `Map #${gateMapId}`, `event #${gateEvent.id}`, 'spreads arguments into $gameParty.updateVariableWithCraftedCountByCategories()' ],
+    },
+    {
+      label: 'the same values spread into an array the call takes whole',
+      check: checkScripts,
+      planted: runScript('$gameParty.updateVariableWithCraftedCountByCategories(9, [ ...categories ]);'),
+      expect: null,
+    },
+    {
+      label: 'an ellipsis inside a string a call is handed, $gameMessage.add(\'Loading...\')',
+      check: checkScripts,
+      planted: runScript('$gameMessage.add(\'Loading...\');'),
+      expect: null,
     },
   ];
 };

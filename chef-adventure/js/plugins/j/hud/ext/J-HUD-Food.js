@@ -15,31 +15,10 @@
  * @orderAfter J-HUD
  * @help
  * ============================================================================
- * OVERVIEW
- * This plugin adds a food chain HUD frame to the screen.
- * It reads the leader's current food chain plan from JABS_Engine and renders
- * a vertical strip with a state icon, a segmented duration bar colored per
- * phase, and a label list highlighting the currently active phase.
+ * Please refer to J-HUD-Food's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/hud/ext/food/index.md
+ * ============================================================================
  *
- * This plugin does NOT parse food notetags or register the R2 button.
- * Those responsibilities belong to J-ABS-Food.
- * ============================================================================
- * CHANGELOG:
- * - 1.1.0
- *    The food frame fades while the player is standing on top of it, through the
- *    shared resolver in J-HUD.
- * - 1.0.2
- *    Corrected PLUGIN_NAME from J-HUD-FOOD to J-HUD-Food, matching the name the
- *    ship has always been built and shipped under.
- * - 1.0.1
- *    The food frame no longer declares private members. A window's constructor
- *    reaches initialize, and through it the drawing hooks, before a derived
- *    class installs its own members- so anything private was being touched on
- *    an object that did not yet have it.
- * - 1.0.0
- *    Initial release.
- * ============================================================================
- * PLUGIN PARAMETERS:
  * @param windowX
  * @type number
  * @text Window X
@@ -72,8 +51,6 @@
  * @desc Opacity of the windowskin frame and backdrop only (0 = invisible panel, 255 = opaque). Food icons, bar, and labels stay fully visible.
  * @default 255
  */
-//=================================================================================================
-/* eslint-enable max-len */
 //endregion annotations
 
 //#region src/plugins/hud/ext/food/_metadata/_pluginMetadata.js

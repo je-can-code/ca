@@ -1,4 +1,4 @@
-//region Introduction
+//region annotations
 /*:
  * @target MZ
  * @plugindesc
@@ -13,30 +13,11 @@
  * @orderAfter J-Aptitude
  * @help
  * ============================================================================
- * OVERVIEW
- * This plugin is an extension of J-Popups for J-Aptitude.
- *
- * Have you ever wanted a satisfying popup to fly off your character every time
- * they earn AP in combat? Well now you can! This plugin wires up AP reward
- * popups into the JABS combat flow, so players always know when their aptitude
- * is growing.
- *
- * ============================================================================
- * NOTE ABOUT NOTETAGS:
- * This plugin has no notetags of its own.
- * ============================================================================
- * CHANGELOG:
- * - 1.0.3
- *    The AP popup takes its icon from IconManager.
- * - 1.0.2
- *    AP reward popups route through `JABS_PopupMergeController.routeRewardPop` when J-Popups-ABS merge is enabled.
- * - 1.0.1
- *    Renamed source file to standard JABS naming conventions.
- * - 1.0.0
- *    Initial release.
+ * Please refer to J-Popups-APT's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/popups/ext/apt/index.md
  * ============================================================================
  */
-//endregion Introduction
+//endregion annotations
 
 //#region src/plugins/popups/ext/apt/_metadata/_pluginMetadata.js
 /**

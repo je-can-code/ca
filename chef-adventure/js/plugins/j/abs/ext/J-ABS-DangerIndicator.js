@@ -1,4 +1,4 @@
-//region Introduction
+//region annotations
 /*:
  * @target MZ
  * @plugindesc
@@ -9,59 +9,10 @@
  * @orderAfter J-ABS
  * @help
  * ============================================================================
- * This plugin enables the ability to display danger indicators on enemies
- * while on the map.
- *
- * This plugin requires JABS.
- * This plugin is plug-n-play, with minimal configuration.
+ * Please refer to J-ABS-DangerIndicator's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/abs/ext/danger/index.md
  * ============================================================================
- * USAGE:
- * If you are using JABS, then JABS already knows what to do to make use of
- * this functionality. Just add this plugin after/below JABS, and it'll work
- * with no additional adjustments.
- * ============================================================================
- * OVERRIDING THE INDICATOR PER ENEMY:
- * By default, whether an enemy's danger indicator shows is controlled by the
- * plugin parameter "Show Indicator by Default". You can override this on a
- * per-enemy basis using the tags below.
  *
- * TAG USAGE:
- * - Enemies (database note)
- * - Enemy events (comment; overrides the database default for that event)
- *
- * TAG FORMAT:
- *    <noDangerIndicator>
- *  Suppresses the danger indicator for this enemy, regardless of the plugin
- *  parameter default.
- *
- *    <showDangerIndicator>
- *  Forces the danger indicator to show for this enemy, regardless of the
- *  plugin parameter default. Only meaningful on an event comment when the
- *  database default (or an event-level <noDangerIndicator>) would otherwise
- *  suppress it.
- *
- * NOTE: An event-level tag overrides whatever the database note tag or
- * plugin parameter default would otherwise decide for that specific event.
- *
- * EXAMPLE:
- *    <noDangerIndicator>
- * This enemy never shows a danger indicator, even if the plugin parameter
- * default is enabled.
- * ============================================================================
- * CHANGELOG:
- * - 1.0.5
- *    The danger indicator now draws with the rest of a battler's captions, so the
- *    time of day no longer tints it.
- * - 1.0.4
- *    Fixed the NaN check on power level running before the line that produces the
- *    NaN, and answering with a warning rather than a usable sentinel.
- * - 1.0.3
- *    Added <noDangerIndicator>/<showDangerIndicator> per-enemy overrides.
- * - 1.0.2
- *    Raised minimum J-ABS version requirement to 4.7.0.
- * - 1.0.1
- *    Raised minimum J-ABS version requirement to 4.6.0.
- * ============================================================================
  * @param defaultEnemyShowDangerIndicator
  * @type boolean
  * @text Show Indicator by Default
@@ -116,7 +67,8 @@
  * @text Extremely Hard >7+
  * @desc When an player is more 7+ levels below the enemy, display this icon.
  * @default 588
-*/
+ */
+//endregion annotations
 
 //#region src/plugins/abs/ext/danger/_metadata/_pluginMetadata.js
 var J_DangerPluginMetadata = class extends PluginMetadata {

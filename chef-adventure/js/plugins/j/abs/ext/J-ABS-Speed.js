@@ -1,4 +1,4 @@
-//region Introduction
+//region annotations
 /*:
  * @target MZ
  * @plugindesc
@@ -11,92 +11,11 @@
  * @orderAfter J-ABS
  * @help
  * ============================================================================
- * OVERVIEW
- * This plugin enables modifications of movespeed for characters on the map.
- *
- * This plugin requires JABS.
- * This plugin requires no plugin parameter configuration.
- * ----------------------------------------------------------------------------
- * DETAILS:
- * The new parameter of "movement speed boost" is a calculated parameter that
- * gets cached when things change on battlers.
- * ============================================================================
- * MOVEMENT SPEED BOOST:
- * Have you ever wanted to have your battlers on the map move a little bit
- * slower or faster when afflicted with haste or wearing heavy boots, etc?
- * Well now you can! By applying the appropriate tag to various database
- * locations, you can control how fast or slow the battler's movement speed
- * is while on the map.
- *
- * NOTE1:
- * Multiple tags across multiple objects on a single battler will stack
- * additively.
- *
- * NOTE2:
- * There is no upper limit of move speed, so be careful!
- * There is a(n arbitrary) lower limit, of -90% move speed multiplier.
- *
- * TAG USAGE:
- * - Actors
- * - Classes
- * - Skills
- * - Weapons
- * - Armors
- * - Enemies
- * - States
- *
- * TAG FORMAT:
- *  <speedBoost:NUM>
- * Where NUM is the positive/negative percent modifier against base movespeed.
- *
- * EXAMPLE:
- *  <speedBoost:40>
- * This battler's movement speed will be increased by ~40%.
- *
- *  <speedBoost:-26>
- * This battler's movement speed will be decreased by ~26%.
- *
- *  <speedBoost:11>
- * This battler's movement speed will be increased by ~11%.
- *
- *  <speedBoost:70>
- *  <speedBoost:-50>
- *  <speedBoost:-10>
- *  <speedBoost:30>
- * This battler's movement speed will be increased by ~40%.
- * ============================================================================
- * NATURAL GROWTH:
- * With J-NaturalGrowth also installed, move speed boost (msb) accepts its buff
- * and growth tags, in the same numbers as <speedBoost:NUM> above:
- * <msbGrowthPlus:[1]> grants +1 speed boost per level.
- *
- * TAG FORMAT:
- *  <msb(Buff|Growth)(Plus|Rate):[FORMULA]>
- * See J-NaturalGrowth for how Buff/Growth and Plus/Rate behave.
- * ============================================================================
- * CHANGELOG:
- * - 1.2.0
- *    Added natural growth tags for move speed boost (msb).
- * - 1.1.1
- *    Corrected PLUGIN_NAME from J-ABS-SpeedBoosts to J-ABS-Speed, matching the
- *    name the ship has always been built and shipped under.
- * - 1.1.0
- *    Move speed boost (msb) registered with the shared parameter catalog
- *    and given an SDP panel binding, so it can now be invested via SDP.
- *    Replaced getWalkSpeedBoosts() with a plain msb getter, matching the
- *    catalog's getValue(battler => battler.msb) convention.
- *    Removed the legacy IconManager.longParam(31) override in favor of
- *    catalog-driven icon resolution.
- * - 1.0.3
- *    Raised minimum J-ABS version requirement to 4.7.0.
- * - 1.0.2
- *    Raised minimum J-ABS version requirement to 4.6.0.
- * - 1.0.1
- *    Consumed `RPGManager` update.
- * - 1.0.0
- *    Initial release.
+ * Please refer to J-ABS-Speed's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/abs/ext/speed/index.md
  * ============================================================================
  */
+//endregion annotations
 
 //#region src/plugins/abs/ext/speed/_metadata/_pluginMetadata.js
 var J_SpeedPluginMetadata = class extends PluginMetadata {

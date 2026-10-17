@@ -1,4 +1,4 @@
-//region Introduction
+//region annotations
 /*:
  * @target MZ
  * @plugindesc
@@ -11,33 +11,11 @@
  * @orderAfter J-CMS
  * @help
  * ============================================================================
- * This is a redesign of the equipment menu.
- * It includes the ability to see more parameters when changing equips.
- * You can also now press the square button (or equivalent of) to view the
- * detailed information relating to JABS (if applicable).
- * ============================================================================
- * NOTE ABOUT NOTETAGS:
- * This plugin has no notetags of its own- it is purely a scene/window
- * redesign of the native equip menu.
- * ============================================================================
- * CHANGELOG:
- * - 1.2.0
- *    The equipment list now orders by database id rather than by the datastore
- *    slot each row happens to occupy. A refined equip keeps the id of the thing
- *    it was refined from and only takes a new slot, so slot order stranded every
- *    refined copy in a block at the bottom of the list, far from the plain one it
- *    came from. Id order sits them together, plain one first, and puts two copies
- *    of the same equip next to each other. The empty row meaning "take this slot
- *    off" has no id and stays pinned last.
- * - 1.1.0
- *    Added a context action on the equip slot list to unequip the
- *    currently-selected slot directly, without opening the item list.
- *    Renamed slot-window handler symbols pagedown/pageup to
- *    actor-next/actor-prev.
- * - 1.0.0
- *    Initial release.
+ * Please refer to J-CMS-Equip's book for more details:
+ * https://github.com/je-can-code/rmmz-plugins/blob/main/docs/plugins/cms/ext/equip/index.md
  * ============================================================================
  */
+//endregion annotations
 
 //#region src/plugins/cms/ext/equip/_metadata/_pluginMetadata.js
 var J_CmsEquip_PluginMetadata = class extends PluginMetadata {
@@ -467,7 +445,7 @@ Scene_Equip.prototype.switchToMoreDataFromEquipSlots = function() {
 *
 * The slots and the items wanted the same nine lines with two words changed, so they share them. Which
 * list is underneath, and where cancelling returns to, is the whole of the difference.
-* @param {Window_Selectable} sourceWindow The list the panel was summoned from.
+* @param {Window_EquipSlot|Window_EquipItem} sourceWindow The list the panel was summoned from.
 * @param {Function} onCancel What backing out of the panel should do.
 */
 Scene_Equip.prototype.toggleMoreData = function(sourceWindow, onCancel) {
