@@ -28,7 +28,7 @@
                         "palette",
                         "stamps"
                       ],
-                      "activeView": "stamps",
+                      "activeView": "palette",
                       "id": "2"
                     },
                     "size": 35
@@ -51,14 +51,12 @@
                 "type": "leaf",
                 "data": {
                   "views": [
-                    "start",
-                    "map-20",
-                    "map-28"
+                    "start"
                   ],
-                  "activeView": "map-28",
+                  "activeView": "start",
                   "id": "4"
                 },
-                "size": 1260
+                "size": 1620
               },
               {
                 "type": "branch",
@@ -88,7 +86,7 @@
                     "size": 516
                   }
                 ],
-                "size": 360
+                "size": 0
               }
             ],
             "size": 1032
@@ -105,11 +103,19 @@
             "params": {
               "expanded": [
                 12,
-                13,
+                122,
+                364,
                 119,
-                19,
                 20,
-                40
+                39,
+                14,
+                3,
+                386,
+                388,
+                13,
+                290,
+                407,
+                403
               ]
             },
             "title": "Maps",
@@ -142,24 +148,6 @@
             "tabComponent": "props.defaultTabComponent",
             "title": "Start"
           },
-          "map-20": {
-            "id": "map-20",
-            "contentComponent": "map",
-            "tabComponent": "props.defaultTabComponent",
-            "params": {
-              "mapId": 20
-            },
-            "title": "Northeast Section"
-          },
-          "map-28": {
-            "id": "map-28",
-            "contentComponent": "map",
-            "tabComponent": "props.defaultTabComponent",
-            "params": {
-              "mapId": 28
-            },
-            "title": "Entrance"
-          },
           "map-properties": {
             "id": "map-properties",
             "contentComponent": "map-properties",
@@ -189,17 +177,31 @@
             "minimumWidth": 300
           }
         },
-        "activeGroup": "1",
+        "activeGroup": "4",
         "collapsedGroups": {
           "2": {
-            "height": 464,
+            "height": 641,
             "minimumHeight": 100,
             "maximumHeight": 9007199254740991
           },
           "3": {
-            "height": 739,
+            "height": 393,
             "minimumHeight": 100,
             "maximumHeight": 9007199254740991
+          }
+        },
+        "collapsedSides": {
+          "right": {
+            "5": {
+              "width": 360,
+              "minimumWidth": 300,
+              "maximumWidth": 9007199254740991
+            },
+            "6": {
+              "width": 360,
+              "minimumWidth": 240,
+              "maximumWidth": 9007199254740991
+            }
           }
         }
       }
