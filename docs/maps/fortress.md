@@ -191,6 +191,9 @@ fourteen each.
 
 Notes on the draft:
 
+- **Exactly one encounter per room** `LOCKED (Jeremy, 2026-10-24)`, a standing rule for both lanes, so every
+  room needs enough space for a real tussle of one against four or five. The switcher rooms stay enemy-free,
+  as the rest stops above.
 - **The lanes are in step**, which is the constraint canon put on free shifting: switchers at 4, 8
   and 12 in both, blocks and causes at matching depths, mini-boss at 9 in both. The zipper's teeth
   line up by construction.
@@ -357,6 +360,69 @@ Each man's strong scene is with the sin that touches *his* wound; the weak scene
 the protagonist has no stake; only the swap gives both lanes an origin flashback.
 
 ## The basement: Lust
+
+### The basement itself `LOCKED (Jeremy, 2026-10-24)`
+
+**The tower and the basement are opposites.** Jerald climbs a *tower*, and castle towers are narrow, which is
+why every floor of his is one screen. Rupert's basement "probably actually isn't even a basement of the
+castle at all": it is caves, with toxic stuff all around that Grudj never cared about, the toxic waste of
+the castle's own machinery, or the growth the castle was poofed down on top of, dead and twisted.
+
+- **Shape:** one or two levels deep, several maps to each level, and Lust on a final level of his own.
+- **Dark:** `<ambient:[100]>` from the first step, except a small few tiles where Rupert lands, under the hole
+  in the ceiling. Past that he relies on his own lighting gear, which he has by now from the Subterranean,
+  and on a few whirring machines that give off a little light.
+- **Digiwood glows down here** (Jeremy: "perhaps the digiwood trees... will be down here, and emit light?").
+  That is the `*Branching (Digiwood)` harvest node (Enemies 17, sprite `$o_tree-digiwood`), limbs off a
+  "Digital Holotree", the deliberately imported-looking tech wood. `docs/enemies/harvest-nodes.md` already
+  proposes it, and Ultanium, the other legendary material, for the Fortress at 115-130.
+
+**The plan** (2026-10-24, Jeremy: "sounds great"): caves carved like the Subterranean's, two levels and Lust's
+own: B1 runs rooms 1-8 (the slide to the second switcher room), B2 runs rooms 9-12 (the horde to the last
+switcher room), and B3 is Lust's alone. Within a level the maps run side to side, and the lane drops between
+levels. Every map wears tileset 22 (see The look) and carries `<ambient:[100]>`.
+
+**Drafted** `SHIPPED (2026-10-24)`, under `Map427` "AREA: Basement" and its `Map428` "FLOOR: B1", by
+`tools/mapgen/dungeons/fortress.js`. The look: the dark purple-grey cobble ("A2 ground 9") under the dark
+mossy cave whose face is all twisted roots ("A4 ceiling 18" and "A4 wall 26"). B1 runs east through doors in
+the side walls, all wired.
+
+| Map | What it is | Squares for Jeremy |
+|---|---|---|
+| `Map429` "Basement 1: Landing", 50x38 | the landing nook under the hole in the ceiling, the slide south out of it, the cavern at its foot, and a passage east | Rupert comes down at (9, 7), the one lit spot; the slide (x 7-11, rows 9-19) should not be climbable back up; how he gets here at all is the trap's event |
+| `Map430` "Basement 2: Dark Floor", 50x38 | a passage in from the west, a cavern with two patches of hazard grate (tileset 19's, passable on every shape), and a way north and east | what the hazard floors do to Rupert |
+| `Map431` "Basement 3: The Lever", 50x38 | in from the west and down into a cavern; the way out east passes a nook (x 35-38, rows 17-20) | the lever, at (36, 18), where he cannot pass it unseen |
+| `Map432` "Basement 4: Switcher Room", 40x23 | a still chamber between passages west and east | the sigil |
+| `Map433` "Basement 5: Goop Ocean", 120x40 | the goop wall to wall (tileset 19's green sludge, impassable); the west shore; **the block**, a six-wide channel nobody can hop (x 10-15, rows 18-20) between the shore and the first island; then eleven hops island to island, wandering up and down, with the big island halfway (around x 43-67, rows 7-18) for the encounter; the east shore | Jerald's chunk and the bridge it makes over the channel, and the cross-cut there (the sigil is one room back) |
+| `Map434` "Basement 6: Hazard Floors", 50x38 | "manageable, a nuisance": a winding cave through two caverns, salted with four patches of hazard grate and two puddles of goop to step round; the first cavern is the encounter's | what the grate does to Rupert |
+| `Map435` "Basement 7: Hazard Field", 60x40 | "completely covered in hazard floors": one great field of grate between safe ground at either end, with three safe stepping stones and the three hops between them covering about half the way | the switch puzzle, as the jumps' page condition (they are unconditional in the draft); the light bridge if Jerald reverse-charged the circuit, along row 23 from x 12 to x 47; the encounter |
+| `Map436` "Basement 8: Switcher Room", 40x23 | a still chamber with the drop to the second level south out of it | the sigil |
+
+**B2** `SHIPPED (2026-10-24)`, under `Map437` "FLOOR: B2", runs back west under B1 (Jeremy: "your suggestion is
+actually about right").
+
+| Map | What it is | Squares for Jeremy |
+|---|---|---|
+| `Map438` "Basement 9: The Horde", 60x45 | down from the switcher room into the biggest cavern yet, room for one man against a crowd; out west | the horde |
+| `Map439` "Basement 10: Cultists' Lair", 80x30 | "a long path Rupert can only read as a cultists' lair": a winding five-wide path, along, down, along, up, along, with two platforms of dressed stone beside it (x 50-62, rows 20-27, and x 20-32, rows 10-17) | the torches lighting as he nears, the demon waves from the platforms (together the room's one encounter) |
+| `Map440` "Basement 11: Dome Approach", 50x38 | a room that "leads up to a large dome underground": in from the east into a cavern, then a broad climb north to the dome, and a dead-end side passage west off the cavern | the barely perceptible button, at the side passage's end (9, 28); the encounter |
+| `Map441` "Basement 12: Switcher Room", 40x23 | up from the climb into a still chamber | the sigil; Jerald's care package |
+
+**B3** `SHIPPED (2026-10-25)`, under `Map442` "FLOOR: B3", Lust's level alone (Jeremy: "That is precisely
+accurate... Do it").
+
+| Map | What it is | Squares for Jeremy |
+|---|---|---|
+| `Map443` "Basement 13: Lust", 80x46 | the large dome underground, one great round vault two screens each way, big on purpose so his slow walk can pace the scene; Rupert comes in at the bottom middle, and a recess in the back wall dead ahead (x 38-41, rows 2-4) holds the elevator | Lust, waiting at the far end (around 40, 9), his proximity-paced approach and the fight; the VERY convenient elevator and the lane's exit scene |
+
+**The ocean of goop** (Jeremy, 2026-10-24): big enough that you cannot see across it standing at one edge, and
+since it is dark, nothing anyone can equip could ever light it all; "you MUST navigate across it", about
+three screens of hops and jumps. **No tools in the basement or the tower:** both lanes "hop a little", and
+the Snake Rope stays out, so the player never has to think about who had it equipped last. The hops are
+built exactly as `Map158` "Rapid Hops" builds its own: a "jump" event on the edge square either side of a
+two-square gap, three squares apart, each throwing the player four squares so they land past the other
+side's event. The draft's proof checks every hop spans goop and lands on ground, and counts the channel
+as bridged.
 
 ### The pre-fight scene `PROPOSED (Jeremy, drafted 2026-09-16)`
 
@@ -555,6 +621,33 @@ the Treis gate that defangs it, the thesis said out loud with no verdict, and th
 this page needs from it is the **fight**, because the fight decides the room and the room is the last
 map; the dialogue can land whenever Jeremy wants to write it.
 
+### The room `LOCKED (Jeremy, 2026-10-25)`
+
+- **Its own weather.** The courtyard is the one place in the castle open to the sky, so it gets a weather of
+  its own: a purple "gloom", with weird motes and a bit of fog. J-Weather presets are data
+  (`data/config.weather.json`), and a layer takes a `tint`, so this is a new preset stacking tinted motes
+  and fog the way `submerged` stacks motes and bubbles.
+- **Perpetually dark, but not black,** with fluorescent lights around to light the area up.
+- **The entrance:** when the two enter, the gent steps out from behind a statue and prepares his evil
+  monologue.
+- **No clock** (Jeremy: "You can't come here during the day and it'll be lighter or at night to get it
+  darker").
+
+**Drafted** `SHIPPED (2026-10-25)`: `Map444` "The Courtyard", 60x40, directly under the Fortress's folder,
+tileset 21, noted `<noToneChange>`, `<weather:gloom>` and `<ambient:[85]>`. The `gloom` preset is new in
+`data/config.weather.json` (id 16): a thin purple fog crawling low (`Cloud_05A`, tinted `#5b2d82`), violet
+wisps (`Light_01B`, `#b26bff`), and at moderate and heavy a few pale sparks rising slowly (`#d9a6ff`); with
+`<noToneChange>` the courtyard holds it at moderate, so the gloom never lifts. Every number is a first guess
+for playtest.
+
+| What | Where |
+|---|---|
+| The gate from the entry hall (needs the key and the power) | the gap in the front wall, x 28-31 on row 39; arrive on row 37 facing up |
+| The terrace | rows 4-7 across the far end, paved in square tiles, its wall on rows 8-9 and stairs down the middle (x 27-32) |
+| The statue he steps out from behind | the terrace's centre, around (29, 5) |
+| The duel | everything below the terrace, rows 10-36, open floor for a battle mage who blinks from point to point |
+| The scrambler machine, the fluorescent lights | Jeremy's to place |
+
 ### What Jeremy has `PROPOSED (Jeremy, 2026-09-17)`
 
 Grudj is "my take" on a species whose source is gone: probably human-adjacent and different-looking,
@@ -625,17 +718,112 @@ with, in the manner of the FF6 moogle scene where the party divides and you choo
 Jerald's lane opens on the beams at the top of this very hall. This is also the last place with a way
 out; see [Once divided, no leaving](#once-divided-no-leaving-locked-jeremy-2026-09-17).
 
+**The room itself** (Jeremy, 2026-10-24): "a boring and conventional castle." A straight path leads
+forward to the courtyard, some stairs lead up to a balcony floor that overlooks the hall, and a carpet
+or something runs through it: "conventional castle types of things." The whole gimmick is that they take
+about four steps in before the traps spring and drop the protagonists to their designated locations.
+
+**Drafted** `SHIPPED (2026-10-24)`: `Map411` "Entry Hall", 40x46. It was first drafted one screen tall, and
+Jeremy doubled it: at 23 rows it was "more like an entry closet". It hangs under `Map410` "DUNGEON: Frozen
+Fortress", which sits under Map118 "FIELD: Lakeside Road" beside the Erocia Isthmus and the Crystalline
+Ravine (Jeremy's placement). `tools/mapgen/dungeons/fortress.js` draws it. Every way in and out is a story
+event, so the draft wires none of them; these are the squares they need:
+
+| What | Where |
+|---|---|
+| The way in from the gate (`Map116` event 1) | the gap in the front wall, x 18-21 on row 45; arrive on row 44 facing up |
+| The trap, about four steps in | the carpet around row 40 |
+| The courtyard doors | the balcony's wall, x 18-21 on rows 6-7, dead ahead; the player stands on row 8 to touch them |
+| The elevator | the balcony's wall, x 26-27 on rows 6-7 |
+| The stairs | the openings at x 2-4 and x 35-37 on rows 6-7, paved like the balcony for the stair tiles |
+
+The balcony (rows 3-5) is paved in square tiles so it reads as the floor above, and the carpet is the dark
+framed runner. No music autoplays yet.
+
 Order of beats: the trap springs, the pick, then the dead cycle button as the first thing that
 happens in whichever lane was picked. The pick chooses who to *follow*; the button is still how the
 player discovers, with their thumb, that following is all they can do. The reunion lands back here,
 and the courtyard gate opens off this hall (see the reunion, `PROPOSED`).
 
-## The look `OPEN`
+## The tower's floors `LOCKED (Jeremy, 2026-10-24)`
 
-- **Tileset:** 14 "Dungeon (VisuStella)" is the likely pick; 18 "EX Dungeon Normal" or 19 "EX Dungeon
-  Icy" are the alternates for drafting the castle. Undecided until Jeremy has looked at whether one set
-  is cohesive enough to cover everything the lanes need at once: **technology, sludge, cave, and
-  castle.** (Jeremy, 2026-09-17.)
+- **The rafters** (Jerald's room 1) are the rafters at the top of the entry hall. The parallax is a still of
+  the entry hall itself (Jeremy: "I could probably MAKE one, with a still of the entryhall"), so the player
+  sees the hall below while treading along the rafters to the opposite side, where the ascent of the tower
+  begins.
+- **Every floor of the tower is one screen.** No map scrolling at all for Jerald.
+- **The hole.** Every floor has one sectioned-off area to one of the sides that is inexplicably
+  inaccessible. After beating Envy at the top, Jerald takes an evented tumble into it.
+- **The fall** (row 14) is a tunnel, basically, maybe with windows, which makes it easy to read as falling.
+  The `flip` motion (J-ABS Juice, `<motion:[flip, TURNS, DURATION, DIRECTION]>`) runs on repeat while he
+  falls, with a bit of silly monologuing, and then control switches over to Rupert, per the reunion rules
+  above.
+- `PROPOSED`: the hole sits on the same side of every floor, so the stack reads as one shaft. Leaving it
+  empty makes it solid in MZ for free: an invisible wall around an open pit.
+- `PROPOSED`: the tunnel loops vertically (`scrollType` 1), so with Jerald on a move-down route the fall
+  lasts exactly as long as the monologue, past the same windows, until the last line hands over.
+- `OPEN`: whether a misstep on the rafters can fall. `PROPOSED`: no. An empty square is already solid,
+  J-ABS knockback could shove him off a one-wide beam, a game over there sends the player back outside the
+  castle (the last save is the platform on `Map116`), and the lane ends with Jerald's real fall, which a
+  fall here would spend early. The fun alternative: drop him into the hall and let the spring launch him
+  back up.
+
+**Drafted** `SHIPPED (2026-10-24)`, under `Map412` "AREA: Tower" in the Fortress's folder, by
+`tools/mapgen/dungeons/fortress.js`. The tower climbs up the screen: each floor is left by a stair at its top
+and entered by a stair at the bottom of the next, the two standing over each other, so the way up zigzags
+across every floor. The doors between floors are wired, in the area-event format.
+
+| Map | What it is | Squares for Jeremy |
+|---|---|---|
+| `Map413` "Tower 1: Rafters", 40x23 | open air with beams zigzagging up the middle twenty columns, where the shrunk still of the hall will show, meeting halfway in a broad platform (x 11-28, rows 7-13) for the room's encounter; the beams themselves are one wide, for balancing, and grey brick standing in for wood (tileset 18 has wooden beams, 21 has none) | the spring lands Jerald on the bottom beam over the carpet, (19, 20); the parallax waits for the polished hall (Jeremy, 2026-10-24) |
+| `Map414` "Tower 2: Boring Floor", 40x23 | the shared floor: the hole down the right side (x 31-37: its far wall on rows 5-6, the shaft on rows 7-17), up from the rafters at the bottom right, on up at the top left | |
+| `Map415` "Tower 3: Crumbling Floor", 40x23 | the same floor, already fallen in across rows 10-12 and into the hole, with one crossing left standing | the crossing, x 14-16 on rows 10-12, is where the break event goes |
+| `Map416` "Tower 4: Switcher Room", 40x23 | the same floor, up from the crumbling floor at the bottom middle | the sigil |
+| `Map418` "Tower 5: Dead Elevator", 40x23 | the same floor with four pillars round the lobby for cover, and no stair on up: the elevator is the only way, its car in a recess in the back wall (x 18-21, rows 1-2) | the elevator, power-gated, riding up to the recess in the Bolt Gallery's front wall; until it is evented the atlas reads the tower as two runs split here |
+| `Map419` "Tower 6: Bolt Gallery", 40x23 | the same floor with niches for the bolt traps, four down the left wall (x 1, rows 5-6, 9-10, 13-14, 17-18) and three along the back (x 9-10, 15-16, 21-22), so the bolts cross the floor both ways | the elevator arrives in the front wall's recess, x 18-21 on row 21, facing up |
+| `Map420` "Tower 7: Needless Hazards", 40x23 | the same floor running in a ring round a great block of masonry (x 12-22, rows 8-14), so the fight circles it and the hazards have every wall to line | the reverse-charge switch |
+| `Map421` "Tower 8: Switcher Room", 40x23 | the same floor, up from the hazards at the bottom left | the sigil |
+| `Map422` "Tower 9: Mini-Boss", 40x23 | the same floor left wide open for the ghost, which needs no cover; up from the switcher room at the bottom middle, and on by another elevator, its car in a recess in the back wall (x 18-21, rows 1-2) | the ghost; the elevator into the ride |
+| `Map423` "Tower 10: Elevator Ride", 40x23 | a static car, 6x6 (x 17-22, rows 8-13), on blue-lit tech flooring with a riveted steel front, hanging in a shaft of nothing (x 12-27, rows 3-18) inside stone walls: "a boring static elevator-like room, a little tight" (Jeremy, 2026-10-24) | everything: the parallax moved to make it climb, the sound and dialogue, the robot waves by eventing, and where the ride lets Jerald off |
+| `Map424` "Tower 11: Grand Staircase", 40x23 | the same floor with the elevator's arrival recess in the front wall (x 18-21, row 21) and a grand staircase six wide through the back wall (x 17-22), between two pairs of pillars that make an aisle of the approach | where the elevator ride lets Jerald off |
+| `Map425` "Tower 12: Switcher Room", 40x23 | the same floor, the grand staircase arriving at the bottom (x 17-22) and the last stair leaving from the top middle | the sigil; Rupert's care package |
+| `Map426` "Tower 13: Envy", 40x46 | Envy's chamber, two screens tall: one screen left thirty milling clones "one every few tiles", so Jeremy asked for "size x 2 and see how it looks", and with thirty clones scattered over a render it looked "about right... PLENTY of space for THIRTY fucking clones to wander around and be sufficiently annoying" (2026-10-24); the hole at the top right as on every floor, and the floor she waits on paved in square tiles (x 13-26, rows 6-12) | the clones, Envy and her scene, and the tumble into the hole |
+| `Map417` "Tower 14: The Fall", 40x46 | the shaft's stone wall seen face on (x 15-24) between two dark sides, looping vertically (`scrollType` 1) | the fall's route and the windows; it sorts last under the tower folder (order 9999), so later floors have to slot in above it |
+
+## The look `LOCKED (Jeremy, 2026-10-24)`
+
+On 2026-09-17 the question was whether one set could cover everything the lanes need at once:
+**technology, sludge, cave, and castle.** Laid side by side on 2026-10-24, the EX family covered all four
+between its two rows, and both rows are already the Negative Peaks' look (19 is every Peaks cave; 18 is
+Peak Rest and the Room of Sacrifice), so a castle stolen off that summit still looks like it came from
+there. Jeremy called it sound and asked for a row of its own.
+
+- **Tileset 21 "EX Dungeon Fortress"** `SHIPPED (2026-10-24)`: a clone of 19 "EX Dungeon Icy" with two
+  sheets swapped in.
+  - **A4 is `EX_Dungeon_A4_2`**, which sat on disk in no row until now: grey castle stone, stone with
+    blue-lit tech trim, riveted steel, rough fieldstone. His tech bolted onto stone he did not cut, as walls.
+  - **E is 18's `EX_Dungeon_D`**, the industrial tech sheet: server racks, pipes, generators, goop tanks,
+    hazard signs, chain-link. It replaced the ore sheet, because ore in CA is harvest events (`$o_ore-*`),
+    never tiles.
+  - The rest is 19's: A1 ice, lava, green sludge pools and a hazard grate; A2 snowy stone floors; A3
+    castle exteriors; A5 gateways and cave mouths; B plants; C icy castle ruins and a spiral stair wrapped
+    around a tower; D iron gates, cages, a portcullis, the portal ring.
+- **Its flags** are 19's for 19's sheets. Every A4 kind takes 19's wall convention (ceilings walkable
+  inside and blocked on their edges, with no terrain tag; faces solid), and E carries 18's flags for the
+  tech sheet.
+- **Its "goes on top" marks** in the map editor (`jmz-editor/tileset-marks.json`) are 19's A5 marks, since
+  the A5 sheet is shared. 19's A4 marks belong to the other wall sheet, so 21 has none for A4 yet.
+- **The trade:** A4 has no cave walls now, and the plain stone steps left with the ore sheet. A map that
+  wants either can still use 18 or 19, since every map picks its own tileset; inside 21, the stairs are
+  the spiral's stone steps (C) and the iron stairs (D).
+- `OPEN`: the set's sludge is green and the drafted lines call the goop purple. Tileset 14 is the only
+  candidate that had purple goop.
+- **Tileset 22 "EX Dungeon Basement"** `SHIPPED (2026-10-24)`, for Rupert's caves (Jeremy: "sounds great"):
+  a clone of 18 "EX Dungeon Normal" with 19's animated sheet (`EX_Dungeon_A1_2`) in A1, for the toxic sludge
+  pools (impassable, A1 kind 6) and the hazard grate (passable, kind 12). 18 already carries the caves, the
+  twisted roots and glowing growths, the gothic sheet whose pentagram suits room 10's cultist lair, and the
+  industrial machines. 18 and 19 flag their A1 sheets identically, so 22's flags are 18's to the bit. 18 has
+  no "goes on top" marks, so 22 has none either; 19's A4 marks cover the same walls if wanted.
 - The `ice-cavern` tiles on disk have no Tilesets row; nothing currently plans to use them.
 - Crusty is original and the snow is the timestamp; see the topology note.
 
@@ -652,8 +840,7 @@ and golems around 130 for Rupert.
 ## Open items
 
 - **Whose castle was it.** Pinned; see the section above.
-- **The look.** Tileset 14 versus 18/19, pending Jeremy's eyes on whether one set covers technology,
-  sludge, cave and castle at once.
+- **The goop's colour.** Tileset 21's sludge is green; the drafted lines say purple.
 - **Rosters and levels.** Deferred until the dungeons before this one have their enemies laid out.
 - **Lust's fight.** Hook locked (vulnerable only when he reaches). Speed-up on damage and the
   arena's behavior are open.
@@ -674,8 +861,11 @@ and golems around 130 for Rupert.
 ## Build punch list
 
 - [ ] A `DUNGEON:` tree node for the Fortress with the entry hall, both lanes (fourteen maps each as
-      drafted), and the courtyard beneath it.
-- [ ] Tileset decision, then a Tilesets row if 18/19 wins or the `ice-cavern` sheets get used.
+      drafted), and the courtyard beneath it. The node (`Map410`), the entry hall (`Map411`), the whole
+      tower lane (`Map412` "AREA: Tower" and `Map413`-`Map426`), the whole basement lane (`Map427`
+      "AREA: Basement", its three levels and `Map429`-`Map443`) and the courtyard (`Map444`) are drafted:
+      the rough pass is complete (2026-10-25).
+- [x] Tileset decision, then a Tilesets row: tileset 21 "EX Dungeon Fortress" (2026-10-24).
 - [ ] Entry hall: the mundane-castle exchange, the spring trap and trapdoor, the moogle-style pick.
 - [ ] Both lanes room by room, with switcher rooms enemy-free and a sigil at every block.
 - [ ] The two mandatory causes (floor collapse, lever), evented so they cannot be skipped, with the

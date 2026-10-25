@@ -157,7 +157,9 @@ const serialise = map =>
 {
   const header = HEADER_KEYS.map(k => `${JSON.stringify(k)}:${JSON.stringify(map[k])}`).join(',');
   const events = map.events.map(e => e === null ? 'null' : JSON.stringify(e));
-  return `{\n${header},\n"data":${JSON.stringify(map.data)},\n"events":[\n${events.join(',\n')}\n]\n}`;
+  // a map with no events at all, such as a 0x0 folder in the map tree, closes its list on the next line.
+  const eventList = events.length === 0 ? '[\n]' : `[\n${events.join(',\n')}\n]`;
+  return `{\n${header},\n"data":${JSON.stringify(map.data)},\n"events":${eventList}\n}`;
 };
 
 export { K, W, blob, span, box, ring, render, transferEvent, serialise, OUT };

@@ -29,7 +29,9 @@ PNG is wrong in the game too.
 right way round once a dungeon is installed, because events get hand-added afterwards and a tool
 still reading the generator's output would report a fully-wired room as having no events at all.
 
-Staging is gitignored, so a bad run costs a re-run rather than a `git checkout` over real data.
+Staging is gitignored, so a bad run costs a re-run rather than a `git checkout` over real data. It holds
+one manifest, `_built.json`, written by whichever recipe ran last, so run a dungeon's recipe right before
+installing it.
 `install.js` skips maps that are already installed and still match their recipe, and **throws if an
 installed map has drifted from what the recipe produces** — because drift means somebody hand-edited
 it, and hand-edits outrank the generator. Registering in `MapInfos.json` is an append of only the
@@ -47,6 +49,8 @@ is the honest answer to whether the dungeon holds together.
 | `autotile.js` | The neighbour-mask → shape table, and the lookup that applies it |
 | `learn-tables.js` | Re-derives that table from the shipped maps; run it after adding tilesets |
 | `terrain.js` | The shape vocabulary (`blob`, `span`, `box`, `ring`) and the map-file writer |
+| `cave.js` | Caves: a carved grid becomes floor, two-row wall faces and ceiling, shaped by the jmz map editor's rules, with the shadows MZ's editor casts beside walls; a void square holds nothing, which MZ treats as solid; and the tidy pass that sands blob noise off a carving |
+| `doors.js` | The doors between drafted maps in Jeremy's area-event format, and the proof that every link keeps the player's heading; shared by the recipes |
 | `dungeons/*.js` | One recipe per dungeon: sizes, painting, and the link table |
 | `validate.js` | `Game_Map#checkPassage` reproduced, plus a flood fill and a landing-square check |
 | `plan.js` | Text floor plans, for staged maps the atlas cannot see yet |
@@ -74,6 +78,48 @@ is where you find out. A recipe's link table names both doorways and the facing 
 with, the generator derives each landing one step inward from that facing (so a player-touch event
 never re-fires on arrival), and `validate.js` follows every `201` command to the square it actually
 lands on, including landings on maps that shipped years ago.
+
+## Caves
+
+A cave is carved rather than painted: `dungeons/subterranean.js` digs floor out of solid rock and
+`cave.js` hangs the wall faces, fills the ceiling and casts the shadows. Two of the tools above cannot
+judge one. **`validate.js` reproduces vanilla passability, and CA's cave ceilings are walkable in
+vanilla**, sealed only by terrain tag 1 through J-RegionEffects, so its flood pours into the rock; the
+cave recipe proves its own floors connected before writing, and after installing,
+`bun tools/map-atlas.js plan <id>` reads the real rule. And **`snapshot.js` does not draw the shadow
+layer**, so a render shows none of the shadows that are in the data.
+
+A castle is carved the same way, in rectangles: `dungeons/fortress.js`. A dig can name its own floor (the
+palette's `floorAt` in `cave.js`), and a raised floor such as a balcony is a floor exactly two rows of stone
+above the one below it, since those two rows become its wall face. The Fortress's tileset 21 follows the EX
+rows' flag convention, whose ceilings carry no terrain tag and are sealed by their edge shapes alone.
+
+## Doors
+
+**Doors are area events, in Jeremy's format.** The transfer event stands on the top-left square of the
+opening, one in from the map's edge, and an `<areaEvent:[W,H]>` page comment (J-Pixelistics) leads its
+page, stretching it across the whole opening: `[1,3]` for a door in a left or right edge, `[3,1]` for
+one in the top or bottom. A single event in the middle of a three-wide door makes the player find its
+exact centre, so he converted every Nimbus door to this by hand. `doors.js` writes doors this way for the
+Subterranean and Fortress recipes (each side of a link has `at` and `span`, landing in the middle of the
+opening one step in); copy their links rather than `nimbus.js`'s.
+
+**A door keeps the player's heading.** Walking out of one side of a map lands on the opposite side of the
+next, still facing the way they walked: out the right, in on the left facing right; down out of the
+bottom, in at the top facing down. Arriving turned around means that holding the key they walked out
+with carries them straight back through the door, over and over, which is Jeremy's "one major peeve"
+about maps. So the two sides of every link arrive facing opposite ways, and `doors.js` refuses to write one
+that does not. Some of `nimbus.js`'s links turn the player sideways (Sunlit
+Terrace's doors to The Aerie and the Gilded Causeway); do not copy those either.
+
+## The map tree
+
+`install.js` registers each map under its manifest entry's `parentId`, so a recipe decides where a map
+sits in the tree, and the tree is never meant to be one flat list. Jeremy's dungeons group their maps
+under 0x0 folder maps (the Forlorn Basin's "FLOOR: 1" to "FLOOR: 5", the mines' "FLOOR: Ground Level"),
+and a side map hangs under the map it branches from. The Subterranean and Fortress recipes give a spec a
+`parent` for that, and the Fortress gives one an `order` when a map drafted early has to sort after maps
+drafted later.
 
 ## Adding a dungeon
 
