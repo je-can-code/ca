@@ -49,7 +49,7 @@ is the honest answer to whether the dungeon holds together.
 | `autotile.js` | The neighbour-mask → shape table, and the lookup that applies it |
 | `learn-tables.js` | Re-derives that table from the shipped maps; run it after adding tilesets |
 | `terrain.js` | The shape vocabulary (`blob`, `span`, `box`, `ring`) and the map-file writer |
-| `cave.js` | Caves: a carved grid becomes floor, two-row wall faces and ceiling, shaped by the jmz map editor's rules, with the shadows MZ's editor casts beside walls; a void square holds nothing, which MZ treats as solid; and the tidy pass that sands blob noise off a carving |
+| `cave.js` | Caves: a carved grid becomes floor, wall faces (two rows, or as many as a palette asks) and ceiling, shaped by the jmz map editor's rules, with the shadows MZ's editor casts beside walls; a void square holds nothing, which MZ treats as solid; and the tidy pass that sands blob noise off a carving |
 | `doors.js` | The doors between drafted maps in Jeremy's area-event format, and the proof that every link keeps the player's heading; shared by the recipes |
 | `dungeons/*.js` | One recipe per dungeon: sizes, painting, and the link table |
 | `validate.js` | `Game_Map#checkPassage` reproduced, plus a flood fill and a landing-square check |
@@ -93,6 +93,10 @@ A castle is carved the same way, in rectangles: `dungeons/fortress.js`. A dig ca
 palette's `floorAt` in `cave.js`), and a raised floor such as a balcony is a floor exactly two rows of stone
 above the one below it, since those two rows become its wall face. The Fortress's tileset 21 follows the EX
 rows' flag convention, whose ceilings carry no terrain tag and are sealed by their edge shapes alone.
+
+A forest is a cave too: `dungeons/graves.js` carves clearings out of tree wall. The palette's `ceilingAt` lets
+grey stone stand among the trees, and its `faceRows` hangs the trunks four rows tall, the way Jeremy's own forest
+wall does on `Map329`, instead of a cave's two.
 
 ## Doors
 

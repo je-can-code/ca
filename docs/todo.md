@@ -6,6 +6,8 @@
 #### Path to the North
 This is available, but not yet implemented at all. It should lead to `FIELD: Desolate Graves`, but be gated by a tool,
 possibly the "torch"-like tool?
+Decided 2026-10-25: the way north stays open, so a level 1 can walk in, and the torch opens only the two crypts inside
+the Graves. The Graves are drafted; see `docs/maps/graves.md`.
 
 
 ### FIELD: Raevula's Heartbeat
@@ -67,9 +69,16 @@ There is a `Suspicious Crack` wall that should be able to be reached by dropping
 #### Inconspicuous Hole
 There are multiple torches that should be lit by an uncreated "torch"-like tool.
 Perhaps it should grant access to a path leading to the beach?
+Decided 2026-10-25: the tool is the Red Wand, found on Cerak's dig in the Crystalline Ravine, and lighting these
+torches opens the way down the cliffs to the Seashell Shores.
 
 #### Connector to More Cliffs
 There is a `Durable Post` that leads to presumably more cliffs- but they aren't implemented yet.
+Decided 2026-10-25: the more cliffs are the east ledge on Scaling the Cliffs (`Map111`), where the connector's far
+exit already lands, and it stays as a treasure ledge. The ledge (x 47-54, rows 14-17) runs off the map's east edge,
+where the cut swamp field would have joined, so its east end gets capped with cliff and a chest worth the trip goes
+on it. Getting there takes bombs, for the crack at (42,12), and the snakerope, for the posts inside the connector.
+What the chest holds is not decided yet.
 
 
 ### DUNGEON: Forlorn Basin

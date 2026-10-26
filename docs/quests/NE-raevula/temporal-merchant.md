@@ -70,7 +70,9 @@ overpays noticeably, and does not explain anything.
 - Gilbert's idle dialogue gains one new line that is slightly less salesman than usual.
 
 ### 3) Where the Road Ends: `gilbert-003`
-> Gated on the torch tool (Treis chain interlock) — the path north requires it.
+> Not torch-gated (2026-10-25): the Graves are open from the Crossroads, and his caravan's graves stand in the open
+> West Stone clearing (`Map461`). The torch opens only the two crypts inside the Graves. See
+> [graves.md](../../maps/graves.md).
 
 The route continues north, toward the Desolate Graves — and that is exactly where it ends. The player follows the
 old caravan road into the graves and finds what is left of the caravan: which is to say, graves. His people. The

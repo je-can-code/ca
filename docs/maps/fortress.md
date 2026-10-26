@@ -646,7 +646,7 @@ for playtest.
 | The terrace | rows 4-7 across the far end, paved in square tiles, its wall on rows 8-9 and stairs down the middle (x 27-32) |
 | The statue he steps out from behind | the terrace's centre, around (29, 5) |
 | The duel | everything below the terrace, rows 10-36, open floor for a battle mage who blinks from point to point |
-| The scrambler machine, the fluorescent lights | Jeremy's to place |
+| The scrambler machine, the fluorescent lights | Jeremy's to place. Only the Voltage Baton hurts the machine (Treis's tool, `treis-004`; decided 2026-10-25) |
 
 ### What Jeremy has `PROPOSED (Jeremy, 2026-09-17)`
 

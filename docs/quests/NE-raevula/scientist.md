@@ -49,3 +49,20 @@ her, but... knowing her, it is better not to ask.
 While there is no variance in the tools being built, by building these tools the player will have access to Treis'
 "invent" functionality- another aspect of JAFTING. Additionally, all future quests for Treis will be taken from the lab
 where she now apparently lives instead of the Comfy Bear Inn.
+
+### 4) The Voltage Baton: `treis-004` (unwritten)
+> `LOCKED (Jeremy, 2026-10-25)`: Treis is the one who builds the Voltage Baton (`Items[124]`), the tool that
+> "delivers a sudden but short-lived massive burst of electricity. Can overload nearby electronic devices and
+> systems." Tech and new, from the inventor, the way the Red Wand is magic and old, from Cerak's dig.
+
+**What it is for** `LOCKED (Jeremy, 2026-10-25)`: it is how her Node Junction research pays off in the final fight
+(the Treis gate in [`story-canon.md`](../../story-canon.md)). Grudj's scrambler machine in the Frozen Fortress
+courtyard is otherwise preposterous to defeat; one zap of the baton deals it ridiculous damage, the way the ukelele
+treats spires and ore, and the baton does little to anyone or anything else. The only tech in the world is what
+Grudj brought with him, so the one tool that speaks his language is built by the other stranded spacefarer.
+
+Still open: the quest itself; whether constructs take extra from it too (Jeremy: "maybe constructs, too?"); and
+the data, since no enemy answers to `tool-overload` yet (the scrambler wants one of the six `=== TBD Tool Target`
+slots, enemies 35-40, with `<strictElements:[28]>` and element 28 at 1000%, the way `@Torch` answers to the wand).
+The baton's skill (254) also carries a 33% chance each to inflict Paralyzed and Stunned on everything it hits,
+which "does little else" would trim.

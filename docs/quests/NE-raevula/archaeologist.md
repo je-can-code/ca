@@ -31,9 +31,17 @@ underneath everything.
 #### After effects of "The Dig"
 - Cerak splits his time between the Save Shrine and the Ravine camp (schedule/TIME flavor).
 - A Ravine map secret or two gets marked by his survey work.
+- **The Red Wand** (`Items[123]`), the torch tool, is *found* here `LOCKED (Jeremy, 2026-10-25)`: deep in the oldest
+  structure (`Map449` "The Oldest Structure"), resting between two torches that never went out, under the
+  sigil wall. Magic and old, from the man who studies old things. It lights the Outer Cliffs' Hidey Hole, whose
+  torches open the way down to the Seashell Shores (`yelena-003`), and the two crypts inside the Desolate Graves
+  (`cerak-003` below). It opens only optional places: the wand "won't be required for anything… non-optional"
+  (Jeremy).
 
 ### 3) The Four Great Stones: `cerak-003`
-> Gate: the torch (Desolate Graves access). Chapter 4.
+> Gate: chapter 4. The Graves themselves are open from the Crossroads; the torch opens only the two crypts inside
+> them, the smith's and the catacomb under the shrine (Jeremy, 2026-10-25: "How is a torch gonna block what is
+> effectively a forest with graves everywhere lmao"). See [graves.md](../../maps/graves.md).
 
 The ravine script points north — to the Desolate Graves, where four great monuments stand that no living person
 built, beside a wreckage that isn't there. Cerak has cross-referenced every record the continent has (all seven

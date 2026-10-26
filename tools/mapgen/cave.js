@@ -103,12 +103,15 @@ const isWallFace = kind => isA4(kind) && (kind - 80) % 16 >= 8;
  * ground, faces hanging from the ceiling over the top edge of everything carved, and ceiling elsewhere.
  * A palette with a `floorAt` names the floor square by square, for a map with more than one floor, such
  * as a castle whose balcony is paved differently from the hall below it; one without lays `floor` everywhere.
- * A `faceAt` does the same for wall faces, such as the riveted front of an elevator car in a stone shaft.
+ * A `faceAt` does the same for wall faces, such as the riveted front of an elevator car in a stone shaft, and a
+ * `ceilingAt` for the rock itself, such as a stone monument standing in a forest. A `faceRows` hangs faces taller
+ * than the two rows a cave's take, the way a forest's trunks stand four rows high.
  * @param {number[][]} carved What every square holds, as a {@link CELL}, by row then column.
  * @param {number} width The map's width in tiles.
  * @param {number} height The map's height in tiles.
  * @param {{floor: number, ceiling: number, face: number, floorAt: (function(number, number): number|undefined),
- * faceAt: (function(number, number): number|undefined)}} palette The autotile kind for each part.
+ * faceAt: (function(number, number): number|undefined), ceilingAt: (function(number, number): number|undefined),
+ * faceRows: (number|undefined)}} palette The autotile kind for each part.
  * @returns {number[][]} The ground-layer autotile kind of every square, by row then column.
  */
 const layRock = (carved, width, height, palette) =>
@@ -116,6 +119,8 @@ const layRock = (carved, width, height, palette) =>
   const isRock = (x, y) => carved[y][x] === CELL.rock;
   const floorAt = palette.floorAt ?? (() => palette.floor);
   const faceAt = palette.faceAt ?? (() => palette.face);
+  const ceilingAt = palette.ceilingAt ?? (() => palette.ceiling);
+  const faceRows = palette.faceRows ?? FACE_ROWS;
 
   /**
    * The kind a square starts as, before any face is hung: ceiling for rock, nothing for void, and floor for
@@ -129,7 +134,7 @@ const layRock = (carved, width, height, palette) =>
   {
     if (cell === CELL.rock)
     {
-      return palette.ceiling;
+      return ceilingAt(x, y);
     }
 
     return cell === CELL.void ? NOTHING : floorAt(x, y);
@@ -148,7 +153,7 @@ const layRock = (carved, width, height, palette) =>
       }
 
       // hang the face upwards from that edge, stopping early if the rock is thinner than a face.
-      for (let row = 1; row <= FACE_ROWS && y - row >= 0 && isRock(x, y - row); row++)
+      for (let row = 1; row <= faceRows && y - row >= 0 && isRock(x, y - row); row++)
       {
         kinds[y - row][x] = faceAt(x, y - row);
       }
@@ -344,9 +349,10 @@ const shapesOver = (kinds, width, height) =>
  * @param {number} width The map's width in tiles.
  * @param {number} height The map's height in tiles.
  * @param {{floor: number, ceiling: number, face: number, chasm: (number|undefined), floorAt: (function(number,
- * number): number|undefined), faceAt: (function(number, number): number|undefined)}} palette The autotile kind
- * for each part; `chasm` only for a palette that has one, and `floorAt` and `faceAt` only for one whose floor
- * or wall faces change from square to square.
+ * number): number|undefined), faceAt: (function(number, number): number|undefined), ceilingAt: (function(number,
+ * number): number|undefined), faceRows: (number|undefined)}} palette The autotile kind for each part; `chasm`
+ * only for a palette that has one, `floorAt`, `faceAt` and `ceilingAt` only for one whose floor, wall faces or
+ * rock change from square to square, and `faceRows` only for walls taller than a cave's.
  * @returns {number[]}
  */
 const renderCave = (carved, width, height, palette) =>
