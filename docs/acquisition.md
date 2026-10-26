@@ -129,7 +129,9 @@ heavy plate; Gemini is twins and should want two of something.
 - **The five unplaced ⭐ weapons** — `"Blaster"` (Boomstick), `"Crescent Blossom"` (Glaive),
   `"Plate Peeler"` (Mace), `"Brought Down"` (Claws), `"Meta Arm"` (Arm). Their switches
   (`got-named-shotgun` 208, `got-named-2h-axe` 211, `got-named-doubleaxe` 212, `got-named-claw` 217,
-  `got-named-arm` 218) are already reserved and waiting.
+  `got-named-arm` 218) are already reserved and waiting. Their homes were decided on 2026-10-25 (see
+  [Where the named pieces are placed](#where-the-named-pieces-are-placed-decided-2026-10-25)); the chests
+  themselves are not in the maps yet.
 - **The exact material bills** at each rung.
 
 ### Where the materials come from
@@ -225,11 +227,89 @@ designed. Rungs 7-9 were the only hole, and this fills it.
 
 - **The 27 recipes.** `config.crafting.json` carries rungs 1-6 and 10 for all nine lines; 7-9 are
   absent entirely.
-- **The 27 salvage placements**, and whether they sit in chests, behind tool gates, or both.
+- **The 27 salvage placements.** Their homes were decided on 2026-10-25 (see
+  [Where the named pieces are placed](#where-the-named-pieces-are-placed-decided-2026-10-25)), mixing open
+  dead ends with pockets behind tool gates; the chests themselves are not in the maps yet.
 - **The exact material bills** at each rung.
 - **Survival's inherited tier.** `./unlockables/recipe-journals.md` holds the doctrine — *found <
   taught < inherited* — and cooking, alchemy and smithing each have all three. Survival has pattern
   scraps and Millie, and nothing above her.
+
+---
+
+## Where the named pieces are placed `DECIDED 2026-10-25`
+
+**Every named thing is reachable before chapter 3 ends** (Jeremy, 2026-10-25): "The world opens and you've
+already theoretically got it all at 1-star at the very least." Chapter 4 never hides a ⭐ weapon or a
+salvage, so after chapter 3 the only thing holding a line back is materials, never a missing piece. That
+also brings the three salvage first pitched for the Crystalline Ravine's rope islands back into chapters
+1-3.
+
+The homes below came from walking every chapter 1-3 area the way `map-atlas` does, once with no tools and
+once with each tool, and keeping the dead-end rooms and the ground only a tool opens. The tools set the
+clock: the ukelele arrives around level 22 (Leo, `Map103`), bombs around 30 (Treis, `Map176`), and the Snake
+Rope around 45 (`Map249`). A pocket in an early area pays out when the player comes back carrying the tool
+that opens it.
+
+### The five ⭐ weapons
+
+| Weapon | Home | Opened by | Around level |
+|---|---|---|---|
+| `"Crescent Blossom"` (Glaive) | **Forest of Dreams** · Mad Hops `Map159`, the detour with no way back | nothing | 10-12 |
+| `"Plate Peeler"` (Mace) | **Pearl Salt Mines** · Northern Caverns · Offshoot W `Map150`, among the maxotaur and orcs | ukelele | 22 on |
+| `"Brought Down"` (Claws) | **Forlorn Basin** F4 · Passage - 8 `Map102`, the spire pocket at x 69-72, y 6-19 | ukelele | 22 |
+| `"Blaster"` (Boomstick) | **Outer Cliffs** · Terraced Cliffside `Map108`, the walled-off ledge at x 43-45, y 13-15 behind its Spire | ukelele or bomb, once a way down to it exists | 25-30 |
+| `"Meta Arm"` (Arm) | **Volcanis Grotto** · Fiery End `Map253`, the rope pocket at x 25-37, y 2-17 | rope | ~43 |
+
+Two of them sit beside what their slayer line kills: Blaster among Terraced Cliffside's skeletons (undead,
+family 48) and Meta Arm among Fiery End's heated titans (constructs, family 56). Crescent Blossom gives Mad
+Hops the payoff `todo.md` says it lacks.
+
+**Blaster's ledge has to be built first.** Nothing reaches it today, since wall stands above its Spire; it
+looks like the drop-down spot `todo.md` describes. Without a way down, the home is the Pearl Salt Mines' Up or
+Down (`Map353`), the spire pocket at x 18-19, y 20-25, among will 'o' wisps (undead, family 48 as well),
+opened by the ukelele around 22.
+
+Four of the five land in the ⭐ band of 10-35. Meta Arm arrives late, as Colossus and Concussivity already do.
+
+### The 27 salvage
+
+Nine per band and three of each kind, so each band holds exactly enough to build its rung in all nine armor
+lines. **H** is Fractured Handgear (`i95`), **S** Perforated Suit (`i96`), **F** Dilapidated Footwear (`i97`).
+
+| Band | Kind | Home | Opened by |
+|---|---|---|---|
+| **⭐: chapters 1-2** | H | Pearl Salt Mines · Western Caverns · Offshoot NE `Map130` | nothing |
+| | S | Pearl Salt Mines · Western Caverns · Offshoot NW `Map133` | nothing |
+| | F | Pearl Salt Mines · Southern Caverns · Offshoot SE `Map139` | nothing |
+| | H | Forlorn Basin F1 · Passage - 1 `Map094`, spire pocket at x 31-43, y 3-11 | ukelele |
+| | S | Forlorn Basin F2 · Passage - 5 `Map099`, spire pocket at x 48-53, y 21-28 | ukelele |
+| | F | Forlorn Basin F2 · Passage - 4a `Map106`, spire pocket at x 22-31, y 4-27 | ukelele |
+| | H | Earthen Layer · West Side `Map168`, past its boulder puzzle | nothing |
+| | S | Earthen Layer · East Side `Map169`, past its boulder puzzle | nothing |
+| | F | Earthen Layer · South Side `Map170`, past its boulder puzzle | nothing |
+| **⭐⭐: chapter 3, the rope era** | H | Pearl Salt Mines · E Side `Map349`, rope pocket at x 0-6, y 11-13 | rope |
+| | S | Raevulaen Heartbeat · A River Receded `Map200`, behind the waterfall | rope |
+| | F | Forest of Dreams · Peaceful Respite `Map067`, the well | rope |
+| | H | Lakeside Road · Frozen Fortress `Map116`, rope pocket at x 35-45, y 5-15 | rope |
+| | S | Erocia Isthmus · Distant Hill `Map218`, beside Akai Supeeya | rope |
+| | F | Highwater Way · Western Way `Map257` | nothing |
+| | H | Volcanis Grotto · Volcanis Pass `Map243`, rope pocket at x 35-46, y 13-17 | rope |
+| | S | Volcanis Grotto · The Bellows `Map246`, rope pocket at x 7-15, y 15-21 | rope |
+| | F | Raevulaen Heartbeat · past Riverside Stroll's Suspicious Crack `Map179`, rope pocket at x 20-29, y 3-13 | rope |
+| **⭐⭐⭐: late chapter 3 and the last rope backtracks** | H | Fallen Kingdom · The Drunken Sheep `Map292` | nothing |
+| | S | Fallen Kingdom · Bathroom of Joy `Map294` | nothing |
+| | F | Fallen Kingdom · The Backroom `Map298` | nothing |
+| | H | Negative Peaks · Foothills `Map301`, rope pocket at x 34-42, y 19-24 | rope |
+| | S | Negative Peaks · Shelter and Beyond `Map306`, its rope pocket | rope |
+| | F | Negative Peaks · Icy Foray `Map308`, past its rope crossing | rope |
+| | H | Pearl Salt Mines · W Side `Map346`, its rope pocket | rope |
+| | S | Volcanis Grotto · Fiery End `Map253`, rope pocket at x 8-27, y 1-5 | rope |
+| | F | Forest of Dreams · Heart of the Dream `Map077` | rope |
+
+Left alone on purpose: the Dangerous Oneway's "tempting treasure" (`Map057`), which `todo.md` has in mind for
+a flux drive, and Highwater's Eastern Way (`Map256`), whose door `map-atlas` reads as locked behind progress
+made somewhere else.
 
 ---
 
@@ -284,7 +364,7 @@ subgroup's legendary recipe is acquired. Both are open for every row.
 | | ⭐⭐ | `"Defoliant"` | TBD |
 | | ⭐⭐⭐ | `"Teen Baan"` | TBD |
 | | **legendary** | `"Vitrification"` ← Exavolt Stun Gun | Blueprint: TBD *(Cell line is the natural material)* |
-| **Boomstick** | ⭐ | `"Blaster"` | TBD |
+| **Boomstick** | ⭐ | `"Blaster"` | **Outer Cliffs** · Terraced Cliffside `Map108` once its ledge is reachable, else **Pearl Salt Mines** · Up or Down `Map353` *(decided, not yet placed)* |
 | | ⭐⭐ | `"Spray of Death"` | TBD |
 | | ⭐⭐⭐ | `"Astra"` | TBD |
 | | **legendary** | `"Legion"` ← Megabarrel | Blueprint: TBD |
@@ -297,11 +377,11 @@ subgroup's legendary recipe is acquired. Both are open for every row.
 | | ⭐⭐ | `"Sky Splitter"` | TBD |
 | | ⭐⭐⭐ | `"Mjolnir"` | TBD |
 | | **legendary** | `"Reckoning"` ← Deathtrap Broadaxe | Blueprint: TBD |
-| **Glaive** | ⭐ | `"Crescent Blossom"` | TBD |
+| **Glaive** | ⭐ | `"Crescent Blossom"` | **Forest of Dreams** · Mad Hops `Map159` *(decided, not yet placed)* |
 | | ⭐⭐ | `"Half-Moon Bloom"` | TBD |
 | | ⭐⭐⭐ | `"Ecliptic Efflorescence"` | TBD |
 | | **legendary** | `"The Styrofoam Axe"` ← Gossamer Halberd | Blueprint: TBD |
-| **Mace** | ⭐ | `"Plate Peeler"` | TBD |
+| **Mace** | ⭐ | `"Plate Peeler"` | **Pearl Salt Mines** · Northern Caverns · Offshoot W `Map150` *(decided, not yet placed)* |
 | | ⭐⭐ | `"Bared Truth"` | TBD |
 | | ⭐⭐⭐ | `"Fragarach"` | TBD |
 | | **legendary** | `"Ablation"` ← Wardbreaker Godendag | Blueprint: TBD |
@@ -331,11 +411,11 @@ subgroup's legendary recipe is acquired. Both are open for every row.
 | | ⭐⭐ | `"Nothing Left"` | TBD |
 | | ⭐⭐⭐ | `"Hecatoncheire"` | TBD |
 | | **legendary** | `"Concussion"` ← Meteor Knuckles | Blueprint: TBD |
-| **Claws** | ⭐ | `"Brought Down"` | TBD |
+| **Claws** | ⭐ | `"Brought Down"` | **Forlorn Basin** F4 · Passage - 8 `Map102` *(decided, not yet placed)* |
 | | ⭐⭐ | `"Opened Up"` | TBD |
 | | ⭐⭐⭐ | `"Nemean's Talons"` | TBD |
 | | **legendary** | `"Sparagmos"` ← Godflayers | Blueprint: TBD |
-| **Arm** | ⭐ | `"Meta Arm"` | TBD |
+| **Arm** | ⭐ | `"Meta Arm"` | **Volcanis Grotto** · Fiery End `Map253` *(decided, not yet placed)* |
 | | ⭐⭐ | `"Sybirtek Arm"` | TBD |
 | | ⭐⭐⭐ | `"Talos"` | TBD |
 | | **legendary** | `"Tonnage"` ← Superstructure | Blueprint: TBD *(Radiator line is the natural material; Talos is itself an automaton)* |

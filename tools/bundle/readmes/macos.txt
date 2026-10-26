@@ -1,0 +1,17 @@
+Chef Adventure {VERSION}
+
+To play:
+1. Drag "Chef Adventure.app" into your Applications folder. Playing it straight from
+   Downloads can stop the game from saving.
+2. Double-click it. The first time, macOS will refuse to open it, because this free game
+   isn't notarized by Apple.
+3. Open System Settings, go to Privacy & Security, scroll down, and click "Open Anyway"
+   next to Chef Adventure. Confirm when it asks.
+4. From then on it opens with a double-click, like any other app.
+
+Your saves live inside the app. To find them, right-click "Chef Adventure.app", choose
+"Show Package Contents", then open Contents, Resources, app.nw, and save. Copy that
+"save" folder somewhere safe before replacing the app with a new version, then put it
+back in the same place inside the new one.
+
+Plug in a controller if you like. Have fun!

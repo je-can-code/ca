@@ -46,13 +46,15 @@
   including how the Ledger composes with the study-shop vendor (suggested reading: Nana's Ledger IS
   the cooking lane of the study shop; your call, noted in her doc).
 
-## Treis (`treis-001`–`003`)
+## Treis (`treis-001`–`004`)
 
 - The ore and lumber CHOICE lists (which materials qualify) and the visual variant each choice
   produces for the lab's foundation/building.
 - The lab construction stages on the vacant lot — Amy's chain watches this construction live, so
   the stages want to be visible states, not one flip.
 - The "invent" JAFTING unlock (003's payoff) and moving her questgiving from inn to lab.
+- **004 (unwritten):** she builds the Voltage Baton (`Items[124]`); the quest, and what the baton overloads, are
+  still to design.
 
 ## Rich & Poor (`richpoor-001`–`010`)
 
@@ -75,7 +77,8 @@
 
 - **001:** the three sigils' map placements around Raevula, and which generalist SDP each parse
   rewards.
-- **002:** the Crystalline Ravine dig camp map + the "survey-marked map secrets" after-effect.
+- **002:** the Crystalline Ravine dig camp map + the "survey-marked map secrets" after-effect, and the Red
+  Wand pickup in `Map449` "The Oldest Structure", between its two ever-lit torches.
 - **003:** the whole Graveyard Unit build — four great gravestones, the four wordless Echo
   apparitions, the Mother-Sigil waking, and WHICH unique Panel cache it holds. Adjacency dialogue
   with Gilbert's chain if both have reached the graves (no hard gate either way).

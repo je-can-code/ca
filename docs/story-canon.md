@@ -397,6 +397,12 @@ questlines, hunts run, and the optional continent opens: the **Crystalline Ravin
 two technodisk retrievals are the only mandatory beats, and they should feel like **expeditions the player
 mounts when ready — not corridor stops.**
 
+**Two more tools, both keys to the optional continent** `LOCKED (2026-10-25)`: the **Red Wand** (`Items[123]`)
+is *found* on Cerak's dig in the Crystalline Ravine (`cerak-002`), and lights the torches every "the torch" gate
+waits on, the Outer Cliffs' way down to the Seashell Shores among them. The **Voltage Baton** (`Items[124]`) is
+*invented* by Treis in her lab (`treis-004`). Magic and old from the man who studies old things, tech and new
+from the woman who builds things. Neither gates anything mandatory.
+
 ### Disk 1 — Nimbus (Pride) `LOCKED`
 
 > The dungeon itself (look, topology, rosters, the palace, the fight) is specced in
@@ -752,6 +758,13 @@ The final fight of the main story. The shape:
    > Gent: "WHY ISN'T THE SCRAMBLING WORKING 💢"
    > J: "holy crap, did that side quest actually net us a meaningful reward?!"
    > R: "See what playing the hero gets you?"
+
+   **How it is delivered** `LOCKED (Jeremy, 2026-10-25)`: the research ends in a tool, the **Voltage Baton**
+   (`Items[124]`, `treis-004`). The scrambler machine in the courtyard is otherwise preposterous to defeat; one zap
+   of the baton deals it ridiculous damage, the way the ukelele treats spires and ore, and the baton does little to
+   anything else. "Now I have a tool to defeat the otherwise preposterous-to-defeat machine." The only tech in the
+   world is what Grudj brought with him, so the one tool that speaks his language comes from the other stranded
+   spacefarer.
    *(Design rhyme: the 15-second forced disable is the player's first taste of what Trainer Lord's postgame
    exam does for a full fight — the escalation ladder stands on its own.)*
 4. **The thesis, out loud**: from his side, righteous vengeance for a genocide. From their side, Tuesday, and

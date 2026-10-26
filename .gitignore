@@ -28,3 +28,9 @@ node_modules
 *.bak*
 # generated maps awaiting review; tools/mapgen/install.js is what moves them into data/
 tools/mapgen/.staging/
+
+# player bundles built by `bun run bundle`; each is hundreds of megabytes and belongs on a release, not in git.
+dist/
+
+# the NW.js runtimes `bun run bundle` downloads, kept so a rebuild does not fetch them again.
+.cache/

@@ -35,6 +35,7 @@ As such, while the plugins living in my [other repository can be found over here
 - [food chain durations and colors][31]
 - [metabolize (the panic button — burning a food chain for HP)][37]
 - [progression bands (play order, enemy levels, per-map table)][32]
+- [distribution (the Windows, macOS and Linux bundles, and how they get built)][38]
 
 And of course, a list of unlockables and their details:
 - [Flux Drive locations][15]
@@ -79,3 +80,5 @@ And of course, a list of unlockables and their details:
 [36]: ./acquisition.md
 
 [37]: ./food/metabolize.md
+
+[38]: ./distribution.md

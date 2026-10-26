@@ -1182,6 +1182,307 @@
         }
       },
       "iconIndex": 889
+    },
+    "gloom": {
+      "description": "NEW - the Frozen Fortress's courtyard, the one place in the castle open to the sky: a purple gloom, weird motes and a bit of fog (Jeremy, 2026-10-25). The fog is 'fog' thinned, slowed and tinted purple; the motes are 'motes' tinted violet, with a few pale sparks rising through them to make them strange. A map tagged <noToneChange> holds it at moderate, which is what the courtyard wants: no clock and no sky, so the gloom never lifts. The icon is borrowed from 'motes'.",
+      "stops": {
+        "light": [
+          {
+            "motion": "crawl",
+            "asset": "Cloud_05A",
+            "density": 12,
+            "speed": 20,
+            "scale": 140,
+            "scaleJitter": 90,
+            "tint": "#5b2d82",
+            "blend": "normal"
+          },
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 12,
+            "speed": 40,
+            "scale": 55,
+            "scaleJitter": 25,
+            "tint": "#b26bff",
+            "blend": "additive"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "crawl",
+            "asset": "Cloud_05A",
+            "density": 20,
+            "speed": 20,
+            "scale": 140,
+            "scaleJitter": 90,
+            "tint": "#5b2d82",
+            "blend": "normal"
+          },
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 20,
+            "speed": 40,
+            "scale": 55,
+            "scaleJitter": 25,
+            "tint": "#b26bff",
+            "blend": "additive"
+          },
+          {
+            "motion": "rise",
+            "asset": "Light_01B",
+            "density": 6,
+            "speed": 25,
+            "scale": 30,
+            "scaleJitter": 10,
+            "tint": "#d9a6ff",
+            "blend": "additive"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "crawl",
+            "asset": "Cloud_05A",
+            "density": 32,
+            "speed": 20,
+            "scale": 140,
+            "scaleJitter": 100,
+            "tint": "#5b2d82",
+            "blend": "normal"
+          },
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 32,
+            "speed": 40,
+            "scale": 55,
+            "scaleJitter": 25,
+            "tint": "#b26bff",
+            "blend": "additive"
+          },
+          {
+            "motion": "rise",
+            "asset": "Light_01B",
+            "density": 10,
+            "speed": 25,
+            "scale": 30,
+            "scaleJitter": 10,
+            "tint": "#d9a6ff",
+            "blend": "additive"
+          }
+        ]
+      },
+      "iconIndex": 2213
+    },
+    "glimmer": {
+      "description": "NEW - the Crystalline Ravine: dark-ish and old and magical, with glowing crystals (Jeremy, 2026-10-25). Cyan motes drift through the dark, lavender sparks rise slowly out of the chasms, and a few glints wink on and off like light catching a crystal facet. The rising sparks are what make that much hole read as deep without a parallax behind it. The motes are 'motes' tinted cyan, the sparks are the rising layer of 'gloom' recoloured, and the glints are the twinkle of 'starfall' without its streaks. A map tagged <noToneChange> holds it at moderate. The icon is borrowed from 'starfall'.",
+      "stops": {
+        "light": [
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 10,
+            "speed": 40,
+            "scale": 50,
+            "scaleJitter": 25,
+            "tint": "#8fe6ff",
+            "blend": "additive"
+          },
+          {
+            "motion": "rise",
+            "asset": "Light_01B",
+            "density": 4,
+            "speed": 20,
+            "scale": 28,
+            "scaleJitter": 10,
+            "tint": "#c9a8ff",
+            "blend": "additive"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 16,
+            "speed": 40,
+            "scale": 50,
+            "scaleJitter": 25,
+            "tint": "#8fe6ff",
+            "blend": "additive"
+          },
+          {
+            "motion": "rise",
+            "asset": "Light_01B",
+            "density": 7,
+            "speed": 20,
+            "scale": 28,
+            "scaleJitter": 10,
+            "tint": "#c9a8ff",
+            "blend": "additive"
+          },
+          {
+            "motion": "twinkle",
+            "asset": "Star_03A",
+            "density": 8,
+            "speed": 100,
+            "scale": 18,
+            "scaleJitter": 10,
+            "opacity": 60,
+            "tint": "#dff2ff",
+            "blend": "additive"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "wisp",
+            "asset": "Light_01B",
+            "density": 26,
+            "speed": 40,
+            "scale": 50,
+            "scaleJitter": 25,
+            "tint": "#8fe6ff",
+            "blend": "additive"
+          },
+          {
+            "motion": "rise",
+            "asset": "Light_01B",
+            "density": 12,
+            "speed": 20,
+            "scale": 28,
+            "scaleJitter": 10,
+            "tint": "#c9a8ff",
+            "blend": "additive"
+          },
+          {
+            "motion": "twinkle",
+            "asset": "Star_03A",
+            "density": 14,
+            "speed": 100,
+            "scale": 20,
+            "scaleJitter": 12,
+            "opacity": 70,
+            "tint": "#dff2ff",
+            "blend": "additive"
+          }
+        ]
+      },
+      "iconIndex": 125
+    },
+    "draft": {
+      "description": "NEW - the Windward Tunnels' wind (2026-10-25): it blows down from the Negative Peaks, so the tunnels carry dust and grit streaming sideways through the dark, with a thin haze dragged along under them. The dust and the grit are 'drift' at a gale's speed, the haze is 'fog' sped up and tinted dusty, and the sounds are the wind ladder 'maple' borrows from 'leaves'. A map tagged <noToneChange> holds it at moderate, so underground the wind never drops. The icon is borrowed from 'maple'.",
+      "stops": {
+        "light": [
+          {
+            "motion": "crawl",
+            "asset": "Cloud_05A",
+            "density": 6,
+            "speed": 70,
+            "scale": 140,
+            "scaleJitter": 90,
+            "tint": "#5e574d",
+            "blend": "normal"
+          },
+          {
+            "motion": "drift",
+            "asset": "Light_01A",
+            "density": 30,
+            "speed": 180,
+            "scale": 14,
+            "scaleJitter": 8,
+            "opacity": 55,
+            "tint": "#c9bba4",
+            "blend": "normal"
+          }
+        ],
+        "moderate": [
+          {
+            "motion": "crawl",
+            "asset": "Cloud_05A",
+            "density": 10,
+            "speed": 90,
+            "scale": 140,
+            "scaleJitter": 90,
+            "tint": "#5e574d",
+            "blend": "normal"
+          },
+          {
+            "motion": "drift",
+            "asset": "Light_01A",
+            "density": 50,
+            "speed": 240,
+            "scale": 14,
+            "scaleJitter": 8,
+            "opacity": 60,
+            "tint": "#c9bba4",
+            "blend": "normal"
+          },
+          {
+            "motion": "drift",
+            "asset": "Snow_01",
+            "density": 20,
+            "speed": 300,
+            "scale": 10,
+            "scaleJitter": 6,
+            "opacity": 70,
+            "tint": "#8a8277",
+            "blend": "normal"
+          }
+        ],
+        "heavy": [
+          {
+            "motion": "crawl",
+            "asset": "Cloud_05A",
+            "density": 16,
+            "speed": 120,
+            "scale": 140,
+            "scaleJitter": 100,
+            "tint": "#5e574d",
+            "blend": "normal"
+          },
+          {
+            "motion": "drift",
+            "asset": "Light_01A",
+            "density": 80,
+            "speed": 320,
+            "scale": 14,
+            "scaleJitter": 8,
+            "opacity": 65,
+            "tint": "#c9bba4",
+            "blend": "normal"
+          },
+          {
+            "motion": "drift",
+            "asset": "Snow_01",
+            "density": 40,
+            "speed": 380,
+            "scale": 10,
+            "scaleJitter": 6,
+            "opacity": 75,
+            "tint": "#8a8277",
+            "blend": "normal"
+          }
+        ]
+      },
+      "_comment_sounds": "Wind in a tunnel is still wind, so this borrows the same ladder 'maple' takes from 'leaves'.",
+      "sounds": {
+        "light": {
+          "name": "Wind1",
+          "volume": 30,
+          "pitch": 100
+        },
+        "moderate": {
+          "name": "Wind1",
+          "volume": 50,
+          "pitch": 100
+        },
+        "heavy": {
+          "name": "Wind4",
+          "volume": 70,
+          "pitch": 100
+        }
+      },
+      "iconIndex": 889
     }
   },
   "_comment_ids": [
@@ -1206,7 +1507,10 @@
     "starfall": 12,
     "scorcher": 13,
     "frigid": 14,
-    "maple": 15
+    "maple": 15,
+    "gloom": 16,
+    "glimmer": 17,
+    "draft": 18
   },
   "intensityIds": {
     "light": 1,

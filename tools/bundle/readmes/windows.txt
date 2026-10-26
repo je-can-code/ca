@@ -1,0 +1,15 @@
+Chef Adventure {VERSION}
+
+To play:
+1. Unzip this anywhere you like, such as your Desktop or Documents. Not Program Files,
+   because the game can't save there.
+2. Open the "Chef Adventure" folder and double-click "Chef Adventure.exe".
+
+The first time, Windows may say "Windows protected your PC". That's only because this
+free game isn't signed with a paid certificate. Click "More info", then "Run anyway".
+It won't ask again.
+
+Your saves are in the "package.nw\save" folder. To keep them when you move to a new
+version, copy that "save" folder into the new version's "package.nw" folder.
+
+Plug in a controller if you like. Have fun!

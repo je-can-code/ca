@@ -16,6 +16,7 @@ import { checkNotetags } from './checks/notetags.js';
 import { checkParse } from './checks/parse.js';
 import { checkPlugins } from './checks/plugins.js';
 import { checkScripts } from './checks/scripts.js';
+import { checkStart, REAL_START } from './checks/start.js';
 import { checkTextCodes } from './checks/textcodes.js';
 import { parseJson } from './project.js';
 
@@ -40,6 +41,21 @@ const withRow = (project, table, row) =>
   rows[row.id] = row;
 
   return { ...project, tables: { ...project.tables, [table]: rows } };
+};
+
+/**
+ * A copy of the project with some of `System.json`'s fields replaced.
+ *
+ * `System.json` is one object rather than a table of rows, so {@link withRow} cannot plant into it.
+ * @param {object} project The loaded project.
+ * @param {object} fields The fields to replace, such as `{ startMapId: 359 }`.
+ * @returns {object}
+ */
+const withSystem = (project, fields) =>
+{
+  const System = { ...project.tables.System, ...fields };
+
+  return { ...project, tables: { ...project.tables, System } };
 };
 
 /**
@@ -225,6 +241,12 @@ const buildControls = project =>
   // the script controls run on that same event, as a one-line Script command.
   const runScript = line => withFirstPageCommand(project, gateMapId, gateEvent.id, { code: 355, indent: 0, parameters: [ line ] });
 
+  // the start controls aim at a map that is neither the real start nor wherever this tree starts today,
+  // so the planted finding is always new even on a branch that points at a test map.
+  const strayStartMapId = [ ...project.maps.keys() ]
+    .find(mapId => mapId !== REAL_START.mapId && mapId !== tables.System.startMapId);
+  const startOn = (mapId, x, y) => withSystem(project, { startMapId: mapId, startX: x, startY: y });
+
   return [
     {
       label: `a drop re-aimed at a blank armor row (Enemies #${dropper.id} -> Armors #${blankArmorId})`,
@@ -398,6 +420,24 @@ const buildControls = project =>
       label: 'an ellipsis inside a string a call is handed, $gameMessage.add(\'Loading...\')',
       check: checkScripts,
       planted: runScript('$gameMessage.add(\'Loading...\');'),
+      expect: null,
+    },
+    {
+      label: `a new game started on another map (Map #${strayStartMapId})`,
+      check: checkStart,
+      planted: startOn(strayStartMapId, REAL_START.x, REAL_START.y),
+      expect: [ `starts a new game on Map #${strayStartMapId}`, 'Set the player\'s starting position back' ],
+    },
+    {
+      label: `the real start map with the player one tile over (Map #${REAL_START.mapId} at (${REAL_START.x + 1}, ${REAL_START.y}))`,
+      check: checkStart,
+      planted: startOn(REAL_START.mapId, REAL_START.x + 1, REAL_START.y),
+      expect: [ `starts a new game on Map #${REAL_START.mapId}`, `at (${REAL_START.x + 1}, ${REAL_START.y})` ],
+    },
+    {
+      label: `the real start itself (Map #${REAL_START.mapId} at (${REAL_START.x}, ${REAL_START.y}))`,
+      check: checkStart,
+      planted: startOn(REAL_START.mapId, REAL_START.x, REAL_START.y),
       expect: null,
     },
   ];
