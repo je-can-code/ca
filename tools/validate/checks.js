@@ -8,6 +8,7 @@
 
 import { checkConfigs } from './checks/configs.js';
 import { checkHousekeeping } from './checks/housekeeping.js';
+import { checkMapTree } from './checks/maptree.js';
 import { checkNotetags } from './checks/notetags.js';
 import { checkParse } from './checks/parse.js';
 import { checkPlugins } from './checks/plugins.js';
@@ -29,6 +30,7 @@ export const CHECKS = [
   { name: 'text codes', run: checkTextCodes, readsData: true },
   { name: 'scripts', run: checkScripts, readsData: true },
   { name: 'start position', run: checkStart, readsData: true },
+  { name: 'map tree', run: checkMapTree, readsData: true },
 ];
 
 /**

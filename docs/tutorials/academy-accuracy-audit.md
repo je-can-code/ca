@@ -116,7 +116,7 @@ precisely the same terms as a sword swing.
 **Fix:** either give Magecraft the property the Magic Expert claims, or replace his argument. He has three
 other true ones already: no TP management, elemental coverage via offhand artifacts, and specialist scaling.
 
-### 5. "The wand will typically not contain as much force as the other mediums" — inverted
+### 5. "The wand will typically not contain as much sorcery as the other mediums" — inverted
 
 The witch's three mediums map to Cane (staff, two-handed), Rod (wand, one-handed) and Tome, confirmed by
 weapon names — the Cane line reads *Plain Crook, Oak Staff, Mage Staff*, the Rod line reads *Taper Wand,
@@ -128,7 +128,7 @@ Condenser Rod, Convergence Rod*.
 | **Rod — "the wand"** | **one** | **50 → 990** | Induce: `a.mat*3.5` |
 | Tome | one | 35 → 940 | Scathe: `a.mat*2 + a.mmp*0.10` |
 
-The wand has the highest force of the three at every tier, and the higher coefficient on top of it.
+The wand has the highest sorcery of the three at every tier, and the higher coefficient on top of it.
 
 Second problem in the same conversation: she credits **the wand** with "latent charging capabilities,"
 gated behind proficiency. `<chargeTier:[1,60,125]>` sits on **124 Mystic Focus**, which is the *Cane's*
@@ -140,7 +140,7 @@ projectiles, which is exactly [`families.md`](../weapons/families.md)'s "additiv
 prof ladder."
 
 **Fix:** the two-handed staff is the *defensive, wide-spray* medium (it is the only one granting MDF, and
-Laps sprays 180°); the one-handed wand is the *raw force* medium. Charging belongs to the staff. That is
+Laps sprays 180°); the one-handed wand is the *raw sorcery* medium. Charging belongs to the staff. That is
 close to a straight swap of the two branches' arguments.
 
 ### 6. The "Twin Axes" branch describes a weapon that does not exist
@@ -264,14 +264,14 @@ The Edge's "rapid TP generation" is true only by throughput, not per hit: its sk
 weapons. Worth half a clarifying sentence, since the same NPC correctly calls the Claymore the high-TP
 weapon two paragraphs earlier and the two statements read as contradicting each other.
 
-**Spears.** Crit-damage bonus real (`<cdmBuffPlus:[50]>` → `[400]` on Pike). Speed scaling real (Skewer
+**Spears.** Crit-damage bonus real (`<cdmBuffPlus:[50]>` → `[400]` on Pike). Finesse scaling real (Skewer
 `a.atk*1 + a.agi*1.5`). Javelin flies 8 tiles (`<proximity:8>`) and returns to hand (`<freeCombo>`, 51 ⇄ 52).
 Warstaff's chance to stun is real — attack-state trait, state 8 at 5%.
 
 **Guns.** TP in place of ammo (Lead Appetizer 5, Zap 5, Shock 30) — map 81 q3 correct. Bullets narrow
 (`<radius:0.3>`). Pistols Luck-heavy but Power still counts (`a.atk*1 + a.luk*5`). Taser zaps need no aiming
 (`<direct>`), the follow-up does (Shock is not direct), and zaps recurse for as long as TP lasts
-(`<combo:[73]>` onto itself). Tasers favour Force over Luck (`a.mat*2.5 + a.luk*1`).
+(`<combo:[73]>` onto itself). Tasers favour Sorcery over Luck (`a.mat*2.5 + a.luk*1`).
 
 **Axes.** One-handers keep the offhand and pay in mobility (no seal, −10 → −20). Damage leverages max life
 (Hack `a.atk*2 + a.mhp*0.02`). Two-handers carry no mobility penalty at all (Glaive 0 against Hatchet −10)

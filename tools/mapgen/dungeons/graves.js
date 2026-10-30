@@ -78,6 +78,25 @@ const ID = {
 };
 
 /**
+ * Where the forest's maps sit in the tree, in walking order, the new fields between the maps that were already
+ * there. Every order is a whole number, since jmz-data-editor refuses the whole tree over one that is not, and
+ * every map not listed here keeps its id as its order.
+ * @type {Object<string, number>}
+ */
+const ORDER = {
+  southGraves: 458,
+  heart: 459,
+  northGraves: 460,
+  northStone: 461,
+  eastGraves: 462,
+  eastStone: 463,
+  westGraves: 464,
+  westStone: 465,
+  crypt: 466,
+  catacombs: 467,
+};
+
+/**
  * What a carved square stands on. Rock is the carving's own business; every square carved out of it is one of
  * these, and all but the pond can be walked on.
  * @type {Object<string, string>}
@@ -261,7 +280,7 @@ const SPECS = [
     tree: 'South Graves',
     display: 'The Desolate Graves',
     parent: FIELD,
-    order: 457.5,
+    order: ORDER.southGraves,
     w: 90,
     h: 60,
     palette: FOREST,
@@ -289,7 +308,7 @@ const SPECS = [
     tree: 'The Heart',
     display: 'The Desolate Graves',
     parent: FIELD,
-    order: ID.heart,
+    order: ORDER.heart,
     w: 110,
     h: 80,
     palette: FOREST,
@@ -338,7 +357,7 @@ const SPECS = [
     tree: 'North Graves',
     display: 'The Desolate Graves',
     parent: FIELD,
-    order: 458.5,
+    order: ORDER.northGraves,
     w: 90,
     h: 60,
     palette: FOREST,
@@ -362,7 +381,7 @@ const SPECS = [
     tree: 'North Stone',
     display: 'The Desolate Graves',
     parent: FIELD,
-    order: ID.northStone,
+    order: ORDER.northStone,
     w: 70,
     h: 50,
     palette: FOREST,
@@ -393,7 +412,7 @@ const SPECS = [
     tree: 'East Graves',
     display: 'The Desolate Graves',
     parent: FIELD,
-    order: 459.5,
+    order: ORDER.eastGraves,
     w: 90,
     h: 60,
     palette: FOREST,
@@ -417,7 +436,7 @@ const SPECS = [
     tree: 'East Stone',
     display: 'The Desolate Graves',
     parent: FIELD,
-    order: ID.eastStone,
+    order: ORDER.eastStone,
     w: 70,
     h: 50,
     palette: FOREST,
@@ -451,7 +470,7 @@ const SPECS = [
     tree: 'West Graves',
     display: 'The Desolate Graves',
     parent: FIELD,
-    order: 460.5,
+    order: ORDER.westGraves,
     w: 90,
     h: 60,
     palette: FOREST,
@@ -478,7 +497,7 @@ const SPECS = [
     tree: 'West Stone',
     display: 'The Desolate Graves',
     parent: FIELD,
-    order: ID.westStone,
+    order: ORDER.westStone,
     w: 70,
     h: 50,
     palette: FOREST,
@@ -507,7 +526,7 @@ const SPECS = [
     tree: 'The Smith\'s Crypt',
     display: 'The Smith\'s Crypt',
     parent: ID.eastStone,
-    order: ID.crypt,
+    order: ORDER.crypt,
     w: 48,
     h: 36,
     palette: TOMB,
@@ -600,7 +619,7 @@ const SPECS = [
     tree: 'The Catacombs',
     display: 'The Catacombs',
     parent: ID.heart,
-    order: ID.catacombs,
+    order: ORDER.catacombs,
     w: 90,
     h: 65,
     palette: TOMB,
@@ -1732,11 +1751,11 @@ for (const { spec, map } of built)
 }
 
 // the manifest is what `install.js` reads, so it carries everything MapInfos needs and nothing else. The forest
-// hangs under the Graves' folder beside Jeremy's entrance in walking order, the redraw's new fields slotted between
-// the maps that were already there by half-step orders, since install.js never touches an entry it already has.
-// Each crypt hangs under the map it is entered from. The manifest lists the maps in id order rather than walking
-// order: install.js appends each new map's entry to MapInfos in the order the manifest gives it, and MapInfos is
-// read by position, so an entry appended out of id order sits at another map's index.
+// hangs under the Graves' folder beside Jeremy's entrance in walking order, by `ORDER`, and each crypt hangs under
+// the map it is entered from. install.js never touches an entry it already has, so an order only lands for a map
+// the tree does not hold yet. The manifest lists the maps in id order rather than walking order: install.js appends
+// each new map's entry to MapInfos in the order the manifest gives it, and MapInfos is read by position, so an
+// entry appended out of id order sits at another map's index.
 const manifest = built.map(({ spec, map }) => ({
   id: spec.id,
   tree: spec.tree,

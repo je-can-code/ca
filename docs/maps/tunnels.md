@@ -132,8 +132,9 @@ are dead ends, for loot.
 
 ### The doors on Jeremy's maps
 
-None of these is written: each stands on one of Jeremy's maps. The recipe writes the other half of every one,
-except the valley's.
+**Wired 2026-10-26**, at Jeremy's go: every door below now stands on his maps, each checked against the half on the
+far map (heading kept, landing one step in), and `map-atlas oneways` finds no one-way door left on any of them. The
+recipe still writes only the tunnels' own halves; these live in his maps now.
 
 | Map | The door | Leads to | The way back lands on |
 |---|---|---|---|
@@ -146,15 +147,14 @@ except the valley's.
 | `Map233` Northern Valley | an event on its drawn cave mouth at **(18,2)** | `Map325` (12,20) facing up, the North Access's nub | 325 needs a door back on its nub at (12,21), to `Map233` (18,3) facing down |
 | `Map327` East Access | a door back on its nub at **(21,21)**, since `Map232`'s "Transfer (TODO)" is one-way | `Map232` (8,29) facing down | |
 
-**Overmined Corner's dead end is furnished, and as drawn it walls the breakthrough off.** The lamp (event 13) hangs
-at (14,1), on the wall the opening takes down, so it moves. Below the landing at (13,2), rows 3-5 are a barricade:
-the ore heap at (12,3)-(13,3), rocks at (11,3), (13,4) and (12,5), and crates (events 21-27) at (14,3)-(16,3),
-(14,4)-(15,4) and (11,4)-(11,5). Every smallest way through takes two of them: crates 21 and 25 at (14,3)-(14,4), or
-the heap and the rock at (13,4), or the heap and the rock at (12,5).
+**Overmined Corner's dead end is furnished.** Its lamp (event 13) hung on the wall the opening took down, so it moved
+one square east to (15,1), on the timber wall that's left. Below the landing at (13,2), rows 3-5 hold the ore heap,
+rocks and the crates (events 21-27), and nothing was cleared: the crates are Mining Crates (enemy 42), breakable and
+full of drops, so a player coming out of the tunnel smashes crates 21 and 25 at (14,3)-(14,4) to get through.
 
-Until these doors are written, nothing in play reaches the tunnels, and both far doors set the player down inside a
-wall, in Overmined Corner and in `Map302`. `map-atlas atlas 328` draws the access caves, Overmined Corner and
-`Map302` one-way until then.
+Both openings were cut 2026-10-26: Overmined Corner's three squares of timber face and ceiling are floor (A2 24) up
+to the map's top edge, with the frame's decorations cleared from them, and `Map302`'s ceiling is off its west wall at
+rows 6-8, with the ceiling either side reshaped to the edges that keep a player in the passage.
 
 ---
 
@@ -163,7 +163,6 @@ wall, in Overmined Corner and in `Map302`. `map-atlas atlas 328` draws the acces
 - **Rosters**, 85-100. The chambers are sized for real fights, and the gust lanes run through most of them.
 - **The loot** in the pockets.
 - **The lights** for `<ambient:[75]>`.
-- **The doors on Jeremy's maps** (above), the two breakthroughs among them.
 - **Windswept's feel in play**: 60 speed and 400 knockback are first numbers.
 - **Music**, if the wind alone turns out too bare.
 
@@ -175,7 +174,7 @@ wall, in Overmined Corner and in `Map302`. `map-atlas atlas 328` draws the acces
   (`Map479`-`Map492`).
 - [x] The gust lanes (region 30) and Windswept (state 182) on every tunnel map.
 - [x] The `draft` weather (preset 18).
-- [ ] Wire the doors on Jeremy's maps, the two breakthroughs included, and clear a way through Overmined Corner's
-  dead end (two crates, or the ore heap and a rock).
+- [x] Wire the doors on Jeremy's maps, the two breakthroughs included (2026-10-26). Overmined Corner's crates are
+  breakable, so its dead end needed no clearing.
 - [ ] Polish: rocks, stalagmites, timber where the miners reached, frost on the Cold Draft maps.
 - [ ] Enemies, loot and lights.

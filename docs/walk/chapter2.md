@@ -26,7 +26,7 @@ Alchemist`, but he is notably missing, granting entry to the dungeon.
 | name           | drop % | description                                                                       |
 |----------------|:------:|-----------------------------------------------------------------------------------|
 | Crawler        |   4%   | A rare panel that trades Power for improved Hit and resistance to Environ Damage. |
-| Goobat         |  10%   | An unusual panel that reduces speed, but improves HP/TP regen and healing rate.   |
+| Goobat         |  10%   | An unusual panel that reduces finesse, but improves HP/TP regen and healing rate. |
 | Will 'o' Wisp  |   1%   | The first legendary panel, bestowing tremendous magical offensive powers!         |
 | !Blister       |  50%   | `an improved drop rate of the Will 'o' Wisp's panel`                              |
 | Stonefur       |   4%   | A physically defensive panel that also gives a buff to ones healing rate.         |

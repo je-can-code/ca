@@ -219,7 +219,8 @@ screen is 40x22.5 tiles, and the engine centres any smaller map in a black borde
 ### Mines side `SHIPPED`
 
 `Map137` "Deeper We Go..." → `Map331` "Subterranean Entrance". Built, reachable, save platform in
-place. `Map331` currently dead-ends — it has no exit except back the way it came.
+place. Its door onward, at the top of the corridor between its wall lamps, leads down into `Map385` "Shaft 1b"
+(wired 2026-10-26), so the whole dungeon can be walked from the mines to the arena.
 
 ### Basin side `OPEN`
 
@@ -341,17 +342,20 @@ reads as an unassigned void set.
       "FLOOR: 6"). What is left is the polish, the populating and the playing, all his. Layer 3 is teal from
       its first map on (Jeremy: "remember that layer 3 will be teal, just that last big map will be where
       I transition").
-- [ ] Cavern 2d (`Map390`) is Jeremy's now (the recipe's `HANDED_OVER`), so its door down is his to
-      place: an event at (8,38), the foot of its drop shaft, with `<areaEvent:[3,1]>`, transferring to
-      `Map393` (9,2) facing down (until then `map-atlas oneways 290` lists 393 -> 390). If the drop moves
-      while he polishes, 3a's door needs its landing moved to match.
-- [ ] Rest map at the end of layer 5 with save sigil and teleportal, plus its hub door.
-- [ ] `Map331` needs its door onward: an event at (34,1), the top of the corridor between its wall
-      lamps, with `<areaEvent:[3,1]>`, transferring to `Map385` (25,35) facing up (until then
-      `map-atlas oneways 290` lists 385 -> 331).
+- [x] Cavern 2d's door down (`Map390` is Jeremy's now, the recipe's `HANDED_OVER`): event 2 at (8,38), the
+      foot of its drop shaft, with `<areaEvent:[3,1]>`, transferring to `Map393` (9,2) facing down (wired
+      2026-10-26). If the drop moves while he polishes, both this door and 3a's landing move with it.
+- [x] Rest map at the end of layer 5 with save sigil and teleportal (wired 2026-10-27): `Map406` "Respite" holds a Save
+      Platform at (27,11), and the teleportal switch (23,6) and portal (22,6) in the alcove at the top of the chamber,
+      on switch 178 `tp-subterranean-active`. The portal leads to `Map493` "Subterranean Teleportal" under the hub, a
+      room in the dungeon's own teal, whose exit lets out on the hub's lower corridor at (29,36), where Nimbus's does.
+- [ ] Its hub door, which waits on the hub reckoning (`nimbus.md`, `OPEN`).
+- [x] `Map331`'s door onward: event 20 at (34,1), the top of the corridor between its wall lamps, with
+      `<areaEvent:[3,1]>`, transferring to `Map385` (25,35) facing up (wired 2026-10-26). Until then only the
+      entrance could be reached from the mines; `map-atlas oneways 290` now lists nothing.
 - [ ] Enemy rows in band: Snake `153-155`, Cube `291-295` (and a sprite), Worm `414-415`,
       Lonewolf `422-425`, an orb-construct tier, plus Sloth herself.
-- [ ] Darkness pass: `<ambient:[N]>` per layer (20/40/60/80/100/100 to start), torches, bioluminescent
-      props, the drifting critters.
+- [ ] Darkness pass: torches, bioluminescent props, the drifting critters. The per-layer `<ambient:[N]>` tags went in
+      with the draft, at the table's 75/80/85/90/100/100 (70 on `Map331`).
 - [ ] Heartbeat BGS as an `.ogg`, and per-map volume keyed to depth.
 - [ ] Assign or deliberately retire `Skills[2587]` and its neighbours.

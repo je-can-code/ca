@@ -102,7 +102,7 @@ are wired in the area-event format and every one keeps the player's heading.
 | `Map452` "Shores 1", 40x23, tileset 17 | one screen of beach under the cliff, the J&R II nod: the way down comes out of a gully in the cliff (x 18-20), sand below, a band of wet sand, and the sea along the bottom, with spurs of cliff closing it either side. East through the spur (rows 8-10) to Shores 2 | **where Rob stood: (20,11)**, on the dry sand in the middle of the screen |
 | `Map453` "Shores 2", 90x35, tileset 17 | the long beach: cliffs along the north with a headland jutting out around x 39, dry sand, the wet band around rows 20-25, and the sea below. West (rows 8-10) to Shores 1, east (rows 9-11) to the cove through the tide door | sandstone stacks on the sand around (20,13), (58,15) and (75,12) and out at sea around (31,29) and (66,31); tide pools in the wet band around (12,22), (47,22) and (71,22); sandbars around (24,31) and (52,30) |
 | `Map454` "The Cove (high tide)", 60x40, tileset 17 | the sea right up to the cliffs. Only the dry strip at the door from Shores 2 (x 1-10, rows 8-14) stays above it, and the two sea-cave mouths are flooded | the strip is all there is to stand on; the rocks around (26,21), (46,24) and (12,30) stand in the sea; the high-tide spawns are Jeremy's |
-| `Map455` "The Cove (low tide)", 60x40, tileset 17 | the same cove with the sea pulled back off a wide flat of wet sand (rows 8-28), the dry strip at the door, and the sea beyond. Two sea-cave mouths cut into the cliff foot: west at x 18-20 and east at x 40-42, rows 5-7 | tide pools around (14,19), (31,13), (37,22) and (46,15); rocks around (26,21), (46,24) and (12,30); the mouths' doors stand on row 5 |
+| `Map455` "The Cove (low tide)", 60x40, tileset 17 | the same cove with the sea pulled back off a wide flat of wet sand (rows 8-28), the dry strip at the door, and the sea beyond. Two sea-cave mouths cut into the cliff foot: west at x 18-20 and east at x 40-42, rows 5-7 | tide pools around (14,19), (31,13), (37,22) and (46,15); rocks around (26,21), (46,24) and (12,30); the mouths' doors stand on row 5; the sixth Alchemy Page's chest at (50,15), added 2026-10-26 |
 | `Map456` "Sea Cave 1", 40x30, tileset 14 grey | in from the cove's west mouth through the bottom wall (x 18-20); a first chamber around (19,19) with a pool, a passage west and up, and a back chamber around (12,8) with its own pool | the back chamber is a dead end, for loot; `<noToneChange>` and `<ambient:[70]>` |
 | `Map457` "Sea Cave 2", 40x30, tileset 14 grey | in from the cove's east mouth through the bottom wall (x 18-20) into a flooded cavern: a big pool around (20,13) ringed by a rim to walk around it, and a side chamber around (32,5) off the far rim | the side chamber is a dead end, for loot; `<noToneChange>` and `<ambient:[70]>` |
 
@@ -125,18 +125,13 @@ MZ runs the last page whose conditions hold, so whenever the tide is out, a low-
 back to Shores 2 at (87,10) facing left, and both land the player on the same dry square, which is why the strip
 at the door never floods.
 
-### The door `Map113` still needs
+### The door on `Map113`
 
-`Map113` is Jeremy's, so the recipe leaves its half of the first door to him. That half is puzzle eventing:
-
-- **A switch** that turns on once all four Magic Torches are lit. Today each torch sets only its own self
-  switch A, so nothing knows when the fourth one goes.
-- **The wall opened** at x 21, rows 9-11, the room's east end, floored to match (A2 16).
-- **The door**: an event at **(21,9)** with `<areaEvent:[1,3]>`, its page conditioned on that switch,
-  transferring to **`Map451` (2,4) facing right**.
-
-The way down's half is already written and lands the player back at (20,10), on floor the room already has. Until
-the Hidey Hole is wired, the Shores are unreachable in play.
+**Wired 2026-10-26**, at Jeremy's go. Whichever Magic Torch is lit last finds the other three lit and turns on
+**switch 175 "hidey hole: torches lit"**. The door is a hole in the east wall at **(21,10)**, built like the bomb
+walls (`Map111` event 26): the wall tiles stay, and once the switch is on, the event shows `$o_wall-hole` and walking
+into it transfers to **`Map451` (2,4) facing right**. That's one square in the middle of the east wall, not the
+three-tall opening at (21,9) first written here, so the way down's landing at (20,10) sits right in front of it.
 
 ---
 
@@ -156,7 +151,8 @@ the Hidey Hole is wired, the Shores are unreachable in play.
 ## Build punch list
 
 - [x] Draft and install the way down, the beach, both coves and both sea caves (`Map450`-`Map457`).
-- [ ] Wire the Hidey Hole: the all-torches switch, the opening, and the door (above).
+- [x] Wire the Hidey Hole: the all-torches switch, the opening, and the door (above; switch 175, wired
+  2026-10-26).
 - [ ] Polish: rocks, shells, driftwood, palms, the cave mouths.
 - [ ] Enemies and the tide spawns, as `<timeOfDayPage>` pages.
 - [ ] `yelena-003` "Surf & Turf" against the tide.

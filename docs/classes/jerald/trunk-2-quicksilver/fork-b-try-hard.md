@@ -30,12 +30,12 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | Force +10% | +10% magic attack. |
+| P1 | Sorcery +10% | +10% magic attack. |
 | P2 | Equip Taser | Unlock. Grants access to the Taser weapon subgroup. |
 | P3 | Luck +10% | +10% luck. Scales Button Mash hits, basic attack bonus hits, and all proc odds simultaneously. |
 | P4 | Abusive | Bonus damage to targets below 50% HP. Scales harder the lower they go. |
 | P5 | Luck +20% | +20% luck. Scales Button Mash hits, basic attack bonus hits, and all proc odds simultaneously. |
 | P6 | Basic Attack Hits +1 | Basic attacks hit one additional time. |
-| P7 | Force +20% | +20% magic attack. |
+| P7 | Sorcery +20% | +20% magic attack. |
 | P8 | CDR +20% | −20% cooldown duration. |
 | P9 | Fully Committed | Basic attack bonus hits = `floor(1 + LUK/25 + AGI/25)`. The longer he's decided you're the problem, the more that decision shows. Uses `<bonus-hits-basic:[floor(1 + a.luk/25 + a.agi/25)]>`. |

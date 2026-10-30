@@ -98,9 +98,9 @@ CEV would be **`code: 22`, `dataId: 3`** (EX Parameter → Crit Dodge), with `va
 | 1 | Max Magi | `mmp` |
 | 2 | Power | `atk` |
 | 3 | Endurance | `def` |
-| 4 | Force | `mat` |
+| 4 | Sorcery | `mat` |
 | 5 | Resist | `mdf` |
-| 6 | Speed | `agi` |
+| 6 | Finesse | `agi` |
 | 7 | Luck | `luk` |
 
 ### EX parameters — code **22** (`dataId` 0–9)

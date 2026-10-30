@@ -129,9 +129,9 @@ heavy plate; Gemini is twins and should want two of something.
 - **The five unplaced ⭐ weapons** — `"Blaster"` (Boomstick), `"Crescent Blossom"` (Glaive),
   `"Plate Peeler"` (Mace), `"Brought Down"` (Claws), `"Meta Arm"` (Arm). Their switches
   (`got-named-shotgun` 208, `got-named-2h-axe` 211, `got-named-doubleaxe` 212, `got-named-claw` 217,
-  `got-named-arm` 218) are already reserved and waiting. Their homes were decided on 2026-10-25 (see
-  [Where the named pieces are placed](#where-the-named-pieces-are-placed-decided-2026-10-25)); the chests
-  themselves are not in the maps yet.
+  `got-named-arm` 218) are already reserved and waiting. Their homes were decided on 2026-10-25 and the
+  chests were placed on 2026-10-26 (see
+  [Where the named pieces are placed](#where-the-named-pieces-are-placed-decided-2026-10-25)).
 - **The exact material bills** at each rung.
 
 ### Where the materials come from
@@ -227,9 +227,8 @@ designed. Rungs 7-9 were the only hole, and this fills it.
 
 - **The 27 recipes.** `config.crafting.json` carries rungs 1-6 and 10 for all nine lines; 7-9 are
   absent entirely.
-- **The 27 salvage placements.** Their homes were decided on 2026-10-25 (see
-  [Where the named pieces are placed](#where-the-named-pieces-are-placed-decided-2026-10-25)), mixing open
-  dead ends with pockets behind tool gates; the chests themselves are not in the maps yet.
+- **The 27 salvage placements** are done: placed 2026-10-26, each on a skeleton the player searches (see
+  [Where the named pieces are placed](#where-the-named-pieces-are-placed-decided-2026-10-25)).
 - **The exact material bills** at each rung.
 - **Survival's inherited tier.** `./unlockables/recipe-journals.md` holds the doctrine — *found <
   taught < inherited* — and cooking, alchemy and smithing each have all three. Survival has pattern
@@ -301,11 +300,48 @@ lines. **H** is Fractured Handgear (`i95`), **S** Perforated Suit (`i96`), **F**
 | | S | Fallen Kingdom · Bathroom of Joy `Map294` | nothing |
 | | F | Fallen Kingdom · The Backroom `Map298` | nothing |
 | | H | Negative Peaks · Foothills `Map301`, rope pocket at x 34-42, y 19-24 | rope |
-| | S | Negative Peaks · Shelter and Beyond `Map306`, its rope pocket | rope |
-| | F | Negative Peaks · Icy Foray `Map308`, past its rope crossing | rope |
+| | S | Negative Peaks · Shelter and Beyond `Map306`, the ledge past the chasm (its "rope pocket" never existed; see below) | rope, at the Peaks' door |
+| | F | Negative Peaks · Icy Foray `Map308`, the alcove past its post (the post gates nothing; see below) | rope, at the Peaks' door |
 | | H | Pearl Salt Mines · W Side `Map346`, its rope pocket | rope |
 | | S | Volcanis Grotto · Fiery End `Map253`, rope pocket at x 8-27, y 1-5 | rope |
 | | F | Forest of Dreams · Heart of the Dream `Map077` | rope |
+
+### Placed 2026-10-26
+
+Every piece is in the maps now, on the squares below, each checked against the tool that opens its pocket.
+
+- **The ⭐ weapons sit in chests** built like the other named weapons (a copy of `Map218`'s "named spear"): the
+  family's `got-named-…` switch, "Pulled the \Weapon[n] out of the chest.", and no banter yet.
+- **The salvage is searched off skeletons, not chests** (Jeremy, 2026-10-26: "Make sure there is a skeleton or some
+  bones or something EVERYWHERE there is a fractured thing"). They all use `$o_skeleton.png`, lifted from the dungeon
+  sheets' slumped skeleton (tile 250 of `Dungeon_B` and `Dungeon_B_VS`): rows 0-1 are the pixel-art one for the
+  VisuStella and EX tilesets, rows 2-3 the RTP one for the RTP dungeon tileset, so one sprite works on every map. The
+  events are named `bones-salvage-handgear`, `-suit` and `-footwear`.
+- **The Blaster took the fallback** in Up or Down (Jeremy: "Put the blaster there. It's fine.").
+- **Two ⭐⭐⭐ homes came off rope pockets that don't exist.** The Snake Rope (skill 255) carries no
+  `<gapClosePosition>`, so JABS lands the player on the post's own square, not past it. Under that rule Shelter and
+  Beyond has no rope-only ground and Icy Foray's post gates nothing, so both pieces stay on their maps in on-foot dead
+  ends. They still wait for the rope, though: "The entirety of negative peaks as a whole is gated by rope" (Jeremy,
+  2026-10-26), so the gate stands at the Peaks' door rather than inside the map. Every other rope home was rechecked
+  under the same rule and holds. Any future rope pocket has to be judged the same way: the far post has to stand
+  inside the pocket.
+
+| Piece | Home | Square | Gate |
+|---|---|---|---|
+| `"Plate Peeler"` | Offshoot W `Map150` | (6,6) | ukelele, on the way into the Northern Caverns |
+| `"Brought Down"` | Passage - 8 `Map102` | (72,6) | ukelele |
+| `"Blaster"` | Up or Down `Map353` | (19,22) | ukelele |
+| `"Crescent Blossom"` | Mad Hops `Map159` | (29,8) | nothing |
+| `"Meta Arm"` | Fiery End `Map253` | (32,2) | rope |
+| ⭐ H / S / F | Offshoots NE `Map130`, NW `Map133`, SE `Map139` | (13,8), (19,8), (15,18) | nothing |
+| ⭐ H / S / F | Passage - 1 `Map094`, Passage - 5 `Map099`, Passage - 4a `Map106` | (41,3), (52,27), (22,4) | ukelele |
+| ⭐ H / S / F | Earthen Layer West `Map168`, East `Map169`, South `Map170` | (12,6), (30,26), (19,17) | boulder puzzle |
+| ⭐⭐ H / S / F | E Side `Map349`, A River Receded `Map200`, Peaceful Respite `Map067` | (1,12), (10,10), (24,2) | rope |
+| ⭐⭐ H / S / F | Frozen Fortress `Map116`, Distant Hill `Map218`, Western Way `Map257` | (36,8), (44,7), (18,19) | rope, rope, nothing |
+| ⭐⭐ H / S / F | Volcanis Pass `Map243`, The Bellows `Map246`, past Riverside Stroll's crack `Map179` | (35,16), (7,21), (20,5) | rope |
+| ⭐⭐⭐ H / S / F | The Drunken Sheep `Map292`, Bathroom of Joy `Map294`, The Backroom `Map298` | (12,6), (16,13), (30,33) | nothing |
+| ⭐⭐⭐ H / S / F | Foothills `Map301`, Shelter and Beyond `Map306`, Icy Foray `Map308` | (35,23), (43,32), (36,25) | rope (the whole Peaks is behind it) |
+| ⭐⭐⭐ H / S / F | W Side `Map346`, Fiery End `Map253`, Heart of the Dream `Map077` | (5,8), (23,4), (35,5) | rope |
 
 Left alone on purpose: the Dangerous Oneway's "tempting treasure" (`Map057`), which `todo.md` has in mind for
 a flux drive, and Highwater's Eastern Way (`Map256`), whose door `map-atlas` reads as locked behind progress
