@@ -203,13 +203,13 @@ Payload: rage states 1011-1020. All states are per-stack.
 
 | Act | Mechanics |
 |---|---|
-| 1-3 | One stack per 4% missing Life; each gives +1/2/3% Power and Force (caps 25 stacks) |
+| 1-3 | One stack per 4% missing Life; each gives +1/2/3% Power and Sorcery (caps 25 stacks) |
 | 4-9 | +3% per stack, earned per 3.5% -> 1% missing Life (up to 100 stacks) |
-| 10 | +5% Power and Force per stack, one per 1% missing Life, and Phys/Magi damage taken -50% |
+| 10 | +5% Power and Sorcery per stack, one per 1% missing Life, and Phys/Magi damage taken -50% |
 
-- **Beginning:** `Bones do not flinch. Every {s.perStack} of Life you are missing feeds {d.atk} Power and Force.`
-- **Middle:** `Graveborn fury sharpens as you fail: {d.atk} Power and Force for every {s.perStack} of Life gone.`
-- **End:** `Deathless. {d.atk} Power and Force per {s.perStack} of missing Life, and everything that hits you does half of what it meant to.`
+- **Beginning:** `Bones do not flinch. Every {s.perStack} of Life you are missing feeds {d.atk} Power and Sorcery.`
+- **Middle:** `Graveborn fury sharpens as you fail: {d.atk} Power and Sorcery for every {s.perStack} of Life gone.`
+- **End:** `Deathless. {d.atk} Power and Sorcery per {s.perStack} of missing Life, and everything that hits you does half of what it meant to.`
 
 ### `undead-armor` (1141-1145)
 
@@ -320,13 +320,13 @@ Payload: Rooted Stance states 1031-1040. Stand still to build; moving strips.
 
 | Act | Mechanics |
 |---|---|
-| 1-3 | A stack every 3s standing, max 3, each +5/10/15% Force. Moving loses **all** |
-| 4-9 | A stack every 2s, max 3 -> 8, each +15 -> 25% Force. Still all-or-nothing |
-| 10 | A stack every 1s, max 10, each +30% Force, and moving now costs **one** stack (`loseAllStacksAtOnce` is dropped) |
+| 1-3 | A stack every 3s standing, max 3, each +5/10/15% Sorcery. Moving loses **all** |
+| 4-9 | A stack every 2s, max 3 -> 8, each +15 -> 25% Sorcery. Still all-or-nothing |
+| 10 | A stack every 1s, max 10, each +30% Sorcery, and moving now costs **one** stack (`loseAllStacksAtOnce` is dropped) |
 
-- **Beginning:** `Root yourself and the power gathers: a stack every {s.interval} standing still, {d.mat} Force each, gone the moment you move.`
-- **Middle:** `A rooted tempest, {s.stacks} layers deep at {d.mat} Force apiece, but one step still costs you everything.`
-- **End:** `Rooted cataclysm. {s.stacks} stacks at {d.mat} Force each, and at last you can move without losing it all: a step costs one stack, no more.`
+- **Beginning:** `Root yourself and the power gathers: a stack every {s.interval} standing still, {d.mat} Sorcery each, gone the moment you move.`
+- **Middle:** `A rooted tempest, {s.stacks} layers deep at {d.mat} Sorcery apiece, but one step still costs you everything.`
+- **End:** `Rooted cataclysm. {s.stacks} stacks at {d.mat} Sorcery each, and at last you can move without losing it all: a step costs one stack, no more.`
 
 ### `aquatic-crab` (1221-1225)
 
@@ -494,13 +494,13 @@ above the threshold. The capstone makes the **gate easier**, not just the number
 
 | Act | Mechanics |
 |---|---|
-| 1-3 | All allies above 75% Life: Force +10/20/30% |
-| 4-9 | All allies above 75% Life: Force +50 -> +100%, Resist +50% |
-| 10 | All allies above **50%** Life: Force +200%, Resist +100% |
+| 1-3 | All allies above 75% Life: Sorcery +10/20/30% |
+| 4-9 | All allies above 75% Life: Sorcery +50 -> +100%, Resist +50% |
+| 10 | All allies above **50%** Life: Sorcery +200%, Resist +100% |
 
-- **Beginning:** `The grove answers a healthy wood. While every ally near you stands above {s.gate} Life, Force {p.mat}.`
-- **Middle:** `Nature's ire: {p.mat} Force and {p.mdf} Resist, for as long as nobody around you is bleeding badly.`
-- **End:** `Nature's judgment asks less and gives more. Allies need only hold {s.gate} Life for Force {p.mat} and Resist {p.mdf}.`
+- **Beginning:** `The grove answers a healthy wood. While every ally near you stands above {s.gate} Life, Sorcery {p.mat}.`
+- **Middle:** `Nature's ire: {p.mat} Sorcery and {p.mdf} Resist, for as long as nobody around you is bleeding badly.`
+- **End:** `Nature's judgment asks less and gives more. Allies need only hold {s.gate} Life for Sorcery {p.mat} and Resist {p.mdf}.`
 
 ### `plant-treant` (1331-1335)
 
@@ -538,17 +538,17 @@ own payload. Deliberate, not a mistake. `purgeStates:[TYPE, ALLOW_DEATH, COUNT]`
 
 ### `beast-bearcat` (1351-1355)
 
-`matBuffPlus:[a.atk*N]` converts Power into Force. The capstone makes the conversion **mutual**.
+`matBuffPlus:[a.atk*N]` converts Power into Sorcery. The capstone makes the conversion **mutual**.
 
 | Act | Mechanics |
 |---|---|
-| 1-3 | Force gains 10/20/30% of your Power |
-| 4-9 | Force gains 50 -> 100% of Power, hits inflict Emptiness (state 14) at 3 -> 18% |
-| 10 | Force gains 100% of Power **and** Power gains 100% of Force; Emptiness at 20% |
+| 1-3 | Sorcery gains 10/20/30% of your Power |
+| 4-9 | Sorcery gains 50 -> 100% of Power, hits inflict Emptiness (state 14) at 3 -> 18% |
+| 10 | Sorcery gains 100% of Power **and** Power gains 100% of Sorcery; Emptiness at 20% |
 
-- **Beginning:** `Muscle and magic start to rhyme: Force rises by {v.matBuffPlus} of your Power.`
-- **Middle:** `A void chord runs through every swing. Force takes {v.matBuffPlus} of your Power, and {s.chance} of your blows leave Emptiness behind.`
-- **End:** `Void harmonics. Power feeds Force and Force feeds Power, each carrying {v.matBuffPlus} of the other, and {s.chance} of what you touch is unmade.`
+- **Beginning:** `Muscle and magic start to rhyme: Sorcery rises by {v.matBuffPlus} of your Power.`
+- **Middle:** `A void chord runs through every swing. Sorcery takes {v.matBuffPlus} of your Power, and {s.chance} of your blows leave Emptiness behind.`
+- **End:** `Void harmonics. Power feeds Sorcery and Sorcery feeds Power, each carrying {v.matBuffPlus} of the other, and {s.chance} of what you touch is unmade.`
 
 ### `beast-bat` (1361-1365)
 
@@ -781,13 +781,13 @@ Same verb, opposite direction.
 
 | Act | Mechanics (per debuff on you) |
 |---|---|
-| 1-3 | Power and Force +10/20/30% |
-| 4-9 | Power and Force +50 -> +100%, Phys/Magi/Env damage taken -2 -> -7% |
-| 10 | Power and Force +200%, all three damage types -10%, Lifesteal +10% |
+| 1-3 | Power and Sorcery +10/20/30% |
+| 4-9 | Power and Sorcery +50 -> +100%, Phys/Magi/Env damage taken -2 -> -7% |
+| 10 | Power and Sorcery +200%, all three damage types -10%, Lifesteal +10% |
 
-- **Beginning:** `Nothing sticks to a titan. Every affliction you carry is worth {p.atk} Power and Force.`
-- **Middle:** `A relentless march: each curse on you gives {p.atk} Power and Force, and {p.pdr} off everything they throw.`
-- **End:** `Juggernaut. Every affliction feeds you {p.atk} Power and Force, {p.pdr} of protection, and {v.lst} Lifesteal. Let them pile on.`
+- **Beginning:** `Nothing sticks to a titan. Every affliction you carry is worth {p.atk} Power and Sorcery.`
+- **Middle:** `A relentless march: each curse on you gives {p.atk} Power and Sorcery, and {p.pdr} off everything they throw.`
+- **End:** `Juggernaut. Every affliction feeds you {p.atk} Power and Sorcery, {p.pdr} of protection, and {v.lst} Lifesteal. Let them pile on.`
 
 ### `construct-hazard` (1511-1515)
 

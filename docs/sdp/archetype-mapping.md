@@ -336,7 +336,7 @@ CDR (Crit Damage Reduction) was already built. Negative CDR is supported out of 
 ### LUK archetype assignment
 
 LUK is a core stat for **Generalist** (jack of all trades, luck favors the prepared)
-and a secondary stat for **Skirmisher** (speed + luck = crits and procs).
+and a secondary stat for **Skirmisher** (finesse + luck = crits and procs).
 This gives all three gun subgroups (Pistol, Taser, Shotgun) natural panel partners.
 
 ### Weapon adjustments for archetype crossover (applied)

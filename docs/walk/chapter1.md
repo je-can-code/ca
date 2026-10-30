@@ -233,7 +233,7 @@ stronger and stronger thanks to your `node junction system` and levels.
 
 | name           | drop % | description                                                                   |
 |----------------|:------:|-------------------------------------------------------------------------------|
-| Cave Bat       |   5%   | A simple panel with speed, but also the elusive TP Regen.                     |
+| Cave Bat       |   5%   | A simple panel with finesse, but also the elusive TP Regen.                   |
 | Will 'o' Wisp  |   1%   | The first legendary panel, bestowing tremendous magical offensive powers!     |
 | Minitaur       |   5%   | Primarily a physical offensive panel, but grants a bonus to EXP gains.        |
 | Wraith         |   8%   | A panel bearing high amounts of magic resistance and surprisibly, crit block. |
@@ -269,9 +269,9 @@ lead you back to `Raevula` where you can restock, hit up Viktor for some smithin
 
 | name               | drop % | description                                                                           |
 |--------------------|:------:|---------------------------------------------------------------------------------------|
-| Fungrowth          |   5%   | Purely offensive, adding both Power and Force at the cost of item effectiveness.      |
+| Fungrowth          |   5%   | Purely offensive, adding both Power and Sorcery at the cost of item effectiveness.    |
 | Jelly              |   1%   | Magi-centric with all of Max MP, Magi Cost, and MP Regen among other things.          |
-| Dryad              |   5%   | Offensive panel with high Force gains, but also increases Aggro.                      |
+| Dryad              |   5%   | Offensive panel with high Sorcery gains, but also increases Aggro.                    |
 | !Queen of Stone    |  50%   | `an improved drop rate of the Dryad's panel`                                          |
 | Bandit             |   8%   | A very fast panel with a bit of luck and Crit Dodge.                                  |
 | Gluttonwolf (Boss) |  `--`  | `This enemy does not drop a panel.`                                                   |

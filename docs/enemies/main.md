@@ -52,14 +52,14 @@ Ghosts are typically "careful" and tend to be a bit more defensive in stats.
 
 ### Reborn
 
-Reborn typically seek out weaknesses with their "executor" trait, and lean into offensive force-based attacks.
+Reborn typically seek out weaknesses with their "executor" trait, and lean into offensive sorcery-based attacks.
 
 - (10) [111]Wraith
 - (15) [112]!Spoop Maestro
 
 ### Wisp
 
-Since Wisps are basically intangible spiritual entities, their are heavily force and resist-centric, but inherently are
+Since Wisps are basically intangible spiritual entities, their are heavily sorcery and resist-centric, but inherently are
 not fast by any stretch of the imagination. Due to the fact that they are primal spirits, they tend to "recklessly"
 spam thier abilities without constraint.
 

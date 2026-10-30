@@ -23,8 +23,9 @@ what the shadow turned out to be.
 ### 0) Unlock Quest: `main-004` (the rescue)
 
 ### 1) The Journal of Alchemy: `side-009`
-Already authored: five pages, five locations (the 4a–8a bird, the lakeside view, Highwater, the forest cliffs,
-the toothpick ledge). Each page traded for formulae. This doc anchors the existing quest to his arc: every page
+Already authored: six pages, six locations (the 4a–8a bird, the lakeside view, Highwater, the forest cliffs,
+the toothpick ledge, and the low-tide cove, added 2026-10-26). Each page traded for formulae, and the sixth completes
+the journal with the Philosopher's Stone. This doc anchors the existing quest to his arc: every page
 is in the master's handwriting, and Leo's commentary while decoding them quietly builds the portrait of the man
 who left him behind.
 

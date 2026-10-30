@@ -12,6 +12,7 @@
 
 import { checkConfigs } from './checks/configs.js';
 import { checkHousekeeping } from './checks/housekeeping.js';
+import { checkMapTree } from './checks/maptree.js';
 import { checkNotetags } from './checks/notetags.js';
 import { checkParse } from './checks/parse.js';
 import { checkPlugins } from './checks/plugins.js';
@@ -247,6 +248,10 @@ const buildControls = project =>
     .find(mapId => mapId !== REAL_START.mapId && mapId !== tables.System.startMapId);
   const startOn = (mapId, x, y) => withSystem(project, { startMapId: mapId, startX: x, startY: y });
 
+  // the map tree controls move the first map in the table, by a half step and then by a whole one.
+  const placedMap = tables.MapInfos.find(info => info !== null);
+  const reorder = order => withRow(project, 'MapInfos', { ...placedMap, order });
+
   return [
     {
       label: `a drop re-aimed at a blank armor row (Enemies #${dropper.id} -> Armors #${blankArmorId})`,
@@ -438,6 +443,18 @@ const buildControls = project =>
       label: `the real start itself (Map #${REAL_START.mapId} at (${REAL_START.x}, ${REAL_START.y}))`,
       check: checkStart,
       planted: startOn(REAL_START.mapId, REAL_START.x, REAL_START.y),
+      expect: null,
+    },
+    {
+      label: `a map slotted into the tree at a half step (Map #${placedMap.id} at order ${placedMap.order + 0.5})`,
+      check: checkMapTree,
+      planted: reorder(placedMap.order + 0.5),
+      expect: [ `Map #${placedMap.id}`, `at order ${placedMap.order + 0.5}` ],
+    },
+    {
+      label: `the same map moved a whole step (Map #${placedMap.id} at order ${placedMap.order + 1})`,
+      check: checkMapTree,
+      planted: reorder(placedMap.order + 1),
       expect: null,
     },
   ];

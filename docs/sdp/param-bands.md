@@ -50,7 +50,7 @@ Each param entry lists: **good direction**, **zero-floor risk**, **cap concern**
 | `def` | UP | Same as ATK. | Extreme | Bad | Gentle–Moderate |
 | `mat` | UP | Same as ATK. Scaling healing means very high MAT totals are significant. | Extreme | Bad | Gentle–Moderate |
 | `mdf` | UP | Same as DEF. Also scales healing received. | Extreme | Bad | Gentle–Moderate |
-| `agi` | UP | Turn order / action frequency. Behaves like any other b-param — fine as core DOWN. Note: AGI has nothing to do with movement speed in ABS; that is `msb`. | Extreme | Bad | Gentle–Moderate |
+| `agi` | UP | **Finesse** in CA. Native RMMZ spends AGI on turn order, which J-ABS doesn't have. Here it feeds damage formulas across 24 skills, mostly the spear, fist and claw techniques, plus Fully Committed's bonus hits. 10% of it also joins the parry contest on both sides: defender pressure when guarding, attacker pressure when striking (`JABS_Engine` `#defensivePressure`, alongside LUK). Behaves like any other b-param — fine as core DOWN. Note: AGI has nothing to do with movement speed in ABS; that is `msb`. | Extreme | Bad | Gentle–Moderate |
 | `luk` | UP | Broad effects; generally fine at any level. Valid core DOWN for archetypes that are deliberately "dumb" or indifferent (guardian, medic). | Extreme | Bad | Gentle–Moderate |
 
 ---

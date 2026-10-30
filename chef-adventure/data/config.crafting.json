@@ -28400,7 +28400,7 @@
       "tier": 0
     },
     {
-      "key": "a-gems-force-1",
+      "key": "a-gems-sorcery-1",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -28458,7 +28458,7 @@
       "tier": 0
     },
     {
-      "key": "a-gems-force-2",
+      "key": "a-gems-sorcery-2",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -28516,7 +28516,7 @@
       "tier": 0
     },
     {
-      "key": "a-gems-force-3",
+      "key": "a-gems-sorcery-3",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -28574,7 +28574,7 @@
       "tier": 0
     },
     {
-      "key": "a-gems-force-4",
+      "key": "a-gems-sorcery-4",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -28632,7 +28632,7 @@
       "tier": 0
     },
     {
-      "key": "a-gems-force-5",
+      "key": "a-gems-sorcery-5",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -28980,7 +28980,7 @@
       "tier": 0
     },
     {
-      "key": "a-gems-speed-1",
+      "key": "a-gems-finesse-1",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -29038,7 +29038,7 @@
       "tier": 0
     },
     {
-      "key": "a-gems-speed-2",
+      "key": "a-gems-finesse-2",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -29096,7 +29096,7 @@
       "tier": 0
     },
     {
-      "key": "a-gems-speed-3",
+      "key": "a-gems-finesse-3",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -29154,7 +29154,7 @@
       "tier": 0
     },
     {
-      "key": "a-gems-speed-4",
+      "key": "a-gems-finesse-4",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -29212,7 +29212,7 @@
       "tier": 0
     },
     {
-      "key": "a-gems-speed-5",
+      "key": "a-gems-finesse-5",
       "name": "",
       "iconIndex": -1,
       "description": "",
@@ -31113,6 +31113,496 @@
         {
           "id": 223,
           "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-serum-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-potions"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 286,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        },
+        {
+          "id": 301,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 421,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 1,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-serum-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-potions"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 287,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 422,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 2,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-serum-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-potions"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 288,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        },
+        {
+          "id": 303,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 423,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 3,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-serum-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-potions"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 289,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        },
+        {
+          "id": 304,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 424,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 4,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-serum-5",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-potions"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 289,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 305,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 424,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 5,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-ether-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-potions"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 241,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        },
+        {
+          "id": 306,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 421,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 6,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-ether-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-potions"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 242,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        },
+        {
+          "id": 307,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 422,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 7,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-ether-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-potions"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 243,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        },
+        {
+          "id": 308,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 423,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 8,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-ether-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-potions"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 244,
+          "type": "i",
+          "count": 2,
+          "categories": []
+        },
+        {
+          "id": 309,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 424,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 9,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-ether-5",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-potions"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 244,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        },
+        {
+          "id": 310,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 424,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 10,
+          "type": "i",
           "count": 1,
           "categories": []
         }
@@ -47141,6 +47631,14 @@
       "description": "The alchemy of gems is a wild science that many correlate with the Philosopher's Stone or\r\nwith turning shit into gold. How about turning shit into gems that give your stats a boost?",
       "unlockedByDefault": false,
       "professionKey": "alchemy"
+    },
+    {
+      "key": "alchemy-potions",
+      "name": "Potionology",
+      "iconIndex": 179,
+      "description": "Bottled alchemy for when a fight goes sideways. Serums drag the fallen back to their feet,\r\nand ethers refill the magi. There is no tech potion. Go hit something.",
+      "unlockedByDefault": false,
+      "professionKey": "alchemy"
     }
   ],
   "ingredientTypes": [
@@ -48027,7 +48525,7 @@
       "key": "alchemy",
       "name": "Alchemy",
       "iconIndex": 1667,
-      "description": "Gems and runes. Its formulas are found in the world rather than taught, so it prices no tiers.",
+      "description": "Gems, runes and potions. Its formulas are found in the world rather than taught, so it prices no tiers.",
       "scrapItemId": 154,
       "tierPrices": []
     },

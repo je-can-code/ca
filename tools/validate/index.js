@@ -18,6 +18,7 @@
  * - **text codes** - every `\Code[arg]` in text the game draws names something that exists
  * - **scripts** - no event script spreads its arguments into a call, which no J plugin method can take
  * - **start position** - a new game begins at the real start, never on a test map
+ * - **map tree** - every map's place in the tree is a whole number, the only kind jmz-data-editor reads
  *
  * What a tag means comes from `js/plugins/j/manifest.json`, which rmmz-plugins' build writes and its
  * `hotfix` mirrors in with the plugins. This validator holds no knowledge of any plugin's tags itself.

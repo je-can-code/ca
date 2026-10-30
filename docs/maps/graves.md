@@ -180,26 +180,28 @@ ten as "The Catacombs".
 
 Each crypt door has a Magic Torch either side, cloned exactly from the Hidey Hole's (`Map113` events 1-4): an
 invincible JABS target only the Red Wand can light, which turns its own self switch A on and shows its lit page.
-Lit or not, a torch stays solid, and it stands beside the door rather than in it. **The doors themselves are
-unconditional in the draft**, so "light both and the way opens" is eventing still to do, the same shape the Hidey
-Hole needs:
+Lit or not, a torch stays solid, and it stands beside the door rather than in it.
 
-- **A switch** that turns on once both torches at a door are lit. Today each torch knows only its own self switch.
-- **The door's page conditioned on it**: `Map458` event 5, the shrine's door to the Catacombs (torches `Map458`
-  events 6 and 7), and `Map460` event 2, the mausoleum's door to the Smith's Crypt (torches `Map460` events 3 and 4).
-  A first page without the condition could say why the door won't open.
+**Wired 2026-10-26.** Whichever torch is lit second finds its sibling lit and turns on its door's switch:
+
+- **Switch 176 "graves: catacombs torches lit"** opens `Map458` event 5, the shrine's door to the Catacombs
+  (torches `Map458` events 6 and 7).
+- **Switch 177 "graves: crypt torches lit"** opens `Map460` event 2, the mausoleum's door to the Smith's Crypt
+  (torches `Map460` events 3 and 4).
+
+Each door's first page stands across its whole doorway (`<areaEvent:[3,1]>`, same as characters, no sprite) and
+blocks it; its transfer is the second page, waiting on the switch. That first page is silent, so a line about why
+the door won't open, or a sealed-door sprite, is Jeremy's to add.
 
 Nothing below those two doors is gated: not the great hall's stair down or its four tunnels (`Map463` events 2-6),
 and not the crypt's ways on (`Map462` event 2, `Map477` event 2). The torch opens each underground as a whole, at
 its door.
 
-### The door `Map329` still needs
+### The door on `Map329`
 
-`Map329` is Jeremy's, so the recipe leaves its half of the way in to him: an event at **(26,1)** with
-`<areaEvent:[3,1]>`, across the stone path where his map opens to the north, transferring to **`Map464` (45,57)
-facing up**, the South Graves. The South Graves' half is already written and lands the player back at (27,2)
-facing down, on that path. Until it is placed, the Graves cannot be reached in play, and `map-atlas` reads the South
-Graves' door back as one-way.
+**Wired 2026-10-26**, at Jeremy's go: an event at **(26,1)** with `<areaEvent:[3,1]>`, across the stone path where his
+map opens to the north, transferring to **`Map464` (45,57) facing up**, the South Graves. The South Graves' half lands
+the player back at (27,2) facing down, on that path. The recipe still leaves this half out; it lives in his map.
 
 ---
 
@@ -226,8 +228,9 @@ Graves' door back as one-way.
 - [x] Draft and install the Graves: the South Graves, the Heart, and the north, east and west arms; and underground,
   the great hall, the four arms of catacombs, the Lower Catacombs and the Smith's Crypt's three maps
   (`Map458`-`Map478`).
-- [ ] Place `Map329`'s door to the South Graves (above).
-- [ ] Wire both torch gates: a switch per door, and the door's page conditioned on it.
+- [x] Place `Map329`'s door to the South Graves (above; wired 2026-10-26).
+- [x] Wire both torch gates: a switch per door, and the door's page conditioned on it (switches 176 and 177,
+  wired 2026-10-26).
 - [ ] Polish: headstones on the plots, trees about the fields, statues, the shrine and the mausoleum's fronts, and
   the stairs, ossuaries and tombs underground.
 - [ ] Enemies, the ghost and the rite, the Mother-Sigil and its cache.

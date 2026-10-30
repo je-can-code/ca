@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.2.0 BASE] The base class for all J plugins.
+ * [v4.2.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -1686,7 +1686,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "4.2.0";
+J.BASE.Metadata.Version = "4.2.1";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -10681,7 +10681,7 @@ TextManager.bparamDescription = function(paramId) {
 		case 3: return ["The base stat that reduces physical damage.", "Higher amounts of this will reduce incoming physical damage."];
 		case 4: return ["The base stat that influences magical damage.", "Higher amounts of this yield higher magical damage output."];
 		case 5: return ["The base stat that reduces magical damage.", "Higher amounts of this will reduce incoming magical damage."];
-		case 6: return ["The base stat that governs movement and agility.", "The effects of this are unknown at higher levels."];
+		case 6: return ["The base stat that influences precision damage.", "Higher amounts of this yield higher precision damage output."];
 		case 7: return ["The base stat that governs fortune and luck.", "The effects of this are wide and varied."];
 		case 30: return ["The base resource that many weapon-based skills utilize.", "Without this, techniques typically cannot be executed."];
 	}

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.8.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v4.8.1 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1877,9 +1877,9 @@ var MasteryFormulaPhrase = class MasteryFormulaPhrase {
 		tp: "current Tech",
 		atk: "Power",
 		def: "Endurance",
-		mat: "Force",
+		mat: "Sorcery",
 		mdf: "Resist",
-		agi: "Speed",
+		agi: "Finesse",
 		luk: "Luck",
 		sar: "Shield Amp",
 		level: "level",
@@ -3429,7 +3429,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.8.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.8.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

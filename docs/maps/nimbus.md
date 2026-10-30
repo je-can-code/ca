@@ -251,6 +251,8 @@ drop-sources.md for the block layout rather than guessing positions.
       Prideful Homunculi in `531-540`, plus their Armors material blocks.
 - [ ] Destructibles: Grass of Purity placements and the state 386 drop tag, gold urn row, Heartwood.
 - [ ] The scripted split at the gatehouses (party-cycle disable window, per-protagonist control).
-- [ ] Save map with sigil and teleportal switch.
+- [x] Save map with sigil and teleportal switch: the Hall of Repose (`Map378`), with the teleportal switch and portal at
+      (8,7) and (9,7) on switch 173 `tp-nimbus-active`, into `Map381` "Nimbus Teleportal" under the hub, and a Save
+      Platform across the hall from them at (20,7) (2026-10-27). Its hub door waits on the reckoning above.
 - [ ] Gloria's theme as an `.ogg`.
 - [ ] Whisper-network events in town, gated behind the Nimbus disk.
