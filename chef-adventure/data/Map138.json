@@ -6514,10 +6514,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_bats",
+            "characterName": "m_ahriman",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 1
+            "characterIndex": 0
           },
           "list": [
             {
@@ -6595,10 +6595,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_bats",
+            "characterName": "m_ahriman",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 1
+            "characterIndex": 0
           },
           "list": [
             {
@@ -6676,10 +6676,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_bats",
+            "characterName": "m_ahriman",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 1
+            "characterIndex": 0
           },
           "list": [
             {
