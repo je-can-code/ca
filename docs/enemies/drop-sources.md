@@ -8,6 +8,10 @@
 > the material types each combat subgroup drops, and [the drop rules](#drop-rules-decided-2026-10-30)
 > turn it into tags. From that date, bold and plain in Part 3 record only what the data held before it.
 >
+> **Part 2 is decided too (Jeremy, 2026-10-31).** Its family table is the official list of the food each
+> combat subgroup drops, under the same rules. It took in the food lines the data already dropped where
+> they read as deliberate, such as the kappas' fish and the minotaurs' ribs, and the strays were cut.
+>
 > **Two classes of claim live here and they must never be blurred.** Rows in **bold** are **existing** —
 > read out of the `<drops:[a|i,ID,CHANCE]>` tags already in `Enemies.json`, so they are facts about the
 > shipped database. Everything in plain text is **proposed** and is Jeremy's to accept, reject or
@@ -109,16 +113,16 @@ After the destructible split, these are the `drop` families that belong on creat
 
 | Family | Items | Subgroups |
 |---|---|---|
-| `protein+egg` | `i201-204` Avian, Bug, Froggo, Ghosty Eggs | beast-beaker, insect-brood, aquatic-frog, undead-ghosty |
-| `protein+meat+tail` | `i206-208` Lanky, Beefy, Dargin Tail | beast-rat, beast-quadruped, reptile-dargin |
+| `protein+egg` | `i201-204` Avian, Bug, Froggo, Ghosty Eggs | beast-beaker, insect-brood, aquatic-frog, undead-ghosty, insect-needler |
+| `protein+meat+tail` | `i206-208` Lanky, Beefy, Dargin Tail | beast-rat, beast-quadruped, reptile-dargin, reptile-draconite, insect-scorpion |
 | `protein+meat+flank` | `i211-213` Ripped, Bearcat, Giga Flank | beast-bearcat, humanoid-minotaur, beast-quadruped |
-| `protein+meat+ribs` | `i216-218` Boney, Lamia, Ouroboros Ribs | reptile-lamia, reptile-snake, undead-skeleton |
-| `protein+meat+wing` | `i221-223` Flappy, Double, Iridescent Wing | beast-bat, beast-beaker, insect-brood, reptile-dargin |
-| `protein+offal+eyeball` | `i226-228` Detached, Snooping, Peerless Eyeball | humanoid-cyclops, aquatic-cephalopod, undead-wisp |
-| `protein+offal+blood` | `i231-233` Dried, Virgin, Blue Blood | humanoid-orc, humanoid-bandit, undead-reborn, deity-devil |
-| `protein+offal+heart` | `i236-238` Beast, Hydro, Titan Heart | beast-bearcat, aquatic-kappa, construct-titan, reptile-dargin |
-| `protein+gel` | `i241-244` Droopy, Big, Oversized, Colossus Gelatin | slime-puddle, slime-jelly, slime-cube |
-| `protein+fish` | `i246-249` Smelly, Fresh, Sparkling, Pristine Fish | aquatic-fish |
+| `protein+meat+ribs` | `i216-218` Boney, Lamia, Ouroboros Ribs | reptile-lamia, reptile-snake, undead-skeleton, humanoid-minotaur |
+| `protein+meat+wing` | `i221-223` Flappy, Double, Iridescent Wing | beast-bat, beast-beaker, insect-brood, reptile-dargin, slime-aerial, plant-dryad, insect-needler, reptile-salamander |
+| `protein+offal+eyeball` | `i226-228` Detached, Snooping, Peerless Eyeball | humanoid-cyclops, aquatic-cephalopod, undead-wisp, slime-roper, beast-bat |
+| `protein+offal+blood` | `i231-233` Dried, Virgin, Blue Blood | humanoid-orc, humanoid-bandit, undead-reborn, deity-devil, slime-roper, beast-bearcat |
+| `protein+offal+heart` | `i236-238` Beast, Hydro, Titan Heart | beast-bearcat, aquatic-kappa, construct-titan, reptile-dargin, humanoid-minotaur |
+| `protein+gel` | `i241-244` Droopy, Big, Oversized, Colossus Gelatin | slime-puddle, slime-jelly, slime-cube, slime-aerial |
+| `protein+fish` | `i246-249` Smelly, Fresh, Sparkling, Pristine Fish | aquatic-fish, aquatic-kappa, aquatic-frog |
 | `vegetable+vine` | `i261-264` Wolftrap, Subtrap, Voidtrap, Doomtrap Vine | plant-trap |
 | `sweet+jelly` | `i396-399` Leftover, Slimy, Putrid, Archaic Slime | slime-jelly, slime-roper, slime-aerial |
 | `dairy+milk` | `i372-374` Moo, Bug, Dragon Juice | humanoid-minotaur, insect-brood, reptile-dargin |
@@ -193,8 +197,15 @@ The plentiful rung climbs at half speed, so even a tier 5 floods the player with
 rungs stay scarce. The percentages are placeholders to tune; the counts are the rule. A tier 4 with
 five types carries forty tags, which is intended.
 
-Every built tier of the 46 ladder subgroups was normalized to this on 2026-10-30. Not yet: the food
-families in Part 2, the named anomalies, the puddle slimes, the elementals and the Sins.
+**Food follows the same counts** over Part 2's families (2026-10-31). A food line holds three or four
+rungs rather than five, so a line of L rungs stretches across the table: rung r above reads rung
+`ceil(r * L / 5)` of the line, and the tails run Lanky, Beefy, Beefy, Dargin, Dargin. That covers every
+line chained by `<dropUpgradeId>`, since the chain is what marks a line as grades. **Eggs are the one
+unchained line.** They are creature sources rather than grades, so each subgroup drops its own egg under
+every count: beakers Avian, broods and needlers Bug, frogs Froggo, ghosts Ghosty.
+
+Every built tier of the 46 ladder subgroups was normalized to this, the materials on 2026-10-30 and the
+food on 2026-10-31. Not yet: the named anomalies, the puddle slimes, the elementals and the Sins.
 
 ## Subgroup to material block
 
