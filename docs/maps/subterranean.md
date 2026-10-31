@@ -53,9 +53,12 @@ somewhere you should not be, that does not care that you are there.
 - **The lights go out.** Each map's `<ambient:[DARKNESS]>` note (J-Lighting) sets how much light is taken
   away, keyed to its layer (see Layers, under Topology). Torches, bioluminescence and the player's own
   lighting gear are the only light sources.
-- **Ambient critters** drift slowly through — glowing butterflies as the working idea. They are not
-  enemies, they ignore the player entirely, and their glow is what reads as "well, that's safe.
-  Probably."
+- **Ambient critters** drift slowly through — glowing butterflies as the working idea. They never
+  attack anyone, and their glow is what reads as "well, that's safe. Probably."
+- **The critters are prey** `LOCKED (Jeremy, 2026-10-30)`. They sit on their own team, opposed by
+  enemies and actors alike, "so the worms will eat them." Team 2 cannot carry this: JABS's AI never
+  targets the neutral team at all, which is why nothing attacks the grass. It takes a new team 3 in
+  `config.jabs.json`, listed in both ENEMY's and ALLY's `opposes`.
 - **Even the lit chambers are dark.** Light is local and never fills a room.
 - **The walls descend too** (Jeremy, 2026-10-23). The Pearl Salt Mines moved to the lighter A4 ceiling
   38 + wall 46 `SHIPPED (2026-10-23)`, all 47 maps, with tileset 14's passage and terrain-tag flags
@@ -296,6 +299,16 @@ slots, cube slimes become a dungeon-exclusive family, which is a reasonable thin
 Already placed nearby and worth reusing: **cave bats** (enemy 361) appear in both mines-side rooms,
 and **`@Durable Post`** (enemy 33) is standing in `Map331` itself — hookshot is the established
 traversal verb here before the dungeon has a single room.
+
+**The worms' tier 4 is the Glowurm** (`#414`) `LOCKED (Jeremy, 2026-10-30)`. It does not glow, it *eats*
+glow, which is why its Wurm Scales (armor 334, written for "a wurm deep deep in the subterranean
+depths") swallow light. It hunts the bioluminescent critters.
+
+**Every worm regenerates only while it sits still** `LOCKED (Jeremy, 2026-10-30)`, replacing the flat
+regen the line carries today. Stacks build the longer it stays put and all drop the moment it moves,
+knockback included, so "don't let them give up": leave one alone long enough, or run too far, and it
+settles down and heals. The engine already does this (`<autoApplyState:[STATE, stand, FRAMES]>` with
+`<removeStateOnMove:[STATE]>`, as the Rooted Stance masteries use it).
 
 ---
 
