@@ -112,7 +112,7 @@ Dragons have always boasted high raw stats across the board, and they are no exc
 are paired with a high level of recklessness due to their ego.
 
 - (34) [161]Lesser Dargin
-- (64) [162]Chill Wyvern
+- (64) [162]Chill Dargin
 
 ### Draconian
 
@@ -134,8 +134,8 @@ are paired with a high level of recklessness due to their ego.
 
 - (8)  [201]Kappa
 - (10) [202]!Kapn' Kappa
-- (32) [203]Kappa Shaman
-- (36) [204]Kappa Myrmidon
+- (32) [202]Komusubi
+- (36) [203]Sekiwake
 
 ### Amphibian
 
@@ -220,17 +220,16 @@ are paired with a high level of recklessness due to their ego.
 - (6) [351]Bearcat
 - (23) [352]Stonefur
 - (56) [353]Grimfang
-- (65) [354]!Ghostfang
+- (65) [360]!Bjarki
 
 ### Winger
 
 - (6)  [361]Cave Bat
 - (39) [362]Redeye
-- (65) [363]Doom Harbinger
-- (65) [364]Doom Winger
+- (65) [366]Doom Harbinger (the Vampire King's self-summoning add, not a tier)
 
 ### Beaks
-- (70) [421]#Crazed Garuda
+- (70) [373]Garuda (the Lord of the Peaks boss)
 
 ### Rodent
 
@@ -279,11 +278,12 @@ are paired with a high level of recklessness due to their ego.
 
 ### Orcan
 
-- (38) [461]Orc Minion
-- (40) [462]Orc Fighter
-- (41) [463]Orc Caster
-- (45) [464]Orc Chieftain
-- (62) [515]Mountain Orc
+- (9)  [461]Orcling
+- (40) [462]Chonky Orc
+- (41) [463]Beefcorc
+- (62) [464]Mountain Orc
+- (??) [465]Absolorc
+- (45) [470]!Forcman (runs the Pearlsalt mines)
 
 ### Thief
 
@@ -304,7 +304,8 @@ are paired with a high level of recklessness due to their ego.
 
 ### Golem
 
-- (69) [501]Heated Titan
+- (69) [502]Talos (the Volcanis lane guards)
+- (69) [504]Titan (the Deluge giant)
 
 ### Hazard
 
