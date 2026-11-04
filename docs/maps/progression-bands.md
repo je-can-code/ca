@@ -58,7 +58,7 @@ These are all intentional, and none of them should be "corrected" to fit their b
 | Where | What | Why |
 |---|---|---|
 | Pearlsalt Basement | Chonky Orc 40, Orcan Mage 41, Forcman 45 | The mayor's slaves. The player is told to leave them alone and cannot beat them in ch1. Spread across ~20 basement maps, not one room. |
-| Crossroads | Bloodtrap 23, Prince Cobra 24, Penetrator 25, Megataur 25 alongside Wolftrap 2 / Bearcat 3 | The only map in the game with a second-pass population; enemies level to match the returning player. |
+| Crossroads | Mantrap 23, Prince Cobra 24, Penetrator 25, Megataur 25 alongside Wolftrap 2 / Bearcat 3 | The only map in the game with a second-pass population; enemies level to match the returning player. |
 | Fallen Kingdom | Vampire Shade 72 | Gated behind switch 147 ("after the vampire") - the post-Lucian farm spawns. Does not exist during the normal run. |
 | Fallen Kingdom, Castle Gate | Mercenary 82 | The "deadly guard". |
 | Volcanis Grotto | Heated Titan 69 | Unclassified - reads like an orc-style fence, but unconfirmed. |

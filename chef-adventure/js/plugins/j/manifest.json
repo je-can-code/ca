@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "generatedBy": "rmmz-plugins src/build-tools/generate-manifest.js - generated, never edit by hand",
   "files": {
-    "abs/J-ABS.js": "0d64228d2ca0a41345af990c0fd86cc6bf50989ee2534801e625f1095744424d",
+    "abs/J-ABS.js": "0222927aa34b615f69e0cf1adde8838adfb257c6f0d62c09b62a89c2b03bf8e4",
     "abs/ext/J-ABS-AllyAI.js": "97354c203a158cc0b89e92d21fc259a045b9b3a9f75bd1dbea258a33e2b8b681",
     "abs/ext/J-ABS-Boss.js": "469b9752b880a4069fdef5eafaf217be6bbc25a7f598190059c961f796232398",
     "abs/ext/J-ABS-Charge.js": "2d7d5bddab9327c8d47194fba3b241fbba0a280b83fb7e1a6c56011e2c62c1ff",
@@ -28,7 +28,7 @@
     "apt/J-Aptitude.js": "6452bf1310ccc92a00fac87d980f81823ed9af0510681ca7b10080c840be5ce3",
     "base/J-Base.js": "eef1530bc1bebf416856bc7def713ae6e1a18b9fa527556e589ff7d3cdb705a2",
     "base/ext/J-Base-Save.js": "d4547c431b0d5c7c1db87100035a74ef40c8819548b55d783c16d86ad0dcae62",
-    "ca-mods/J-CA-Mods.js": "ce53253c982db72c6d199a597754ed1e52d77c89828733b522e4739066d1d181",
+    "ca-mods/J-CA-Mods.js": "53cab17fd03fa1d8f710383f7135a0e8bbf694d8663f484e825ce947fc497996",
     "class/J-Classes.js": "54f43005ba401d069d0d9696137af5837168ee754c3b5d7cc8ecf7a02e5c4b02",
     "class/ext/J-Classes-Aptitude.js": "392bdc362da3b6da6a814604b1dfb09edc865bf577bf56180c27c1fc53df2dc1",
     "class/ext/J-Classes-Natural.js": "1bf280439630ded235ba7d7818ec33182684d741b6c375fb5c2efb43482caa2a",

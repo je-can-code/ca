@@ -48,7 +48,6 @@ J.CAMods.PluginParameters = J.CAMods.Metadata.parsedPluginParameters;
 */
 J.CAMods.Aliased = {};
 J.CAMods.Aliased.JABS_Battler = new Map();
-J.CAMods.Aliased.JABS_Engine = new Map();
 J.CAMods.Aliased.Game_Actor = new Map();
 J.CAMods.Aliased.Game_BattlerBase = new Map();
 J.CAMods.Aliased.Game_Map = new Map();
@@ -198,24 +197,6 @@ Game_Party.prototype.elementalJabsBattlers = function() {
 */
 Game_Party.prototype.isLeaderActor = function(actorId) {
 	return this.leader().actorId() === actorId;
-};
-
-//#endregion
-//#region src/plugins/__ca-mods/core/managers/JABS_Engine.js
-/**
-* Extends {@link #canGainReward}.<br/>
-* Inanimate enemies (trees, shrubs, ore deposits, destructibles) do not grant any rewards in CA.
-* Their levels are intentionally high to gate resource access — not to serve as experience farms.
-* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
-* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
-* @returns {boolean} False if the defeated enemy is inanimate, otherwise defers to the base check.
-*/
-J.CAMods.Aliased.JABS_Engine.set("canGainReward", JABS_Engine.prototype.canGainReward);
-JABS_Engine.prototype.canGainReward = function(defeatedEnemy, victoriousActor) {
-	if (defeatedEnemy.isInanimate() === true) {
-		return false;
-	}
-	return J.CAMods.Aliased.JABS_Engine.get("canGainReward").call(this, defeatedEnemy, victoriousActor);
 };
 
 //#endregion

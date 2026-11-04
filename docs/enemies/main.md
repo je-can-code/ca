@@ -192,7 +192,7 @@ are paired with a high level of recklessness due to their ego.
 ### Traps
 
 - (5)  [301]Wolftrap
-- (23) [302]Bloodtrap
+- (23) [302]Mantrap
 
 ### Fungus
 

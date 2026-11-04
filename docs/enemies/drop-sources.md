@@ -123,7 +123,7 @@ After the destructible split, these are the `drop` families that belong on creat
 | `protein+offal+heart` | `i236-238` Beast, Hydro, Titan Heart | beast-bearcat, aquatic-kappa, construct-titan, reptile-dargin, humanoid-minotaur |
 | `protein+gel` | `i241-244` Droopy, Big, Oversized, Colossus Gelatin | slime-puddle, slime-jelly, slime-cube, slime-aerial |
 | `protein+fish` | `i246-249` Smelly, Fresh, Sparkling, Pristine Fish | aquatic-fish, aquatic-kappa, aquatic-frog |
-| `vegetable+vine` | `i261-264` Wolftrap, Subtrap, Voidtrap, Doomtrap Vine | plant-trap |
+| `vegetable+vine` | `i261-264` Bitter, Poison, Venom, Death Vine | plant-trap |
 | `sweet+jelly` | `i396-399` Leftover, Slimy, Putrid, Archaic Slime | slime-jelly, slime-roper, slime-aerial |
 | `dairy+milk` | `i372-374` Moo, Bug, Dragon Juice | humanoid-minotaur, insect-brood, reptile-dargin |
 | `liquid` | `i421-424` Water and its refinements | aquatic-kappa, aquatic-frog, slime-puddle |

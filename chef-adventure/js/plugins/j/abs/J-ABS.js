@@ -19074,7 +19074,7 @@ var JABS_Engine = class JABS_Engine {
 	* Determines whether the victorious actor is eligible to gain rewards from the defeated enemy.
 	* This is the central policy gate for all four reward types (EXP, gold, SDP, AP).
 	* Returns true by default — all defeated enemies grant rewards. Alias this method to introduce
-	* game-specific exclusion conditions (e.g. inanimate objects, zero-yield flags, kill-type filters).
+	* game-specific exclusion conditions (e.g. zero-yield flags, kill-type filters).
 	* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
 	* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
 	* @returns {boolean} True if rewards should be granted, false to skip all reward calculation.
