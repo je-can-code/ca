@@ -6373,6 +6373,13 @@
               ]
             },
             {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[111,112,113,114,115]>"
+              ]
+            },
+            {
               "code": 0,
               "indent": 0,
               "parameters": []
@@ -6461,6 +6468,13 @@
               ]
             },
             {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[111,112,113,114,115]>"
+              ]
+            },
+            {
               "code": 0,
               "indent": 0,
               "parameters": []
@@ -6539,6 +6553,13 @@
               "indent": 0,
               "parameters": [
                 "<moveSpeed:4.1>"
+              ]
+            },
+            {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[361,362,363,364,365]>"
               ]
             },
             {
@@ -6623,6 +6644,13 @@
               ]
             },
             {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[361,362,363,364,365]>"
+              ]
+            },
+            {
               "code": 0,
               "indent": 0,
               "parameters": []
@@ -6704,6 +6732,13 @@
               ]
             },
             {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[361,362,363,364,365]>"
+              ]
+            },
+            {
               "code": 0,
               "indent": 0,
               "parameters": []
@@ -6782,6 +6817,13 @@
               "indent": 0,
               "parameters": [
                 "<moveSpeed:4.0>"
+              ]
+            },
+            {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[461,462,463,464,465]>"
               ]
             },
             {

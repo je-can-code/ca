@@ -36,7 +36,7 @@
  * @parent baseConfigs
  * @type number
  * @text Enemy Map Id
- * @desc The id of the map used for cloning enemy events off of.
+ * @desc The id of the map used for cloning enemy events off of, by the Spawn Enemy command and by pooled spots.
  * @default
  *
  * @param dodgeSkillTypeId
@@ -173,6 +173,13 @@
  * @text Default Respawn Animation
  * @desc The default animation to play on an event when its battler respawns. Set to 0 for no animation.
  * @default 0
+ *
+ * @param defaultEnemyPoolHomeWeight
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @text Default Enemy Pool Home Weight
+ * @desc The weight a pooled spot gives the enemy actually placed there, whatever that enemy's own weight says.
+ * @default 85
  *
  * @param defaultConfigs
  * @text WHEN UNASSIGNED
@@ -1022,6 +1029,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 		this.DefaultRespawnMethod = this.parsedPluginParameters["defaultRespawnMethod"] || String.empty;
 		this.DefaultRespawnParam = this.parsedPluginParameters["defaultRespawnParam"] || String.empty;
 		this.DefaultRespawnAnimationId = Number(this.parsedPluginParameters["defaultRespawnAnimationId"] || 0);
+		this.DefaultEnemyPoolHomeWeight = Number(this.parsedPluginParameters["defaultEnemyPoolHomeWeight"] || 85);
 	}
 	/**
 	* Maps elemental icon usage from plugin parameters.
@@ -2009,6 +2017,58 @@ J.ABS.RegExp = {
 	DotAmpRate: /<dotAmpRate:[ ]?(-?\d+)%?>/gi,
 	HotAmpRate: /<hotAmpRate:[ ]?(-?\d+)%?>/gi,
 	EnemyId: /<enemyId:[ ]?(\d+)>/i,
+	/**
+	* Every enemy a placed event may turn out to be, rolled each time the event is built.
+	* The event still names its own enemy with `<enemyId:N>`, and that id belongs in this list too if
+	* the spot should ever roll itself.
+	*
+	* <pre>
+	* Structure:
+	*  <enemyIds:[ENEMY_ID, ENEMY_ID, ...]>
+	*
+	* Example:
+	*  <enemyIds:[301, 302, 303]>
+	*
+	* Translation:
+	*  This spot rolls between enemies 301, 302 and 303 each time it is built.
+	* </pre>
+	* @type {RegExp}
+	*/
+	EnemyIds: /<enemyIds:[ ]?(\[\d+(?:,[ ]?\d+)*])>/i,
+	/**
+	* How likely an enemy is to be chosen when a pooled spot rolls it, relative to the rest of the pool.
+	* An enemy without one is never chosen, which is the same as being reserved at a weight of zero.
+	*
+	* <pre>
+	* Structure:
+	*  <enemy-weight:WEIGHT>
+	*
+	* Example:
+	*  <enemy-weight:8>
+	*
+	* Translation:
+	*  This enemy carries a weight of 8 in any pool that names it.
+	* </pre>
+	* @type {RegExp}
+	*/
+	EnemyWeight: /<enemy-weight:[ ]?(\d+)>/i,
+	/**
+	* One map's own opinion of how likely an enemy is, replacing that enemy's weight while on this map.
+	* A weight of zero keeps the enemy off the map's rolls entirely.
+	*
+	* <pre>
+	* Structure:
+	*  <enemy-weight-override:[ENEMY_ID, WEIGHT]>
+	*
+	* Example:
+	*  <enemy-weight-override:[302, 30]>
+	*
+	* Translation:
+	*  On this map, enemy 302 carries a weight of 30 in any pool that names it.
+	* </pre>
+	* @type {RegExp}
+	*/
+	EnemyWeightOverride: /<enemy-weight-override:[ ]?(\[\d+,[ ]?\d+])>/i,
 	TeamId: /<teamId:[ ]?(\d+)>/i,
 	Sight: /<sight:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
 	Pursuit: /<pursuit:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
@@ -17553,6 +17613,7 @@ var JABS_Engine = class JABS_Engine {
 		const eventId = index;
 		const lootEvent = new Game_Event($gameMap.mapId(), eventId);
 		lootEvent.setJabsLoot(jabsLootData);
+		lootEvent.flagAsDynamicSpawn(lootEventData);
 		lootEvent.setLootNeedsAdding();
 		$gameMap.addEvent(lootEvent);
 		this.requestLootRendering = true;
@@ -17584,7 +17645,7 @@ var JABS_Engine = class JABS_Engine {
 		const normalizedIndex = $dataMap.events.length;
 		$dataMap.events[normalizedIndex] = enemyData;
 		const newEnemy = new Game_Event($gameMap.mapId(), normalizedIndex);
-		newEnemy.flagAsDynamicSpawn();
+		newEnemy.flagAsDynamicSpawn(enemyData);
 		$gameMap.addEvent(newEnemy);
 		newEnemy.flagBattlerForAdding();
 		this.requestBattlerRendering = true;
@@ -22076,6 +22137,15 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsGuardSkillId", { get: func
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.GuardSkillId, true);
 } });
 /**
+* How likely this battler is to be chosen when a pooled spot rolls it, relative to the rest of the
+* pool. A map's own `<enemy-weight-override:[ENEMY_ID, WEIGHT]>` may replace this while on that map.
+* A battler without the tag reads as zero, which keeps it out of every roll.
+* @type {number}
+*/
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsEnemyWeight", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.EnemyWeight);
+} });
+/**
 * The JABS respawn declaration for this battler, as a `[METHOD, PARAM]` pair.
 * This defines how long after defeat this battler returns to the map.
 * An event comment on the placement may override this species-level habit.
@@ -23977,6 +24047,101 @@ TextManager.per = function() {
 */
 TextManager.perDescription = function() {
 	return ["Extends the duration of the precise-parry window when raising guard.", "At 100, the parry window is doubled; stacks additively."];
+};
+
+//#endregion
+//#region src/plugins/abs/core/managers/JABS_EnemyPool.js
+/**
+* This static class decides who a pooled spot turns out to be each time it is built.
+*
+* A placed event always names its own enemy with `<enemyId:N>`. Adding `<enemyIds:[...]>` gives that
+* spot a pool: every id in the list is a possibility, and each build of the event rolls one. Landing
+* on the event's own enemy changes nothing, so every tag on its page applies exactly as authored.
+* Landing on anyone else swaps in that enemy's page from the enemy map, which is why a pooled enemy
+* brings its own sprite, speed and level rather than borrowing the spot's.
+*
+* Weights resolve as `enemy note < map note`, and the spot's own enemy always counts for the
+* `defaultEnemyPoolHomeWeight` parameter rather than its note. That is what keeps the odds sensible
+* for a spot above the bottom of a ladder: a tier 3 enemy's note says how rare it is among tier 1s,
+* which would make a spot that deliberately holds one mostly roll something else.
+*/
+var JABS_EnemyPool = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Rolls a pooled spot, choosing who stands there for this build of the event.
+	* @param {number} homeId The enemy the event names with `<enemyId:N>`.
+	* @param {number[]} enemyIds Every enemy the event's `<enemyIds:[...]>` tag names.
+	* @returns {number} The chosen enemy's id, which is the home id when nobody else was chosen.
+	*/
+	static roll(homeId, enemyIds) {
+		if (JABS_Engine.getEnemyCloneList() === null) return homeId;
+		const weights = this.weightsFor(homeId, enemyIds);
+		let totalWeight = 0;
+		weights.forEach((weight) => totalWeight += weight);
+		return RPGManager.weightedMapChoice(weights, totalWeight) ?? homeId;
+	}
+	/**
+	* Builds the weight of everyone in a pool, leaving out anyone with no page to swap in.
+	* @param {number} homeId The enemy the event names with `<enemyId:N>`.
+	* @param {number[]} enemyIds Every enemy the event's `<enemyIds:[...]>` tag names.
+	* @returns {Map<number, number>} Each drawable enemy's id, mapped to its weight.
+	*/
+	static weightsFor(homeId, enemyIds) {
+		const overrides = this.mapOverrides();
+		const weights = new Map();
+		enemyIds.forEach((enemyId) => {
+			if (enemyId !== homeId && !this.hasPage(enemyId)) {
+				Diagnostics.warn("J-ABS", `enemy pools name enemy [ ${enemyId} ], who has no event on the enemy map.`);
+				return;
+			}
+			weights.set(enemyId, this.weightOf(enemyId, homeId, overrides));
+		});
+		return weights;
+	}
+	/**
+	* Resolves one enemy's weight in a pool: the map's opinion wins, then the spot's own enemy counts
+	* for the home weight, and everyone else counts for what their note says.
+	* @param {number} enemyId The enemy being weighed.
+	* @param {number} homeId The enemy the event names with `<enemyId:N>`.
+	* @param {Map<number, number>} overrides The current map's weight overrides.
+	* @returns {number} The enemy's weight in this pool.
+	*/
+	static weightOf(enemyId, homeId, overrides) {
+		if (overrides.has(enemyId)) return overrides.get(enemyId);
+		if (enemyId === homeId) return J.ABS.Metadata.DefaultEnemyPoolHomeWeight;
+		return $gameEnemies.enemy(enemyId).enemyWeight();
+	}
+	/**
+	* Gets the current map's weight overrides.
+	* @returns {Map<number, number>} Each overridden enemy's id, mapped to its weight on this map.
+	*/
+	static mapOverrides() {
+		return new Map(RPGManager.getArraysFromNotesByRegex($dataMap, J.ABS.RegExp.EnemyWeightOverride));
+	}
+	/**
+	* Determines whether an enemy has an event on the enemy map for a pooled spot to copy.
+	* @param {number} enemyId The enemy to look for.
+	* @returns {boolean} True if the enemy map has an event for this enemy, false otherwise.
+	*/
+	static hasPage(enemyId) {
+		return !!JABS_Engine.getEnemyCloneList().at(enemyId);
+	}
+	/**
+	* Gets the page a pooled spot wears when it rolls someone other than its own enemy.
+	* The enemy map holds exactly one page per enemy, so there is only ever the first to take.
+	* @param {number} enemyId The enemy the spot rolled.
+	* @returns {RPG_EventPage} That enemy's page from the enemy map.
+	*/
+	static pageOf(enemyId) {
+		const template = JABS_Engine.getEnemyCloneList().at(enemyId);
+		return template.pages.at(0);
+	}
 };
 
 //#endregion
@@ -28350,6 +28515,15 @@ Game_Enemy.prototype.ai = function() {
 	return battlerAi;
 };
 /**
+* Gets how likely this enemy is to be chosen when a pooled spot rolls it.
+* Having no weight at all means the same as a weight of zero: this enemy is never chosen.
+* @returns {number}
+*/
+Game_Enemy.prototype.enemyWeight = function() {
+	const referenceData = this.databaseData();
+	return referenceData.jabsEnemyWeight;
+};
+/**
 * Gets the enemy's respawn declaration from their notes, as a `[METHOD, PARAM]` pair.
 * This will be overwritten by values provided from an event.
 * Falls back to the world default from plugin parameters; when the world declares no default
@@ -28601,13 +28775,60 @@ Game_Event.prototype.initMembers = function() {
 	* @type {boolean}
 	*/
 	this._j._abs._dynamicSpawn = false;
+	/**
+	* The event data this event was built from, when it was put on the map at runtime. `$dataMap` is
+	* reloaded from its file every time a scene returns to the map, and that file only knows what was
+	* authored, so an event like this has to carry its own data to be restored from.
+	* @type {RPG_MapEvent|null}
+	*/
+	this._j._abs._dynamicEventData = null;
+	/**
+	* The enemy this event rolled from its `<enemyIds:[...]>` pool, when that is someone other than
+	* the enemy its page names. Zero means this event is wearing its own authored page.
+	* @type {number}
+	*/
+	this._j._abs._rolledEnemyId = 0;
 	J.ABS.Aliased.Game_Event.get("initMembers").call(this);
 };
 /**
-* Flags this event as having been dynamically spawned onto the map at runtime.
+* Gets the enemy this event rolled from its pool, if that was anyone but its own.
+* @returns {number} The rolled enemy's id, or zero when this event wears its authored page.
 */
-Game_Event.prototype.flagAsDynamicSpawn = function() {
+Game_Event.prototype.getRolledEnemyId = function() {
+	return this._j._abs._rolledEnemyId;
+};
+/**
+* Sets the enemy this event rolled from its pool.
+* @param {number} enemyId The rolled enemy's id, or zero to return to the authored page.
+*/
+Game_Event.prototype.setRolledEnemyId = function(enemyId) {
+	this._j._abs._rolledEnemyId = enemyId;
+};
+/**
+* Decides who stands on this event's page, for events that declare a pool with `<enemyIds:[...]>`.
+*
+* This has to run before the page's settings are read, because a rolled enemy replaces the whole
+* page: its sprite, its speed and every comment on it. The page's conditions are the exception, and
+* they survive for free. {@link #findProperPageIndex} chooses a page by reading the authored ones
+* directly, so when a spot appears is still the spot's decision, and only who appears is the roll's.
+*/
+Game_Event.prototype.rollEnemyPool = function() {
+	this.setRolledEnemyId(0);
+	const enemyIds = this.getEnemyPoolOverrides();
+	if (enemyIds.length === 0) return;
+	const homeId = this.getBattlerIdOverrides();
+	const chosenId = JABS_EnemyPool.roll(homeId, enemyIds);
+	if (chosenId === homeId) return;
+	this.setRolledEnemyId(chosenId);
+};
+/**
+* Flags this event as having been dynamically spawned onto the map at runtime, and holds onto the
+* data it was built from so that data can be put back whenever the map file reloads.
+* @param {RPG_MapEvent} eventData The event data this event was built from.
+*/
+Game_Event.prototype.flagAsDynamicSpawn = function(eventData) {
 	this._j._abs._dynamicSpawn = true;
+	this.setDynamicEventData(eventData);
 };
 /**
 * Gets whether or not this event was dynamically spawned onto the map at runtime.
@@ -28615,6 +28836,20 @@ Game_Event.prototype.flagAsDynamicSpawn = function() {
 */
 Game_Event.prototype.isDynamicSpawn = function() {
 	return this._j._abs._dynamicSpawn;
+};
+/**
+* Gets the event data this dynamically spawned event was built from.
+* @returns {RPG_MapEvent|null} The event data, or null for an event authored in the editor.
+*/
+Game_Event.prototype.getDynamicEventData = function() {
+	return this._j._abs._dynamicEventData;
+};
+/**
+* Sets the event data this dynamically spawned event was built from.
+* @param {RPG_MapEvent} eventData The event data this event was built from.
+*/
+Game_Event.prototype.setDynamicEventData = function(eventData) {
+	this._j._abs._dynamicEventData = eventData;
 };
 /**
 * Sets the initial direction being faced on this event's creation.
@@ -28719,6 +28954,7 @@ Game_Event.prototype.onPageChanged = function(previousPageIndex) {};
 J.ABS.Aliased.Game_Event.set("page", Game_Event.prototype.page);
 Game_Event.prototype.page = function() {
 	if (this.event()) {
+		if (this.getRolledEnemyId() !== 0) return JABS_EnemyPool.pageOf(this.getRolledEnemyId());
 		return J.ABS.Aliased.Game_Event.get("page").call(this);
 	}
 	const { stack } = new Error();
@@ -28748,6 +28984,7 @@ Game_Event.prototype.transformBattler = function() {
 */
 J.ABS.Aliased.Game_Event.set("setupPageSettings", Game_Event.prototype.setupPageSettings);
 Game_Event.prototype.setupPageSettings = function() {
+	this.rollEnemyPool();
 	J.ABS.Aliased.Game_Event.get("setupPageSettings").call(this);
 	this.parseEnemyComments();
 };
@@ -28768,6 +29005,7 @@ J.ABS.Aliased.Game_Event.set("clearPageSettings", Game_Event.prototype.clearPage
 Game_Event.prototype.clearPageSettings = function() {
 	J.ABS.Aliased.Game_Event.get("clearPageSettings").call(this);
 	this.initializeCoreData(null);
+	this.setRolledEnemyId(0);
 };
 /**
 * Parses the comments of this event to extract battler core data if available.
@@ -28838,6 +29076,20 @@ Game_Event.prototype.getBattlerIdOverrides = function() {
 		battlerId = parseInt(regexResult[1]);
 	});
 	return battlerId;
+};
+/**
+* Parses out the pool of enemies this event may turn out to be from a list of event commands.
+* @returns {number[]} The ids in the pool, or an empty list if this event is not pooled.
+*/
+Game_Event.prototype.getEnemyPoolOverrides = function() {
+	let enemyIds = [];
+	this.getValidCommentCommands().forEach((command) => {
+		const [comment] = command.parameters;
+		const regexResult = J.ABS.RegExp.EnemyIds.exec(comment);
+		if (!regexResult) return;
+		enemyIds = JsonMapper.parseObject(regexResult[1]);
+	});
+	return enemyIds;
 };
 /**
 * Parses out the team id from a list of event commands.
@@ -29705,6 +29957,21 @@ Game_Map.prototype.addEvent = function(event) {
 	this.setEventByIndex(event.eventId(), event);
 };
 /**
+* Puts the data of everything spawned at runtime back into `$dataMap.events`.
+*
+* Vanilla reloads `$dataMap` from its file every time a scene returns to the map, and the file only
+* knows what was authored, while the live events carry on untouched. That leaves the two lists
+* describing different worlds, which is the one thing the invariant on {@link Game_Map#addEvent}
+* forbids: a spawned enemy can no longer find its pages and loses its body, and the slot it sits in
+* reads as free, so the next thing dropped lands on top of whatever is still standing there.
+*/
+Game_Map.prototype.restoreDynamicEventData = function() {
+	const dynamicEvents = this.events().filter((event) => event.isDynamicSpawn());
+	dynamicEvents.forEach((event) => {
+		$dataMap.events[event.eventId()] = event.getDynamicEventData();
+	});
+};
+/**
 * Removes a provided event from the current map's event list.
 * @param {Game_Event} eventToRemove The `Game_Event` to remove from this map.
 */
@@ -30315,6 +30582,19 @@ Scene_Map.prototype.onMapLoaded = function() {
 		$jabsEngine.initializePlayer1();
 	}
 	J.ABS.Aliased.Scene_Map.get("onMapLoaded").call(this);
+};
+/**
+* Extends {@link #createDisplayObjects}.<br/>
+* Also restores everything spawned at runtime to the map data before any sprite reads it.
+*
+* This is the one safe moment, and {@link #onMapLoaded} is too early for it. Vanilla gets here only
+* after a transfer has settled, so a move to a different map has already rebuilt every event and left
+* nothing spawned to restore, which means the old map's data can never land in the new one.
+*/
+J.ABS.Aliased.Scene_Map.set("createDisplayObjects", Scene_Map.prototype.createDisplayObjects);
+Scene_Map.prototype.createDisplayObjects = function() {
+	$gameMap.restoreDynamicEventData();
+	J.ABS.Aliased.Scene_Map.get("createDisplayObjects").call(this);
 };
 /**
 * Extends {@link #update}.<br/>
