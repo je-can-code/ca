@@ -117,6 +117,10 @@ bun tools/map-atlas.js oneways [rootId]  # one-way transfers and scripted player
 bun tools/map-atlas.js plan    <mapId>   # a single room as a text floor plan
 ```
 
+**`bun tools/bestiary.js` answers who lives where, at what level, and where the player first meets each
+line.** The bands are in [`docs/maps/progression-bands.md`](docs/maps/progression-bands.md), and no roster
+is written down anywhere, so ask it before hand-rolling a script over `Enemies.json`.
+
 Three things about this data that cost real time to rediscover:
 
 - **JABS tags live in event *page comments*, not in `event.note`.** A script looking for `<enemyId:31>`

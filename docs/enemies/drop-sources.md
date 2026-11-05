@@ -467,8 +467,8 @@ can hold every material group is the Volcanis Grotto — band 15, levels 39-43.*
 
 **Thirty-eight of forty-six arrive in the first five bands, and the remaining five take ten more
 bands.** Twenty-six of them arrive at the Crossroads alone, off four creatures. This mirrors the
-front-loading already recorded in [`../maps/progression-bands.md`](../maps/progression-bands.md) —
-levels 6-17 span roughly eighty-four maps — but it also means the back half of chapters 2 and 3
+front-loading of the maps themselves — levels 6-17 span roughly eighty-four maps — but it also means
+the back half of chapters 2 and 3
 introduces almost no new material vocabulary. Whether that is a problem depends on whether *rungs*
 keep climbing while blocks stay flat, which is the next pass's question.
 
