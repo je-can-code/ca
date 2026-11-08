@@ -144,7 +144,7 @@ are paired with a high level of recklessness due to their ego.
 ### Crustacean
 
 - (42) [221]Crimson Vice
-- (55) [222]!Distorting Melter
+- (55) [222]!Clawdius
 
 ### Fish
 

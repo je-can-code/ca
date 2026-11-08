@@ -141,7 +141,7 @@ J.ABS.EXT.SHIELD.SdpParamId = {
 	SAR: 38,
 	SER: 39
 };
-Game_Action.registerFormulaContext("s", (_action, a) => a.lastShieldBreakValue);
+Game_Action.registerFormulaContext("s", (action) => action.shieldBreakValue());
 
 //#endregion
 //#region src/plugins/abs/ext/shield/_models/JABS_Shield.js
@@ -821,18 +821,14 @@ Game_Battler.prototype.currentShieldStacks = function() {
 	return shieldState.stackCount;
 };
 /**
-* An event hook fired when a shield is broken.
-* Stores the broken shield's cap on the battler so that break skills can
-* reference it as `s` inside their damage formulas.
+* An event hook fired when a shield is broken.<br/>
+* Fires every shield break skill this battler carries, handing each one the broken shield's cap so
+* that its damage formula can reference it as `s`.
 * @param {number} shieldBreakValue The cap of the shield that just broke.
 */
 Game_Battler.prototype.onShieldBreak = function(shieldBreakValue = 0) {
-	this.lastShieldBreakValue = shieldBreakValue;
 	const caster = JABS_AiManager.getBattlerByUuid(this.getUuid());
-	if (!caster) {
-		this.lastShieldBreakValue = 0;
-		return;
-	}
+	if (!caster) return;
 	const sources = this.shieldBreakSources();
 	/**
 	* A reducer function to grab all the shield break skills.
@@ -844,19 +840,32 @@ Game_Battler.prototype.onShieldBreak = function(shieldBreakValue = 0) {
 		return accumulator.concat(...skillIds);
 	};
 	const breakSkillIds = sources.reduce(reducer, []);
-	if (breakSkillIds.length === 0) {
-		this.lastShieldBreakValue = 0;
-		return;
-	}
-	breakSkillIds.forEach((skillId) => $jabsEngine.forceMapAction(caster, skillId, true));
-	this.lastShieldBreakValue = 0;
+	breakSkillIds.forEach((skillId) => this.fireShieldBreakSkill(caster, skillId, shieldBreakValue));
 };
 /**
-* Gets all the sources from which shield break skills can be pulled from.
-* @returns {[RPG_Actor|RPG_Enemy|RPG_State]}
+* Fires a single shield break skill from the bearer of the broken shield.<br/>
+* The actions are built here and executed directly, rather than forced through the engine, because
+* the broken shield's cap has to be written onto each action before it leaves: a break skill's hit
+* can land frames after the break that fired it, and `s` is read at the moment of that hit.
+* @param {JABS_Battler} caster The JABS battler whose shield broke.
+* @param {number} skillId The id of the shield break skill to fire.
+* @param {number} shieldBreakValue The cap of the shield that just broke.
+*/
+Game_Battler.prototype.fireShieldBreakSkill = function(caster, skillId, shieldBreakValue) {
+	const actionOptions = JABS_ActionOptions.Builder().setIsRetaliation(true).build();
+	const actions = caster.createJabsActionFromSkill(skillId, actionOptions);
+	actions.forEach((action) => action.getAction().setShieldBreakValue(shieldBreakValue));
+	if (!$jabsEngine.canExecuteMapActions(caster, actions)) return;
+	actions.forEach((action) => $jabsEngine.executeMapAction(caster, action, null, null));
+};
+/**
+* Gets all the sources from which shield break skills can be pulled from.<br/>
+* Every state counts, passive states included, so a break skill granted by a passive fires the same
+* as one granted by a state that was applied.
+* @returns {(RPG_Actor|RPG_Enemy|RPG_State)[]}
 */
 Game_Battler.prototype.shieldBreakSources = function() {
-	return [this.databaseData(), ...this.states()];
+	return [this.databaseData(), ...this.allStates()];
 };
 
 //#endregion
@@ -1065,6 +1074,31 @@ Game_Action.prototype.onShieldDamageAbsorbed = function(target, value) {};
 * @param {Game_Actor|Game_Enemy} target The battler with the shield breaking.
 */
 Game_Action.prototype.onShieldBroken = function(target) {};
+/**
+* Extends {@link #clear}.<br/>
+* Also seeds the shield break value, so `s` reads a number on every action rather than undefined.
+*/
+J.ABS.EXT.SHIELD.Aliased.Game_Action.set("clear", Game_Action.prototype.clear);
+Game_Action.prototype.clear = function() {
+	J.ABS.EXT.SHIELD.Aliased.Game_Action.get("clear").call(this);
+	this.setShieldBreakValue(0);
+};
+/**
+* Gets the cap of the broken shield whose break fired this action, or 0 when no break fired it.<br/>
+* Damage formulas read this as `s`. It lives on the action rather than on the battler because the
+* action is what survives until its hit lands, however many frames after the break that is.
+* @returns {number}
+*/
+Game_Action.prototype.shieldBreakValue = function() {
+	return this._shieldBreakValue;
+};
+/**
+* Sets the cap of the broken shield whose break fired this action.
+* @param {number} newShieldBreakValue The cap of the shield whose break fired this action.
+*/
+Game_Action.prototype.setShieldBreakValue = function(newShieldBreakValue) {
+	this._shieldBreakValue = newShieldBreakValue;
+};
 
 //#endregion
 //#region src/plugins/abs/ext/shield/objects/Game_Actor.js

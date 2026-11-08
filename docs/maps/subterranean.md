@@ -296,6 +296,11 @@ copy-pasted placeholders rather than plan, so they set no expectation.
 The Cube slimes are the one subgroup with nothing at all in it. If the Subterranean takes all five
 slots, cube slimes become a dungeon-exclusive family, which is a reasonable thing for them to be.
 
+**`!Godless Glaze` (enemy 260) lives on `Map405` "Dark 5b"** `LOCKED (Jeremy, 2026-11-06)`, the floor the
+Basin's other exit dumps you onto, at level 120: "It is Godless, afterall." Its alert (event 12) fires at
+night on the usual named roll and stands it at (30,42), the wide southern floor both doors reach. It breaks
+the rule that a named lives beside its T5, on purpose: "That is not its home."
+
 Already placed nearby and worth reusing: **cave bats** (enemy 361) appear in both mines-side rooms,
 and **`@Durable Post`** (enemy 33) is standing in `Map331` itself — hookshot is the established
 traversal verb here before the dungeon has a single room.
