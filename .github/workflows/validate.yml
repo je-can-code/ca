@@ -22,15 +22,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # the validator reads the database, the plugin list, the mirrored plugins and the icon sheet, and
-      # nothing else. img/ and audio/ are most of the working tree, so they are left out of the checkout
-      # apart from img/system, which holds the icon sheet the text-code check reads to know which tiles
-      # are painted; git still tracks every file, which is what the committed-backup check reads.
+      # the validator reads the database, the plugin list, the mirrored plugins, the icon sheet and the
+      # character sprites, and nothing else. img/ and audio/ are most of the working tree, so they are left
+      # out of the checkout apart from img/system, which holds the icon sheet the text-code check reads to
+      # know which tiles are painted, and img/characters, which the sprite check reads to know which sprites
+      # exist; git still tracks every file, which is what the committed-backup check reads.
       - name: Checkout
         uses: actions/checkout@v7
         with:
           sparse-checkout: |
             chef-adventure/data
+            chef-adventure/img/characters
             chef-adventure/img/system
             chef-adventure/js
             tools
