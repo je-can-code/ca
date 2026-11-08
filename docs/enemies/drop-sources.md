@@ -4,6 +4,14 @@
 > of thing in the world leave behind which materials and which ingredients.* It stops deliberately
 > short of naming individual enemies, rungs, drop rates or map locations — that is the next pass.
 >
+> **Part 3 is decided (Jeremy, 2026-10-30).** Its subgroup-to-material table is the official list of
+> the material types each combat subgroup drops, and [the drop rules](#drop-rules-decided-2026-10-30)
+> turn it into tags. From that date, bold and plain in Part 3 record only what the data held before it.
+>
+> **Part 2 is decided too (Jeremy, 2026-10-31).** Its family table is the official list of the food each
+> combat subgroup drops, under the same rules. It took in the food lines the data already dropped where
+> they read as deliberate, such as the kappas' fish and the minotaurs' ribs, and the strays were cut.
+>
 > **Two classes of claim live here and they must never be blurred.** Rows in **bold** are **existing** —
 > read out of the `<drops:[a|i,ID,CHANCE]>` tags already in `Enemies.json`, so they are facts about the
 > shipped database. Everything in plain text is **proposed** and is Jeremy's to accept, reject or
@@ -105,17 +113,17 @@ After the destructible split, these are the `drop` families that belong on creat
 
 | Family | Items | Subgroups |
 |---|---|---|
-| `protein+egg` | `i201-204` Avian, Bug, Froggo, Ghosty Eggs | beast-beaker, insect-brood, aquatic-frog, undead-ghosty |
-| `protein+meat+tail` | `i206-208` Lanky, Beefy, Dargin Tail | beast-rat, beast-quadruped, reptile-dargin |
+| `protein+egg` | `i201-204` Avian, Bug, Froggo, Ghosty Eggs | beast-beaker, insect-brood, aquatic-frog, undead-ghosty, insect-needler |
+| `protein+meat+tail` | `i206-208` Lanky, Beefy, Dargin Tail | beast-rat, beast-quadruped, reptile-dargin, reptile-draconite, insect-scorpion |
 | `protein+meat+flank` | `i211-213` Ripped, Bearcat, Giga Flank | beast-bearcat, humanoid-minotaur, beast-quadruped |
-| `protein+meat+ribs` | `i216-218` Boney, Lamia, Ouroboros Ribs | reptile-lamia, reptile-snake, undead-skeleton |
-| `protein+meat+wing` | `i221-223` Flappy, Double, Iridescent Wing | beast-bat, beast-beaker, insect-brood, reptile-dargin |
-| `protein+offal+eyeball` | `i226-228` Detached, Snooping, Peerless Eyeball | humanoid-cyclops, aquatic-cephalopod, undead-wisp |
-| `protein+offal+blood` | `i231-233` Dried, Virgin, Blue Blood | humanoid-orc, humanoid-bandit, undead-reborn, deity-devil |
-| `protein+offal+heart` | `i236-238` Beast, Hydro, Titan Heart | beast-bearcat, aquatic-kappa, construct-titan, reptile-dargin |
-| `protein+gel` | `i241-244` Droopy, Big, Oversized, Colossus Gelatin | slime-puddle, slime-jelly, slime-cube |
-| `protein+fish` | `i246-249` Smelly, Fresh, Sparkling, Pristine Fish | aquatic-fish |
-| `vegetable+vine` | `i261-264` Wolftrap, Subtrap, Voidtrap, Doomtrap Vine | plant-trap |
+| `protein+meat+ribs` | `i216-218` Boney, Lamia, Ouroboros Ribs | reptile-lamia, reptile-snake, undead-skeleton, humanoid-minotaur |
+| `protein+meat+wing` | `i221-223` Flappy, Double, Iridescent Wing | beast-bat, beast-beaker, insect-brood, reptile-dargin, slime-aerial, plant-dryad, insect-needler, reptile-salamander |
+| `protein+offal+eyeball` | `i226-228` Detached, Snooping, Peerless Eyeball | humanoid-cyclops, aquatic-cephalopod, undead-wisp, slime-roper, beast-bat |
+| `protein+offal+blood` | `i231-233` Dried, Virgin, Blue Blood | humanoid-orc, humanoid-bandit, undead-reborn, deity-devil, slime-roper, beast-bearcat |
+| `protein+offal+heart` | `i236-238` Beast, Hydro, Titan Heart | beast-bearcat, aquatic-kappa, construct-titan, reptile-dargin, humanoid-minotaur |
+| `protein+gel` | `i241-244` Droopy, Big, Oversized, Colossus Gelatin | slime-puddle, slime-jelly, slime-cube, slime-aerial |
+| `protein+fish` | `i246-249` Smelly, Fresh, Sparkling, Pristine Fish | aquatic-fish, aquatic-kappa, aquatic-frog |
+| `vegetable+vine` | `i261-264` Bitter, Poison, Venom, Death Vine | plant-trap |
 | `sweet+jelly` | `i396-399` Leftover, Slimy, Putrid, Archaic Slime | slime-jelly, slime-roper, slime-aerial |
 | `dairy+milk` | `i372-374` Moo, Bug, Dragon Juice | humanoid-minotaur, insect-brood, reptile-dargin |
 | `liquid` | `i421-424` Water and its refinements | aquatic-kappa, aquatic-frog, slime-puddle |
@@ -163,6 +171,41 @@ here needs a separate rule for the blocks that are objects rather than anatomy.
 
 **Counts are deliberately uneven.** A subgroup with two materials is not underserved and a block with
 one home is not underspecified. No symmetry was forced anywhere in this table.
+
+## Drop rules, decided 2026-10-30
+
+Two rules from Jeremy turn the table below into `<drops>` tags.
+
+**A subgroup never gains or loses a drop type between its tiers.** If its tier 1 drops scales, fangs
+and spines, every tier drops them: "otherwise how in the world will the player ever make that
+correlation?" Gems are the exception, since each enemy may carry its own (the Magma Worm's Ruby, the
+Wriggle Worm's Sapphire), and so are the other per-enemy extras: elemental essences, ores, greens and
+the like.
+
+**Every type drops by tier, as a count of tags.** In his words: "I usually drop my tier, I plentifully
+drop the tier below me, and rarely drop the tier above me."
+
+| Enemy tier | Plenty: 3 tags (70 / 65 / 60%) | Usually: 2 tags each (30 / 20%) | Rarely: 1 tag (5%) |
+|---|---|---|---|
+| 1 | — | rung 1 | rung 2 |
+| 2 | rung 1 | rung 2 | rung 3 |
+| 3 | rung 2 | rung 3 | rung 4 |
+| 4 | rung 2 | rungs 3 and 4 | rung 5 |
+| 5 | rung 3 | rungs 4 and 5 | — |
+
+The plentiful rung climbs at half speed, so even a tier 5 floods the player with rung 3s and the top
+rungs stay scarce. The percentages are placeholders to tune; the counts are the rule. A tier 4 with
+five types carries forty tags, which is intended.
+
+**Food follows the same counts** over Part 2's families (2026-10-31). A food line holds three or four
+rungs rather than five, so a line of L rungs stretches across the table: rung r above reads rung
+`ceil(r * L / 5)` of the line, and the tails run Lanky, Beefy, Beefy, Dargin, Dargin. That covers every
+line chained by `<dropUpgradeId>`, since the chain is what marks a line as grades. **Eggs are the one
+unchained line.** They are creature sources rather than grades, so each subgroup drops its own egg under
+every count: beakers Avian, broods and needlers Bug, frogs Froggo, ghosts Ghosty.
+
+Every built tier of the 46 ladder subgroups was normalized to this, the materials on 2026-10-30 and the
+food on 2026-10-31. Not yet: the named anomalies, the puddle slimes, the elementals and the Sins.
 
 ## Subgroup to material block
 
@@ -259,10 +302,13 @@ fights back, not the only version that exists.
 | `beast-bat` | **356 fangs**, **386 pelt**, 351 wings, 391 ear, 456 feather |
 | `beast-beaker` | 456 feather, 361 talon, 351 wings, 431 caviar |
 | `beast-rat` | **356 fangs**, **386 pelt**, 336 toe, 446 tooth, 516 skull |
-| `beast-quadruped` | 386 pelt, 336 toe, 381 liver, 316 horn, 516 skull |
+| `beast-quadruped` | **356 fangs**, 386 pelt, 336 toe, 381 liver, 316 horn, 516 skull |
 
 Ear on the bat is not filler — the block's rungs escalate a hearing-flavoured parameter and a bat is
 the animal whose ears are the interesting part.
+
+**Fangs joined the quadruped on 2026-10-30.** The row was written before the subgroup had a member, and
+its first member turned out to be the Wolfe. A wolf without fangs is not much of a wolf.
 
 **Feather belongs to feathered wings, not to birds.** A leathery wing is a `351 wings` drop and a
 feathered one is both.
@@ -352,7 +398,7 @@ The inverted view. Its only job is to prove every assignable block has somewhere
 | 341 | clover | plant-flower, plant-trap |
 | 346 | stinger | **insect-needler**, insect-scorpion |
 | 351 | wings | reptile-dargin, slime-aerial, beast-bat, beast-beaker, insect-needler, insect-brood |
-| 356 | fangs | **undead-skeleton**, **reptile-snake**, **beast-bat**, **beast-rat**, **insect-crawler**, reptile-dargin |
+| 356 | fangs | **undead-skeleton**, **reptile-snake**, **beast-bat**, **beast-rat**, **insect-crawler**, **beast-quadruped**, reptile-dargin |
 | 361 | talon | **beast-bearcat**, **deity-sin**, reptile-dargin, beast-beaker, insect-scorpion |
 | 366 | core | **undead-wisp**, **construct-hazard**, construct-orb, deity-elemental |
 | 371 | branch | **plant-trap**, **plant-fungus**, plant-treant |
@@ -421,8 +467,8 @@ can hold every material group is the Volcanis Grotto — band 15, levels 39-43.*
 
 **Thirty-eight of forty-six arrive in the first five bands, and the remaining five take ten more
 bands.** Twenty-six of them arrive at the Crossroads alone, off four creatures. This mirrors the
-front-loading already recorded in [`../maps/progression-bands.md`](../maps/progression-bands.md) —
-levels 6-17 span roughly eighty-four maps — but it also means the back half of chapters 2 and 3
+front-loading of the maps themselves — levels 6-17 span roughly eighty-four maps — but it also means
+the back half of chapters 2 and 3
 introduces almost no new material vocabulary. Whether that is a problem depends on whether *rungs*
 keep climbing while blocks stay flat, which is the next pass's question.
 
@@ -521,6 +567,9 @@ reasoning is still useful; its ids point at the wrong rows and its "clean migrat
 describe a migration that already happened.
 
 ## What this pass deliberately does not decide
+
+Two of these were settled on 2026-10-30 for combat enemies' materials: what each built tier drops and
+at what rate, and which rung comes from which tier. See [the drop rules](#drop-rules-decided-2026-10-30).
 
 - **Which individual enemy or node drops what**, and at what rate. Nine combat subgroups have zero
   implemented members and exist here purely as reservations — and that is fine: a subgroup can be

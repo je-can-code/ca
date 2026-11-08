@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.26.2 ABS] Enables combat to be carried out on the map.
+ * [v4.27.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -36,7 +36,7 @@
  * @parent baseConfigs
  * @type number
  * @text Enemy Map Id
- * @desc The id of the map used for cloning enemy events off of.
+ * @desc The id of the map used for cloning enemy events off of, by the Spawn Enemy command and by pooled spots.
  * @default
  *
  * @param dodgeSkillTypeId
@@ -173,6 +173,13 @@
  * @text Default Respawn Animation
  * @desc The default animation to play on an event when its battler respawns. Set to 0 for no animation.
  * @default 0
+ *
+ * @param defaultEnemyPoolHomeWeight
+ * @parent enemyDefaultConfigs
+ * @type number
+ * @text Default Enemy Pool Home Weight
+ * @desc The weight a pooled spot gives the enemy actually placed there, whatever that enemy's own weight says.
+ * @default 85
  *
  * @param defaultConfigs
  * @text WHEN UNASSIGNED
@@ -994,6 +1001,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 	initializeAiTuningMetadata() {
 		this.AiComboHumanizeWindowMinPercent = .1;
 		this.AiComboHumanizeWindowMaxPercent = .3;
+		this.AiComboHumanizeWindowMaxFrames = 300;
 		this.AiDefensiveDodgeChancePercent = 75;
 		this.AiDefensiveDodgeCooldownFrames = 45;
 		this.AiDefensiveThreatRadiusTiles = 3;
@@ -1022,6 +1030,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 		this.DefaultRespawnMethod = this.parsedPluginParameters["defaultRespawnMethod"] || String.empty;
 		this.DefaultRespawnParam = this.parsedPluginParameters["defaultRespawnParam"] || String.empty;
 		this.DefaultRespawnAnimationId = Number(this.parsedPluginParameters["defaultRespawnAnimationId"] || 0);
+		this.DefaultEnemyPoolHomeWeight = Number(this.parsedPluginParameters["defaultEnemyPoolHomeWeight"] || 85);
 	}
 	/**
 	* Maps elemental icon usage from plugin parameters.
@@ -1423,7 +1432,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.26.2");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.27.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -2009,6 +2018,58 @@ J.ABS.RegExp = {
 	DotAmpRate: /<dotAmpRate:[ ]?(-?\d+)%?>/gi,
 	HotAmpRate: /<hotAmpRate:[ ]?(-?\d+)%?>/gi,
 	EnemyId: /<enemyId:[ ]?(\d+)>/i,
+	/**
+	* Every enemy a placed event may turn out to be, rolled each time the event is built.
+	* The event still names its own enemy with `<enemyId:N>`, and that id belongs in this list too if
+	* the spot should ever roll itself.
+	*
+	* <pre>
+	* Structure:
+	*  <enemyIds:[ENEMY_ID, ENEMY_ID, ...]>
+	*
+	* Example:
+	*  <enemyIds:[301, 302, 303]>
+	*
+	* Translation:
+	*  This spot rolls between enemies 301, 302 and 303 each time it is built.
+	* </pre>
+	* @type {RegExp}
+	*/
+	EnemyIds: /<enemyIds:[ ]?(\[\d+(?:,[ ]?\d+)*])>/i,
+	/**
+	* How likely an enemy is to be chosen when a pooled spot rolls it, relative to the rest of the pool.
+	* An enemy without one is never chosen, which is the same as being reserved at a weight of zero.
+	*
+	* <pre>
+	* Structure:
+	*  <enemy-weight:WEIGHT>
+	*
+	* Example:
+	*  <enemy-weight:8>
+	*
+	* Translation:
+	*  This enemy carries a weight of 8 in any pool that names it.
+	* </pre>
+	* @type {RegExp}
+	*/
+	EnemyWeight: /<enemy-weight:[ ]?(\d+)>/i,
+	/**
+	* One map's own opinion of how likely an enemy is, replacing that enemy's weight while on this map.
+	* A weight of zero keeps the enemy off the map's rolls entirely.
+	*
+	* <pre>
+	* Structure:
+	*  <enemy-weight-override:[ENEMY_ID, WEIGHT]>
+	*
+	* Example:
+	*  <enemy-weight-override:[302, 30]>
+	*
+	* Translation:
+	*  On this map, enemy 302 carries a weight of 30 in any pool that names it.
+	* </pre>
+	* @type {RegExp}
+	*/
+	EnemyWeightOverride: /<enemy-weight-override:[ ]?(\[\d+,[ ]?\d+])>/i,
 	TeamId: /<teamId:[ ]?(\d+)>/i,
 	Sight: /<sight:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
 	Pursuit: /<pursuit:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
@@ -3401,11 +3462,321 @@ var JABS_HitboxPulseOptions = class JABS_HitboxPulseOptions {
 };
 
 //#endregion
+//#region src/plugins/abs/core/managers/JABS_HitboxPainter.js
+/**
+* Draws hitbox geometry. Telegraphs, live hitboxes and hit pulses all draw through here, so the
+* shape that warns a player, the shape that teaches them, and the shape collision tests are one
+* and the same.
+*/
+var JABS_HitboxPainter = class JABS_HitboxPainter {
+	/**
+	* The narrowest a thickness may draw, in pixels, matching the floor collision gives it.
+	* @type {number}
+	*/
+	static MinimumThicknessPx = 1;
+	/**
+	* How many slices a flight lane is drawn in. PIXI's fills are flat, so the fade is a staircase of
+	* them, and this many steps reads as a gradient.
+	* @type {number}
+	*/
+	static LaneSlices = 32;
+	/**
+	* How many slices at the far end of a flight lane fade out, where the rest are solid.
+	* @type {number}
+	*/
+	static LaneFadeSlices = 12;
+	/**
+	* Reads the hitbox of an action, the same way collision reads it.
+	* @param {Game_Event|JABS_CastPreviewAction} actionEvent The action event, or the stand-in for one.
+	* @returns {{ shape:string|null, range:number, facing:number, degrees:number, thickness:number, innerRadius:number }}
+	*/
+	static hitboxOf(actionEvent) {
+		const action = actionEvent.getJabsAction();
+		return {
+			shape: action.getShape(),
+			range: action.getCollisionRange(),
+			facing: action.direction(),
+			degrees: $jabsEngine.getActionDegrees(actionEvent) ?? 180,
+			thickness: $jabsEngine.getActionThicknessTiles(actionEvent),
+			innerRadius: action.getInnerRadius()
+		};
+	}
+	/**
+	* Draws the hitbox of an action.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {Game_Event|JABS_CastPreviewAction} actionEvent The action event, or the stand-in for one.
+	*/
+	static drawAction(g, actionEvent) {
+		const hitbox = JABS_HitboxPainter.hitboxOf(actionEvent);
+		JABS_HitboxPainter.draw(g, hitbox);
+	}
+	/**
+	* Draws the lane a shot is about to fly down: as wide as what is flying, reaching as far as it
+	* will get in the stretch a telegraph shows, and fading out at the far end because that is a
+	* horizon rather than a place the shot stops. Draws nothing for an action that doesn't fly.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {JABS_CastPreviewAction} standIn The stand-in for the action about to fly.
+	* @param {{ fillColor:number, fillAlpha:number }} style The telegraph's style.
+	*/
+	static drawFlightLane(g, standIn, style) {
+		const laneTiles = standIn.flightPreviewTiles();
+		if (laneTiles === 0) return;
+		const hitbox = JABS_HitboxPainter.hitboxOf(standIn);
+		const tile = JABS_HitboxPainter.majorTilePx();
+		const sliceLengthPx = laneTiles * tile / JABS_HitboxPainter.LaneSlices;
+		const halfBreadthPx = JABS_HitboxPainter.breadthTiles(hitbox) * tile / 2;
+		g.lineStyle(0);
+		for (let slice = 0; slice < JABS_HitboxPainter.LaneSlices; slice += 1) {
+			const opacity = JABS_HitboxPainter.laneOpacityAt(slice);
+			g.beginFill(style.fillColor, style.fillAlpha * opacity);
+			JABS_HitboxPainter.drawOrientedQuad(g, hitbox.facing, sliceLengthPx, halfBreadthPx, sliceLengthPx * slice);
+			g.endFill();
+		}
+	}
+	/**
+	* How opaque a slice of a flight lane is, as a share of the telegraph's own fill.
+	* @param {number} slice The slice's index, counted out from the origin.
+	* @returns {number} From 1 where the lane is solid, down toward 0 at the far end.
+	*/
+	static laneOpacityAt(slice) {
+		const slicesFromTheEnd = JABS_HitboxPainter.LaneSlices - slice;
+		return Math.min(1, slicesFromTheEnd / JABS_HitboxPainter.LaneFadeSlices);
+	}
+	/**
+	* How wide a hitbox is across its own aim, in tiles, which is the width of the path it sweeps as
+	* it flies.
+	* @param {Object} hitbox The hitbox to measure; see {@link JABS_HitboxPainter.draw}.
+	* @returns {number}
+	*/
+	static breadthTiles(hitbox) {
+		const { shape, range, degrees, thickness } = hitbox;
+		switch (shape) {
+			case J.ABS.Shapes.Line: return thickness;
+			case J.ABS.Shapes.Wall:
+			case J.ABS.Shapes.Square:
+			case J.ABS.Shapes.Cross: return 2 * range + 1;
+			case J.ABS.Shapes.Arc: return JABS_HitboxPainter.arcBreadthTiles(range, degrees);
+			case J.ABS.Shapes.Circle:
+			case J.ABS.Shapes.Rhombus:
+			default: return range * 2;
+		}
+	}
+	/**
+	* How wide a wedge is across its aim, in tiles: a narrow one is as wide as its two tips, and from
+	* a half circle onward it is as wide as it can get.
+	* @param {number} range The wedge's radius in tiles.
+	* @param {number} degrees The wedge's sweep in degrees.
+	* @returns {number}
+	*/
+	static arcBreadthTiles(range, degrees) {
+		if (degrees >= 180) return range * 2;
+		const halfSweepRad = degrees / 2 * Math.PI / 180;
+		return range * 2 * Math.sin(halfSweepRad);
+	}
+	/**
+	* Draws a hitbox around the graphics' local (0,0) and completes the fill, on whatever style the
+	* caller already applied. Honors <thickness:N> for line, wall, and cross.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {{ shape:string|null, range:number, facing:number, degrees:number, thickness:number, innerRadius:number }} hitbox
+	* The hitbox to draw: its shape, its size in tiles, its dir8 aim, and its tag values.
+	*/
+	static draw(g, hitbox) {
+		const { shape, innerRadius } = hitbox;
+		switch (shape) {
+			case J.ABS.Shapes.Rhombus:
+				JABS_HitboxPainter.drawRhombus(g, hitbox);
+				break;
+			case J.ABS.Shapes.Square:
+				JABS_HitboxPainter.drawSquare(g, hitbox);
+				break;
+			case J.ABS.Shapes.Line:
+				JABS_HitboxPainter.drawLine(g, hitbox);
+				break;
+			case J.ABS.Shapes.Wall:
+				JABS_HitboxPainter.drawWall(g, hitbox);
+				break;
+			case J.ABS.Shapes.Cross:
+				JABS_HitboxPainter.drawCross(g, hitbox);
+				break;
+			case J.ABS.Shapes.Arc:
+				JABS_HitboxPainter.drawArc(g, hitbox);
+				break;
+			case J.ABS.Shapes.Circle:
+			default:
+				JABS_HitboxPainter.drawCircle(g, hitbox);
+				break;
+		}
+		if (innerRadius > 0 && shape !== J.ABS.Shapes.Arc) {
+			g.beginHole();
+			g.drawCircle(0, 0, innerRadius * $gameMap.tileWidth());
+			g.endHole();
+		}
+		g.endFill();
+	}
+	/**
+	* Draws a circle, its radius in tile widths for consistency with collision.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {Object} hitbox The hitbox to draw; see {@link JABS_HitboxPainter.draw}.
+	*/
+	static drawCircle(g, hitbox) {
+		g.drawCircle(0, 0, hitbox.range * $gameMap.tileWidth());
+	}
+	/**
+	* Draws a diamond centered on the origin.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {Object} hitbox The hitbox to draw; see {@link JABS_HitboxPainter.draw}.
+	*/
+	static drawRhombus(g, hitbox) {
+		const rx = hitbox.range * $gameMap.tileWidth();
+		const ry = hitbox.range * $gameMap.tileHeight();
+		g.moveTo(0, -ry);
+		g.lineTo(rx, 0);
+		g.lineTo(0, ry);
+		g.lineTo(-rx, 0);
+		g.closePath();
+	}
+	/**
+	* Draws a full square centered on the origin.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {Object} hitbox The hitbox to draw; see {@link JABS_HitboxPainter.draw}.
+	*/
+	static drawSquare(g, hitbox) {
+		const tilesAcross = 2 * hitbox.range + 1;
+		const w = tilesAcross * $gameMap.tileWidth();
+		const h = tilesAcross * $gameMap.tileHeight();
+		g.drawRect(-w / 2, -h / 2, w, h);
+	}
+	/**
+	* Draws a bar reaching forward from the origin along the aim.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {Object} hitbox The hitbox to draw; see {@link JABS_HitboxPainter.draw}.
+	*/
+	static drawLine(g, hitbox) {
+		const { range, facing, thickness } = hitbox;
+		const tile = JABS_HitboxPainter.majorTilePx();
+		const lengthPx = range * tile + tile / 2;
+		const breadthPx = Math.max(JABS_HitboxPainter.MinimumThicknessPx, thickness * tile);
+		JABS_HitboxPainter.drawOrientedQuad(g, facing, lengthPx, breadthPx / 2);
+	}
+	/**
+	* Draws a wide, shallow bar directly ahead of the origin.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {Object} hitbox The hitbox to draw; see {@link JABS_HitboxPainter.draw}.
+	*/
+	static drawWall(g, hitbox) {
+		const { range, facing, thickness } = hitbox;
+		const tile = JABS_HitboxPainter.majorTilePx();
+		const depthPx = Math.max(JABS_HitboxPainter.MinimumThicknessPx, thickness * tile);
+		const breadthPx = (2 * range + 1) * tile;
+		JABS_HitboxPainter.drawOrientedQuad(g, facing, depthPx, breadthPx / 2);
+	}
+	/**
+	* Draws the union of a vertical and a horizontal bar, centered on the origin. A cross never
+	* turns with the aim, the same as its collision.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {Object} hitbox The hitbox to draw; see {@link JABS_HitboxPainter.draw}.
+	*/
+	static drawCross(g, hitbox) {
+		const { range, thickness } = hitbox;
+		const tw = $gameMap.tileWidth();
+		const th = $gameMap.tileHeight();
+		const tilesAcross = 2 * range + 1;
+		const w = tilesAcross * tw;
+		const h = tilesAcross * th;
+		const thicknessX = Math.max(JABS_HitboxPainter.MinimumThicknessPx, thickness * tw);
+		const thicknessY = Math.max(JABS_HitboxPainter.MinimumThicknessPx, thickness * th);
+		g.drawRect(-thicknessX / 2, -h / 2, thicknessX, h);
+		g.drawRect(-w / 2, -thicknessY / 2, w, thicknessY);
+	}
+	/**
+	* Draws a wedge centered on the aim.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {Object} hitbox The hitbox to draw; see {@link JABS_HitboxPainter.draw}.
+	*/
+	static drawArc(g, hitbox) {
+		const { range, facing, degrees, innerRadius } = hitbox;
+		const tw = $gameMap.tileWidth();
+		const { x: fx, y: fy } = $jabsEngine.dir8ToUnitVector(facing);
+		const centerRad = Math.atan2(fy, fx);
+		const sweepRad = degrees * Math.PI / 180;
+		JABS_HitboxPainter.drawSector(g, range * tw, centerRad, sweepRad, innerRadius * tw);
+	}
+	/**
+	* Draws a filled sector around the origin, or a full circle when the sweep covers the whole way
+	* around.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {number} r The radius in pixels.
+	* @param {number} centerRad The center angle in radians. 0 = right, π/2 = down, π = left, -π/2 = up.
+	* @param {number} sweepRad The total sweep in radians (0–2π].
+	* @param {number} innerR The dead-zone radius in pixels; a positive one bakes an annular sector
+	* (donut slice) instead of a pivot fan.
+	*/
+	static drawSector(g, r, centerRad, sweepRad, innerR) {
+		const TAU = Math.PI * 2;
+		const sweep = Math.max(0, Math.min(TAU, sweepRad));
+		if (sweep >= TAU - 1e-6) {
+			g.drawCircle(0, 0, r);
+			if (innerR > 0) {
+				g.beginHole();
+				g.drawCircle(0, 0, innerR);
+				g.endHole();
+			}
+			return;
+		}
+		const start = centerRad - sweep / 2;
+		const end = centerRad + sweep / 2;
+		if (innerR > 0) {
+			g.moveTo(innerR * Math.cos(start), innerR * Math.sin(start));
+			g.lineTo(r * Math.cos(start), r * Math.sin(start));
+			g.arc(0, 0, r, start, end);
+			g.lineTo(innerR * Math.cos(end), innerR * Math.sin(end));
+			g.arc(0, 0, innerR, end, start, true);
+			g.closePath();
+			return;
+		}
+		g.moveTo(0, 0);
+		g.lineTo(r * Math.cos(start), r * Math.sin(start));
+		g.arc(0, 0, r, start, end);
+		g.lineTo(0, 0);
+		g.closePath();
+	}
+	/**
+	* Draws a filled rectangle extending forward along the dir8 unit vector, with its breadth split
+	* evenly either side of that axis.
+	* @param {PIXI.Graphics} g The graphics to draw on.
+	* @param {number} facing The dir8 facing for the forward axis.
+	* @param {number} lengthPx The forward length in pixels.
+	* @param {number} halfBreadthPx The half-width in pixels along the perpendicular axis.
+	* @param {number} [startPx=0] How far along the forward axis it starts, in pixels.
+	*/
+	static drawOrientedQuad(g, facing, lengthPx, halfBreadthPx, startPx = 0) {
+		const { x: fx, y: fy } = $jabsEngine.dir8ToUnitVector(facing);
+		const px = fy * halfBreadthPx;
+		const py = -fx * halfBreadthPx;
+		const nearX = fx * startPx;
+		const nearY = fy * startPx;
+		const farX = fx * (startPx + lengthPx);
+		const farY = fy * (startPx + lengthPx);
+		g.moveTo(nearX - px, nearY - py);
+		g.lineTo(nearX + px, nearY + py);
+		g.lineTo(farX + px, farY + py);
+		g.lineTo(farX - px, farY - py);
+		g.closePath();
+	}
+	/**
+	* The longer side of a tile in pixels, which is what collision measures its oriented bars with.
+	* @returns {number}
+	*/
+	static majorTilePx() {
+		return Math.max($gameMap.tileWidth(), $gameMap.tileHeight());
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/core/sprites/Sprite_HitboxPulse.js
 /**
 * A lightweight graphics sprite that renders a transient hitbox visualization.
-* It supports several common JABS shapes: Circle, Square, Line, Arc (sector).
-* Geometry is drawn in local space; caller sets world x/y and rotation.
+* Geometry is drawn in local space, already aimed; caller sets world x/y.
 */
 var Sprite_HitboxPulse = class extends Sprite {
 	/**
@@ -3591,6 +3962,20 @@ var Sprite_HitboxPulse = class extends Sprite {
 		this._shape = newShape;
 	}
 	/**
+	* Gets the facing.
+	* @returns {number} The facing.
+	*/
+	facing() {
+		return this._facing;
+	}
+	/**
+	* Sets the facing.
+	* @param {number} newFacing The new facing.
+	*/
+	setFacing(newFacing) {
+		this._facing = newFacing;
+	}
+	/**
 	* Gets the range.
 	* @returns {number} The range.
 	*/
@@ -3684,12 +4069,12 @@ var Sprite_HitboxPulse = class extends Sprite {
 		this.setFillAlpha(.18);
 		this.blendMode = PIXI.BLEND_MODES.ADD;
 		this.setShape(J.ABS.Shapes.Circle);
+		this.setFacing(2);
 		this.setRange(1);
 		this.setDegrees(180);
 		this.setThickness(1);
 		this.setInnerRadius(0);
 		this.setSustained(false);
-		this.rotation = 0;
 		this.alpha = 1;
 		this.scale.set(1, 1);
 		this.graphics().clear();
@@ -3710,6 +4095,7 @@ var Sprite_HitboxPulse = class extends Sprite {
 		this.setFillAlpha(opts.fillAlpha);
 		this.blendMode = opts.blendMode;
 		this.setShape(opts.shape);
+		this.setFacing(opts.facing);
 		this.setRange(Math.max(0, opts.range));
 		this.setDegrees(opts.degrees !== undefined ? opts.degrees : 180);
 		this.setThickness(opts.thickness !== undefined ? Math.max(0, opts.thickness) : 1);
@@ -3727,71 +4113,16 @@ var Sprite_HitboxPulse = class extends Sprite {
 	drawGeometry() {
 		const g = this.graphics();
 		g.clear();
-		g.lineStyle(this.lineWidth(), this.lineColor(), this.lineAlpha());
+		g.lineStyle(this.lineWidth(), this.lineColor(), this.lineAlpha(), 0);
 		g.beginFill(this.fillColor(), this.fillAlpha());
-		let holeAlreadyBaked = false;
-		const tile = $gameMap.tileWidth();
-		switch (this.shape()) {
-			case J.ABS.Shapes.Circle: {
-				const r = this.range() * tile;
-				g.drawCircle(0, 0, r);
-				break;
-			}
-			case J.ABS.Shapes.Square:
-			case J.ABS.Shapes.Rhombus:
-			case J.ABS.Shapes.Cross:
-			case J.ABS.Shapes.Wall: {
-				const half = this.range() * tile;
-				g.drawRect(-half, -half, half * 2, half * 2);
-				break;
-			}
-			case J.ABS.Shapes.Line: {
-				const length = this.range() * tile;
-				const thick = Math.max(1, this.thickness() * tile);
-				g.drawRect(0, -thick * .5, length, thick);
-				break;
-			}
-			case J.ABS.Shapes.Arc:
-			default: {
-				const r = this.range() * tile;
-				const deg = Math.max(0, Math.min(360, this.degrees()));
-				const rad = deg * Math.PI / 180;
-				const startAngle = -rad / 2;
-				const endAngle = rad / 2;
-				const steps = Math.max(2, Math.ceil(deg / 8));
-				const innerRadiusPx = this.innerRadius() * tile;
-				if (innerRadiusPx > 0) {
-					holeAlreadyBaked = true;
-					g.moveTo(Math.cos(startAngle) * innerRadiusPx, Math.sin(startAngle) * innerRadiusPx);
-					for (let i = 0; i <= steps; i++) {
-						const t = i / steps;
-						const a = startAngle + (endAngle - startAngle) * t;
-						g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-					}
-					for (let i = steps; i >= 0; i--) {
-						const t = i / steps;
-						const a = startAngle + (endAngle - startAngle) * t;
-						g.lineTo(Math.cos(a) * innerRadiusPx, Math.sin(a) * innerRadiusPx);
-					}
-				} else {
-					g.moveTo(0, 0);
-					for (let i = 0; i <= steps; i++) {
-						const t = i / steps;
-						const a = startAngle + (endAngle - startAngle) * t;
-						g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-					}
-					g.lineTo(0, 0);
-				}
-				break;
-			}
-		}
-		if (this.innerRadius() > 0 && holeAlreadyBaked === false) {
-			const innerRadiusPx = this.innerRadius() * tile;
-			g.beginHole();
-			g.drawCircle(0, 0, innerRadiusPx);
-			g.endHole();
-		}
-		g.endFill();
+		JABS_HitboxPainter.draw(g, {
+			shape: this.shape(),
+			range: this.range(),
+			facing: this.facing(),
+			degrees: this.degrees(),
+			thickness: this.thickness(),
+			innerRadius: this.innerRadius()
+		});
 	}
 	/**
 	* Sets the world position (tile-space aligned with JABS action sprites).
@@ -3801,13 +4132,6 @@ var Sprite_HitboxPulse = class extends Sprite {
 	setWorldPosition(x, y) {
 		this.x = x;
 		this.y = y;
-	}
-	/**
-	* Sets the rotation for directional shapes (in radians).
-	* @param {number} r The rotation to set.
-	*/
-	setRotation(r) {
-		this.rotation = r;
 	}
 	/**
 	* Updates the pulse animation (alpha fade and gentle scale pulse).
@@ -3973,7 +4297,6 @@ var JABS_HitboxPulseManager = class JABS_HitboxPulseManager {
 		pulse.reset();
 		pulse.setup(plain);
 		pulse.setWorldPosition(plain.x, plain.y);
-		pulse.setRotation(JABS_HitboxPulseManager.directionToRadians(plain.facing));
 	}
 	/**
 	* Detaches a sustained pulse by action uuid (cleanup / disable paths).
@@ -4012,7 +4335,6 @@ var JABS_HitboxPulseManager = class JABS_HitboxPulseManager {
 		pulse.reset();
 		pulse.setup(options.toPlain());
 		pulse.setWorldPosition(options.x, options.y);
-		pulse.setRotation(JABS_HitboxPulseManager.directionToRadians(options.facing));
 		layer.addChild(pulse);
 		active.push(pulse);
 	}
@@ -4054,31 +4376,6 @@ var JABS_HitboxPulseManager = class JABS_HitboxPulseManager {
 		}
 		active.length = 0;
 		pool.length = 0;
-	}
-	/**
-	* Converts numeric direction (1,2,3,4,6,7,8,9) to radians for pulse rotation.
-	* Baseline is Right (6) → 0 rad, because geometry is authored along +X.
-	* @param {number} dir The numeric direction.
-	* @returns {number} Radians.
-	*/
-	static directionToRadians(dir) {
-		const RAD_0 = 0;
-		const RAD_45 = Math.PI / 4;
-		const RAD_90 = Math.PI / 2;
-		const RAD_180 = Math.PI;
-		const RAD_N90 = -Math.PI / 2;
-		const RAD_N45 = -Math.PI / 4;
-		switch (dir) {
-			case 6: return RAD_0;
-			case 3: return RAD_45;
-			case 2: return RAD_90;
-			case 1: return RAD_180 - RAD_45;
-			case 4: return RAD_180;
-			case 7: return -RAD_180 + RAD_45;
-			case 8: return RAD_N90;
-			case 9: return RAD_N45;
-		}
-		return 0;
 	}
 };
 
@@ -4826,17 +5123,39 @@ var JABS_AI = class {
 		return [];
 	}
 	/**
+	* Determines whether or not the attacker has a combo follow-up it is able to perform, whether or
+	* not the moment to perform it has arrived yet.
+	* @param {JABS_Battler} user The user potentially pursuing a combo skill.
+	* @returns {boolean} True if the user has a performable follow-up queued, false otherwise.
+	*/
+	canFollowWithCombo(user) {
+		if (!user.hasComboReady()) return false;
+		const comboSkillId = user.getComboNextActionId(user.getLastUsedSlot());
+		if (!comboSkillId) return false;
+		if (!user.canExecuteSkill(comboSkillId)) return false;
+		return true;
+	}
+	/**
 	* Determines whether or not the attacker should continue with their combo.
 	* @param {JABS_Battler} user The user potentially pursuing a combo skill.
 	* @returns {boolean} True if the user should follow with combo, false otherwise.
 	*/
 	shouldFollowWithCombo(user) {
-		if (!user.hasComboReady()) return false;
-		const comboSkillId = user.getComboNextActionId(user.getLastUsedSlot());
-		if (!comboSkillId) return false;
-		if (!user.canExecuteSkill(comboSkillId)) return false;
+		if (!this.canFollowWithCombo(user)) return false;
 		if (!user.isAiComboHumanizationTimingReady()) return false;
 		return true;
+	}
+	/**
+	* Determines whether or not the attacker should spend this moment waiting on its combo.<br/>
+	* A queued follow-up lives on the slot that opened it, so deciding on anything else while the
+	* humanized pacing runs moves the last used slot and strands the follow-up there for good. Holding
+	* is what keeps the chain alive, and because pacing is a frame in the near future, the hold ends.
+	* @param {JABS_Battler} user The user potentially holding for a combo skill.
+	* @returns {boolean} True if the user should hold for its combo, false otherwise.
+	*/
+	shouldHoldForCombo(user) {
+		if (!this.canFollowWithCombo(user)) return false;
+		return !user.isAiComboHumanizationTimingReady();
 	}
 	/**
 	* Gets the combo skill id of the next
@@ -4991,10 +5310,10 @@ var JABS_AI = class {
 			return testAction.isForAliveFriend() && testAction.isRecover() && testAction.isHpEffect();
 		});
 		if (healingTypeSkills.length === 0) return 0;
-		const lowestAlly = this.determineLowestHpAlly(user);
-		user.setAllyTarget(lowestAlly);
 		const below60 = this.countLowHpAllies(user);
 		if (below60 === 0) return 0;
+		const lowestAlly = this.determineLowestHpAlly(user);
+		user.setAllyTarget(lowestAlly);
 		const lowestAllyBattler = lowestAlly.getBattler();
 		const healerBattler = user.getBattler();
 		if (below60 === 1) {
@@ -5014,6 +5333,9 @@ var JABS_AI = class {
 		let bestSkillId = 0;
 		let chosenAlly = null;
 		availableSkills.forEach((skillId) => {
+			const testAction = new Game_Action(user.getBattler());
+			testAction.setSkill(skillId);
+			if (!testAction.isForFriend()) return;
 			const skill = user.getSkill(skillId);
 			const stateAddingEffects = skill.effects.filter((fx) => fx.code === 21);
 			if (stateAddingEffects.length === 0) return;
@@ -7019,8 +7341,10 @@ var JABS_AiManager = class JABS_AiManager {
 		});
 	}
 	/**
-	* Queries the spatial grid for battlers overlapping the inclusive AABB in tile-space.
-	* Returns candidates de-duplicated across all covered cells.
+	* Queries the spatial grid for battlers overlapping the inclusive AABB in tile-space.<br/>
+	* Returns candidates de-duplicated across all covered cells. Only the part of the box that overlaps
+	* the map is walked, because no battler can stand anywhere else: an action with unlimited reach asks
+	* about a box thousands of tiles across, and visiting every one of those cells would stall the game.
 	* @param {number} minX The minimum tile x.
 	* @param {number} minY The minimum tile y.
 	* @param {number} maxX The maximum tile x.
@@ -7028,10 +7352,12 @@ var JABS_AiManager = class JABS_AiManager {
 	* @returns {JABS_Battler[]} The candidate battlers.
 	*/
 	static queryBattlersInAabb(minX, minY, maxX, maxY) {
-		const x0 = Math.floor(Math.min(minX, maxX));
-		const y0 = Math.floor(Math.min(minY, maxY));
-		const x1 = Math.floor(Math.max(minX, maxX));
-		const y1 = Math.floor(Math.max(minY, maxY));
+		const lastX = $gameMap.width() - 1;
+		const lastY = $gameMap.height() - 1;
+		const x0 = Math.max(0, Math.floor(Math.min(minX, maxX)));
+		const y0 = Math.max(0, Math.floor(Math.min(minY, maxY)));
+		const x1 = Math.min(lastX, Math.floor(Math.max(minX, maxX)));
+		const y1 = Math.min(lastY, Math.floor(Math.max(minY, maxY)));
 		const result = new Set();
 		for (let y = y0; y <= y1; y++) {
 			for (let x = x0; x <= x1; x++) {
@@ -7497,6 +7823,7 @@ var JABS_AiManager = class JABS_AiManager {
 	* @param {JABS_Battler} battler The enemy battler deciding the action.
 	*/
 	static decideEnemyAiPhase2Action(battler) {
+		if (battler.getAiMode().shouldHoldForCombo(battler)) return;
 		const role = battler.getBattlerRole();
 		if (role.leader && !role.solo) {
 			battler.getAiMode().decideActionsForFollowers(battler);
@@ -12912,14 +13239,12 @@ var JABS_Battler = class JABS_Battler {
 		}
 	}
 	/**
-	* Performs a preliminary check to see if the target is actually able to be hit.
+	* Performs a preliminary check to see if the target is actually able to be hit.<br/>
+	* A summon stands on an action event and is as hittable as any other battler.
 	* @returns {boolean} True if actions can potentially connect, false otherwise.
 	*/
 	canActionConnect() {
 		if (this.isInvincible()) return false;
-		if (this.getCharacter().isJabsAction()) {
-			return false;
-		}
 		if (this.isFollower() && this.getCharacter().isVisible() === false) {
 			return false;
 		}
@@ -15978,7 +16303,8 @@ var JABS_Engine = class JABS_Engine {
 	/**
 	* Picks when AI may attempt this combo link: random point between
 	* {@link J.ABS.Metadata.AiComboHumanizeWindowMinPercent} and
-	* {@link J.ABS.Metadata.AiComboHumanizeWindowMaxPercent} through the window from combo delay through cooldown tag.
+	* {@link J.ABS.Metadata.AiComboHumanizeWindowMaxPercent} through the window from combo delay through cooldown tag,
+	* with the window capped at {@link J.ABS.Metadata.AiComboHumanizeWindowMaxFrames}.
 	* @param {RPG_Skill} skill The skill that just unlocked the next link.
 	* @returns {number} Global frame ({@link Graphics#frameCount}) when AI follow-up attempts become fair game.
 	*/
@@ -15986,7 +16312,7 @@ var JABS_Engine = class JABS_Engine {
 		const delayFrames = skill.jabsComboDelay | 0;
 		const cooldownFrames = skill.jabsCooldown | 0;
 		const maxFrames = Math.max(cooldownFrames, delayFrames + 1);
-		const windowWidth = maxFrames - delayFrames;
+		const windowWidth = Math.min(maxFrames - delayFrames, J.ABS.Metadata.AiComboHumanizeWindowMaxFrames);
 		const minPct = J.ABS.Metadata.AiComboHumanizeWindowMinPercent;
 		const maxPct = J.ABS.Metadata.AiComboHumanizeWindowMaxPercent;
 		const pct = minPct + Math.random() * (maxPct - minPct);
@@ -17071,13 +17397,7 @@ var JABS_Engine = class JABS_Engine {
 	buildActionEventData(caster, action, x, y) {
 		const eventId = action.getActionId();
 		const actionEventData = JsonEx.makeDeepCopy($actionMap.events[eventId]);
-		let spawnX = x ?? caster.getX();
-		let spawnY = y ?? caster.getY();
-		const options = action.getActionOptions();
-		if (options) {
-			spawnX += options.getSpawnOffsetX();
-			spawnY += options.getSpawnOffsetY();
-		}
+		const [spawnX, spawnY] = this.determineActionSpawnCoordinates(caster, action, x, y);
 		actionEventData.x = spawnX;
 		actionEventData.y = spawnY;
 		actionEventData.isAction = true;
@@ -17085,6 +17405,25 @@ var JABS_Engine = class JABS_Engine {
 		actionEventData.uniqueId = action.getUuid();
 		actionEventData.actionDeleted = false;
 		return actionEventData;
+	}
+	/**
+	* Determines where on the map an action appears: on the given coordinates when there are any,
+	* otherwise on its caster, either way shifted by whatever offset its place in a volley gave it.
+	* @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
+	* @param {JABS_Action} action The JABS action being placed.
+	* @param {number|null} x The target's `x` coordinate, if applicable.
+	* @param {number|null} y The target's `y` coordinate, if applicable.
+	* @returns {[number, number]} The `[x, y]` coordinates the action spawns at.
+	*/
+	determineActionSpawnCoordinates(caster, action, x, y) {
+		let spawnX = x ?? caster.getX();
+		let spawnY = y ?? caster.getY();
+		const options = action.getActionOptions();
+		if (options) {
+			spawnX += options.getSpawnOffsetX();
+			spawnY += options.getSpawnOffsetY();
+		}
+		return [spawnX, spawnY];
 	}
 	/**
 	* Determines the directions of all projectiles for a given formation and count.
@@ -17553,6 +17892,7 @@ var JABS_Engine = class JABS_Engine {
 		const eventId = index;
 		const lootEvent = new Game_Event($gameMap.mapId(), eventId);
 		lootEvent.setJabsLoot(jabsLootData);
+		lootEvent.flagAsDynamicSpawn(lootEventData);
 		lootEvent.setLootNeedsAdding();
 		$gameMap.addEvent(lootEvent);
 		this.requestLootRendering = true;
@@ -17584,7 +17924,7 @@ var JABS_Engine = class JABS_Engine {
 		const normalizedIndex = $dataMap.events.length;
 		$dataMap.events[normalizedIndex] = enemyData;
 		const newEnemy = new Game_Event($gameMap.mapId(), normalizedIndex);
-		newEnemy.flagAsDynamicSpawn();
+		newEnemy.flagAsDynamicSpawn(enemyData);
 		$gameMap.addEvent(newEnemy);
 		newEnemy.flagBattlerForAdding();
 		this.requestBattlerRendering = true;
@@ -18516,7 +18856,7 @@ var JABS_Engine = class JABS_Engine {
 			return true;
 		};
 		const actionSprite = jabsAction.getActionSprite();
-		const range = jabsAction.getRange() ?? (jabsAction.isDirectAction() ? 1 : null);
+		const range = jabsAction.getCollisionRange();
 		const shape = jabsAction.getShape();
 		const innerRadius = jabsAction.getInnerRadius();
 		const targetsHit = [];
@@ -19074,7 +19414,7 @@ var JABS_Engine = class JABS_Engine {
 	* Determines whether the victorious actor is eligible to gain rewards from the defeated enemy.
 	* This is the central policy gate for all four reward types (EXP, gold, SDP, AP).
 	* Returns true by default — all defeated enemies grant rewards. Alias this method to introduce
-	* game-specific exclusion conditions (e.g. inanimate objects, zero-yield flags, kill-type filters).
+	* game-specific exclusion conditions (e.g. zero-yield flags, kill-type filters).
 	* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
 	* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
 	* @returns {boolean} True if rewards should be granted, false to skip all reward calculation.
@@ -20489,7 +20829,7 @@ var JABS_Action = class JABS_Action {
 			x: originX,
 			y: originY,
 			shape: this.getShape(),
-			range: this.getRange(),
+			range: this.getCollisionRange(),
 			facing,
 			degrees,
 			thickness,
@@ -20554,6 +20894,14 @@ var JABS_Action = class JABS_Action {
 		const base = this.getBaseSkill().jabsRadius;
 		if (base === null) return null;
 		return this.applyRadiusModifiers(base);
+	}
+	/**
+	* Gets the range collision tests this action at, which is also the size anything showing its
+	* hitbox has to draw.
+	* @returns {number|null} The collision range, or null for a non-direct action with no radius.
+	*/
+	getCollisionRange() {
+		return this.getRange() ?? (this.isDirectAction() ? 1 : null);
 	}
 	/**
 	* Gets the cast time for this skill.
@@ -20800,6 +21148,141 @@ var JABS_BattlerName = class {
 	* @type {number}
 	*/
 	tier = 0;
+};
+
+//#endregion
+//#region src/plugins/abs/core/models/JABS_CastPreviewAction.js
+/**
+* A stand-in for the action event a cast has yet to spawn, so its telegraph can be drawn by the
+* same code, and from the same origin, as the hit it warns about.<br/>
+* Answers the three members every hitbox helper reads from a real action event: `screenX()`,
+* `screenY()`, and `getJabsAction()`. Meant to be one reusable instance per telegraph, re-`set()`
+* every frame so it follows the cast.
+*/
+var JABS_CastPreviewAction = class JABS_CastPreviewAction {
+	/**
+	* How many frames of a flight a telegraph shows. Past this a shot can be sidestepped on sight,
+	* so drawing further would only claim danger that is seconds away.
+	* @type {number}
+	*/
+	static FlightPreviewFrames = 60;
+	/**
+	* How many tiles past its own hitbox a telegraph reaches for a shot that won't fly straight. All
+	* anyone knows about that path is the way it sets off, so this is a hint rather than a promise.
+	* @type {number}
+	*/
+	static WanderPreviewTiles = 1;
+	/**
+	* The event page move type that runs its move route; a template on any other ignores it.
+	* @type {number}
+	*/
+	static CustomMoveType = 3;
+	/**
+	* The headless character reporting the spawn position in screen pixels, the same way the event
+	* placed there will.
+	* @type {Game_Character}
+	*/
+	#character = new Game_Character();
+	/**
+	* The real action winding up, or null until one is assigned.
+	* @type {JABS_Action|null}
+	*/
+	#jabsAction = null;
+	/**
+	* The action map template page the action will spawn from, or null until one is assigned.
+	* @type {RPG_MapEventPage|null}
+	*/
+	#page = null;
+	/**
+	* Stands in for the given action, on the spot it would spawn if its cast finished now.
+	* @param {JABS_Action} jabsAction The real action winding up.
+	*/
+	set(jabsAction) {
+		this.#jabsAction = jabsAction;
+		[this.#page] = $actionMap.events[jabsAction.getActionId()].pages;
+		this.#wearTemplateArt();
+		const caster = jabsAction.getCaster();
+		const [targetX, targetY] = caster.resolveActionTargetCoordinates(jabsAction);
+		const [spawnX, spawnY] = $jabsEngine.determineActionSpawnCoordinates(caster, jabsAction, targetX, targetY);
+		this.#character.locate(spawnX, spawnY);
+	}
+	/**
+	* Dresses the headless character in the art the action's template will give its event. A tile or
+	* an object sheet rests on its tile where a character stands a few pixels above it, and that
+	* difference carries through to the screen position.
+	*/
+	#wearTemplateArt() {
+		const { tileId, characterName, characterIndex } = this.#page.image;
+		if (tileId > 0) {
+			this.#character.setTileImage(tileId);
+			return;
+		}
+		this.#character.setImage(characterName, characterIndex);
+	}
+	/**
+	* How far ahead of the action a telegraph reaches, in tiles: the stretch of its flight it shows
+	* if it flies straight, or a little past its own hitbox if nobody can promise where it's going.
+	* @returns {number} The distance; 0 for an action that stays where it spawns.
+	*/
+	flightPreviewTiles() {
+		const steps = this.#routeSteps();
+		const forwardSteps = steps.filter((command) => command.code === Game_Character.ROUTE_MOVE_FORWARD);
+		if (forwardSteps.length === 0) return 0;
+		if (this.#page.moveRoute.repeat && forwardSteps.length === steps.length) {
+			return this.#straightFlightTiles();
+		}
+		if (steps.length === 1) return 0;
+		const hitboxTiles = this.#jabsAction.getCollisionRange() ?? 0;
+		return hitboxTiles + JABS_CastPreviewAction.WanderPreviewTiles;
+	}
+	/**
+	* The commands of the action's route that will really run, which on some actions is none.
+	* @returns {RPG_MoveRouteCommand[]}
+	*/
+	#routeSteps() {
+		if (this.#jabsAction.isDirectAction()) return [];
+		const { moveType, moveRoute } = this.#page;
+		if (moveType !== JABS_CastPreviewAction.CustomMoveType) return [];
+		return moveRoute.list.filter((command) => command.code !== Game_Character.ROUTE_END);
+	}
+	/**
+	* How far a straight shot gets in the stretch of its flight a telegraph shows, in tiles.
+	* @returns {number}
+	*/
+	#straightFlightTiles() {
+		const frames = Math.min(JABS_CastPreviewAction.FlightPreviewFrames, this.#jabsAction.getMaxDuration());
+		this.#character.setMoveSpeed(this.#templateMoveSpeed());
+		return this.#character.distancePerFrame() * frames;
+	}
+	/**
+	* The speed the action's template will give its event: its comments outrank the page.
+	* @returns {number}
+	*/
+	#templateMoveSpeed() {
+		const comments = Game_Event.getValidCommentCommandsFromPage(this.#page);
+		return Game_Event.readCustomMoveSpeed(comments) ?? this.#page.moveSpeed;
+	}
+	/**
+	* The screen X the spawned action event would report.
+	* @returns {number}
+	*/
+	screenX() {
+		return this.#character.screenX();
+	}
+	/**
+	* The screen Y the spawned action event would report.
+	* @returns {number}
+	*/
+	screenY() {
+		return this.#character.screenY();
+	}
+	/**
+	* The real action this stands in for, or null until one is assigned.
+	* @returns {JABS_Action|null}
+	*/
+	getJabsAction() {
+		return this.#jabsAction;
+	}
 };
 
 //#endregion
@@ -22074,6 +22557,15 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsGuardRange", { get: functi
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsGuardSkillId", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.GuardSkillId, true);
+} });
+/**
+* How likely this battler is to be chosen when a pooled spot rolls it, relative to the rest of the
+* pool. A map's own `<enemy-weight-override:[ENEMY_ID, WEIGHT]>` may replace this while on that map.
+* A battler without the tag reads as zero, which keeps it out of every roll.
+* @type {number}
+*/
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsEnemyWeight", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.EnemyWeight);
 } });
 /**
 * The JABS respawn declaration for this battler, as a `[METHOD, PARAM]` pair.
@@ -23980,6 +24472,101 @@ TextManager.perDescription = function() {
 };
 
 //#endregion
+//#region src/plugins/abs/core/managers/JABS_EnemyPool.js
+/**
+* This static class decides who a pooled spot turns out to be each time it is built.
+*
+* A placed event always names its own enemy with `<enemyId:N>`. Adding `<enemyIds:[...]>` gives that
+* spot a pool: every id in the list is a possibility, and each build of the event rolls one. Landing
+* on the event's own enemy changes nothing, so every tag on its page applies exactly as authored.
+* Landing on anyone else swaps in that enemy's page from the enemy map, which is why a pooled enemy
+* brings its own sprite, speed and level rather than borrowing the spot's.
+*
+* Weights resolve as `enemy note < map note`, and the spot's own enemy always counts for the
+* `defaultEnemyPoolHomeWeight` parameter rather than its note. That is what keeps the odds sensible
+* for a spot above the bottom of a ladder: a tier 3 enemy's note says how rare it is among tier 1s,
+* which would make a spot that deliberately holds one mostly roll something else.
+*/
+var JABS_EnemyPool = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Rolls a pooled spot, choosing who stands there for this build of the event.
+	* @param {number} homeId The enemy the event names with `<enemyId:N>`.
+	* @param {number[]} enemyIds Every enemy the event's `<enemyIds:[...]>` tag names.
+	* @returns {number} The chosen enemy's id, which is the home id when nobody else was chosen.
+	*/
+	static roll(homeId, enemyIds) {
+		if (JABS_Engine.getEnemyCloneList() === null) return homeId;
+		const weights = this.weightsFor(homeId, enemyIds);
+		let totalWeight = 0;
+		weights.forEach((weight) => totalWeight += weight);
+		return RPGManager.weightedMapChoice(weights, totalWeight) ?? homeId;
+	}
+	/**
+	* Builds the weight of everyone in a pool, leaving out anyone with no page to swap in.
+	* @param {number} homeId The enemy the event names with `<enemyId:N>`.
+	* @param {number[]} enemyIds Every enemy the event's `<enemyIds:[...]>` tag names.
+	* @returns {Map<number, number>} Each drawable enemy's id, mapped to its weight.
+	*/
+	static weightsFor(homeId, enemyIds) {
+		const overrides = this.mapOverrides();
+		const weights = new Map();
+		enemyIds.forEach((enemyId) => {
+			if (enemyId !== homeId && !this.hasPage(enemyId)) {
+				Diagnostics.warn("J-ABS", `enemy pools name enemy [ ${enemyId} ], who has no event on the enemy map.`);
+				return;
+			}
+			weights.set(enemyId, this.weightOf(enemyId, homeId, overrides));
+		});
+		return weights;
+	}
+	/**
+	* Resolves one enemy's weight in a pool: the map's opinion wins, then the spot's own enemy counts
+	* for the home weight, and everyone else counts for what their note says.
+	* @param {number} enemyId The enemy being weighed.
+	* @param {number} homeId The enemy the event names with `<enemyId:N>`.
+	* @param {Map<number, number>} overrides The current map's weight overrides.
+	* @returns {number} The enemy's weight in this pool.
+	*/
+	static weightOf(enemyId, homeId, overrides) {
+		if (overrides.has(enemyId)) return overrides.get(enemyId);
+		if (enemyId === homeId) return J.ABS.Metadata.DefaultEnemyPoolHomeWeight;
+		return $gameEnemies.enemy(enemyId).enemyWeight();
+	}
+	/**
+	* Gets the current map's weight overrides.
+	* @returns {Map<number, number>} Each overridden enemy's id, mapped to its weight on this map.
+	*/
+	static mapOverrides() {
+		return new Map(RPGManager.getArraysFromNotesByRegex($dataMap, J.ABS.RegExp.EnemyWeightOverride));
+	}
+	/**
+	* Determines whether an enemy has an event on the enemy map for a pooled spot to copy.
+	* @param {number} enemyId The enemy to look for.
+	* @returns {boolean} True if the enemy map has an event for this enemy, false otherwise.
+	*/
+	static hasPage(enemyId) {
+		return !!JABS_Engine.getEnemyCloneList().at(enemyId);
+	}
+	/**
+	* Gets the page a pooled spot wears when it rolls someone other than its own enemy.
+	* The enemy map holds exactly one page per enemy, so there is only ever the first to take.
+	* @param {number} enemyId The enemy the spot rolled.
+	* @returns {RPG_EventPage} That enemy's page from the enemy map.
+	*/
+	static pageOf(enemyId) {
+		const template = JABS_Engine.getEnemyCloneList().at(enemyId);
+		return template.pages.at(0);
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/core/objects/Game_BattlerBase.js
 /**
 * The battler's cooldown reduction rate in percent-point space.
@@ -24036,9 +24623,24 @@ Game_Action.prototype.subject = function() {
 	if (this.subjectActorId() > 0) {
 		subject = $gameActors.actor(this.subjectActorId());
 	} else {
-		subject = $gameEnemies.enemy(this.subjectEnemyIndex());
+		subject = this.enemySubject();
 	}
 	return subject;
+};
+/**
+* Finds the enemy performing this action.<br/>
+* A database id names a row, and any number of enemies on the map can share a row, so the live battler is
+* found by its uuid. Its level, states and skill history belong to that one enemy, and all of them feed
+* into what this action does.
+*
+* The {@link Game_Enemies} dictionary answers only when no live battler does: for an enemy that was never on
+* the map, such as the stand-in behind terrain damage, or one removed from the map before its action landed.
+* @returns {Game_Enemy}
+*/
+Game_Action.prototype.enemySubject = function() {
+	const liveBattler = JABS_AiManager.getBattlerByUuid(this.subjectEnemyUuid());
+	if (!liveBattler) return $gameEnemies.enemy(this.subjectEnemyIndex());
+	return liveBattler.getBattler();
 };
 /**
 * Overwrites {@link #setSubject}.<br/>
@@ -24053,12 +24655,28 @@ Game_Action.prototype.setSubject = function(subject) {
 		case subject.isActor():
 			this.setSubjectActorId(subject.battlerId());
 			this.setSubjectEnemyIndex(-1);
+			this.setSubjectEnemyUuid(String.empty);
 			break;
 		case subject.isEnemy():
 			this.setSubjectEnemyIndex(subject.battlerId());
 			this.setSubjectActorId(0);
+			this.setSubjectEnemyUuid(subject.getUuid());
 			break;
 	}
+};
+/**
+* Gets the uuid of the enemy performing this action, or an empty string when an actor.
+* @returns {string} The subjectEnemyUuid.
+*/
+Game_Action.prototype.subjectEnemyUuid = function() {
+	return this._subjectEnemyUuid;
+};
+/**
+* Sets the uuid of the enemy performing this action, or an empty string when an actor.
+* @param {string} newSubjectEnemyUuid The new subjectEnemyUuid.
+*/
+Game_Action.prototype.setSubjectEnemyUuid = function(newSubjectEnemyUuid) {
+	this._subjectEnemyUuid = newSubjectEnemyUuid;
 };
 /**
 * Overwrites {@link #apply}.<br/>
@@ -28350,6 +28968,15 @@ Game_Enemy.prototype.ai = function() {
 	return battlerAi;
 };
 /**
+* Gets how likely this enemy is to be chosen when a pooled spot rolls it.
+* Having no weight at all means the same as a weight of zero: this enemy is never chosen.
+* @returns {number}
+*/
+Game_Enemy.prototype.enemyWeight = function() {
+	const referenceData = this.databaseData();
+	return referenceData.jabsEnemyWeight;
+};
+/**
 * Gets the enemy's respawn declaration from their notes, as a `[METHOD, PARAM]` pair.
 * This will be overwritten by values provided from an event.
 * Falls back to the world default from plugin parameters; when the world declares no default
@@ -28601,13 +29228,60 @@ Game_Event.prototype.initMembers = function() {
 	* @type {boolean}
 	*/
 	this._j._abs._dynamicSpawn = false;
+	/**
+	* The event data this event was built from, when it was put on the map at runtime. `$dataMap` is
+	* reloaded from its file every time a scene returns to the map, and that file only knows what was
+	* authored, so an event like this has to carry its own data to be restored from.
+	* @type {RPG_MapEvent|null}
+	*/
+	this._j._abs._dynamicEventData = null;
+	/**
+	* The enemy this event rolled from its `<enemyIds:[...]>` pool, when that is someone other than
+	* the enemy its page names. Zero means this event is wearing its own authored page.
+	* @type {number}
+	*/
+	this._j._abs._rolledEnemyId = 0;
 	J.ABS.Aliased.Game_Event.get("initMembers").call(this);
 };
 /**
-* Flags this event as having been dynamically spawned onto the map at runtime.
+* Gets the enemy this event rolled from its pool, if that was anyone but its own.
+* @returns {number} The rolled enemy's id, or zero when this event wears its authored page.
 */
-Game_Event.prototype.flagAsDynamicSpawn = function() {
+Game_Event.prototype.getRolledEnemyId = function() {
+	return this._j._abs._rolledEnemyId;
+};
+/**
+* Sets the enemy this event rolled from its pool.
+* @param {number} enemyId The rolled enemy's id, or zero to return to the authored page.
+*/
+Game_Event.prototype.setRolledEnemyId = function(enemyId) {
+	this._j._abs._rolledEnemyId = enemyId;
+};
+/**
+* Decides who stands on this event's page, for events that declare a pool with `<enemyIds:[...]>`.
+*
+* This has to run before the page's settings are read, because a rolled enemy replaces the whole
+* page: its sprite, its speed and every comment on it. The page's conditions are the exception, and
+* they survive for free. {@link #findProperPageIndex} chooses a page by reading the authored ones
+* directly, so when a spot appears is still the spot's decision, and only who appears is the roll's.
+*/
+Game_Event.prototype.rollEnemyPool = function() {
+	this.setRolledEnemyId(0);
+	const enemyIds = this.getEnemyPoolOverrides();
+	if (enemyIds.length === 0) return;
+	const homeId = this.getBattlerIdOverrides();
+	const chosenId = JABS_EnemyPool.roll(homeId, enemyIds);
+	if (chosenId === homeId) return;
+	this.setRolledEnemyId(chosenId);
+};
+/**
+* Flags this event as having been dynamically spawned onto the map at runtime, and holds onto the
+* data it was built from so that data can be put back whenever the map file reloads.
+* @param {RPG_MapEvent} eventData The event data this event was built from.
+*/
+Game_Event.prototype.flagAsDynamicSpawn = function(eventData) {
 	this._j._abs._dynamicSpawn = true;
+	this.setDynamicEventData(eventData);
 };
 /**
 * Gets whether or not this event was dynamically spawned onto the map at runtime.
@@ -28615,6 +29289,20 @@ Game_Event.prototype.flagAsDynamicSpawn = function() {
 */
 Game_Event.prototype.isDynamicSpawn = function() {
 	return this._j._abs._dynamicSpawn;
+};
+/**
+* Gets the event data this dynamically spawned event was built from.
+* @returns {RPG_MapEvent|null} The event data, or null for an event authored in the editor.
+*/
+Game_Event.prototype.getDynamicEventData = function() {
+	return this._j._abs._dynamicEventData;
+};
+/**
+* Sets the event data this dynamically spawned event was built from.
+* @param {RPG_MapEvent} eventData The event data this event was built from.
+*/
+Game_Event.prototype.setDynamicEventData = function(eventData) {
+	this._j._abs._dynamicEventData = eventData;
 };
 /**
 * Sets the initial direction being faced on this event's creation.
@@ -28719,6 +29407,7 @@ Game_Event.prototype.onPageChanged = function(previousPageIndex) {};
 J.ABS.Aliased.Game_Event.set("page", Game_Event.prototype.page);
 Game_Event.prototype.page = function() {
 	if (this.event()) {
+		if (this.getRolledEnemyId() !== 0) return JABS_EnemyPool.pageOf(this.getRolledEnemyId());
 		return J.ABS.Aliased.Game_Event.get("page").call(this);
 	}
 	const { stack } = new Error();
@@ -28748,6 +29437,7 @@ Game_Event.prototype.transformBattler = function() {
 */
 J.ABS.Aliased.Game_Event.set("setupPageSettings", Game_Event.prototype.setupPageSettings);
 Game_Event.prototype.setupPageSettings = function() {
+	this.rollEnemyPool();
 	J.ABS.Aliased.Game_Event.get("setupPageSettings").call(this);
 	this.parseEnemyComments();
 };
@@ -28768,6 +29458,7 @@ J.ABS.Aliased.Game_Event.set("clearPageSettings", Game_Event.prototype.clearPage
 Game_Event.prototype.clearPageSettings = function() {
 	J.ABS.Aliased.Game_Event.get("clearPageSettings").call(this);
 	this.initializeCoreData(null);
+	this.setRolledEnemyId(0);
 };
 /**
 * Parses the comments of this event to extract battler core data if available.
@@ -28838,6 +29529,20 @@ Game_Event.prototype.getBattlerIdOverrides = function() {
 		battlerId = parseInt(regexResult[1]);
 	});
 	return battlerId;
+};
+/**
+* Parses out the pool of enemies this event may turn out to be from a list of event commands.
+* @returns {number[]} The ids in the pool, or an empty list if this event is not pooled.
+*/
+Game_Event.prototype.getEnemyPoolOverrides = function() {
+	let enemyIds = [];
+	this.getValidCommentCommands().forEach((command) => {
+		const [comment] = command.parameters;
+		const regexResult = J.ABS.RegExp.EnemyIds.exec(comment);
+		if (!regexResult) return;
+		enemyIds = JsonMapper.parseObject(regexResult[1]);
+	});
+	return enemyIds;
 };
 /**
 * Parses out the team id from a list of event commands.
@@ -29210,10 +29915,11 @@ Game_Event.prototype.initializeCoreData = function(battlerCoreData) {
 	this.setBattlerCoreData(battlerCoreData);
 };
 /**
-* Applies the custom move speed if available.
+* Reads the custom move speed out of a list of comments.
+* @param {RPG_EventListCommand[]} commentCommandList The comment commands to read.
+* @returns {number|null} The last custom move speed found, or null when none of them declare one.
 */
-Game_Event.prototype.applyCustomMoveSpeed = function() {
-	const commentCommandList = this.getValidCommentCommands();
+Game_Event.readCustomMoveSpeed = function(commentCommandList) {
 	let moveSpeed = null;
 	commentCommandList.forEach((command) => {
 		const [comment] = command.parameters;
@@ -29221,6 +29927,13 @@ Game_Event.prototype.applyCustomMoveSpeed = function() {
 		if (!regexResult) return;
 		moveSpeed = parseFloat(regexResult[1]);
 	});
+	return moveSpeed;
+};
+/**
+* Applies the custom move speed if available.
+*/
+Game_Event.prototype.applyCustomMoveSpeed = function() {
+	const moveSpeed = Game_Event.readCustomMoveSpeed(this.getValidCommentCommands());
 	if (moveSpeed !== null) {
 		this.setMoveSpeed(moveSpeed);
 	}
@@ -29245,6 +29958,16 @@ Game_Event.prototype.setBattlerCoreData = function(data) {
 */
 Game_Event.prototype.isJabsBattler = function() {
 	return !!this.getBattlerCoreData();
+};
+/**
+* Gets whether or not this event's active page has anything on it to run.<br/>
+* A page of nothing but comments is how a torch carries its light: it reads as an NPC in every way the
+* engine can tell, but a button pressed at it reaches nothing.
+* @returns {boolean} True if at least one command on the page does something, false otherwise.
+*/
+Game_Event.prototype.hasRunnableCommands = function() {
+	const isRunnable = (command) => command.code !== 0 && Game_Event.matchesControlCode(command.code) === false;
+	return this.list().some(isRunnable);
 };
 /**
 * Gets the battler's id from their core data.
@@ -29705,6 +30428,21 @@ Game_Map.prototype.addEvent = function(event) {
 	this.setEventByIndex(event.eventId(), event);
 };
 /**
+* Puts the data of everything spawned at runtime back into `$dataMap.events`.
+*
+* Vanilla reloads `$dataMap` from its file every time a scene returns to the map, and the file only
+* knows what was authored, while the live events carry on untouched. That leaves the two lists
+* describing different worlds, which is the one thing the invariant on {@link Game_Map#addEvent}
+* forbids: a spawned enemy can no longer find its pages and loses its body, and the slot it sits in
+* reads as free, so the next thing dropped lands on top of whatever is still standing there.
+*/
+Game_Map.prototype.restoreDynamicEventData = function() {
+	const dynamicEvents = this.events().filter((event) => event.isDynamicSpawn());
+	dynamicEvents.forEach((event) => {
+		$dataMap.events[event.eventId()] = event.getDynamicEventData();
+	});
+};
+/**
 * Removes a provided event from the current map's event list.
 * @param {Game_Event} eventToRemove The `Game_Event` to remove from this map.
 */
@@ -29783,24 +30521,19 @@ Game_Map.prototype.clearExpiredLootEvent = function(lootEvent) {
 Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler) {
 	const player = jabsBattler.getCharacter();
 	const direction = player.direction();
-	const triggers = [
-		0,
-		1,
-		2
-	];
 	const x1 = player.occupiedTileX();
 	const y1 = player.occupiedTileY();
 	const x2 = $gameMap.roundXWithDirection(x1, direction);
 	const y2 = $gameMap.roundYWithDirection(y1, direction);
 	for (const event of this.eventsXy(x1, y1)) {
 		if (event.isJabsBattler()) return false;
-		if (event.isTriggerIn(triggers) && event.isNormalPriority() === true) {
+		if (this.isInteractableEvent(event)) {
 			return true;
 		}
 	}
 	for (const event of this.eventsXy(x2, y2)) {
 		if (event.isJabsBattler()) return false;
-		if (event.isTriggerIn(triggers) && event.isNormalPriority() === true) {
+		if (this.isInteractableEvent(event)) {
 			return true;
 		}
 	}
@@ -29809,12 +30542,32 @@ Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler) {
 		const y3 = $gameMap.roundYWithDirection(y2, direction);
 		for (const event of $gameMap.eventsXy(x3, y3)) {
 			if (event.isJabsBattler()) return false;
-			if (event.isTriggerIn(triggers) && event.isNormalPriority() === true) {
+			if (this.isInteractableEvent(event)) {
 				return true;
 			}
 		}
 	}
 	return false;
+};
+/**
+* Determines whether an event near the player is something a button press could mean to reach.<br/>
+* What a battle leaves on the map are events too, and they read exactly like an NPC: actions and loot
+* alike are built from a normal-priority, action-button template. An action is born on its caster's tile
+* and loot lands wherever its enemy fell, so counting either one would have a player's own swing, or the
+* gold it just knocked loose, refuse the next swing. Scenery does the same thing from the other direction:
+* a torch is an event with default settings and a comment for its light, and fighting beside one would
+* otherwise eat every swing aimed its way, with nothing on the page for the button to reach instead.
+* @param {Game_Event} event The event to check.
+* @returns {boolean} True if the button means this event, false otherwise.
+*/
+Game_Map.prototype.isInteractableEvent = function(event) {
+	if (event.isJabsAction() || event.isJabsLoot()) return false;
+	if (event.isTriggerIn([
+		0,
+		1,
+		2
+	]) === false || event.isNormalPriority() === false) return false;
+	return event.hasRunnableCommands();
 };
 
 //#endregion
@@ -30315,6 +31068,19 @@ Scene_Map.prototype.onMapLoaded = function() {
 		$jabsEngine.initializePlayer1();
 	}
 	J.ABS.Aliased.Scene_Map.get("onMapLoaded").call(this);
+};
+/**
+* Extends {@link #createDisplayObjects}.<br/>
+* Also restores everything spawned at runtime to the map data before any sprite reads it.
+*
+* This is the one safe moment, and {@link #onMapLoaded} is too early for it. Vanilla gets here only
+* after a transfer has settled, so a move to a different map has already rebuilt every event and left
+* nothing spawned to restore, which means the old map's data can never land in the new one.
+*/
+J.ABS.Aliased.Scene_Map.set("createDisplayObjects", Scene_Map.prototype.createDisplayObjects);
+Scene_Map.prototype.createDisplayObjects = function() {
+	$gameMap.restoreDynamicEventData();
+	J.ABS.Aliased.Scene_Map.get("createDisplayObjects").call(this);
 };
 /**
 * Extends {@link #update}.<br/>
@@ -32235,8 +33001,8 @@ Spriteset_Map.prototype.createJabsLayer = function() {
 	*/
 	this.setDebugBattlerHitboxSprites({});
 	/**
-	* Direct tracking for cast preview sprites by battler uuid.
-	* Keys are of the form: `castpreview:${uuid}`.
+	* Direct tracking for cast preview sprites by battler uuid and place in the volley.
+	* Keys are of the form: `castpreview:${uuid}:${index}`.
 	* @type {Record<string, Sprite>}
 	*/
 	this.setCastPreviewSprites({});
@@ -32574,11 +33340,11 @@ Spriteset_Map.prototype.handleCastPreviewOverlays = function() {
 	this.purgeOrphanedCastPreviewSprites();
 };
 /**
-* Collects all enemy battlers that are currently casting and should show a preview.
-* @returns {{ key:string, source: Game_CharacterBase, battler:JABS_Battler, action:JABS_Action, skill:RPG_Skill }[]}
+* Collects the actions of all enemy battlers that are currently casting and should show a preview.
+* @returns {{ key:string, action:JABS_Action }[]}
 */
 Spriteset_Map.prototype.collectActiveCastPreviewItems = function() {
-	/** @type {{ key:string, source: Game_CharacterBase, battler:JABS_Battler, action:JABS_Action, skill:RPG_Skill }[]} */
+	/** @type {{ key:string, action:JABS_Action }[]} */
 	const items = [];
 	$gameMap.events().filter((ev) => ev.isJabsBattler()).forEach((ev) => {
 		const jabsBattler = ev.getJabsBattler();
@@ -32600,13 +33366,11 @@ Spriteset_Map.prototype.collectActiveCastPreviewItems = function() {
 		}
 		const uuid = ev.getJabsBattlerUuid();
 		if (!uuid) return;
-		const key = `castpreview:${uuid}`;
-		items.push({
-			key,
-			source: ev,
-			battler: jabsBattler,
-			action,
-			skill
+		decided.forEach((decidedAction, index) => {
+			items.push({
+				key: `castpreview:${uuid}:${index}`,
+				action: decidedAction
+			});
 		});
 	});
 	return items;
@@ -32636,36 +33400,12 @@ Spriteset_Map.prototype.refreshExistingCastPreviewSprites = function() {
 		const sprite = dict[key];
 		const item = active.get(key);
 		if (!item) return;
-		let screenX = item.source.screenX();
-		let screenY = item.source.screenY();
-		if (item.action.isDirectAction && item.action.isDirectAction()) {
-			const baseSkill = item.action.getBaseSkill();
-			const isLocked = !!baseSkill.jabsDirectLock;
-			let tx = null;
-			let ty = null;
-			if (!isLocked) {
-				const options = item.action.getActionOptions();
-				const loc = options ? options.getTargetLocation() : null;
-				if (loc) {
-					tx = loc.getX();
-					ty = loc.getY();
-				}
-			}
-			if (tx === null || ty === null || isLocked) {
-				const [resolvedX, resolvedY] = item.battler.resolveDirectActionTargetCoordinates(item.action);
-				tx = resolvedX;
-				ty = resolvedY;
-			}
-			if (tx !== null && ty !== null) {
-				const tw = $gameMap.tileWidth();
-				const th = $gameMap.tileHeight();
-				screenX = Math.round(($gameMap.adjustX(tx) + .5) * tw);
-				screenY = Math.round(($gameMap.adjustY(ty) + .5) * th);
-			}
-		}
-		sprite.x = screenX;
-		sprite.y = screenY;
-		this.drawCastPreviewInto(sprite, item);
+		const standIn = sprite._jabsCastPreviewAction;
+		standIn.set(item.action);
+		const origin = JABS_Engine.getActionOriginPixels(standIn);
+		sprite.x = origin.x;
+		sprite.y = origin.y;
+		this.drawCastPreviewInto(sprite);
 	});
 };
 /**
@@ -32696,6 +33436,7 @@ Spriteset_Map.prototype.createCastPreviewSprite = function(item) {
 	/** @type {PIXI.Graphics} */
 	const g = new PIXI.Graphics();
 	sprite._jabsCastPreviewG = g;
+	sprite._jabsCastPreviewAction = new JABS_CastPreviewAction();
 	sprite._cpKey = item.key;
 	sprite.addChild(g);
 	sprite.anchor.set(.5, .5);
@@ -32728,86 +33469,20 @@ Spriteset_Map.prototype.getCastPreviewStyleFor = function(shape) {
 	};
 };
 /**
-* Draws the cast preview shape for the item’s primary action/skill.
-* Draws around local origin (0,0); sprite is already at caster feet.
+* Draws the cast preview shape for the action this sprite stands in for.
+* Draws around local origin (0,0); sprite is already at the action's origin.
 * @param {Sprite} sprite The target preview sprite.
-* @param {{ source:Game_CharacterBase, action:JABS_Action, skill:RPG_Skill }} item The item containing data.
 */
-Spriteset_Map.prototype.drawCastPreviewInto = function(sprite, item) {
+Spriteset_Map.prototype.drawCastPreviewInto = function(sprite) {
 	/** @type {PIXI.Graphics} */
 	const g = sprite._jabsCastPreviewG;
 	g.clear();
-	const shape = item.action.getShape && item.action.getShape();
-	const range = item.action.getRange && item.action.getRange();
-	const facing = item.source.direction();
-	const tw = $gameMap.tileWidth();
-	const th = $gameMap.tileHeight();
-	const style = this.getCastPreviewStyleFor(shape);
+	const standIn = sprite._jabsCastPreviewAction;
+	const action = standIn.getJabsAction();
+	const style = this.getCastPreviewStyleFor(action.getShape());
+	JABS_HitboxPainter.drawFlightLane(g, standIn, style);
 	this.applyHitboxStyle(g, style);
-	const thicknessTiles = 1;
-	const thicknessX = Math.max(.5, thicknessTiles * tw);
-	const thicknessY = Math.max(.5, thicknessTiles * th);
-	const degrees = RPGManager.getNumberFromNoteByRegex(item.skill, J.ABS.RegExp.Degrees, true) ?? 180;
-	const sweepRad = degrees * Math.PI / 180;
-	switch (shape) {
-		case J.ABS.Shapes.Circle: {
-			const r = range * tw;
-			g.drawCircle(0, 0, r);
-			break;
-		}
-		case J.ABS.Shapes.Rhombus: {
-			this.drawRhombusG(g, range * tw, range * th);
-			break;
-		}
-		case J.ABS.Shapes.Square: {
-			const w = (2 * range + 1) * tw;
-			const h = (2 * range + 1) * th;
-			g.drawRect(-w / 2, -h / 2, w, h);
-			break;
-		}
-		case J.ABS.Shapes.Line: {
-			const lengthPx = range * Math.max(tw, th);
-			if (facing === J.ABS.Directions.DOWN) {
-				g.drawRect(-(thicknessX / 2), 0, thicknessX, lengthPx + th / 2);
-			} else if (facing === J.ABS.Directions.UP) {
-				g.drawRect(-(thicknessX / 2), -lengthPx - th / 2, thicknessX, lengthPx + th / 2);
-			} else if (facing === J.ABS.Directions.RIGHT) {
-				g.drawRect(0, -(thicknessY / 2), lengthPx + tw / 2, thicknessY);
-			} else {
-				g.drawRect(-lengthPx - tw / 2, -(thicknessY / 2), lengthPx + tw / 2, thicknessY);
-			}
-			break;
-		}
-		case J.ABS.Shapes.Wall: {
-			const lenTiles = 2 * range + 1;
-			if (facing === J.ABS.Directions.DOWN || facing === J.ABS.Directions.UP) {
-				const w = lenTiles * tw;
-				g.drawRect(-w / 2, -thicknessY / 2, w, thicknessY);
-			} else {
-				const h = lenTiles * th;
-				g.drawRect(-thicknessX / 2, -h / 2, thicknessX, h);
-			}
-			break;
-		}
-		case J.ABS.Shapes.Cross: {
-			const w = (2 * range + 1) * tw;
-			const h = (2 * range + 1) * th;
-			g.drawRect(-thicknessX / 2, -h / 2, thicknessX, h);
-			g.drawRect(-w / 2, -thicknessY / 2, w, thicknessY);
-			break;
-		}
-		case J.ABS.Shapes.Arc:
-		default: {
-			let centerRad = 0;
-			if (facing === J.ABS.Directions.DOWN) centerRad = Math.PI / 2;
-			if (facing === J.ABS.Directions.LEFT) centerRad = Math.PI;
-			if (facing === J.ABS.Directions.UP) centerRad = -Math.PI / 2;
-			const r = range * tw;
-			this.drawSectorG(g, 0, 0, r, centerRad, sweepRad);
-			break;
-		}
-	}
-	g.endFill();
+	JABS_HitboxPainter.drawAction(g, standIn);
 };
 /**
 * Renders translucent overlays for action hitboxes.
@@ -32899,7 +33574,7 @@ Spriteset_Map.prototype.isBattlerCollidingWithAnyAction = function(item) {
 		const jabsAction = actionEvent.getJabsAction();
 		if (!jabsAction) continue;
 		const shape = jabsAction.getShape();
-		const range = jabsAction.getRange();
+		const range = jabsAction.getCollisionRange();
 		const facing = jabsAction.direction();
 		const innerRadius = jabsAction.getInnerRadius();
 		if (jabsAction.isDirectAction()) {
@@ -32987,21 +33662,15 @@ Spriteset_Map.prototype.buildMissingActionHitboxSprites = function() {
 * Synchronizes position and appearance of existing hitbox sprites.
 */
 Spriteset_Map.prototype.refreshExistingActionHitboxSprites = function() {
-	const tw = $gameMap.tileWidth();
-	const th = $gameMap.tileHeight();
 	const actions = $gameMap.actionEvents();
 	actions.forEach((actionEvent) => {
 		const jabsAction = actionEvent.getJabsAction();
 		if (!jabsAction) return;
-		const shape = jabsAction.getShape();
-		const range = jabsAction.getRange();
-		const facing = jabsAction.direction();
-		const innerRadius = jabsAction.getInnerRadius();
 		const sprite = this.getOrCreateActionHitboxSpriteFor(actionEvent);
 		const origin = JABS_Engine.getActionOriginPixels(actionEvent);
 		sprite.x = origin.x;
 		sprite.y = origin.y;
-		this.drawActionHitboxInto(sprite, shape, range, facing, tw, th, actionEvent, innerRadius);
+		this.drawActionHitboxInto(sprite, actionEvent);
 	});
 };
 /**
@@ -33064,180 +33733,18 @@ Spriteset_Map.prototype.destroyActionHitboxSprite = function(sprite) {
 	sprite.destroy();
 };
 /**
-* Draws a filled convex quad for an oriented rectangle starting at local (0,0) and extending
-* forward along the dir8 unit vector from `$jabsEngine.dir8ToUnitVector`, with half-breadth perpendicular.
-* @param {PIXI.Graphics} g The graphics to draw on.
-* @param {1|2|3|4|6|7|8|9} facing The dir8 facing for the forward axis.
-* @param {number} lengthPx Forward length in pixels.
-* @param {number} halfBreadthPx Half-width in pixels along the perpendicular axis.
-* @returns {void}
-*/
-Spriteset_Map.prototype.drawOrientedHitboxQuadG = function(g, facing, lengthPx, halfBreadthPx) {
-	const { x: fx, y: fy } = $jabsEngine.dir8ToUnitVector(facing);
-	const px = fy;
-	const py = -fx;
-	const ax = -px * halfBreadthPx;
-	const ay = -py * halfBreadthPx;
-	const bx = px * halfBreadthPx;
-	const by = py * halfBreadthPx;
-	const cx = fx * lengthPx + bx;
-	const cy = fy * lengthPx + by;
-	const dx = fx * lengthPx + ax;
-	const dy = fy * lengthPx + ay;
-	g.moveTo(ax, ay);
-	g.lineTo(bx, by);
-	g.lineTo(cx, cy);
-	g.lineTo(dx, dy);
-	g.closePath();
-};
-/**
 * Draws the collision/visual hitbox into the provided sprite’s internal PIXI.Graphics.
-* Honors <thickness:N> for line, wall, and cross.
-*
 * @param {Sprite} sprite The container sprite that owns the PIXI.Graphics.
-* @param {string} shape One of J.ABS.Shapes.* values.
-* @param {number} range Size in tiles for the shape (semantics vary by shape; see individual cases).
-* @param {1|2|3|4|6|7|8|9} facing Logical dir8 travel direction for the action.
-* @param {number} tw Tile width in pixels.
-* @param {number} th Tile height in pixels.
-* @param {Game_Event} actionEvent The action event for tag resolution.
-* @param {number} [innerRadius=0] The universal dead zone in tiles; 0 disables it.
+* @param {Game_Event} actionEvent The action event whose hitbox is being drawn.
 */
-Spriteset_Map.prototype.drawActionHitboxInto = function(sprite, shape, range, facing, tw, th, actionEvent, innerRadius = 0) {
+Spriteset_Map.prototype.drawActionHitboxInto = function(sprite, actionEvent) {
 	/** @type {PIXI.Graphics} */
 	const g = sprite._jabsHitboxG;
 	g.clear();
+	const shape = actionEvent.getJabsAction().getShape();
 	const style = this.getActionHitboxStyleFor(shape);
 	this.applyHitboxStyle(g, style);
-	const thicknessTiles = $jabsEngine.getActionThicknessTiles(actionEvent) ?? 1;
-	const minPx = .5;
-	const thicknessX = Math.max(minPx, thicknessTiles * tw);
-	const thicknessY = Math.max(minPx, thicknessTiles * th);
-	let holeAlreadyBaked = false;
-	switch (shape) {
-		case J.ABS.Shapes.Circle: {
-			const r = range * tw;
-			g.drawCircle(0, 0, r);
-			break;
-		}
-		case J.ABS.Shapes.Rhombus: {
-			this.drawRhombusG(g, range * tw, range * th);
-			break;
-		}
-		case J.ABS.Shapes.Square: {
-			const w = (2 * range + 1) * tw;
-			const h = (2 * range + 1) * th;
-			g.drawRect(-w / 2, -h / 2, w, h);
-			break;
-		}
-		case J.ABS.Shapes.Line: {
-			const lengthPx = range * Math.max(tw, th);
-			const lengthWithPad = lengthPx + Math.max(tw, th) / 2;
-			const halfBreadth = Math.max(thicknessX, thicknessY) / 2;
-			this.drawOrientedHitboxQuadG(g, facing, lengthWithPad, halfBreadth);
-			break;
-		}
-		case J.ABS.Shapes.Wall: {
-			const lenTiles = 2 * range + 1;
-			const breadthW = lenTiles * tw;
-			const breadthH = lenTiles * th;
-			const depthW = Math.max(minPx, thicknessTiles * tw);
-			const depthH = Math.max(minPx, thicknessTiles * th);
-			const depthPx = Math.max(depthW, depthH);
-			const halfBreadth = Math.max(breadthW, breadthH) / 2;
-			this.drawOrientedHitboxQuadG(g, facing, depthPx, halfBreadth);
-			break;
-		}
-		case J.ABS.Shapes.Cross: {
-			const w = (2 * range + 1) * tw;
-			const h = (2 * range + 1) * th;
-			g.drawRect(-thicknessX / 2, -h / 2, thicknessX, h);
-			g.drawRect(-w / 2, -thicknessY / 2, w, thicknessY);
-			break;
-		}
-		case J.ABS.Shapes.Arc:
-		default: {
-			const degrees = $jabsEngine.getActionDegrees(actionEvent) ?? 180;
-			const { x: fx, y: fy } = $jabsEngine.dir8ToUnitVector(facing);
-			const centerRad = Math.atan2(fy, fx);
-			const sweepRad = degrees * Math.PI / 180;
-			const r = range * tw;
-			const innerRadiusPxArc = innerRadius * tw;
-			if (innerRadiusPxArc > 0) holeAlreadyBaked = true;
-			this.drawSectorG(g, 0, 0, r, centerRad, sweepRad, innerRadiusPxArc);
-			break;
-		}
-	}
-	if (innerRadius > 0 && holeAlreadyBaked === false) {
-		const innerRadiusPx = innerRadius * tw;
-		g.beginHole();
-		g.drawCircle(0, 0, innerRadiusPx);
-		g.endHole();
-	}
-	g.endFill();
-};
-/**
-* Draws a diamond (rhombus) centered on the graphics' local origin.
-* @param {PIXI.Graphics} g The graphics to draw on.
-* @param {number} rx Horizontal radius in px.
-* @param {number} ry Vertical radius in px.
-*/
-Spriteset_Map.prototype.drawRhombusG = function(g, rx, ry) {
-	g.moveTo(0, -ry);
-	g.lineTo(rx, 0);
-	g.lineTo(0, ry);
-	g.lineTo(-rx, 0);
-	g.closePath();
-};
-/**
-* Draws a filled sector (wedge) into a PIXI.Graphics.
-* If sweepRad >= 2π (or ~360°), a full circle is drawn.
-* @param {PIXI.Graphics} g The graphics to draw on.
-* @param {number} cx Center X (local space).
-* @param {number} cy Center Y (local space).
-* @param {number} r Radius in pixels.
-* @param {number} centerRad Center angle in radians. 0 = right, π/2 = down, π = left, -π/2 = up.
-* @param {number} sweepRad Total sweep in radians (0–2π].
-* @param {number} [innerR=0] Inner dead-zone radius in pixels; bakes an annular sector (donut
-* slice) instead of a pivot fan when positive. A hole punched at the pivot would break PIXI's
-* triangulation since the fan's own path already touches that exact point.
-*/
-Spriteset_Map.prototype.drawSectorG = function(g, cx, cy, r, centerRad, sweepRad, innerR = 0) {
-	const TAU = Math.PI * 2;
-	const sweep = Math.max(0, Math.min(TAU, sweepRad || 0));
-	if (sweep >= TAU - 1e-6) {
-		g.drawCircle(cx, cy, r);
-		if (innerR > 0) {
-			g.beginHole();
-			g.drawCircle(cx, cy, innerR);
-			g.endHole();
-		}
-		return;
-	}
-	const start = centerRad - sweep / 2;
-	const end = centerRad + sweep / 2;
-	if (innerR > 0) {
-		const startInnerX = cx + innerR * Math.cos(start);
-		const startInnerY = cy + innerR * Math.sin(start);
-		const endInnerX = cx + innerR * Math.cos(end);
-		const endInnerY = cy + innerR * Math.sin(end);
-		const startOuterX = cx + r * Math.cos(start);
-		const startOuterY = cy + r * Math.sin(start);
-		g.moveTo(startInnerX, startInnerY);
-		g.lineTo(startOuterX, startOuterY);
-		g.arc(cx, cy, r, start, end);
-		g.lineTo(endInnerX, endInnerY);
-		g.arc(cx, cy, innerR, end, start, true);
-		g.closePath();
-		return;
-	}
-	const sx = cx + r * Math.cos(start);
-	const sy = cy + r * Math.sin(start);
-	g.moveTo(cx, cy);
-	g.lineTo(sx, sy);
-	g.arc(cx, cy, r, start, end);
-	g.lineTo(cx, cy);
-	g.closePath();
+	JABS_HitboxPainter.drawAction(g, actionEvent);
 };
 /**
 * Handle the overlays for all battler-based hitboxes.

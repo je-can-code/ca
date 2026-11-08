@@ -123,6 +123,7 @@ Only one mastery skill active at a time; `<hideFromJabsMenu>` on all wrapper ski
 | **Skill ID = Enemy ID + 1000** | Enemy **101** → mastery **1101**; holds for every family decade through **600 → 1600**. |
 | **Per subgroup** | 10 enemy IDs + 10 mastery IDs; panel tier = last digit of panel key = decade step. |
 | **Global range** | **1101–1600** (enemies **101–600**) |
+| **Monster rung = Enemy ID + 1500** | Enemy **101** wears state **1601**, its mastery **1101** at enemy numbers, in a row of its own. A named wears its line's capstone (**110** wears **1605**), and a state of its own sits at its id + 1500 (**1610**). |
 
 **Formula (equivalent forms):**
 

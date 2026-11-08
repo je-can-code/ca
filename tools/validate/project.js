@@ -35,6 +35,13 @@ export const MANIFEST_NAME = 'manifest.json';
 export const ICON_SHEET = 'chef-adventure/img/system/IconSet.png';
 
 /**
+ * The folder every character sprite is drawn from, relative to the repository root. MZ asks it for
+ * `<name>.png`, exactly as an event spells the name.
+ * @type {string}
+ */
+export const CHARACTERS_DIR = 'chef-adventure/img/characters';
+
+/**
  * The MZ-owned database tables, by the name `data/<Name>.json` gives each one.
  * @type {string[]}
  */
@@ -215,6 +222,11 @@ export const loadProject = async root =>
     ? readIconSheet(new Uint8Array(await sheetFile.arrayBuffer()), ICON_SHEET)
     : null;
 
+  // every character sprite by the name an event would use for it: listed rather than looked up one at a
+  // time, because a lookup on Windows or macOS finds `m_Orcs.png` when asked for `m_orcs.png`.
+  const characterImages = new Set((await listFiles(`${root}/${CHARACTERS_DIR}`, '**/*.png'))
+    .map(file => file.slice(0, -'.png'.length)));
+
   // every built file but the manifest itself, hashed the way the manifest hashes them.
   const pluginFiles = new Map();
   for (const file of await listFiles(builtDir, '**/*'))
@@ -235,6 +247,7 @@ export const loadProject = async root =>
     actionMapId: findActionMapId(plugins),
     manifest,
     iconSheet,
+    characterImages,
     pluginFiles,
     trackedFiles: listTrackedFiles(root),
   };

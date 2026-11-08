@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "generatedBy": "rmmz-plugins src/build-tools/generate-manifest.js - generated, never edit by hand",
   "files": {
-    "abs/J-ABS.js": "0d64228d2ca0a41345af990c0fd86cc6bf50989ee2534801e625f1095744424d",
+    "abs/J-ABS.js": "be1c37b07d7c9f8fbc01dc3c5c8b74623cb65e8b917293ccdda0b3d08c358f68",
     "abs/ext/J-ABS-AllyAI.js": "97354c203a158cc0b89e92d21fc259a045b9b3a9f75bd1dbea258a33e2b8b681",
     "abs/ext/J-ABS-Boss.js": "469b9752b880a4069fdef5eafaf217be6bbc25a7f598190059c961f796232398",
     "abs/ext/J-ABS-Charge.js": "2d7d5bddab9327c8d47194fba3b241fbba0a280b83fb7e1a6c56011e2c62c1ff",
@@ -17,10 +17,10 @@
     "abs/ext/J-ABS-Loadout.js": "0b3fa5ecc1c2d15255b3784ad376458bffdfe1f202c18864e479b5af816371d0",
     "abs/ext/J-ABS-Metrics.js": "b9265c862e3f67e2ad97971a238dcad7eca310d354528e01c69156a62bb25df7",
     "abs/ext/J-ABS-Poses.js": "68e4d44595cdccb85a28e775cafd9f2cd0adac274d13b422bc8d7a5445b7b388",
-    "abs/ext/J-ABS-Shield.js": "98625e066d3f0de8c2b099480c1285891fa0b8e80585d9e61d7adfe09cc95442",
+    "abs/ext/J-ABS-Shield.js": "f9bab0b2d3422a0d20e83f0051757204c005076b666f0ab81f64742de1cda337",
     "abs/ext/J-ABS-Speed.js": "787f9d42b9c452159a3a23158fdb0d8ce3025e2ebd52227804ea6bcce0fcfa50",
     "abs/ext/J-ABS-Star.js": "106b07d36ef24ccbdccff64ce8b1137e22241743237d83df7b1a830de5fb9f0a",
-    "abs/ext/J-ABS-Targeting.js": "399b177b7b59e7d2661dbd91ebc9405b42430782866c0c157243165f7c0b4289",
+    "abs/ext/J-ABS-Targeting.js": "a17cae29b81b8c05866c133dce3fb0881094350bf61284ec16afa806f11f6144",
     "abs/ext/J-ABS-Time.js": "66752305a7add3796d88db6a04356b5c5e7226ad0f8ad3d21838e6de72695d65",
     "abs/ext/J-ABS-Timing.js": "0a2da42008d3bd97be9b7a211fb9e5ac7190d4cb25b5ff6171671be211e6f14c",
     "abs/ext/J-ABS-Tools.js": "c0660e89d1e37f868ce06e0ee9e3bc5d9f30af1df58c1391c1d9c6436fc53f00",
@@ -28,7 +28,7 @@
     "apt/J-Aptitude.js": "6452bf1310ccc92a00fac87d980f81823ed9af0510681ca7b10080c840be5ce3",
     "base/J-Base.js": "eef1530bc1bebf416856bc7def713ae6e1a18b9fa527556e589ff7d3cdb705a2",
     "base/ext/J-Base-Save.js": "d4547c431b0d5c7c1db87100035a74ef40c8819548b55d783c16d86ad0dcae62",
-    "ca-mods/J-CA-Mods.js": "ce53253c982db72c6d199a597754ed1e52d77c89828733b522e4739066d1d181",
+    "ca-mods/J-CA-Mods.js": "53cab17fd03fa1d8f710383f7135a0e8bbf694d8663f484e825ce947fc497996",
     "class/J-Classes.js": "54f43005ba401d069d0d9696137af5837168ee754c3b5d7cc8ecf7a02e5c4b02",
     "class/ext/J-Classes-Aptitude.js": "392bdc362da3b6da6a814604b1dfb09edc865bf577bf56180c27c1fc53df2dc1",
     "class/ext/J-Classes-Natural.js": "1bf280439630ded235ba7d7818ec33182684d741b6c375fb5c2efb43482caa2a",
@@ -1339,6 +1339,30 @@
         "enemyId"
       ],
       "pattern": "<enemyId:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.EnemyIds",
+      "names": [
+        "enemyIds"
+      ],
+      "pattern": "<enemyIds:[ ]?(\\[\\d+(?:,[ ]?\\d+)*])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.EnemyWeight",
+      "names": [
+        "enemy-weight"
+      ],
+      "pattern": "<enemy-weight:[ ]?(\\d+)>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.EnemyWeightOverride",
+      "names": [
+        "enemy-weight-override"
+      ],
+      "pattern": "<enemy-weight-override:[ ]?(\\[\\d+,[ ]?\\d+])>",
       "flags": "i"
     },
     {
@@ -6790,9 +6814,21 @@
         }
       }
     ],
+    "enemy-weight-override": [
+      {
+        "position": 0,
+        "table": "Enemies"
+      }
+    ],
     "enemyId": [
       {
         "position": 0,
+        "table": "Enemies"
+      }
+    ],
+    "enemyIds": [
+      {
+        "position": "each",
         "table": "Enemies"
       }
     ],

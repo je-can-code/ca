@@ -117,6 +117,10 @@ bun tools/map-atlas.js oneways [rootId]  # one-way transfers and scripted player
 bun tools/map-atlas.js plan    <mapId>   # a single room as a text floor plan
 ```
 
+**`bun tools/bestiary.js` answers who lives where, at what level, and where the player first meets each
+line.** The bands are in [`docs/maps/progression-bands.md`](docs/maps/progression-bands.md), and no roster
+is written down anywhere, so ask it before hand-rolling a script over `Enemies.json`.
+
 Three things about this data that cost real time to rediscover:
 
 - **JABS tags live in event *page comments*, not in `event.note`.** A script looking for `<enemyId:31>`
@@ -160,6 +164,7 @@ takes well under a second. Run it after any bulk edit to the data, and before co
 | config references | a `config.*.json` names a blank or missing row in an MZ table |
 | text codes | a `\Code[arg]` in text the game draws names a blank, missing or placeholder row, an icon the sheet does not paint, a colour off the palette, a bubble target no event answers to, or is a code nothing reads |
 | scripts | an event script spreads arguments into a call (`f(...values)`), which no J plugin method can take: rmmz-plugins has no rest parameters |
+| sprites | an event page, a move route's Change Image, Change Actor Images, Change Vehicle Image, an actor or a vehicle names a character sprite with no file of exactly that name in `img/characters`. Case counts: Windows and macOS forgive a wrong case, Linux stops the game with "Failed to load" |
 | start position | `System.json` starts a new game anywhere but the real start, Map 4 "Cave - 1 - START" at (8, 11). A branch may point at a test map; main may not |
 | map tree | a map's `order` in `MapInfos.json` is not a whole number, which jmz-data-editor refuses to read |
 

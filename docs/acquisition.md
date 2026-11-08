@@ -412,7 +412,7 @@ subgroup's legendary recipe is acquired. Both are open for every row.
 | **Hatchet** | ⭐ | `"Glowing Hacker"` | **Intro** · Cave - 6b `Map323` |
 | | ⭐⭐ | `"Sky Splitter"` | TBD |
 | | ⭐⭐⭐ | `"Mjolnir"` | TBD |
-| | **legendary** | `"Reckoning"` ← Deathtrap Broadaxe | Blueprint: TBD |
+| | **legendary** | `"Reckoning"` ← Dragontrap Broadaxe | Blueprint: TBD |
 | **Glaive** | ⭐ | `"Crescent Blossom"` | **Forest of Dreams** · Mad Hops `Map159` *(decided, not yet placed)* |
 | | ⭐⭐ | `"Half-Moon Bloom"` | TBD |
 | | ⭐⭐⭐ | `"Ecliptic Efflorescence"` | TBD |

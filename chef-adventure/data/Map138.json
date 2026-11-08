@@ -6338,10 +6338,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_wraiths",
+            "characterName": "$m_reborn-wraith",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 6
+            "characterIndex": 0
           },
           "list": [
             {
@@ -6370,6 +6370,13 @@
               "indent": 0,
               "parameters": [
                 "<moveSpeed:3.9>"
+              ]
+            },
+            {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[111,112,113,114,115]>"
               ]
             },
             {
@@ -6426,10 +6433,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_wraiths",
+            "characterName": "$m_reborn-wraith",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 6
+            "characterIndex": 0
           },
           "list": [
             {
@@ -6458,6 +6465,13 @@
               "indent": 0,
               "parameters": [
                 "<moveSpeed:3.9>"
+              ]
+            },
+            {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[111,112,113,114,115]>"
               ]
             },
             {
@@ -6514,10 +6528,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_bats",
+            "characterName": "$m_bat-cave-bat",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 1
+            "characterIndex": 0
           },
           "list": [
             {
@@ -6539,6 +6553,13 @@
               "indent": 0,
               "parameters": [
                 "<moveSpeed:4.1>"
+              ]
+            },
+            {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[361,362,363,364,365]>"
               ]
             },
             {
@@ -6595,10 +6616,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_bats",
+            "characterName": "$m_bat-cave-bat",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 1
+            "characterIndex": 0
           },
           "list": [
             {
@@ -6620,6 +6641,13 @@
               "indent": 0,
               "parameters": [
                 "<moveSpeed:4.1>"
+              ]
+            },
+            {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[361,362,363,364,365]>"
               ]
             },
             {
@@ -6676,10 +6704,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_bats",
+            "characterName": "$m_bat-cave-bat",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 1
+            "characterIndex": 0
           },
           "list": [
             {
@@ -6701,6 +6729,13 @@
               "indent": 0,
               "parameters": [
                 "<moveSpeed:4.1>"
+              ]
+            },
+            {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[361,362,363,364,365]>"
               ]
             },
             {
@@ -6757,7 +6792,7 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_orcChieftain",
+            "characterName": "$m_orc-orcling",
             "direction": 2,
             "pattern": 1,
             "characterIndex": 0
@@ -6782,6 +6817,13 @@
               "indent": 0,
               "parameters": [
                 "<moveSpeed:4.0>"
+              ]
+            },
+            {
+              "code": 108,
+              "indent": 0,
+              "parameters": [
+                "<enemyIds:[461,462,463,464,465]>"
               ]
             },
             {
@@ -6838,10 +6880,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_orcs",
+            "characterName": "$m_orc-chonky-orc",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 1
+            "characterIndex": 0
           },
           "list": [
             {
@@ -6919,10 +6961,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_orcs",
+            "characterName": "$m_orc-chonky-orc",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 1
+            "characterIndex": 0
           },
           "list": [
             {
@@ -7000,10 +7042,10 @@
           "directionFix": false,
           "image": {
             "tileId": 0,
-            "characterName": "m_orcChieftain",
+            "characterName": "$m_orc-beefcorc",
             "direction": 2,
             "pattern": 1,
-            "characterIndex": 3
+            "characterIndex": 0
           },
           "list": [
             {

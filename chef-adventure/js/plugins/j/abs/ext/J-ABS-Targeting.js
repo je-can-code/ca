@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 ABS-TARGETING] An extension for JABS that adds cursor-driven tactical targeting.
+ * [v1.0.2 ABS-TARGETING] An extension for JABS that adds cursor-driven tactical targeting.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -100,7 +100,7 @@ J.ABS.EXT.TARGETING = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.TARGETING.Metadata = new JTargeting_PluginMetadata("J-ABS-Targeting", "1.0.1");
+J.ABS.EXT.TARGETING.Metadata = new JTargeting_PluginMetadata("J-ABS-Targeting", "1.0.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1350,6 +1350,7 @@ Spriteset_Map.prototype.showTargetingAoePreviewPulse = function(cursor, sentinel
 		facing: action.direction(),
 		degrees,
 		thickness,
+		innerRadius: action.getInnerRadius(),
 		sustained: true,
 		duration: 999999,
 		scaleStart: 1,
@@ -1361,7 +1362,6 @@ Spriteset_Map.prototype.showTargetingAoePreviewPulse = function(cursor, sentinel
 	pulse.reset();
 	pulse.setup(options.toPlain());
 	pulse.setWorldPosition(origin.x, origin.y);
-	pulse.setRotation(JABS_HitboxPulseManager.directionToRadians(action.direction()));
 };
 /**
 * Builds/refreshes/purges highlight outline sprites for every battler currently inside the

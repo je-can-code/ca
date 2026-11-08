@@ -6,8 +6,8 @@
 
 The Windward Tunnels are the cave road under the Deluge Valley, in the map tree as `Map328` "DUNGEON: Deluge
 Caverns". Canon names them in its chapter 4 sketch, "the **Deluge Plains** and **Windward Tunnels** (cavern route
-from Deluge to the Pearlsalt Mines)" ([story-canon.md](../story-canon.md)), and lists them with no band
-([progression-bands.md](progression-bands.md)); the draft takes the valley's 85-100.
+from Deluge to the Pearlsalt Mines)" ([story-canon.md](../story-canon.md)). Their band is the valley's 85-100
+([progression-bands.md](progression-bands.md)).
 
 ---
 

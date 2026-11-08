@@ -28,16 +28,16 @@ Here you can dig into specific regions and learn more about them.
 
 ## Progression
 
-- [progression-bands][3] — where the player goes, in what order, against what enemy levels. A dated
-  snapshot derived from the shipped data, with the per-map table beneath it. Read the Derivation
-  section before quoting a number: harvestables and tool gimmicks carry levels too, and counting them
-  distorts every band.
+- [progression-bands][3] — where the player goes, in what order, against what enemy levels. The bands
+  are design and live there; who stands in them comes from `bun tools/bestiary.js`.
 
 ## Tooling
 
 - [map-atlas][2] — a CLI that reads the shipped map data and describes the shape of a dungeon: room
   layout, connectivity, which tool gates actually block which routes, and where the points of no
   return are. Start with `bun tools/map-atlas.js dungeons`.
+- `tools/bestiary.js` — a CLI that reads the shipped enemy placements and says who lives where, at what
+  level, and where the player first meets each line. No roster is written down anywhere; ask it.
 
 
 [1]: raevula

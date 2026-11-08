@@ -34,7 +34,7 @@ courtyard unseals.
 | Enemies `583-590` | all `=== TBD Sin` at lv15. `583` is Gloria's slot per [nimbus.md](nimbus.md); Lust, Envy and the gent have no chosen slots. `593-597` are `=== TBD Sin Votary` stubs |
 | `ice-cavern_A2` / `_A5` / `_B` | on disk under `img/tilesets/`, referenced by **no** Tilesets row |
 | `SnowForest.png` | the only wintry parallax on disk |
-| [progression-bands.md](progression-bands.md) | planned section already carries Fortress 115-130 and the gent ~150 |
+| [progression-bands.md](progression-bands.md) | carries Fortress 115-130 and the gent ~150 |
 | [todo.md](../todo.md) | describes the exterior gate as keycard-gated and unimplemented |
 
 Not the Fortress, despite the names: `Map264` "AREA: Courtyard" and its children belong to the Fallen

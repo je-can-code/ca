@@ -81,7 +81,7 @@ potatoes himself, recognizes a kindred spirit across the species barrier. Nobody
 between these two men. They do not explain. They simply dig.)
 
 Objectives:
-- SLAY: 8× `Wolftrap` (+ 2× `Bloodtrap`?) infesting the plots — pest control first
+- SLAY: 8× `Wolftrap` (+ 2× `Mantrap`?) infesting the plots — pest control first
 - FETCH: 20× potatoes via plot interactions on Peter's farm map
 - (Optional TIME spice: within two in-game days — the deadline made literal)
 

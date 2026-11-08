@@ -17,6 +17,7 @@ import { checkNotetags } from './checks/notetags.js';
 import { checkParse } from './checks/parse.js';
 import { checkPlugins } from './checks/plugins.js';
 import { checkScripts } from './checks/scripts.js';
+import { checkSprites } from './checks/sprites.js';
 import { checkStart, REAL_START } from './checks/start.js';
 import { checkTextCodes } from './checks/textcodes.js';
 import { parseJson } from './project.js';
@@ -155,6 +156,30 @@ const withEventNote = (project, mapId, eventId, note) =>
 };
 
 /**
+ * A copy of the project with the sprite on a map event's first page replaced.
+ * @param {object} project The loaded project.
+ * @param {number} mapId The map holding the event.
+ * @param {number} eventId The event to dress.
+ * @param {string} characterName The sprite's name, as an event would spell it.
+ * @returns {object}
+ */
+const withFirstPageSprite = (project, mapId, eventId, characterName) =>
+{
+  const map = project.maps.get(mapId);
+  const event = map.events[eventId];
+  const [ firstPage, ...otherPages ] = event.pages;
+
+  const page = { ...firstPage, image: { ...firstPage.image, characterName } };
+  const events = [ ...map.events ];
+  events[eventId] = { ...event, pages: [ page, ...otherPages ] };
+
+  const maps = new Map(project.maps);
+  maps.set(mapId, { ...map, events });
+
+  return { ...project, maps };
+};
+
+/**
  * The first row of a table that exists but was never authored, which is what a dead reference points
  * at. When the table has none, an id past its end serves just as well.
  * @param {object[]} rows The table.
@@ -241,6 +266,22 @@ const buildControls = project =>
 
   // the script controls run on that same event, as a one-line Script command.
   const runScript = line => withFirstPageCommand(project, gateMapId, gateEvent.id, { code: 355, indent: 0, parameters: [ line ] });
+
+  // the sprite controls dress that same event: in a name no file has, in a real sprite's name with its
+  // case changed, which is the mistake only Linux refuses, and in a real sprite's name spelled exactly.
+  const absentSprite = '$m_no-such-sprite';
+  const realSprite = [ ...project.characterImages ]
+    .find(name => /[a-z]/.test(name) && project.characterImages.has(name.toUpperCase()) === false);
+  const wrongCaseSprite = realSprite.toUpperCase();
+  const dress = characterName => withFirstPageSprite(project, gateMapId, gateEvent.id, characterName);
+  const routeTo = characterName => withFirstPageCommand(project, gateMapId, gateEvent.id, {
+    code: 205,
+    indent: 0,
+    parameters: [ 0, { list: [ { code: 41, parameters: [ characterName, 0 ] }, { code: 0, parameters: [] } ], repeat: false, skippable: false, wait: true } ],
+  });
+
+  // the actor control re-dresses the first actor in the table.
+  const firstActor = tables.Actors.find(actor => actor !== null);
 
   // the start controls aim at a map that is neither the real start nor wherever this tree starts today,
   // so the planted finding is always new even on a branch that points at a test map.
@@ -426,6 +467,36 @@ const buildControls = project =>
       check: checkScripts,
       planted: runScript('$gameMessage.add(\'Loading...\');'),
       expect: null,
+    },
+    {
+      label: `an event wearing a sprite no file has (Map #${gateMapId} event #${gateEvent.id} -> "${absentSprite}")`,
+      check: checkSprites,
+      planted: dress(absentSprite),
+      expect: [ `event #${gateEvent.id}`, `draws "${absentSprite}"`, `has no ${absentSprite}.png` ],
+    },
+    {
+      label: `the same event wearing a real sprite with its case changed ("${wrongCaseSprite}" for "${realSprite}")`,
+      check: checkSprites,
+      planted: dress(wrongCaseSprite),
+      expect: [ `event #${gateEvent.id}`, `draws "${wrongCaseSprite}"`, 'differs only by case' ],
+    },
+    {
+      label: `the same event wearing that real sprite, spelled exactly ("${realSprite}")`,
+      check: checkSprites,
+      planted: dress(realSprite),
+      expect: null,
+    },
+    {
+      label: `a Set Movement Route changing the same event's sprite to one no file has ("${absentSprite}")`,
+      check: checkSprites,
+      planted: routeTo(absentSprite),
+      expect: [ 'Set Movement Route', `draws "${absentSprite}"` ],
+    },
+    {
+      label: `an actor whose walking sprite no file has (Actors #${firstActor.id} -> "${absentSprite}")`,
+      check: checkSprites,
+      planted: withRow(project, 'Actors', { ...firstActor, characterName: absentSprite }),
+      expect: [ `Actors #${firstActor.id}`, `draws "${absentSprite}"` ],
     },
     {
       label: `a new game started on another map (Map #${strayStartMapId})`,

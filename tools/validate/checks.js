@@ -13,6 +13,7 @@ import { checkNotetags } from './checks/notetags.js';
 import { checkParse } from './checks/parse.js';
 import { checkPlugins } from './checks/plugins.js';
 import { checkScripts } from './checks/scripts.js';
+import { checkSprites } from './checks/sprites.js';
 import { checkStart } from './checks/start.js';
 import { checkTextCodes } from './checks/textcodes.js';
 
@@ -29,6 +30,7 @@ export const CHECKS = [
   { name: 'config references', run: checkConfigs, readsData: true },
   { name: 'text codes', run: checkTextCodes, readsData: true },
   { name: 'scripts', run: checkScripts, readsData: true },
+  { name: 'sprites', run: checkSprites, readsData: true },
   { name: 'start position', run: checkStart, readsData: true },
   { name: 'map tree', run: checkMapTree, readsData: true },
 ];

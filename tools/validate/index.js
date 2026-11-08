@@ -17,6 +17,8 @@
  * - **config references** - every id a plugin config names in an MZ table resolves
  * - **text codes** - every `\Code[arg]` in text the game draws names something that exists
  * - **scripts** - no event script spreads its arguments into a call, which no J plugin method can take
+ * - **sprites** - every character sprite an event, route, actor or vehicle names is a file, spelled
+ *   exactly, case included
  * - **start position** - a new game begins at the real start, never on a test map
  * - **map tree** - every map's place in the tree is a whole number, the only kind jmz-data-editor reads
  *

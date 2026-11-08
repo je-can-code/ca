@@ -51,12 +51,13 @@
                 "type": "leaf",
                 "data": {
                   "views": [
-                    "start"
+                    "start",
+                    "map-361"
                   ],
-                  "activeView": "start",
+                  "activeView": "map-361",
                   "id": "4"
                 },
-                "size": 1620
+                "size": 1177.58984375
               },
               {
                 "type": "branch",
@@ -71,7 +72,7 @@
                       "activeView": "map-properties",
                       "id": "5"
                     },
-                    "size": 516
+                    "size": 35
                   },
                   {
                     "type": "leaf",
@@ -80,13 +81,13 @@
                         "history",
                         "events"
                       ],
-                      "activeView": "history",
+                      "activeView": "events",
                       "id": "6"
                     },
-                    "size": 516
+                    "size": 997
                   }
                 ],
-                "size": 0
+                "size": 442.41015625
               }
             ],
             "size": 1032
@@ -102,7 +103,6 @@
             "tabComponent": "props.defaultTabComponent",
             "params": {
               "expanded": [
-                12,
                 122,
                 364,
                 119,
@@ -115,7 +115,8 @@
                 13,
                 290,
                 407,
-                403
+                403,
+                2
               ]
             },
             "title": "Maps",
@@ -147,6 +148,15 @@
             "contentComponent": "start",
             "tabComponent": "props.defaultTabComponent",
             "title": "Start"
+          },
+          "map-361": {
+            "id": "map-361",
+            "contentComponent": "map",
+            "tabComponent": "props.defaultTabComponent",
+            "params": {
+              "mapId": 361
+            },
+            "title": "_FullEnemyMap"
           },
           "map-properties": {
             "id": "map-properties",
@@ -188,20 +198,11 @@
             "height": 393,
             "minimumHeight": 100,
             "maximumHeight": 9007199254740991
-          }
-        },
-        "collapsedSides": {
-          "right": {
-            "5": {
-              "width": 360,
-              "minimumWidth": 300,
-              "maximumWidth": 9007199254740991
-            },
-            "6": {
-              "width": 360,
-              "minimumWidth": 240,
-              "maximumWidth": 9007199254740991
-            }
+          },
+          "5": {
+            "height": 516,
+            "minimumHeight": 100,
+            "maximumHeight": 9007199254740991
           }
         }
       }
