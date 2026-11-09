@@ -3,7 +3,7 @@
   {
     "id": 1,
     "name": "*Grass",
-    "note": "\u003clevel:3\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[seconds, 90]\u003e\n\u003cdrops:[i,281,25]\u003e\n\u003cdrops:[i,281,15]\u003e\n\u003cdrops:[i,416,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:3\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[seconds, 90]\u003e\n\u003cdrops:[i,281,25]\u003e\n\u003cdrops:[i,281,15]\u003e\n\u003cdrops:[i,416,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -67,7 +67,7 @@
   {
     "id": 2,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -116,7 +116,7 @@
   {
     "id": 3,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -165,7 +165,7 @@
   {
     "id": 4,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -214,7 +214,7 @@
   {
     "id": 5,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -263,7 +263,7 @@
   {
     "id": 6,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -312,7 +312,7 @@
   {
     "id": 7,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -361,7 +361,7 @@
   {
     "id": 8,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -410,7 +410,7 @@
   {
     "id": 9,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -459,7 +459,7 @@
   {
     "id": 10,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -508,7 +508,7 @@
   {
     "id": 11,
     "name": "*Sapling (Oak)",
-    "note": "\u003clevel:10\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 360]\u003e\n\u003cdrops:[i,45,100]\u003e\n\u003cdrops:[i,45,80]\u003e\n\u003cdrops:[i,45,50]\u003e\n\u003cdrops:[i,45,25]\u003e\n\u003cdrops:[i,45,10]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:10\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 360]\u003e\n\u003cdrops:[i,45,100]\u003e\n\u003cdrops:[i,45,80]\u003e\n\u003cdrops:[i,45,50]\u003e\n\u003cdrops:[i,45,25]\u003e\n\u003cdrops:[i,45,10]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -577,7 +577,7 @@
   {
     "id": 12,
     "name": "*Shrub (Dreamwood)",
-    "note": "\u003clevel:20\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.5 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 2)]\u003e\n\u003cmdfBuffPlus:[(a.level * 14.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 720]\u003e\n\u003cdrops:[i,47,100]\u003e\n\u003cdrops:[i,47,80]\u003e\n\u003cdrops:[i,47,50]\u003e\n\u003cdrops:[i,47,25]\u003e\n\u003cdrops:[i,47,10]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:20\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.5 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 2)]\u003e\n\u003cmdfBuffPlus:[(a.level * 14.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 720]\u003e\n\u003cdrops:[i,47,100]\u003e\n\u003cdrops:[i,47,80]\u003e\n\u003cdrops:[i,47,50]\u003e\n\u003cdrops:[i,47,25]\u003e\n\u003cdrops:[i,47,10]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -646,7 +646,7 @@
   {
     "id": 13,
     "name": "*Tree (Negapine)",
-    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 1440]\u003e\n\u003cdrops:[i,49,100]\u003e\n\u003cdrops:[i,49,80]\u003e\n\u003cdrops:[i,49,50]\u003e\n\u003cdrops:[i,49,25]\u003e\n\u003cdrops:[i,49,10]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 1440]\u003e\n\u003cdrops:[i,49,100]\u003e\n\u003cdrops:[i,49,80]\u003e\n\u003cdrops:[i,49,50]\u003e\n\u003cdrops:[i,49,25]\u003e\n\u003cdrops:[i,49,10]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -715,7 +715,7 @@
   {
     "id": 14,
     "name": "*Snag (Grimwood)",
-    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 2160]\u003e\n\u003cdrops:[i,51,100]\u003e\n\u003cdrops:[i,51,80]\u003e\n\u003cdrops:[i,51,50]\u003e\n\u003cdrops:[i,51,25]\u003e\n\u003cdrops:[i,51,10]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 2160]\u003e\n\u003cdrops:[i,51,100]\u003e\n\u003cdrops:[i,51,80]\u003e\n\u003cdrops:[i,51,50]\u003e\n\u003cdrops:[i,51,25]\u003e\n\u003cdrops:[i,51,10]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -784,7 +784,7 @@
   {
     "id": 15,
     "name": "*Shrub (Subwood)",
-    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 2880]\u003e\n\u003cdrops:[i,53,100]\u003e\n\u003cdrops:[i,53,80]\u003e\n\u003cdrops:[i,53,50]\u003e\n\u003cdrops:[i,53,25]\u003e\n\u003cdrops:[i,53,10]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 2880]\u003e\n\u003cdrops:[i,53,100]\u003e\n\u003cdrops:[i,53,80]\u003e\n\u003cdrops:[i,53,50]\u003e\n\u003cdrops:[i,53,25]\u003e\n\u003cdrops:[i,53,10]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -853,7 +853,7 @@
   {
     "id": 16,
     "name": "*Tree (Heartwood)",
-    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,55,100]\u003e\n\u003cdrops:[i,55,80]\u003e\n\u003cdrops:[i,55,50]\u003e\n\u003cdrops:[i,55,25]\u003e\n\u003cdrops:[i,55,10]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,55,100]\u003e\n\u003cdrops:[i,55,80]\u003e\n\u003cdrops:[i,55,50]\u003e\n\u003cdrops:[i,55,25]\u003e\n\u003cdrops:[i,55,10]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -922,7 +922,7 @@
   {
     "id": 17,
     "name": "*Branching (Digiwood)",
-    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 7200]\u003e\n\u003cdrops:[i,57,100]\u003e\n\u003cdrops:[i,57,80]\u003e\n\u003cdrops:[i,57,50]\u003e\n\u003cdrops:[i,57,25]\u003e\n\u003cdrops:[i,57,10]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 7200]\u003e\n\u003cdrops:[i,57,100]\u003e\n\u003cdrops:[i,57,80]\u003e\n\u003cdrops:[i,57,50]\u003e\n\u003cdrops:[i,57,25]\u003e\n\u003cdrops:[i,57,10]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -991,7 +991,7 @@
   {
     "id": 18,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1040,7 +1040,7 @@
   {
     "id": 19,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1089,7 +1089,7 @@
   {
     "id": 20,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1138,7 +1138,7 @@
   {
     "id": 21,
     "name": "*Deposit (Iron)",
-    "note": "\u003clevel:10\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.5 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 3.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.75)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 360]\u003e\n\u003cdrops:[a,401,25]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cdrops:[i,30,100]\u003e\n\u003cdrops:[i,30,80]\u003e\n\u003cdrops:[i,30,50]\u003e\n\u003cdrops:[i,30,25]\u003e\n\u003cdrops:[i,30,10]\u003e\n\u003cdrops:[i,68,20]\u003e\n\u003cdrops:[i,69,3]\u003e\n\u003cdrops:[i,60,4]\u003e\n\u003cdrops:[i,62,4]\u003e\n\u003cdrops:[i,64,4]\u003e\n\u003cdrops:[i,66,4]\u003e\n\u003cdrops:[i,70,4]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:10\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.5 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 3.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.75)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 360]\u003e\n\u003cdrops:[a,401,25]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cdrops:[i,30,100]\u003e\n\u003cdrops:[i,30,80]\u003e\n\u003cdrops:[i,30,50]\u003e\n\u003cdrops:[i,30,25]\u003e\n\u003cdrops:[i,30,10]\u003e\n\u003cdrops:[i,68,20]\u003e\n\u003cdrops:[i,69,3]\u003e\n\u003cdrops:[i,60,4]\u003e\n\u003cdrops:[i,62,4]\u003e\n\u003cdrops:[i,64,4]\u003e\n\u003cdrops:[i,66,4]\u003e\n\u003cdrops:[i,70,4]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1227,7 +1227,7 @@
   {
     "id": 22,
     "name": "*Vein (Silver)",
-    "note": "\u003clevel:15\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.6))]\u003e\n\u003cdefBuffPlus:[(a.level * 4.75)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 720]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,30]\u003e\n\u003cdrops:[a,402,30]\u003e\n\u003cdrops:[i,32,100]\u003e\n\u003cdrops:[i,32,80]\u003e\n\u003cdrops:[i,32,50]\u003e\n\u003cdrops:[i,32,25]\u003e\n\u003cdrops:[i,32,10]\u003e\n\u003cdrops:[i,30,40]\u003e\n\u003cdrops:[i,30,20]\u003e\n\u003cdrops:[i,70,20]\u003e\n\u003cdrops:[i,71,3]\u003e\n\u003cdrops:[i,60,4]\u003e\n\u003cdrops:[i,62,4]\u003e\n\u003cdrops:[i,64,4]\u003e\n\u003cdrops:[i,66,4]\u003e\n\u003cdrops:[i,68,4]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:15\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.6 * (a.level ** 2.6))]\u003e\n\u003cdefBuffPlus:[(a.level * 4.75)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 720]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,30]\u003e\n\u003cdrops:[a,402,30]\u003e\n\u003cdrops:[i,32,100]\u003e\n\u003cdrops:[i,32,80]\u003e\n\u003cdrops:[i,32,50]\u003e\n\u003cdrops:[i,32,25]\u003e\n\u003cdrops:[i,32,10]\u003e\n\u003cdrops:[i,30,40]\u003e\n\u003cdrops:[i,30,20]\u003e\n\u003cdrops:[i,70,20]\u003e\n\u003cdrops:[i,71,3]\u003e\n\u003cdrops:[i,60,4]\u003e\n\u003cdrops:[i,62,4]\u003e\n\u003cdrops:[i,64,4]\u003e\n\u003cdrops:[i,66,4]\u003e\n\u003cdrops:[i,68,4]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1316,7 +1316,7 @@
   {
     "id": 23,
     "name": "*Druse (Bleu)",
-    "note": "\u003clevel:25\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:218\u003e\n\u003cmhpBuffPlus:[(1.7 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 6.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 2.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 1440]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,30]\u003e\n\u003cdrops:[a,402,30]\u003e\n\u003cdrops:[a,403,30]\u003e\n\u003cdrops:[i,34,100]\u003e\n\u003cdrops:[i,34,80]\u003e\n\u003cdrops:[i,34,50]\u003e\n\u003cdrops:[i,34,25]\u003e\n\u003cdrops:[i,34,10]\u003e\n\u003cdrops:[i,32,40]\u003e\n\u003cdrops:[i,32,20]\u003e\n\u003cdrops:[i,66,20]\u003e\n\u003cdrops:[i,67,3]\u003e\n\u003cdrops:[i,60,4]\u003e\n\u003cdrops:[i,62,4]\u003e\n\u003cdrops:[i,64,4]\u003e\n\u003cdrops:[i,68,4]\u003e\n\u003cdrops:[i,70,4]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:25\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:218\u003e\n\u003cmhpBuffPlus:[(1.7 * (a.level ** 2.7))]\u003e\n\u003cdefBuffPlus:[(a.level * 6.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 2.5)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 1440]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,30]\u003e\n\u003cdrops:[a,402,30]\u003e\n\u003cdrops:[a,403,30]\u003e\n\u003cdrops:[i,34,100]\u003e\n\u003cdrops:[i,34,80]\u003e\n\u003cdrops:[i,34,50]\u003e\n\u003cdrops:[i,34,25]\u003e\n\u003cdrops:[i,34,10]\u003e\n\u003cdrops:[i,32,40]\u003e\n\u003cdrops:[i,32,20]\u003e\n\u003cdrops:[i,66,20]\u003e\n\u003cdrops:[i,67,3]\u003e\n\u003cdrops:[i,60,4]\u003e\n\u003cdrops:[i,62,4]\u003e\n\u003cdrops:[i,64,4]\u003e\n\u003cdrops:[i,68,4]\u003e\n\u003cdrops:[i,70,4]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1410,7 +1410,7 @@
   {
     "id": 24,
     "name": "*Outcrop (Sandwraith)",
-    "note": "\u003clevel:45\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.8 * (a.level ** 2.8))]\u003e\n\u003cdefBuffPlus:[(a.level * 7.75)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 2160]\u003e\n\u003cdrops:[a,402,20]\u003e\n\u003cdrops:[a,402,20]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,404,5]\u003e\n\u003cdrops:[i,36,100]\u003e\n\u003cdrops:[i,36,80]\u003e\n\u003cdrops:[i,36,50]\u003e\n\u003cdrops:[i,36,25]\u003e\n\u003cdrops:[i,36,10]\u003e\n\u003cdrops:[i,34,40]\u003e\n\u003cdrops:[i,34,20]\u003e\n\u003cdrops:[i,64,20]\u003e\n\u003cdrops:[i,65,3]\u003e\n\u003cdrops:[i,60,4]\u003e\n\u003cdrops:[i,62,4]\u003e\n\u003cdrops:[i,66,4]\u003e\n\u003cdrops:[i,68,4]\u003e\n\u003cdrops:[i,70,4]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:45\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.8 * (a.level ** 2.8))]\u003e\n\u003cdefBuffPlus:[(a.level * 7.75)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 2160]\u003e\n\u003cdrops:[a,402,20]\u003e\n\u003cdrops:[a,402,20]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,404,5]\u003e\n\u003cdrops:[i,36,100]\u003e\n\u003cdrops:[i,36,80]\u003e\n\u003cdrops:[i,36,50]\u003e\n\u003cdrops:[i,36,25]\u003e\n\u003cdrops:[i,36,10]\u003e\n\u003cdrops:[i,34,40]\u003e\n\u003cdrops:[i,34,20]\u003e\n\u003cdrops:[i,64,20]\u003e\n\u003cdrops:[i,65,3]\u003e\n\u003cdrops:[i,60,4]\u003e\n\u003cdrops:[i,62,4]\u003e\n\u003cdrops:[i,66,4]\u003e\n\u003cdrops:[i,68,4]\u003e\n\u003cdrops:[i,70,4]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1504,7 +1504,7 @@
   {
     "id": 25,
     "name": "*Geode (Engle)",
-    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.9 * (a.level ** 2.9))]\u003e\n\u003cdefBuffPlus:[(a.level * 9.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 2880]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[i,38,100]\u003e\n\u003cdrops:[i,38,80]\u003e\n\u003cdrops:[i,38,50]\u003e\n\u003cdrops:[i,38,25]\u003e\n\u003cdrops:[i,38,10]\u003e\n\u003cdrops:[i,36,40]\u003e\n\u003cdrops:[i,36,20]\u003e\n\u003cdrops:[i,62,20]\u003e\n\u003cdrops:[i,63,3]\u003e\n\u003cdrops:[i,60,4]\u003e\n\u003cdrops:[i,64,4]\u003e\n\u003cdrops:[i,66,4]\u003e\n\u003cdrops:[i,68,4]\u003e\n\u003cdrops:[i,70,4]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.9 * (a.level ** 2.9))]\u003e\n\u003cdefBuffPlus:[(a.level * 9.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 2880]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[i,38,100]\u003e\n\u003cdrops:[i,38,80]\u003e\n\u003cdrops:[i,38,50]\u003e\n\u003cdrops:[i,38,25]\u003e\n\u003cdrops:[i,38,10]\u003e\n\u003cdrops:[i,36,40]\u003e\n\u003cdrops:[i,36,20]\u003e\n\u003cdrops:[i,62,20]\u003e\n\u003cdrops:[i,63,3]\u003e\n\u003cdrops:[i,60,4]\u003e\n\u003cdrops:[i,64,4]\u003e\n\u003cdrops:[i,66,4]\u003e\n\u003cdrops:[i,68,4]\u003e\n\u003cdrops:[i,70,4]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1598,7 +1598,7 @@
   {
     "id": 26,
     "name": "*Cluster (Deepe)",
-    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.9 * (a.level ** 2.9))]\u003e\n\u003cdefBuffPlus:[(a.level * 9.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[i,40,100]\u003e\n\u003cdrops:[i,40,80]\u003e\n\u003cdrops:[i,40,50]\u003e\n\u003cdrops:[i,40,25]\u003e\n\u003cdrops:[i,40,10]\u003e\n\u003cdrops:[i,38,40]\u003e\n\u003cdrops:[i,38,20]\u003e\n\u003cdrops:[i,60,20]\u003e\n\u003cdrops:[i,61,3]\u003e\n\u003cdrops:[i,62,4]\u003e\n\u003cdrops:[i,64,4]\u003e\n\u003cdrops:[i,66,4]\u003e\n\u003cdrops:[i,68,4]\u003e\n\u003cdrops:[i,70,4]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.9 * (a.level ** 2.9))]\u003e\n\u003cdefBuffPlus:[(a.level * 9.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[i,40,100]\u003e\n\u003cdrops:[i,40,80]\u003e\n\u003cdrops:[i,40,50]\u003e\n\u003cdrops:[i,40,25]\u003e\n\u003cdrops:[i,40,10]\u003e\n\u003cdrops:[i,38,40]\u003e\n\u003cdrops:[i,38,20]\u003e\n\u003cdrops:[i,60,20]\u003e\n\u003cdrops:[i,61,3]\u003e\n\u003cdrops:[i,62,4]\u003e\n\u003cdrops:[i,64,4]\u003e\n\u003cdrops:[i,66,4]\u003e\n\u003cdrops:[i,68,4]\u003e\n\u003cdrops:[i,70,4]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1692,7 +1692,7 @@
   {
     "id": 27,
     "name": "*Lode (Ultanium)",
-    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.9 * (a.level ** 2.9))]\u003e\n\u003cdefBuffPlus:[(a.level * 9.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 7200]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[i,42,100]\u003e\n\u003cdrops:[i,42,80]\u003e\n\u003cdrops:[i,42,50]\u003e\n\u003cdrops:[i,42,25]\u003e\n\u003cdrops:[i,42,10]\u003e\n\u003cdrops:[i,40,40]\u003e\n\u003cdrops:[i,40,20]\u003e\n\u003cdrops:[i,60,10]\u003e\n\u003cdrops:[i,61,5]\u003e\n\u003cdrops:[i,62,10]\u003e\n\u003cdrops:[i,63,5]\u003e\n\u003cdrops:[i,64,10]\u003e\n\u003cdrops:[i,65,5]\u003e\n\u003cdrops:[i,66,10]\u003e\n\u003cdrops:[i,67,5]\u003e\n\u003cdrops:[i,68,10]\u003e\n\u003cdrops:[i,69,5]\u003e\n\u003cdrops:[i,70,10]\u003e\n\u003cdrops:[i,71,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003ctargetFrameText:Explosives can help.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003cmhpBuffPlus:[(1.9 * (a.level ** 2.9))]\u003e\n\u003cdefBuffPlus:[(a.level * 9.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 7200]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,403,33]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[a,404,20]\u003e\n\u003cdrops:[i,42,100]\u003e\n\u003cdrops:[i,42,80]\u003e\n\u003cdrops:[i,42,50]\u003e\n\u003cdrops:[i,42,25]\u003e\n\u003cdrops:[i,42,10]\u003e\n\u003cdrops:[i,40,40]\u003e\n\u003cdrops:[i,40,20]\u003e\n\u003cdrops:[i,60,10]\u003e\n\u003cdrops:[i,61,5]\u003e\n\u003cdrops:[i,62,10]\u003e\n\u003cdrops:[i,63,5]\u003e\n\u003cdrops:[i,64,10]\u003e\n\u003cdrops:[i,65,5]\u003e\n\u003cdrops:[i,66,10]\u003e\n\u003cdrops:[i,67,5]\u003e\n\u003cdrops:[i,68,10]\u003e\n\u003cdrops:[i,69,5]\u003e\n\u003cdrops:[i,70,10]\u003e\n\u003cdrops:[i,71,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1801,7 +1801,7 @@
   {
     "id": 28,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1850,7 +1850,7 @@
   {
     "id": 29,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1899,7 +1899,7 @@
   {
     "id": 30,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -1948,7 +1948,7 @@
   {
     "id": 31,
     "name": "@Spire",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003chideFromMonsterpedia\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cno-rng-passives\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cno-rng-passives\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "Earthspirit",
     "traits": [
       {
@@ -2147,7 +2147,7 @@
   {
     "id": 32,
     "name": "@Suspicious Crack",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires Explosive.\u003e\n\u003ctargetFrameIcon:218\u003e\n\u003chideFromMonsterpedia\u003e\nThis is an enemy designed to be invincible\nexcept for using the tool designed for\ndestroying cracked walls.\n\u003cno-rng-passives\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires Explosive.\u003e\n\u003ctargetFrameIcon:218\u003e\nThis is an enemy designed to be invincible\nexcept for using the tool designed for\ndestroying cracked walls.\n\u003cno-rng-passives\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "Earthspirit",
     "traits": [
       {
@@ -2301,7 +2301,7 @@
   {
     "id": 33,
     "name": "@Durable Post",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[0]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003cgapCloseTarget:hookshot\u003e\n\u003ctargetFrameText:Requires Gap Closer.\u003e\n\u003ctargetFrameIcon:215\u003e\n\u003chideFromMonsterpedia\u003e\nThis is invincible on purpose.\nIt is a post for hookshotting to.\n\u003cno-rng-passives\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[0]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003cgapCloseTarget:hookshot\u003e\n\u003ctargetFrameText:Requires Gap Closer.\u003e\n\u003ctargetFrameIcon:215\u003e\nThis is invincible on purpose.\nIt is a post for hookshotting to.\n\u003cno-rng-passives\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "SF_Mechasphere",
     "traits": [
       {
@@ -2450,7 +2450,7 @@
   {
     "id": 34,
     "name": "@Torch",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[27]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003chideFromMonsterpedia\u003e\nThis is an enemy designed to be invincible\nexcept for using the tool designed for\nlighting torches.\n\u003cno-rng-passives\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[27]\u003e\n\u003cproficiencyGivingBlock\u003e\nThis is an enemy designed to be invincible\nexcept for using the tool designed for\nlighting torches.\n\u003cno-rng-passives\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "Firespirit",
     "traits": [
       {
@@ -2604,7 +2604,7 @@
   {
     "id": 35,
     "name": "=== TBD Tool Target",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003chideFromMonsterpedia\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "Earthspirit",
     "traits": [
       {
@@ -2803,7 +2803,7 @@
   {
     "id": 36,
     "name": "=== TBD Tool Target",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003chideFromMonsterpedia\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "Earthspirit",
     "traits": [
       {
@@ -3002,7 +3002,7 @@
   {
     "id": 37,
     "name": "=== TBD Tool Target",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003chideFromMonsterpedia\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "Earthspirit",
     "traits": [
       {
@@ -3201,7 +3201,7 @@
   {
     "id": 38,
     "name": "=== TBD Tool Target",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003chideFromMonsterpedia\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "Earthspirit",
     "traits": [
       {
@@ -3400,7 +3400,7 @@
   {
     "id": 39,
     "name": "=== TBD Tool Target",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003chideFromMonsterpedia\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "Earthspirit",
     "traits": [
       {
@@ -3599,7 +3599,7 @@
   {
     "id": 40,
     "name": "=== TBD Tool Target",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\n\u003chideFromMonsterpedia\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cstrictElements:[25,26]\u003e\n\u003cproficiencyGivingBlock\u003e\n\u003ctargetFrameText:Requires tools.\u003e\n\u003ctargetFrameIcon:200\u003e\nThis is an enemy designed to be\ninvincible except for using the\n\"x shatter\" tool.\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[a,402,15]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "Earthspirit",
     "traits": [
       {
@@ -3798,7 +3798,7 @@
   {
     "id": 41,
     "name": "*Crumbly Wall",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cno-rng-passives\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cno-rng-passives\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -3852,7 +3852,7 @@
   {
     "id": 42,
     "name": "*Mining Crate",
-    "note": "\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cno-rng-passives\u003e\n\u003cdrops:[a,401,25]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[i,30,15]\u003e\n\u003cdrops:[a,401,5]\u003e\n\u003cdrops:[i,32,5]\u003e\n\u003cdrops:[i,60,5]\u003e\n\u003cdrops:[i,62,5]\u003e\n\u003cdrops:[i,64,5]\u003e\n\u003cdrops:[i,66,5]\u003e\n\u003cdrops:[i,68,5]\u003e\n\u003cdrops:[i,70,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cno-rng-passives\u003e\n\u003cdrops:[a,401,25]\u003e\n\u003cdrops:[a,401,15]\u003e\n\u003cdrops:[i,30,15]\u003e\n\u003cdrops:[a,401,5]\u003e\n\u003cdrops:[i,32,5]\u003e\n\u003cdrops:[i,60,5]\u003e\n\u003cdrops:[i,62,5]\u003e\n\u003cdrops:[i,64,5]\u003e\n\u003cdrops:[i,66,5]\u003e\n\u003cdrops:[i,68,5]\u003e\n\u003cdrops:[i,70,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -3906,7 +3906,7 @@
   {
     "id": 43,
     "name": "=== TBD Destructible",
-    "note": "\u003cknockbackResist:100\u003e\n\u003chideFromMonsterpedia\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -4065,7 +4065,7 @@
   {
     "id": 44,
     "name": "=== TBD Destructible",
-    "note": "\u003cknockbackResist:100\u003e\n\u003chideFromMonsterpedia\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -4224,7 +4224,7 @@
   {
     "id": 45,
     "name": "=== TBD Destructible",
-    "note": "\u003cknockbackResist:100\u003e\n\u003chideFromMonsterpedia\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -4383,7 +4383,7 @@
   {
     "id": 46,
     "name": "=== TBD Destructible",
-    "note": "\u003cknockbackResist:100\u003e\n\u003chideFromMonsterpedia\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -4542,7 +4542,7 @@
   {
     "id": 47,
     "name": "=== TBD Destructible",
-    "note": "\u003cknockbackResist:100\u003e\n\u003chideFromMonsterpedia\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -4701,7 +4701,7 @@
   {
     "id": 48,
     "name": "=== TBD Destructible",
-    "note": "\u003cknockbackResist:100\u003e\n\u003chideFromMonsterpedia\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -4860,7 +4860,7 @@
   {
     "id": 49,
     "name": "=== TBD Destructible",
-    "note": "\u003cknockbackResist:100\u003e\n\u003chideFromMonsterpedia\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5019,7 +5019,7 @@
   {
     "id": 50,
     "name": "=== TBD Destructible",
-    "note": "\u003cknockbackResist:100\u003e\n\u003chideFromMonsterpedia\u003e",
+    "note": "\u003cknockbackResist:100\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5178,7 +5178,7 @@
   {
     "id": 51,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5227,7 +5227,7 @@
   {
     "id": 52,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5276,7 +5276,7 @@
   {
     "id": 53,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5325,7 +5325,7 @@
   {
     "id": 54,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5374,7 +5374,7 @@
   {
     "id": 55,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5423,7 +5423,7 @@
   {
     "id": 56,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5472,7 +5472,7 @@
   {
     "id": 57,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5521,7 +5521,7 @@
   {
     "id": 58,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5570,7 +5570,7 @@
   {
     "id": 59,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5619,7 +5619,7 @@
   {
     "id": 60,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5668,7 +5668,7 @@
   {
     "id": 61,
     "name": "*Grain Stalks",
-    "note": "\u003clevel:5\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,331,50]\u003e\n\u003cdrops:[i,332,30]\u003e\n\u003cdrops:[i,333,15]\u003e\n\u003cdrops:[i,334,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:5\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,331,50]\u003e\n\u003cdrops:[i,332,30]\u003e\n\u003cdrops:[i,333,15]\u003e\n\u003cdrops:[i,334,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5732,7 +5732,7 @@
   {
     "id": 62,
     "name": "*Potato Plant",
-    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,316,50]\u003e\n\u003cdrops:[i,317,30]\u003e\n\u003cdrops:[i,318,15]\u003e\n\u003cdrops:[i,319,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:60\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,316,50]\u003e\n\u003cdrops:[i,317,30]\u003e\n\u003cdrops:[i,318,15]\u003e\n\u003cdrops:[i,319,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5796,7 +5796,7 @@
   {
     "id": 63,
     "name": "*Carrot Plant",
-    "note": "\u003clevel:8\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,291,50]\u003e\n\u003cdrops:[i,292,30]\u003e\n\u003cdrops:[i,293,15]\u003e\n\u003cdrops:[i,294,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:8\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,291,50]\u003e\n\u003cdrops:[i,292,30]\u003e\n\u003cdrops:[i,293,15]\u003e\n\u003cdrops:[i,294,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5860,7 +5860,7 @@
   {
     "id": 64,
     "name": "*Onion Plant",
-    "note": "\u003clevel:8\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,296,50]\u003e\n\u003cdrops:[i,297,30]\u003e\n\u003cdrops:[i,298,15]\u003e\n\u003cdrops:[i,299,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:8\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,296,50]\u003e\n\u003cdrops:[i,297,30]\u003e\n\u003cdrops:[i,298,15]\u003e\n\u003cdrops:[i,299,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5924,7 +5924,7 @@
   {
     "id": 65,
     "name": "*Pepper Bush",
-    "note": "\u003clevel:40\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,251,50]\u003e\n\u003cdrops:[i,252,30]\u003e\n\u003cdrops:[i,253,15]\u003e\n\u003cdrops:[i,254,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:40\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,251,50]\u003e\n\u003cdrops:[i,252,30]\u003e\n\u003cdrops:[i,253,15]\u003e\n\u003cdrops:[i,254,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -5988,7 +5988,7 @@
   {
     "id": 66,
     "name": "*Tomato Vine",
-    "note": "\u003clevel:8\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,256,50]\u003e\n\u003cdrops:[i,257,30]\u003e\n\u003cdrops:[i,258,15]\u003e\n\u003cdrops:[i,259,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:8\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,256,50]\u003e\n\u003cdrops:[i,257,30]\u003e\n\u003cdrops:[i,258,15]\u003e\n\u003cdrops:[i,259,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6052,7 +6052,7 @@
   {
     "id": 67,
     "name": "*Bean Vine",
-    "note": "\u003clevel:25\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,266,25]\u003e\n\u003cdrops:[i,267,25]\u003e\n\u003cdrops:[i,268,25]\u003e\n\u003cdrops:[i,269,25]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:25\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,266,25]\u003e\n\u003cdrops:[i,267,25]\u003e\n\u003cdrops:[i,268,25]\u003e\n\u003cdrops:[i,269,25]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6116,7 +6116,7 @@
   {
     "id": 68,
     "name": "*Sprout Patch",
-    "note": "\u003clevel:25\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,271,50]\u003e\n\u003cdrops:[i,272,30]\u003e\n\u003cdrops:[i,273,15]\u003e\n\u003cdrops:[i,274,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:25\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,271,50]\u003e\n\u003cdrops:[i,272,30]\u003e\n\u003cdrops:[i,273,15]\u003e\n\u003cdrops:[i,274,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6180,7 +6180,7 @@
   {
     "id": 69,
     "name": "*Salad Patch",
-    "note": "\u003clevel:5\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,276,25]\u003e\n\u003cdrops:[i,277,25]\u003e\n\u003cdrops:[i,278,25]\u003e\n\u003cdrops:[i,279,25]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:5\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,276,25]\u003e\n\u003cdrops:[i,277,25]\u003e\n\u003cdrops:[i,278,25]\u003e\n\u003cdrops:[i,279,25]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6244,7 +6244,7 @@
   {
     "id": 70,
     "name": "*Gourd Vine",
-    "note": "\u003clevel:20\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,311,50]\u003e\n\u003cdrops:[i,312,30]\u003e\n\u003cdrops:[i,313,15]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:20\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,311,50]\u003e\n\u003cdrops:[i,312,30]\u003e\n\u003cdrops:[i,313,15]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6308,7 +6308,7 @@
   {
     "id": 71,
     "name": "*Mushroom Cluster",
-    "note": "\u003clevel:7\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,301,50]\u003e\n\u003cdrops:[i,302,30]\u003e\n\u003cdrops:[i,303,15]\u003e\n\u003cdrops:[i,304,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:7\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,301,50]\u003e\n\u003cdrops:[i,302,30]\u003e\n\u003cdrops:[i,303,15]\u003e\n\u003cdrops:[i,304,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6372,7 +6372,7 @@
   {
     "id": 72,
     "name": "*Sugar Cane",
-    "note": "\u003clevel:35\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,391,50]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:35\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,391,50]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6436,7 +6436,7 @@
   {
     "id": 73,
     "name": "*Spice Patch",
-    "note": "\u003clevel:40\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,427,25]\u003e\n\u003cdrops:[i,428,25]\u003e\n\u003cdrops:[i,429,25]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:40\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,427,25]\u003e\n\u003cdrops:[i,428,25]\u003e\n\u003cdrops:[i,429,25]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6500,7 +6500,7 @@
   {
     "id": 74,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6549,7 +6549,7 @@
   {
     "id": 75,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6598,7 +6598,7 @@
   {
     "id": 76,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6647,7 +6647,7 @@
   {
     "id": 77,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6696,7 +6696,7 @@
   {
     "id": 78,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6745,7 +6745,7 @@
   {
     "id": 79,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6794,7 +6794,7 @@
   {
     "id": 80,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6843,7 +6843,7 @@
   {
     "id": 81,
     "name": "*Berry Bush",
-    "note": "\u003clevel:8\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,341,50]\u003e\n\u003cdrops:[i,342,30]\u003e\n\u003cdrops:[i,343,15]\u003e\n\u003cdrops:[i,344,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:8\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,341,50]\u003e\n\u003cdrops:[i,342,30]\u003e\n\u003cdrops:[i,343,15]\u003e\n\u003cdrops:[i,344,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6907,7 +6907,7 @@
   {
     "id": 82,
     "name": "*Palm Tree",
-    "note": "\u003clevel:85\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,346,50]\u003e\n\u003cdrops:[i,347,30]\u003e\n\u003cdrops:[i,348,15]\u003e\n\u003cdrops:[i,349,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:85\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,346,50]\u003e\n\u003cdrops:[i,347,30]\u003e\n\u003cdrops:[i,348,15]\u003e\n\u003cdrops:[i,349,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -6976,7 +6976,7 @@
   {
     "id": 83,
     "name": "*Citrus Tree",
-    "note": "\u003clevel:35\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,351,50]\u003e\n\u003cdrops:[i,352,30]\u003e\n\u003cdrops:[i,353,15]\u003e\n\u003cdrops:[i,354,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:35\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,351,50]\u003e\n\u003cdrops:[i,352,30]\u003e\n\u003cdrops:[i,353,15]\u003e\n\u003cdrops:[i,354,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7045,7 +7045,7 @@
   {
     "id": 84,
     "name": "*Orchard Tree",
-    "note": "\u003clevel:50\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,356,50]\u003e\n\u003cdrops:[i,357,30]\u003e\n\u003cdrops:[i,358,15]\u003e\n\u003cdrops:[i,359,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:50\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,356,50]\u003e\n\u003cdrops:[i,357,30]\u003e\n\u003cdrops:[i,358,15]\u003e\n\u003cdrops:[i,359,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7114,7 +7114,7 @@
   {
     "id": 85,
     "name": "*Melon Vine",
-    "note": "\u003clevel:35\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,361,50]\u003e\n\u003cdrops:[i,362,30]\u003e\n\u003cdrops:[i,363,15]\u003e\n\u003cdrops:[i,364,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:35\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,361,50]\u003e\n\u003cdrops:[i,362,30]\u003e\n\u003cdrops:[i,363,15]\u003e\n\u003cdrops:[i,364,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7178,7 +7178,7 @@
   {
     "id": 86,
     "name": "*Nut Tree",
-    "note": "\u003clevel:12\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,321,50]\u003e\n\u003cdrops:[i,322,30]\u003e\n\u003cdrops:[i,323,15]\u003e\n\u003cdrops:[i,324,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:12\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,321,50]\u003e\n\u003cdrops:[i,322,30]\u003e\n\u003cdrops:[i,323,15]\u003e\n\u003cdrops:[i,324,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7247,7 +7247,7 @@
   {
     "id": 87,
     "name": "*Cacao Tree",
-    "note": "\u003clevel:85\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,401,50]\u003e\n\u003cdrops:[i,402,30]\u003e\n\u003cdrops:[i,403,15]\u003e\n\u003cdrops:[i,404,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:85\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,401,50]\u003e\n\u003cdrops:[i,402,30]\u003e\n\u003cdrops:[i,403,15]\u003e\n\u003cdrops:[i,404,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7316,7 +7316,7 @@
   {
     "id": 88,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7365,7 +7365,7 @@
   {
     "id": 89,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7414,7 +7414,7 @@
   {
     "id": 90,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7463,7 +7463,7 @@
   {
     "id": 91,
     "name": "*Faerie Flower",
-    "note": "\u003clevel:11\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,286,50]\u003e\n\u003cdrops:[i,287,30]\u003e\n\u003cdrops:[i,288,15]\u003e\n\u003cdrops:[i,289,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:11\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 4320]\u003e\n\u003cdrops:[i,286,50]\u003e\n\u003cdrops:[i,287,30]\u003e\n\u003cdrops:[i,288,15]\u003e\n\u003cdrops:[i,289,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7527,7 +7527,7 @@
   {
     "id": 92,
     "name": "*Coral Growth",
-    "note": "\u003clevel:80\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 2880]\u003e\n\u003cdrops:[i,306,50]\u003e\n\u003cdrops:[i,307,30]\u003e\n\u003cdrops:[i,308,15]\u003e\n\u003cdrops:[i,309,5]\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:80\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.4 * (a.level ** 2.5))]\u003e\n\u003cdefBuffPlus:[(a.level * 1)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[game-minutes, 2880]\u003e\n\u003cdrops:[i,306,50]\u003e\n\u003cdrops:[i,307,30]\u003e\n\u003cdrops:[i,308,15]\u003e\n\u003cdrops:[i,309,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7596,7 +7596,7 @@
   {
     "id": 93,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7645,7 +7645,7 @@
   {
     "id": 94,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7694,7 +7694,7 @@
   {
     "id": 95,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7743,7 +7743,7 @@
   {
     "id": 96,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7792,7 +7792,7 @@
   {
     "id": 97,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7841,7 +7841,7 @@
   {
     "id": 98,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7890,7 +7890,7 @@
   {
     "id": 99,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -7939,7 +7939,7 @@
   {
     "id": 100,
     "name": "=== OPEN",
-    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:inanimate\u003e",
+    "note": "\u003clevel:1\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {

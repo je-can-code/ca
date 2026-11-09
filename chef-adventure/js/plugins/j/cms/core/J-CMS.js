@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.1 CMS] A redesign of the main menu.
+ * [v1.2.2 CMS] A redesign of the main menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -132,7 +132,7 @@ var J_CmsMain_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "4.3.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -145,7 +145,7 @@ J.CMS = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS.Metadata = new J_CmsMain_PluginMetadata("J-CMS", "1.2.1");
+J.CMS.Metadata = new J_CmsMain_PluginMetadata("J-CMS", "1.2.2");
 /**
 * The plugin umbrella that governs all extensions of this plugin.
 */
@@ -1472,11 +1472,11 @@ Window_MenuStatus.prototype.headerHeight = function() {
 	return this.lineHeight() * 2;
 };
 /**
-* Draws an actor's map sprite in its neutral standing pose, facing the player.
+* Draws an actor's map sprite in its neutral standing pose, facing the player, enlarged to sit beside
+* the portrait.
 *
-* The engine's own {@link Window_Base.drawCharacter} selects exactly this frame, but blits it at
-* native size, which leaves it dwarfed by the portrait beside it. This exists solely to draw that
-* same frame enlarged.
+* Which frame that is, and how it is blown up without blurring, is J-Base's
+* {@link Window_Base.drawCharacterStanding}; this window only decides how much larger to draw it.
 *
 * Nothing here requests the sheet in advance. The party's own map sprites are necessarily cached by
 * the time a menu can be opened at all, and the scene refreshes this window again on start, which is
@@ -1487,22 +1487,8 @@ Window_MenuStatus.prototype.headerHeight = function() {
 */
 Window_MenuStatus.prototype.drawActorWalkSprite = function(actor, x, y) {
 	const characterName = actor.characterName();
-	const bitmap = ImageManager.loadCharacter(characterName);
-	const isBig = ImageManager.isBigCharacter(characterName);
-	const frameWidth = bitmap.width / (isBig ? 3 : 12);
-	const frameHeight = bitmap.height / (isBig ? 4 : 8);
-	const position = isBig ? 0 : actor.characterIndex();
-	const sourceX = (position % 4 * 3 + 1) * frameWidth;
-	const sourceY = Math.floor(position / 4) * 4 * frameHeight;
-	const scale = this.walkSpriteScale();
-	const drawWidth = frameWidth * scale;
-	const drawHeight = frameHeight * scale;
-	const destinationX = x - Math.floor(drawWidth / 2);
-	const destinationY = y - drawHeight;
-	const { context } = this.contents;
-	context.imageSmoothingEnabled = false;
-	this.contents.blt(bitmap, sourceX, sourceY, frameWidth, frameHeight, destinationX, destinationY, drawWidth, drawHeight);
-	context.imageSmoothingEnabled = true;
+	const characterIndex = actor.characterIndex();
+	this.drawCharacterStanding(characterName, characterIndex, x, y, this.walkSpriteScale());
 };
 /**
 * How much larger than native the map sprite is drawn.

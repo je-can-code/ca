@@ -379,20 +379,21 @@ leaving the gate broken.
 
 ### Still unplaced, and why
 
-Every material whose band falls inside built content is now placed. The remaining five all sit at
-tier 5 and above, and their proposed homes are all **chapter 4 and 5 maps that do not exist yet.**
+Every material whose band falls inside built content is now placed, and Heartwood now stands on Nimbus
+too (Maps 363-368). The remaining four all sit at tier 5 and above, and their proposed homes are chapter
+4 and 5 maps that exist as drafts but do not carry these nodes yet.
 
 | Material | Tier | Band | Proposed home |
 |---|---|---|---|
 | Subwood | 5 | 60-100 | The Subterranean 95-110 |
 | Deepe | 6 | 90-130 | The Subterranean 95-110 |
-| Heartwood | 6 | 90-130 | Nimbus 85-100 |
 | Digiwood | legendary | 125+ | Frozen Fortress 115-130 |
 | Ultanium | legendary | 125+ | Frozen Fortress 115-130 |
 
-This is the same shape as the tier 4-5 monster materials: **the gap is not authoring, it is that the
-back half of the level ladder has no maps.** See [`../maps/progression-bands.md`](../maps/progression-bands.md)
-— built content covers levels 1-70, and everything above that is planned rather than built.
+**The gap is placement, not maps.** The back half of the level ladder has drafted maps since the
+fourth enemy pass, carrying enemy stamps across the Frozen Fortress, the Subterranean, Nimbus and the
+rest of the planned bands in [`../maps/progression-bands.md`](../maps/progression-bands.md). These four
+nodes simply have not been put on them yet.
 
 **Five stale enemy ids surfaced during that sweep and were corrected**, all of them events left
 pointing at ids that used to hold something else before the database was reorganised: four Academy

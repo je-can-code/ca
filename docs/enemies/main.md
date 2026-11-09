@@ -4,37 +4,39 @@
 
 ### Grass
 
-- (0) [1]Grass (Erocian)
-- (0) [2]Grass (Dream)
-- (0) [3]Puff (Earthen)
-- (0) [4]Grass (Grotto)
-- (0) [5]Grass (Airy)
+- [1]*Grass
 
 ### Trees
 
-- (0) [11]Shrub (Oak)
-- (0) [12]Shrub (Dreamwood)
-- (0) [??? 13]Shrub (Negapine)
+- [11]*Sapling (Oak)
+- [12]*Shrub (Dreamwood)
+- [13]*Tree (Negapine)
+- [14]*Snag (Grimwood)
+- [15]*Shrub (Subwood)
+- [16]*Tree (Heartwood)
+- [17]*Branching (Digiwood)
 
 ### Ore
 
-- (0) [21]Deposit (Iron)
-- (0) [22]Deposit (Silver)
-- (0) [23]Deposit (Bleu)
-- (0) [24]Deposit (Sandwraith)
-- (0) [25]Deposit (Bleu / Silver)
+- [21]*Deposit (Iron)
+- [22]*Vein (Silver)
+- [23]*Druse (Bleu)
+- [24]*Outcrop (Sandwraith)
+- [25]*Geode (Engle)
+- [26]*Cluster (Deepe)
+- [27]*Lode (Ultanium)
 
 ### Tool Targets
 
-- (0) [31]Spire (for banjo)
-- (0) [32]Suspicious Crack (for bombs)
-- (0) [33]Durable Post (for snakerope)
-- (0) [34]Torch (for ruby rod)
+- [31]@Spire
+- [32]@Suspicious Crack
+- [33]@Durable Post
+- [34]@Torch
 
 ### Other
 
-- (0) [41]Crumbly Wall (in the mansion)
-- (0) [42]Crate (in the mines)
+- [41]*Crumbly Wall
+- [42]*Mining Crate
 
 ---
 
@@ -44,18 +46,23 @@
 
 Ghosts are typically "careful" and tend to be a bit more defensive in stats.
 
-- (4)  [101]Ghosty
-- (3)  [102]Ghostie
-- (5)  [103]!Ghastly Ghosty
-- (26) [104]Spooky
-- (52) [105]Tsukumogami
+- [101]Ghosty
+- [102]Creepy
+- [103]Spooky
+- [104]Haunty
+- [105]Reapy
+- [110]!Ghastly Ghosty
 
 ### Reborn
 
 Reborn typically seek out weaknesses with their "executor" trait, and lean into offensive sorcery-based attacks.
 
-- (10) [111]Wraith
-- (15) [112]!Spoop Maestro
+- [111]Wraith
+- [112]Felmist
+- [113]Grimshroud
+- [114]Dreadcowl
+- [115]Revenant
+- [120]!Spoop Maestro
 
 ### Wisp
 
@@ -63,9 +70,12 @@ Since Wisps are basically intangible spiritual entities, their are heavily sorce
 not fast by any stretch of the imagination. Due to the fact that they are primal spirits, they tend to "recklessly"
 spam thier abilities without constraint.
 
-- (8)  [121]Will 'o' Wisp
-- (26) [122]!Blistering Blaze
-- (49) [123]Onryo
+- [121]Will 'o' Wisp
+- [122]Onryo
+- [123]Hitodama
+- [124]Onibi
+- [125]Wanyudo
+- [130]!Blistering Blaze
 
 ### Skelly
 
@@ -76,15 +86,23 @@ The leader skeletons were probably intelligent at one point so they tend to "exe
 The doggos can't do any tricks if they have no leader, but have some vicious moves that their leader will command them
 to execute if letting them stay together.
 
-- (22) [131]Skeletor
-- (20) [132]Skeledoggo
+- [131]Skeletor
+- [132]Skeledoggo
+- [133]Skeleknight
+- [134]Skelemare
+- [135]Skeleking
+- [140]!Draugr
 
 ### Armor (Rust Bucket)
 
 Haunted armor — tsukumogami vibes. Absurd defense, paper HP, otherwise dull until you respect the plating.
 
-- (10) [141]Rust Bucket
-- (15) [142]!Haunted Cuirass
+- [141]Rust Bucket
+- [142]Tsukumogami
+- [143]Ochimusha
+- [144]Daimyo
+- [145]Shogun
+- [150]!Benkei
 
 ---
 
@@ -101,30 +119,51 @@ which can lead to unexpected death.
 Lamias tend to play it safe and careful, leveraging magic when possible and doing
 damage from afar, using their intellect to lead allies to execute dangerous plans.
 
-- (24) [151]Prince Cobra
-- (30) [152]!Vice Cobra
-- (37) [153]Lamia
-- (51) [154]Asp
+- [151]Prince Cobra
+- [152]Asp
+- [153]King Cobra
+- [154]Uraeus
+- [155]Apophis
+- [160]!Vice Cobra
 
 ### Dragon
 
 Dragons have always boasted high raw stats across the board, and they are no exception in this game. They also often
 are paired with a high level of recklessness due to their ego.
 
-- (34) [161]Lesser Dargin
-- (64) [162]Chill Dargin
+- [161]Lesser Dargin
+- [162]Chill Dargin
+- [163]Blast Dargin
+- [164]Greater Dargin
+- [165]Wicked Dargin
+- [170]!Fafnir
 
 ### Draconian
 
-- (??) [??]Draco Knight
+- [171]Draconite
+- [172]Draco Knight
+- [173]Dracomancer
+- [174]Draco Lord
+- [175]Draconarch
+- [180]!Lizard King
 
 ### Hydra
 
-- (??) [??]Trydra
+- [181]Lamia
+- [182]Melusine
+- [183]Naga
+- [184]Drakaina
+- [185]Echidna
+- [190]!Stheno
 
 ### Lizard
 
-- (??) [??]Salamander
+- [191]Glizard
+- [192]Salamander
+- [193]Komodo
+- [194]Basilisk
+- [195]Tarasque
+- [200]!T-Wrecks
 
 ---
 
@@ -132,58 +171,97 @@ are paired with a high level of recklessness due to their ego.
 
 ### Kappa
 
-- (8)  [201]Kappa
-- (10) [202]!Kapn' Kappa
-- (32) [202]Komusubi
-- (36) [203]Sekiwake
+- [201]Kappa
+- [202]Komusubi
+- [203]Sekiwake
+- [204]Ozeki
+- [205]Yokozuna
+- [210]!Kapn' Kappa
 
 ### Amphibian
 
-- (31) [211]Froggo
+- [211]Polliwog
+- [212]Spitting Frog
+- [213]Bullfrog
+- [214]Gigantoad
+- [215]Toadzilla
+- [220]!Heqet
 
 ### Crustacean
 
-- (42) [221]Crimson Vice
-- (55) [222]!Clawdius
+- [221]Crimson Vice
+- [222]Fiddler
+- [223]Ghostcrab
+- [224]Kanibozu
+- [225]Karkinos
+- [230]!Clawdius
 
 ### Fish
 
-- (??) [??]Pirahna
+- [231]Swordine
+- [232]Sabrefin
+- [233]Halberdine
+- [234]Claymoray
+- [235]Excalibass
+- [240]!Sharkatana
 
 ---
 
 ### Cephalopod
 
-- (??) [??]Octopus
+- [241]Octolady
+- [242]Octoduchess
+- [243]Octoqueen
+- [244]Octempress
+- [245]Octopocalypso
+- [250]!Octimperatrix
 
 ## Slime (5)
 
 ### Glob
 
-- (3)  [251]#Erocian Slime
-- (6)  [252]Erocian Slimette
-- (22) [253]#Pudding
-- (30) [254]Flan
-- (35) [255]Phasing Globby
-- (40) [256]Living Lava
+- [251]Hard Syrup
+- [252]Wet Mousse
+- [253]Sandy Pudding
+- [254]Blinking Custard
+- [255]Molten Souffle
+- [260]!Godless Glaze
 
 ### Tentacled
 
-- (28) [261]Roper
+- [261]Roper
+- [262]Whipper
+- [263]Tickler
+- [264]Shibari
+- [265]Dominatrix
+- [270]!Safeword
 
 ### Jel
 
-- (12) [271]Jelly
-- (55) [272]Jelliton
+- [271]Jelly
+- [272]Jelliton
+- [273]Jellossus
+- [274]Jelliath
+- [275]Jellygeddon
+- [280]!Jellyviathan
 
 ### Aerial
 
-- (19) [281]Goobat
-- (35) [282]!Magi Goobat
+- [281]Goo Bat
+- [282]Fledgoo
+- [283]Goopire
+- [284]Nosferagoo
+- [285]Dragoola
+- [290]!Magi Goo Bat
 
 ### Cube
 
-- (??) [??]Mortal Cube
+- [291]Living Box
+- [292]Stagnant Square
+- [293]Mortal Cube
+- [294]Fatal Slab
+- [295]Immortal Monolith
+- [300]!Tesseract
 
 ---
 
@@ -191,141 +269,242 @@ are paired with a high level of recklessness due to their ego.
 
 ### Traps
 
-- (5)  [301]Wolftrap
-- (23) [302]Mantrap
+- [301]Wolftrap
+- [302]Mantrap
+- [303]Beartrap
+- [304]Giantrap
+- [305]Dragontrap
+- [310]!Venus
 
 ### Fungus
 
-- (10) [311]Fungrowth
-- (64) [312]Ghastroom
+- [311]Fungrowth
+- [312]Ghastroom
+- [313]Mushroomancer
+- [314]Mycelich
+- [315]Fungod
+- [320]!Holy Shiitake
 
 ### Fae
 
-- (11) [321]Dryad
-- (20) [322]!Queen of Stone
-- (61) [323]Mimi
+- [321]Dryad
+- [322]Mimi
+- [323]Unseelie
+- [324]Maenad
+- [325]Fata Morgana
+- [330]!Queen of Stone
 
 ### Treant
 
-- (??) [??]Treant
+- [331]Treant
+- [332]Barkbarian
+- [333]Twiggernaut
+- [334]Tree Rex
+- [335]Leafiathan
+- [340]!Yggdrasil
 
 ### Flower
 
-- (??) [??]Seedspitter
+- [341]Seedspitter
+- [342]Foxglove
+- [343]Nightshade
+- [344]Hemlock
+- [345]Wolfsbane
+- [350]!Mistletoe
 
 ## Beast (5)
 
 ### Hybrid
 
-- (6) [351]Bearcat
-- (23) [352]Stonefur
-- (56) [353]Grimfang
-- (65) [360]!Bjarki
+- [351]Bearcat
+- [352]Stonefur
+- [353]Grimfang
+- [354]Doomclaw
+- [355]Deathmane
+- [360]!Bjarki
 
 ### Winger
 
-- (6)  [361]Cave Bat
-- (39) [362]Redeye
-- (65) [366]Doom Harbinger (the Vampire King's self-summoning add, not a tier)
+- [361]Cave Bat
+- [362]Redeye
+- [363]Evil Eye
+- [364]Ahriman
+- [365]Balor
+- [366]Doom Harbinger (the Vampire King's self-summoning add, not a tier)
+- [370]!Odin's Eye
 
 ### Beaks
-- (70) [373]Garuda (the Lord of the Peaks boss)
+- [371]Chickadee
+- [372]Hensquatch
+- [373]Garuda (the Lord of the Peaks boss)
+- [374]Ziz
+- [375]Hraesvelgr
+- [380]!Huginn
 
 ### Rodent
 
-- (32) [381]Rot Rat
+- [381]Rot Rat
+- [382]Plague Rat
+- [383]Ratbomination
+- [384]Rat King
+- [385]Ratnarok
+- [390]!Ratatoskr
 
 ---
 
 ### Quadraped
 
-- (??) [??]Wolfe
+- [391]Wolfe
+- [392]Hati
+- [393]Skoll
+- [394]Garm
+- [395]Fenrir
+- [400]!Big Bad
 
 ## Insect (5)
 
 ### Hivemind
 
-- (3) [401]Needler
-- (25) [402]Penetrator
-- (65) [403]Driller
+- [401]Needler
+- [402]Penetrator
+- [403]Driller
+- [404]Impaler
+- [405]Hivemind
+- [410]!Buzzkill
 
 ### Worm
 
-- (17) [411]Crawler
-- (43) [412]Magma Worm
-- (64) [413]Wriggle Worm
+- [411]Crawler
+- [412]Magma Worm
+- [413]Wriggle Worm
+- [414]Glowurm
+- [415]Wyrm
+- [420]!Nidhogg
 
 ---
 
 ### Lonewolf
 
-- (??) [??]Spider
+- [421]Brood
+- [422]Recluse
+- [423]Widow
+- [424]Ushi-oni
+- [425]Tsuchigumo
+- [430]!Well-diver
 
 ### Jumper
 
-- (??) [??]Rockhopper
+- [431]Scorplite
+- [432]Deathstalker
+- [433]Mankiller
+- [434]Girtablilu
+- [435]Antares
+- [440]!KILLER
 
 ### Parasite
 
-- (??) [??]Controller
+- [441]Parasite
+- [442]Whisperer
+- [443]Tempter
+- [444]Possessor
+- [445]Dybbuk
+- [450]!Freeloader
 
 ## Humanoid (5)
 
 ### Bull
 
-- (10) [!!! 22]Minitaur
-- (25) [452]Megataur
+- [451]Minitaur
+- [452]Megataur
+- [453]Gigataur
+- [454]Terataur
+- [455]Yottataur
+- [460]!Asterion
 
 ### Orcan
 
-- (9)  [461]Orcling
-- (40) [462]Chonky Orc
-- (41) [463]Beefcorc
-- (62) [464]Mountain Orc
-- (??) [465]Absolorc
-- (45) [470]!Forcman (runs the Pearlsalt mines)
+- [461]Orcling
+- [462]Chonky Orc
+- [463]Beefcorc
+- [464]Mountain Orc
+- [465]Absolorc
+- [470]!Forcman (runs the Pearlsalt mines)
 
 ### Thief
 
-- (12) [471]Bandit
-- (38) [472]Outlaw
-- (45) [473]!Wanted Criminal
-- (82) [476]Mercenary
+- [471]Bandit
+- [472]Outlaw
+- [473]Mercenary
+- [474]Cutthroat
+- [475]Kingpin
+- [480]!Wanted Criminal
 
 ### Walker
 
-- (??) [??]Yeti
+- [481]Cyclops
+- [482]Troll
+- [483]Yeti
+- [484]Jotun
+- [485]Surtr
+- [490]!Polyphemus
 
 ### Clan
 
-- (??) [??]Goblin
+- [491]Kobold
+- [492]Knocker
+- [493]Redcap
+- [494]Bugbear
+- [495]Goblin King
+- [500]!Puck
 
 ## Construct (4/5)
 
 ### Golem
 
-- (69) [502]Talos (the Volcanis lane guards)
-- (69) [504]Titan (the Deluge giant)
+- [501]Golem
+- [502]Talos (the Volcanis lane guards)
+- [503]Colossus
+- [504]Titan (the Deluge giant)
+- [505]Atlas
+- [510]!Prometheus
 
 ### Hazard
 
-- (0) [??? 13]Fire Trap
-- (0) [512]Lava Trap (not used?)
-- (0) [513]Zap trap
+- [511]Ignihazard
+- [512]Liquihazard
+- [513]Zaphazard
+- [514]Terrahazard
+- [515]Eclipsehazard
+- [520]!Disastrophe
 
 ---
 
 ### Robot
 
-- (??) [??]Borg
+- [521]Bot
+- [522]Terminal
+- [523]Mainframe
+- [524]Supercomputer
+- [525]Singularity
+- [530]!Segfault
 
 ### Homunculus
 
-- (??) [??]Shell
+- [531]Puppet
+- [532]Nutcracker
+- [533]Mannequin
+- [534]Homunculus
+- [535]Pandora
+- [540]!Magnum Opus
 
 ### Mimic
 
-- (??) [??]Faker
+- [541]Runic Orb
+- [542]Ward
+- [543]Bulwark
+- [544]Bastion
+- [545]Aegis
+- [550]!Failsafe
 
 ## Deity (551–600)
 
@@ -340,13 +519,21 @@ Five subgroup slots. Mastery skill/state ID = enemy ID + 1000. See [Deity family
 
 ### 2 — Aspect (561–570)
 
-- (15) [561]Emotion
-- (??) [562–570]TBD Aspect
+- [561]Emotion
+- [562]Joy
+- [563]Bliss
+- [564]Euphoria
+- [565]Rapture
+- [570]!Nirvana
 
 ### 3 — Sovereign (571–580)
 
-- (??) [571]Kaiju (rename TBD)
-- (??) [572–580]TBD Sovereign
+- [571]Pegasus
+- [572]Alicorn
+- [573]Nightmare
+- [574]Pale Horse
+- [575]Morningstar
+- [580]!Beelzebuck
 
 ### 4 — Sin bosses (581–590)
 

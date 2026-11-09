@@ -1,0 +1,16 @@
+{
+  "monsterTypes": [
+    {
+      "key": "enemy",
+      "name": "Monsterpedia",
+      "iconIndex": 14,
+      "showsStats": true
+    },
+    {
+      "key": "destructible",
+      "name": "Destructapedia",
+      "iconIndex": 216,
+      "showsStats": false
+    }
+  ]
+}
