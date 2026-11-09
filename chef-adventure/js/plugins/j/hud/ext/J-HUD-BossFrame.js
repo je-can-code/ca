@@ -129,6 +129,21 @@ var BossFrameManager = class {
 		this.setBossFrame(bossTarget);
 	}
 	/**
+	* Sets the current boss to the primary body of the running boss encounter.<br/>
+	* This is how a boss that J-ABS-Boss spawned gets its frame. A spawned body's event id is only
+	* decided at the moment it appears, so there is no id anyone could have handed over ahead of time
+	* the way {@link setBossByEventId} expects.
+	*/
+	static setBossFromEncounter() {
+		const bossJabsBattler = this.#findEncounterBoss();
+		if (!bossJabsBattler) {
+			Diagnostics.error("J-HUD-BossFrame", "could not create a boss from the running boss encounter.");
+			throw new Error("Failed to create boss for boss frame.");
+		}
+		const bossTarget = this.#createBossFrameFromJabsBattler(bossJabsBattler);
+		this.setBossFrame(bossTarget);
+	}
+	/**
 	* Get the {@link Game_Battler} associated with this boss.
 	* @returns {Game_Battler|null}
 	*/
@@ -296,6 +311,23 @@ var BossFrameManager = class {
 			throw new Error("Failed to create boss for boss frame.");
 		}
 		const bossJabsBattler = $gameMap.event(eventId).getJabsBattler();
+		return this.#createBossFrameFromJabsBattler(bossJabsBattler);
+	}
+	/**
+	* Finds the primary body of the running boss encounter, if there is one to find.
+	* @returns {JABS_Battler|null} The boss's battler, or null when there is no fight to ask.
+	*/
+	static #findEncounterBoss() {
+		const bossManager = globalThis.JabsBossManager;
+		if (!bossManager) return null;
+		return bossManager.getBossJabsBattler();
+	}
+	/**
+	* Creates a {@link FramedTarget} for the given boss battler.
+	* @param {JABS_Battler} bossJabsBattler The boss to frame.
+	* @returns {FramedTarget}
+	*/
+	static #createBossFrameFromJabsBattler(bossJabsBattler) {
 		const bossBattler = bossJabsBattler.getBattler();
 		const framedTargetConfiguration = new FramedTargetConfiguration();
 		const framedTarget = new FramedTarget(bossBattler.name(), String.empty, 14, bossBattler, framedTargetConfiguration);

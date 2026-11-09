@@ -46,6 +46,7 @@ pass.
 | `classes/`, `enemies/`, `weapons/`, `food/`, `quests/`, `maps/`, `walk/`, `unlockables/`, `tutorials/` | Per-system design |
 | `nodes/`, `sdp/` | The stat distribution system — see terminology below |
 | `todo.md` | Running work list |
+| `content-complete.md` | Everything left before content complete, as checkboxes. `bun tools/burndown.js` counts it |
 
 ## Terminology that matters
 
@@ -180,6 +181,37 @@ resolves against the wrong table, is fixed upstream in `rmmz-plugins/src/build-t
 `bun run validate:selftest` plants each kind of bug in memory - a drop aimed at a blank armor, a
 typo'd `<sght:5>`, a stray plugin file - and fails unless every one is caught. Run it if a green
 result ever seems too good to be true.
+
+---
+
+## Playing the game
+
+**`bun run playtest` boots a frozen copy of the game on a hidden display and lets a scripted bot play it**
+from a real New Game, through real button presses, until it reaches the Crossroads, gets stuck, dies three
+times or crashes the game. Each of those is an outcome rather than a failure of the tool: stuck is a bug
+report. Everything lands in the gitignored `dist/playtest/<stamp>/`: `journal.log`, `report.json`,
+`shots/`, and `film.mp4`.
+
+| Flag | What it does |
+|---|---|
+| `--fresh` | Copy the live game again first. Without it a run plays the last copy, so results stay comparable |
+| `--speed 8` | Run that many times faster, with no film. Only as fast as the frames can be computed |
+| `--story` | Take the story branch of every choice instead of skipping |
+| `--reflexes sloppy` | How it plays: `sharp` reacts in 18 frames and pokes from the tip of its reach (default), `sloppy` reacts in 18 to 48 and hugs its target, `statue` never reacts and hugs too |
+| `--no-film` | Skip the recording at real speed |
+| `--minutes 5` | Stop after this much real time, default 30 |
+
+It runs without the `test` flag, muted, on a private display, and never touches the live project. Icon
+sprites come out as black squares on film, because the software renderer caps textures below the height of
+`IconSet.png`; a real graphics card draws them fine. The bot reads game state rather than pixels, so it cannot tell whether anything looks right, and it knows only
+what `tools/playtest/agent/` teaches it: it walks to every event and door, fights what is near, and hunts
+what is left when nothing else moves. It walks out of the same telegraphs and shots a player can see, presses
+the dodge button only when walking won't get there in time and the party has one equipped, and `report.json`
+scores every attack under `reflexes`: how often it threatened the
+character, how often it landed, and `whileClear`, the hits that landed while the bot could see it was out of
+the way. Those are the ones to read: each is an unavoidable attack, a telegraph telling a lie, or the bot
+missing by a frame, and the screenshot it takes on the spot settles which.
+Anything the game logs through `Diagnostics` lands in the report.
 
 ---
 

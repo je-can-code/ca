@@ -109,8 +109,8 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Grudj: the arsenal, blinks, beams, spirals, zap traps, quakes and void zones
 - [ ] Grudj: the desperation cooldown reduction
 - [ ] Grudj: the Treis gate, the baton's zap and the paralysis that never lands
-- [ ] Earthie: design the fight, since all four elementals get fought
-- [ ] Earthie: build the fight
+- [x] Earthie: design the fight, since all four elementals get fought
+- [x] Earthie: build the fight
 - [ ] The sin panels drop from the right fights, with their real parameters
 
 ## Holding the story together

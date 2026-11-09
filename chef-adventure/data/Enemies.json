@@ -43811,7 +43811,7 @@
       {
         "code": 23,
         "dataId": 6,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 22,
@@ -43831,17 +43831,17 @@
       {
         "code": 11,
         "dataId": 1,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 2,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 3,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 14,
@@ -43968,7 +43968,7 @@
       {
         "code": 23,
         "dataId": 6,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 22,
@@ -43988,17 +43988,17 @@
       {
         "code": 11,
         "dataId": 1,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 2,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 3,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 14,
@@ -44132,7 +44132,7 @@
       {
         "code": 23,
         "dataId": 6,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 22,
@@ -44152,17 +44152,17 @@
       {
         "code": 11,
         "dataId": 1,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 2,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 3,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 14,
@@ -44303,7 +44303,7 @@
       {
         "code": 23,
         "dataId": 6,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 22,
@@ -44323,17 +44323,17 @@
       {
         "code": 11,
         "dataId": 1,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 2,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 3,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 14,
@@ -44481,7 +44481,7 @@
       {
         "code": 23,
         "dataId": 6,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 22,
@@ -44501,17 +44501,17 @@
       {
         "code": 11,
         "dataId": 1,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 2,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 3,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 14,
@@ -44818,7 +44818,7 @@
       {
         "code": 23,
         "dataId": 6,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 22,
@@ -44838,17 +44838,17 @@
       {
         "code": 11,
         "dataId": 1,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 2,
-        "value": 0.5
+        "value": 0.25
       },
       {
         "code": 11,
         "dataId": 3,
-        "value": 0
+        "value": 0.25
       },
       {
         "code": 14,
@@ -48847,8 +48847,8 @@
   },
   {
     "id": 551,
-    "name": "TBD Earthie ",
-    "note": "\u003clevel:30\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 51.65]\u003e\n\u003catkBuffPlus:[(a.level * 6.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 4.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 2.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 2.75)]\u003e\n\u003cabsorbElements:[7]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003chideTargetFrame\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1)]\u003e\n\u003csdpPoints:3\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_1,1]\u003e\n\u003caiTrait:executor\u003e",
+    "name": "Earthie",
+    "note": "\u003clevel:30\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 14.69]\u003e\n\u003catkBuffPlus:[(a.level * 6.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 4.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 2.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 2.75)]\u003e\n\u003cabsorbElements:[7]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003chideTargetFrame\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1)]\u003e\n\u003csdpPoints:3\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_1,1]\u003e\n\u003caiTrait:executor\u003e",
     "battlerName": "Earthspirit",
     "traits": [
       {
@@ -48962,7 +48962,7 @@
   {
     "id": 552,
     "name": "Aqualock",
-    "note": "\u003clevel:30\u003e\n\u003cpassive:[322]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 37.16]\u003e\n\u003catkBuffPlus:[(a.level * 2.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 3.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 7.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 4.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 4.75)]\u003e\n\u003clukBuffPlus:[(a.level * 3.25)]\u003e\n\u003cabsorbElements:[5]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003chideTargetFrame\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_2,1]\u003e\n\u003caiTrait:executor\u003e",
+    "note": "\u003clevel:30\u003e\n\u003cpassive:[322]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 83]\u003e\n\u003catkBuffPlus:[(a.level * 2.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 3.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 7.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 4.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 4.75)]\u003e\n\u003clukBuffPlus:[(a.level * 3.25)]\u003e\n\u003cabsorbElements:[5]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003chideTargetFrame\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_2,1]\u003e\n\u003caiTrait:executor\u003e",
     "battlerName": "Waterspirit",
     "traits": [
       {
@@ -49036,7 +49036,22 @@
         "value": 0
       }
     ],
-    "actions": [],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2555
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2556
+      }
+    ],
     "battlerHue": 0,
     "dropItems": [
       {
@@ -49071,7 +49086,7 @@
   {
     "id": 553,
     "name": "Cynder",
-    "note": "\u003clevel:45\u003e\n\u003cpassive:[323]\u003e\n\u003cabsorbElements:[4]\u003e\n\u003cmtpBuffPlus:[1500]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 34.68]\u003e\n\u003catkBuffPlus:[(a.level * 7.5)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 3.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 5.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1)]\u003e\n\u003chideTargetFrame\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003cdescriptionLine:A fire elemental.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_3,1]\u003e\n\u003caiTrait:executor\u003e\n\u003csight:8\u003e\n\u003cpursuit:9\u003e\n\u003calertDuration:180\u003e\n\u003calertedSightBoost:10\u003e\n\u003calertedPursuitBoost:10\u003e\n\u003cjabsConfig:noIdle\u003e",
+    "note": "\u003clevel:45\u003e\n\u003cpassive:[323]\u003e\n\u003cabsorbElements:[4]\u003e\n\u003cmtpBuffPlus:[1500]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 249]\u003e\n\u003catkBuffPlus:[(a.level * 7.5)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 3.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 5.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1)]\u003e\n\u003chideTargetFrame\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003cdescriptionLine:A fire elemental.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_3,1]\u003e\n\u003caiTrait:executor\u003e\n\u003csight:8\u003e\n\u003cpursuit:9\u003e\n\u003calertDuration:180\u003e\n\u003calertedSightBoost:10\u003e\n\u003calertedPursuitBoost:10\u003e\n\u003cjabsConfig:noIdle\u003e",
     "battlerName": "Firespirit",
     "traits": [
       {
@@ -49092,11 +49107,6 @@
       {
         "code": 32,
         "dataId": 9,
-        "value": 0.5
-      },
-      {
-        "code": 32,
-        "dataId": 80,
         "value": 0.5
       },
       {
@@ -49150,7 +49160,22 @@
         "value": 0
       }
     ],
-    "actions": [],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2553
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2557
+      }
+    ],
     "battlerHue": 360,
     "dropItems": [
       {
@@ -49185,7 +49210,7 @@
   {
     "id": 554,
     "name": "Skye",
-    "note": "\u003clevel:70\u003e\n\u003cpassive:[324]\u003e\n\u003cabsorbElements:[6]\u003e\n\u003cmtpBuffPlus:[2000]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 26.17]\u003e\n\u003catkBuffPlus:[(a.level * 4.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 3.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 2.75)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 9.5)]\u003e\n\u003clukBuffPlus:[(a.level * 2.75)]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.33)]\u003e\n\u003csdpPoints:21\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_4,1]\u003e\n\u003caiTrait:executor\u003e\n\u003csight:8\u003e\n\u003cpursuit:9\u003e\n\u003calertDuration:1200\u003e\n\u003calertedSightBoost:99\u003e\n\u003calertedPursuitBoost:99\u003e\n\u003cjabsConfig:noIdle\u003e",
+    "note": "\u003clevel:70\u003e\n\u003cpassive:[324]\u003e\n\u003cabsorbElements:[6]\u003e\n\u003cmtpBuffPlus:[2000]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 26.17]\u003e\n\u003catkBuffPlus:[(a.level * 4.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 3.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 2.75)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 9.5)]\u003e\n\u003clukBuffPlus:[(a.level * 2.75)]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.33)]\u003e\n\u003csdpPoints:21\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_4,1]\u003e\n\u003caiTrait:executor\u003e\n\u003csight:8\u003e\n\u003cpursuit:9\u003e\n\u003calertDuration:1200\u003e\n\u003calertedSightBoost:99\u003e\n\u003calertedPursuitBoost:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cknockbackResist:100\u003e",
     "battlerName": "Windspirit",
     "traits": [
       {
@@ -51816,7 +51841,7 @@
   {
     "id": 582,
     "name": "Vampire King",
-    "note": "\u003clevel:70\u003e\n\u003cpassive:[322]\u003e\n\u003cretaliate:[276,25]\u003e\n\u003cmrgBuffPlus:[4000]\u003e\n\u003catkBuffPlus:[(a.level * 3.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 9)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7)]\u003e\n\u003cagiBuffPlus:[(a.level * 5.25)]\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e\n\u003cmonsterFamilyIcon:48\u003e\n\u003cdescriptionLine:The vampire form of the random guy who presumably caused the Erocian Kingdom to fall.\u003e\n\u003cdescriptionLine:You don't know much about him because you decided to slay him before you made him spill the beans.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_2,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e",
+    "note": "\u003clevel:70\u003e\n\u003cpassive:[322]\u003e\n\u003cretaliate:[276,25]\u003e\n\u003cmrgBuffPlus:[4000]\u003e\n\u003catkBuffPlus:[(a.level * 3.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 9)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7)]\u003e\n\u003cagiBuffPlus:[(a.level * 5.25)]\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e\n\u003cmonsterFamilyIcon:48\u003e\n\u003cdescriptionLine:The vampire form of the random guy who presumably caused the Erocian Kingdom to fall.\u003e\n\u003cdescriptionLine:You don't know much about him because you decided to slay him before you made him spill the beans.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_2,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e",
     "battlerName": "Vampire",
     "traits": [
       {

@@ -540,5 +540,10 @@ null,
 {"id":538,"expanded":false,"name":"Puppet Oasis","order":538,"parentId":494,"scrollX":1101,"scrollY":701.5},
 {"id":539,"expanded":false,"name":"Runic Orb Oasis","order":539,"parentId":494,"scrollX":1101,"scrollY":701.5},
 {"id":540,"expanded":false,"name":"Emotion Oasis","order":540,"parentId":494,"scrollX":1101,"scrollY":701.5},
-{"id":541,"expanded":false,"name":"Pegasus Oasis","order":541,"parentId":494,"scrollX":1101,"scrollY":701.5}
+{"id":541,"expanded":false,"name":"Pegasus Oasis","order":541,"parentId":494,"scrollX":1101,"scrollY":701.5},
+{"id":542,"expanded":false,"name":"TESTING: Boss Halls","order":542,"parentId":1,"scrollX":1101,"scrollY":701.5},
+{"id":543,"expanded":false,"name":"Gluttonwolf Hall","order":543,"parentId":542,"scrollX":1101,"scrollY":701.5},
+{"id":544,"expanded":false,"name":"Earthie Hall","order":544,"parentId":542,"scrollX":1101,"scrollY":701.5},
+{"id":545,"expanded":false,"name":"Aqualock Hall","order":545,"parentId":542,"scrollX":1101,"scrollY":701.5},
+{"id":546,"expanded":false,"name":"Cynder Hall","order":546,"parentId":542,"scrollX":1101,"scrollY":701.5}
 ]

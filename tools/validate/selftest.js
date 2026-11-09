@@ -247,6 +247,73 @@ const buildControls = project =>
     return withConfig(project, 'crafting', { ...crafting, recipes });
   };
 
+  // the boss controls work the first encounter's first body: its clone map template taken away, and
+  // the body moved one tile past its arena's far edge and then onto the arena's last tile.
+  const jabsConfig = project.configs.get('jabs');
+  const [ encounter ] = jabsConfig.bosses;
+  const [ body ] = encounter.participants;
+  const arena = project.maps.get(encounter.map);
+  const moveBody = (x, y) =>
+  {
+    const participants = encounter.participants.map(participant => participant === body ? { ...body, x, y } : participant);
+    const bosses = jabsConfig.bosses.map(entry => entry === encounter ? { ...encounter, participants } : entry);
+
+    return withConfig(project, 'jabs', { ...jabsConfig, bosses });
+  };
+  const withoutTemplate = templateId =>
+  {
+    const cloneMap = project.maps.get(project.enemyMapId);
+    const maps = new Map(project.maps);
+    maps.set(project.enemyMapId, { ...cloneMap, events: cloneMap.events.map((event, id) => id === templateId ? null : event) });
+
+    return { ...project, maps };
+  };
+
+  // the near miss takes away a template the body does not spawn from: its neighbour's.
+  const neighbourTemplateId = body.enemyId - 1;
+
+  // the defeat switch controls re-aim that same encounter's switch: one past the last switch the game
+  // has, then onto that last switch, then onto zero, which turns no switch on at all.
+  const lastSwitchId = tables.System.switches.length - 1;
+  const withDefeatSwitch = defeatSwitch =>
+  {
+    const bosses = jabsConfig.bosses.map(entry => entry === encounter ? { ...encounter, defeatSwitch } : entry);
+
+    return withConfig(project, 'jabs', { ...jabsConfig, bosses });
+  };
+
+  // the reaction and step controls give that same encounter one planted change at a time.
+  const withEncounter = patch =>
+  {
+    const bosses = jabsConfig.bosses.map(entry => entry === encounter ? { ...encounter, ...patch } : entry);
+
+    return withConfig(project, 'jabs', { ...jabsConfig, bosses });
+  };
+  const withReaction = reaction => withEncounter({ reactions: [ reaction ] });
+  const reactionTo = (on, participants, steps = []) => ({ key: 'planted', on, participants, steps });
+  const [ routine ] = encounter.routines;
+  const blankStateId = findBlankRowId(tables.States);
+  const realStateId = findRealRowId(tables.States);
+  const stateStep = state => ({ verb: 'addState', participant: body.key, state, expect: '' });
+  const imageStep = image => ({ verb: 'changeImage', participant: body.key, image, index: 0 });
+
+  // the template controls dress the body from another clone map event: one that is somebody else, then
+  // its own slot named outright.
+  const otherTemplateId = project.maps.get(project.enemyMapId).events
+    .findIndex((event, id) => event && id !== body.enemyId && event.pages.length > 0
+      && event.pages[0].list.some(command => /<enemyId: ?\d+>/i.test(command.parameters[0] ?? '')));
+  const withTemplate = template => withEncounter({
+    participants: encounter.participants.map(participant => participant === body ? { ...body, template } : participant),
+  });
+
+  // the spawn, tint, animation and dialogue controls plant one step each as the fight opens, then its near miss.
+  const spawnStep = patch => ({ verb: 'spawn', enemyId: body.enemyId, expect: '', x: body.x, y: body.y, ...patch });
+  const tintStep = tone => ({ verb: 'tint', tone, seconds: 2 });
+  const realAnimationId = findRealRowId(tables.Animations);
+  const missingAnimationId = tables.Animations.length;
+  const animationStep = animation => ({ verb: 'animation', animation, expect: '' });
+  const dialogueStep = lines => ({ verb: 'dialogue', speaker: 'Planted', lines });
+
   const [ someBuiltFile ] = project.pluginFiles.keys();
 
   // the gate control needs any event on any map; the first one found will do.
@@ -358,6 +425,210 @@ const buildControls = project =>
       label: 'the same crafting output re-aimed at a real armor row',
       check: checkConfigs,
       planted: withOutput(realArmorId),
+      expect: null,
+    },
+    {
+      label: `a boss body whose clone map template is gone (boss "${encounter.key}", event #${body.enemyId})`,
+      check: checkConfigs,
+      planted: withoutTemplate(body.enemyId),
+      expect: [ `participant "${body.key}"`, `spawns from event #${body.enemyId}`, 'holds no such event' ],
+    },
+    {
+      label: `the clone map missing its neighbouring template instead (event #${neighbourTemplateId})`,
+      check: checkConfigs,
+      planted: withoutTemplate(neighbourTemplateId),
+      expect: null,
+    },
+    {
+      label: `a boss body one tile past its arena's far edge (Map #${encounter.map} at (${arena.width}, ${arena.height - 1}))`,
+      check: checkConfigs,
+      planted: moveBody(arena.width, arena.height - 1),
+      expect: [ `participant "${body.key}" appears at (${arena.width}, ${arena.height - 1})`, `outside Map #${encounter.map}` ],
+    },
+    {
+      label: `the same body on its arena's last tile (${arena.width - 1}, ${arena.height - 1})`,
+      check: checkConfigs,
+      planted: moveBody(arena.width - 1, arena.height - 1),
+      expect: null,
+    },
+    {
+      label: `a boss turning on a switch past the last one (boss "${encounter.key}", switch #${lastSwitchId + 1})`,
+      check: checkConfigs,
+      planted: withDefeatSwitch(lastSwitchId + 1),
+      expect: [ `boss "${encounter.key}" defeatSwitch`, `Switches #${lastSwitchId + 1}, which does not exist` ],
+    },
+    {
+      label: `the same boss turning on the last switch instead (switch #${lastSwitchId})`,
+      check: checkConfigs,
+      planted: withDefeatSwitch(lastSwitchId),
+      expect: null,
+    },
+    {
+      label: 'the same boss turning no switch on at all (0)',
+      check: checkConfigs,
+      planted: withDefeatSwitch(0),
+      expect: null,
+    },
+    {
+      label: `a boss with no bodies at all (boss "${encounter.key}")`,
+      check: checkConfigs,
+      planted: withEncounter({ participants: [] }),
+      expect: [ `boss "${encounter.key}" has no participants`, 'won the moment it starts' ],
+    },
+    {
+      label: `a boss body dressed from a template that is another enemy (event #${otherTemplateId})`,
+      check: checkConfigs,
+      planted: withTemplate(otherTemplateId),
+      expect: [ `participant "${body.key}" spawns from event #${otherTemplateId}`, `not #${body.enemyId}` ],
+    },
+    {
+      label: `the same body naming its own slot as its template (event #${body.enemyId})`,
+      check: checkConfigs,
+      planted: withTemplate(body.enemyId),
+      expect: null,
+    },
+    {
+      label: 'a reaction to a moment no fight has ("fell")',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('fell', [ body.key ])),
+      expect: [ 'reaction "planted" answers "fell"', 'not a moment a fight has' ],
+    },
+    {
+      label: 'a reaction to bodies falling that waits on nobody',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('fallen', [])),
+      expect: [ 'reaction "planted" waits on nobody falling' ],
+    },
+    {
+      label: 'a reaction waiting on a body the fight does not have ("ghost")',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('fallen', [ body.key, 'ghost' ])),
+      expect: [ 'reaction "planted" waits on participant "ghost"', 'nobody by that name' ],
+    },
+    {
+      label: `the same reaction waiting on the real body alone ("${body.key}")`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('fallen', [ body.key ])),
+      expect: null,
+    },
+    {
+      label: 'a step doing something the plugin does not implement ("teleport")',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'teleport' } ])),
+      expect: [ 'reaction "planted" steps[0] does "teleport"', 'does not implement' ],
+    },
+    {
+      label: 'a step acting on a body the fight does not have ("ghost")',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { ...stateStep(realStateId), participant: 'ghost' } ])),
+      expect: [ 'steps[0] acts on participant "ghost"', 'nobody by that name' ],
+    },
+    {
+      label: `a step putting a blank state on the boss (state #${blankStateId})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ stateStep(blankStateId) ])),
+      expect: [ 'reaction "planted" steps[0] state', `States #${blankStateId}` ],
+    },
+    {
+      label: `the same step putting a real state on the boss instead (state #${realStateId})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ stateStep(realStateId) ])),
+      expect: null,
+    },
+    {
+      label: 'a step speeding up a routine the fight does not have ("rokcs")',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'quickenRoutine', routine: 'rokcs', seconds: 1 } ])),
+      expect: [ 'steps[0] speeds up routine "rokcs"', 'no routine by that name' ],
+    },
+    {
+      label: `the same step speeding up the fight's real routine ("${routine.key}")`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'quickenRoutine', routine: routine.key, seconds: 1 } ])),
+      expect: null,
+    },
+    {
+      label: 'a reaction to the boss being worn down to 0%, which a fight never passes through',
+      check: checkConfigs,
+      planted: withReaction({ ...reactionTo('health', []), below: 0 }),
+      expect: [ 'reaction "planted" waits for health at or below 0%', 'no turning point' ],
+    },
+    {
+      label: 'the same reaction waiting for the boss at 66% instead',
+      check: checkConfigs,
+      planted: withReaction({ ...reactionTo('health', []), below: 66 }),
+      expect: null,
+    },
+    {
+      label: `a spawn copied from a template that is another enemy (event #${otherTemplateId})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ spawnStep({ template: otherTemplateId }) ])),
+      expect: [ `reaction "planted" steps[0] spawns from event #${otherTemplateId}`, `not #${body.enemyId}` ],
+    },
+    {
+      label: `a spawn one tile past its arena's far edge (Map #${encounter.map} at (${arena.width}, 0))`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ spawnStep({ x: arena.width, y: 0 }) ])),
+      expect: [ 'reaction "planted" steps[0] appears at', `outside Map #${encounter.map}` ],
+    },
+    {
+      label: `the same spawn from its enemy's own slot, on the arena's last tile (${arena.width - 1}, ${arena.height - 1})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ spawnStep({ x: arena.width - 1, y: arena.height - 1 }) ])),
+      expect: null,
+    },
+    {
+      label: 'a tint missing its gray channel ([17, -68, -68])',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ tintStep([ 17, -68, -68 ]) ])),
+      expect: [ 'reaction "planted" steps[0] tints the screen to [17,-68,-68]' ],
+    },
+    {
+      label: 'a tint with a channel past the range ([300, 0, 0, 0])',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ tintStep([ 300, 0, 0, 0 ]) ])),
+      expect: [ 'reaction "planted" steps[0] tints the screen to [300,0,0,0]' ],
+    },
+    {
+      label: 'the same tint with all four channels in range ([17, -68, -68, 0])',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ tintStep([ 17, -68, -68, 0 ]) ])),
+      expect: null,
+    },
+    {
+      label: `an animation the database does not have (animation #${missingAnimationId})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ animationStep(missingAnimationId) ])),
+      expect: [ 'reaction "planted" steps[0] animation', `Animations #${missingAnimationId}` ],
+    },
+    {
+      label: `the same step playing a real animation instead (animation #${realAnimationId})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ animationStep(realAnimationId) ])),
+      expect: null,
+    },
+    {
+      label: 'a participant given nothing to say',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ dialogueStep([]) ])),
+      expect: [ 'reaction "planted" steps[0] has a participant say nothing at all' ],
+    },
+    {
+      label: 'the same participant given a line',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ dialogueStep([ 'BRING IT' ]) ])),
+      expect: null,
+    },
+    {
+      label: 'a boss changing into a sprite with no file ("$m_planted-nothing")',
+      check: checkSprites,
+      planted: withReaction(reactionTo('start', [], [ imageStep('$m_planted-nothing') ])),
+      expect: [ `boss "${encounter.key}" reaction "planted" steps[0] image`, 'img/characters has no $m_planted-nothing.png' ],
+    },
+    {
+      label: 'the same boss changing into its own sprite instead',
+      check: checkSprites,
+      planted: withReaction(reactionTo('start', [], [ imageStep('$m_sin-gluttonwolf-mayor') ])),
       expect: null,
     },
     {

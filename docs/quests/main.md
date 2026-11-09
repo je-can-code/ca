@@ -128,3 +128,13 @@ returns to the Withered Thorn and hangs out in the backroom after being rescued.
 ### [The Calculating Heroine](./SW-raevula/calculating-heroine.md)
 
 The calculating heroine's name is Iris. She is perusing the alchemy goods in the Withered Thorn.
+
+
+
+## Fork Quests
+
+### [Fork Quests](./fork-quests.md)
+
+How Jerald's and Rupert's fourteen forks unlock. Amy points Jerald at one townsperson per trunk (Cecil, Peter, and
+Silver and Kayla), and Rupert names himself somewhere fitting. Still being designed, and not in `config.quest.json`
+yet.

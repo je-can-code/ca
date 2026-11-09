@@ -159,6 +159,21 @@ const findActionMapId = plugins =>
   return Number(jabs.parameters.actionMapId ?? 0);
 };
 
+/**
+ * The map J-ABS spawns enemies from, as `js/plugins.js` configures it. Each enemy's template sits in the
+ * slot matching its enemy id, which is how a boss encounter finds the body to spawn.
+ * @param {object[]} plugins Every registered plugin.
+ * @returns {number} The clone map's id, or 0 when J-ABS is not registered or names none.
+ */
+const findEnemyMapId = plugins =>
+{
+  const jabs = plugins.find(plugin => plugin.name.endsWith('/J-ABS'));
+
+  if (!jabs) return 0;
+
+  return Number(jabs.parameters.enemyMapId ?? 0);
+};
+
 //endregion reading
 
 /**
@@ -245,6 +260,7 @@ export const loadProject = async root =>
     configs,
     plugins,
     actionMapId: findActionMapId(plugins),
+    enemyMapId: findEnemyMapId(plugins),
     manifest,
     iconSheet,
     characterImages,

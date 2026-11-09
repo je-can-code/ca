@@ -159,4 +159,11 @@ it and almost nothing costs it? **The duo. The player buys the farm.**
 Objectives:
 - GO: the vanity farm / the probate sale (destination)
 - PAY: 1,000,000G (the deed)
+
+## Fork quests
+
+Peter gives Jerald's "Quicksilver" fork quest: Just Enough (a Bandit runs off with his pouch), Try-Hard (an old
+suit of armor that hits back) and Contemptuous (Vanderslop's hired Bandits). Approved as a draft 2026-11-06, not in
+`config.quest.json` yet. Contemptuous needs Vanderslop rich and outside the inn, which `richpoor-007` ends. The
+scenes live in [fork quests](../fork-quests.md).
 - HIRE: Peter and/or Vanderslop (dialogue; availability per the Fork's outcome)

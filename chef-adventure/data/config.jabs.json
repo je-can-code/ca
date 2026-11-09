@@ -96,12 +96,14 @@
     {
       "key": "gluttonwolf",
       "map": 75,
+      "defeatSwitch": 24,
       "participants": [
         {
           "key": "mayor",
-          "eventId": 4,
           "enemyId": 581,
-          "expect": "Gluttonwolf Mayor"
+          "expect": "Gluttonwolf Mayor",
+          "x": 14,
+          "y": 14
         }
       ],
       "aiControl": "shared",
@@ -115,6 +117,351 @@
               "skill": 2584,
               "expect": "Devour",
               "cast": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "earthie",
+      "map": 172,
+      "defeatSwitch": 64,
+      "participants": [
+        {
+          "key": "earthie",
+          "enemyId": 551,
+          "expect": "Earthie",
+          "x": 15,
+          "y": 5
+        },
+        {
+          "key": "golemWest",
+          "enemyId": 501,
+          "expect": "Golem",
+          "x": 4,
+          "y": 3,
+          "template": 601
+        },
+        {
+          "key": "golemEast",
+          "enemyId": 501,
+          "expect": "Golem",
+          "x": 26,
+          "y": 3,
+          "template": 601
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "rockfall",
+          "cadence": 5,
+          "steps": [
+            {
+              "verb": "forceSkill",
+              "skill": 2554,
+              "expect": "Rockfall",
+              "cast": true
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "sealed",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "skill": 0,
+              "expect": "Sealed",
+              "cast": true,
+              "participant": "earthie",
+              "state": 2072
+            },
+            {
+              "verb": "changeImage",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "earthie",
+              "image": "$m_elemental-earthie-sealed"
+            }
+          ]
+        },
+        {
+          "key": "west-golem-falls",
+          "on": "fallen",
+          "participants": [
+            "golemWest"
+          ],
+          "steps": [
+            {
+              "verb": "quickenRoutine",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "routine": "rockfall",
+              "seconds": 1
+            }
+          ]
+        },
+        {
+          "key": "east-golem-falls",
+          "on": "fallen",
+          "participants": [
+            "golemEast"
+          ],
+          "steps": [
+            {
+              "verb": "quickenRoutine",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "routine": "rockfall",
+              "seconds": 1
+            }
+          ]
+        },
+        {
+          "key": "seal-breaks",
+          "on": "fallen",
+          "participants": [
+            "golemWest",
+            "golemEast"
+          ],
+          "steps": [
+            {
+              "verb": "removeState",
+              "skill": 0,
+              "expect": "Sealed",
+              "cast": true,
+              "participant": "earthie",
+              "state": 2072
+            },
+            {
+              "verb": "changeImage",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "earthie",
+              "image": "$m_elemental-earthie"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "aqualock-1",
+      "map": 191,
+      "defeatSwitch": 77,
+      "participants": [
+        {
+          "key": "aqualock",
+          "enemyId": 552,
+          "expect": "Aqualock",
+          "x": 6,
+          "y": 31,
+          "template": 602
+        }
+      ],
+      "aiControl": "shared",
+      "routines": []
+    },
+    {
+      "key": "aqualock-2",
+      "map": 191,
+      "defeatSwitch": 78,
+      "participants": [
+        {
+          "key": "aqualock",
+          "enemyId": 552,
+          "expect": "Aqualock",
+          "x": 51,
+          "y": 20,
+          "template": 603
+        }
+      ],
+      "aiControl": "shared",
+      "routines": []
+    },
+    {
+      "key": "aqualock-3",
+      "map": 191,
+      "defeatSwitch": 79,
+      "participants": [
+        {
+          "key": "aqualock",
+          "enemyId": 552,
+          "expect": "Aqualock",
+          "x": 18,
+          "y": 4,
+          "template": 604
+        }
+      ],
+      "aiControl": "shared",
+      "routines": []
+    },
+    {
+      "key": "cynder",
+      "map": 246,
+      "defeatSwitch": 121,
+      "participants": [
+        {
+          "key": "cynder",
+          "enemyId": 553,
+          "expect": "Cynder",
+          "x": 31,
+          "y": 15
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [],
+      "reactions": [
+        {
+          "key": "two-thirds",
+          "on": "health",
+          "below": 66,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{IM JUST GETTING WARMED UP, NOOBS! 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                17,
+                -68,
+                -68,
+                0
+              ],
+              "seconds": 2
+            },
+            {
+              "verb": "animation",
+              "animation": 56
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2552,
+              "expect": "Brand of Cynder",
+              "cast": false
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{BRING IT 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 511,
+              "expect": "Ignihazard",
+              "template": 605,
+              "x": 44,
+              "y": 16
+            }
+          ]
+        },
+        {
+          "key": "one-third",
+          "on": "health",
+          "below": 33,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{THIS IS CHILDS PLAY. 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                34,
+                -85,
+                -85,
+                0
+              ],
+              "seconds": 2
+            },
+            {
+              "verb": "animation",
+              "animation": 56
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2552,
+              "expect": "Brand of Cynder",
+              "cast": false
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{PREPARE YOUR ANUS 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 511,
+              "expect": "Ignihazard",
+              "template": 605,
+              "x": 28,
+              "y": 18
+            }
+          ]
+        },
+        {
+          "key": "last-tenth",
+          "on": "health",
+          "below": 10,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{WAIT WHAT IS HAPPENING TO ME?! 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                51,
+                -102,
+                -102,
+                0
+              ],
+              "seconds": 2
+            },
+            {
+              "verb": "animation",
+              "animation": 56
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2552,
+              "expect": "Brand of Cynder",
+              "cast": false
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{I\\..\\..\\.. CANNOT FALL HERE 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 511,
+              "expect": "Ignihazard",
+              "template": 605,
+              "x": 23,
+              "y": 10
             }
           ]
         }

@@ -4,6 +4,7 @@
   "scripts": {
     "validate": "bun tools/validate/index.js",
     "validate:selftest": "bun tools/validate/index.js --selftest",
-    "bundle": "bun tools/bundle/index.js"
+    "bundle": "bun tools/bundle/index.js",
+    "playtest": "bun tools/playtest/run.js"
   }
 }

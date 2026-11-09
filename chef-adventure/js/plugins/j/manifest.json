@@ -4,7 +4,7 @@
   "files": {
     "abs/J-ABS.js": "f028cab759f410c8b41d47cc88cc65922e366e16c388fa6547d33d8284d769e6",
     "abs/ext/J-ABS-AllyAI.js": "97354c203a158cc0b89e92d21fc259a045b9b3a9f75bd1dbea258a33e2b8b681",
-    "abs/ext/J-ABS-Boss.js": "469b9752b880a4069fdef5eafaf217be6bbc25a7f598190059c961f796232398",
+    "abs/ext/J-ABS-Boss.js": "f1fa12489f9f64be1093e364c55c45f4037e7c99472ff2779ba520522ebc18d2",
     "abs/ext/J-ABS-Charge.js": "2d7d5bddab9327c8d47194fba3b241fbba0a280b83fb7e1a6c56011e2c62c1ff",
     "abs/ext/J-ABS-DangerIndicator.js": "41daeb31a901d6ad0189cfea80bbbc745bc6e723e7d3532e5c9d3b888ef67416",
     "abs/ext/J-ABS-Diagonals.js": "50e1c17fe1b3b7537d29d93070340fd57ef38feff2df36ca25f4fe8a19e1e2e2",
@@ -44,7 +44,7 @@
     "extend/ext/J-Extend-ABS.js": "063c96fe54ded579c8bd28e81e81932f3cf94c34481981dde682c747f773fb1c",
     "extend/ext/J-Extend-SKS.js": "389c4ca5dcf25d4f62f37d38a3f24f0947d22374b5123190d30b9b6333a53f25",
     "hud/J-HUD.js": "0220499c164e2dfd289f605347ec7e054cbc801ca7833993f4765a1c87666ec7",
-    "hud/ext/J-HUD-BossFrame.js": "8a1499fb6e504dd5a018eced5efec772d6fc66a8a74359584af38c7b26febfca",
+    "hud/ext/J-HUD-BossFrame.js": "b422a91585cb2943f985f91893a96e9e55e1b882caede7793ec3bc7fa8bc3274",
     "hud/ext/J-HUD-Dps.js": "38ae5d7aeaeaba4bde353483ef04bf1480bcdc06ee5f26103716099bf48c8a92",
     "hud/ext/J-HUD-Food.js": "8bf5ae8e2f2cb32b09c59a7d6e9e77297b4b4c4678f2887b9e9ccc132224e8af",
     "hud/ext/J-HUD-InputFrame.js": "30baed4d6e334662b4bce8c0bb910c78bf3447df4254b6472ab5df734efaf424",
