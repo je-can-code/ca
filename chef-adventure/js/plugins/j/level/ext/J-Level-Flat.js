@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 LEVEL-FLAT] Flat per-level thresholds and map-based kill experience.
+ * [v1.1.0 LEVEL-FLAT] Flat per-level thresholds and map-based kill experience.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -89,7 +89,7 @@ J.LEVEL.EXT.FLAT = {};
 /**
 * The metadata associated with this plugin.
 */
-J.LEVEL.EXT.FLAT.Metadata = new JLevelMasterFlat_PluginMetadata("J-Level-Flat", "1.0.2");
+J.LEVEL.EXT.FLAT.Metadata = new JLevelMasterFlat_PluginMetadata("J-Level-Flat", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -337,6 +337,7 @@ if (J.ABS) {
 	*/
 	JABS_Engine.prototype.determineExperienceGained = function(defeatedEnemy, victoriousActor) {
 		if (this.canGainReward(defeatedEnemy, victoriousActor) === false) return 0;
+		if (defeatedEnemy.hasNoExp() === true) return 0;
 		const baseExperience = ExperienceManager.calculateRewardFromLevelDifference(victoriousActor.level, defeatedEnemy.level);
 		const withBonusExperience = defeatedEnemy.exp() + baseExperience;
 		return withBonusExperience;

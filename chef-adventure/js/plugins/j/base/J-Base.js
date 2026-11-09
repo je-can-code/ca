@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.2.1 BASE] The base class for all J plugins.
+ * [v4.3.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -1686,7 +1686,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "4.2.1";
+J.BASE.Metadata.Version = "4.3.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -3465,6 +3465,63 @@ var TextRasterMetrics = class {
 	*/
 	static snap(value, scale) {
 		return Math.round(value * scale) / scale;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/core/CharacterFrame.js
+/**
+* Where one frame of one character sits on its sheet, and how large to draw it, worked out as plain
+* arithmetic so every window that shows a character away from the map can share it.
+*
+* Character sheets come in two layouts. A sheet whose name carries a `$` holds a single character in
+* a 3x4 grid of frames: three walk frames across, four facings down. An ordinary sheet holds eight
+* characters in a 12x8 grid, each owning a 3x4 block of its own, four blocks across and two down. A
+* menu portrait and a pedia page both want the same frame out of either layout, so it is chosen here
+* once rather than re-derived beside every blit.
+*/
+var CharacterFrame = class {
+	/**
+	* The rectangle of a character's neutral standing frame, facing the player.<br/>
+	* That is the middle of the three walk frames on the first of the four facings: the same frame the
+	* engine's own {@link Window_Base.drawCharacter} chooses, and the one that reads as the character at
+	* rest rather than mid-stride.
+	* @param {string} characterName The sheet's filename, prefix symbols included.
+	* @param {number} characterIndex Which of an ordinary sheet's eight characters to take.
+	* @param {number} sheetWidth The full width of the sheet's bitmap.
+	* @param {number} sheetHeight The full height of the sheet's bitmap.
+	* @returns {{x: number, y: number, width: number, height: number}}
+	*/
+	static standing(characterName, characterIndex, sheetWidth, sheetHeight) {
+		const isBig = ImageManager.isBigCharacter(characterName);
+		const width = sheetWidth / (isBig ? 3 : 12);
+		const height = sheetHeight / (isBig ? 4 : 8);
+		const position = isBig ? 0 : characterIndex;
+		const x = (position % 4 * 3 + 1) * width;
+		const y = Math.floor(position / 4) * 4 * height;
+		return {
+			x,
+			y,
+			width,
+			height
+		};
+	}
+	/**
+	* How many times larger than native to draw a frame, so it shows at a preferred size without ever
+	* spilling out of the space reserved for it.<br/>
+	* The preferred scale applies to every frame alike, so a small creature still reads as small beside a
+	* large one. Only a frame too large for the box is shrunk, and only as far as it has to be.
+	* @param {number} frameWidth The frame's native width.
+	* @param {number} frameHeight The frame's native height.
+	* @param {number} boxWidth The width available to draw into.
+	* @param {number} boxHeight The height available to draw into.
+	* @param {number} preferredScale The scale to draw at whenever it fits.
+	* @returns {number}
+	*/
+	static fitScale(frameWidth, frameHeight, boxWidth, boxHeight, preferredScale) {
+		const widthLimit = boxWidth / frameWidth;
+		const heightLimit = boxHeight / frameHeight;
+		return Math.min(preferredScale, widthLimit, heightLimit);
 	}
 };
 
@@ -17552,6 +17609,34 @@ Window_Base.prototype.drawBackgroundRect = function(rect) {
 	const { x, y, width, height } = rect;
 	this.contentsBack.gradientFillRect(x, y, width, height, color1, color2, true);
 	this.contentsBack.strokeRect(x, y, width, height, color1);
+};
+/**
+* Draws a character's neutral standing frame, facing the player, at any scale, anchored by the middle
+* of its feet.<br/>
+* The engine's own {@link Window_Base.drawCharacter} picks this same frame but always blits it at
+* native size, which leaves a map sprite dwarfed beside a portrait or lost on a pedia page. The
+* enlargement goes through the 2d canvas, which smooths by default, and bilinear smoothing is exactly
+* wrong for pixel art: the blit switches this window to nearest-neighbor for its own duration, then
+* hands interpolation back for everything else drawn here.<br/>
+* The sheet has to be loaded already. A blit from a bitmap still loading draws nothing, so a caller
+* showing a sheet that may not be cached yet waits for it first.
+* @param {string} characterName The sheet's filename, prefix symbols included.
+* @param {number} characterIndex Which of an ordinary sheet's eight characters to draw.
+* @param {number} x The horizontal center of the drawn character.
+* @param {number} y The baseline the character stands on.
+* @param {number} scale How many times larger than native to draw it.
+*/
+Window_Base.prototype.drawCharacterStanding = function(characterName, characterIndex, x, y, scale) {
+	const bitmap = ImageManager.loadCharacter(characterName);
+	const frame = CharacterFrame.standing(characterName, characterIndex, bitmap.width, bitmap.height);
+	const drawWidth = frame.width * scale;
+	const drawHeight = frame.height * scale;
+	const destinationX = x - Math.floor(drawWidth / 2);
+	const destinationY = y - drawHeight;
+	const { context } = this.contents;
+	context.imageSmoothingEnabled = false;
+	this.contents.blt(bitmap, frame.x, frame.y, frame.width, frame.height, destinationX, destinationY, drawWidth, drawHeight);
+	context.imageSmoothingEnabled = true;
 };
 /**
 * The height of this gauge.

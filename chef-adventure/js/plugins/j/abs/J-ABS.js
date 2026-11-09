@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.27.0 ABS] Enables combat to be carried out on the map.
+ * [v4.28.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1432,7 +1432,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.27.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.28.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -2127,6 +2127,59 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	RespawnAnimation: /<respawnAnimation:[ ]?(\d+)>/i,
+	/**
+	* The declaration that a defeated enemy grants no reward points of any kind.
+	* Every reward that passes through the shared reward gate is refused: experience and gold here, and
+	* whatever an extension pays through that same gate, such as SDP points or AP. Drops are loot rather
+	* than points, so they still fall.
+	*
+	* <pre>
+	* Structure:
+	*  <noRewardPoints>
+	*
+	* Example:
+	*  <noRewardPoints>
+	*
+	* Translation:
+	*  Defeating this enemy grants no experience, gold, SDP points or AP. Its drops still fall.
+	* </pre>
+	* @type {RegExp}
+	*/
+	NoRewardPoints: /<noRewardPoints>/i,
+	/**
+	* The declaration that a defeated enemy grants no experience.
+	* Only experience is refused; every other reward the enemy carries is paid as usual.
+	*
+	* <pre>
+	* Structure:
+	*  <no:exp>
+	*
+	* Example:
+	*  <no:exp>
+	*
+	* Translation:
+	*  Defeating this enemy grants no experience. Its gold, SDP points, AP and drops are untouched.
+	* </pre>
+	* @type {RegExp}
+	*/
+	NoExp: /<no:[ ]?exp>/i,
+	/**
+	* The declaration that a defeated enemy grants no gold.
+	* Only gold is refused; every other reward the enemy carries is paid as usual.
+	*
+	* <pre>
+	* Structure:
+	*  <no:gold>
+	*
+	* Example:
+	*  <no:gold>
+	*
+	* Translation:
+	*  Defeating this enemy grants no gold. Its experience, SDP points, AP and drops are untouched.
+	* </pre>
+	* @type {RegExp}
+	*/
+	NoGold: /<no:[ ]?gold>/i,
 	VisionMultiplier: /<visionMultiplier:[ ]?(-?\d+)>/i,
 	ProjectileDurationMultiplier: /<projectileDuration:[ ]?(-?\d+)>/i,
 	AlertDuration: /<alertDuration:[ ]?(\d+)>/i,
@@ -16157,8 +16210,10 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	static RESPAWN_SWEEP_INTERVAL = 60;
 	/**
-	* Gets the collection of enemy clone events currently tracked.
-	* @returns {RPG_MapEvent[]}
+	* Gets the collection of enemy clone events currently tracked, indexed by event id.<br/>
+	* The enemy map is fetched asynchronously when the engine is first built, so this is null until
+	* that fetch lands, for the first moments of a session.
+	* @returns {RPG_MapEvent[]|null}
 	*/
 	static getEnemyCloneList() {
 		return this.#enemyCloneList;
@@ -19413,14 +19468,15 @@ var JABS_Engine = class JABS_Engine {
 	/**
 	* Determines whether the victorious actor is eligible to gain rewards from the defeated enemy.
 	* This is the central policy gate for all four reward types (EXP, gold, SDP, AP).
-	* Returns true by default — all defeated enemies grant rewards. Alias this method to introduce
-	* game-specific exclusion conditions (e.g. zero-yield flags, kill-type filters).
+	* Every defeated enemy grants rewards unless its row says `<noRewardPoints>`, which refuses all four
+	* at once. Loot never consults this gate, so drops still fall either way. Alias this method to
+	* introduce game-specific exclusion conditions (e.g. kill-type filters).
 	* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
 	* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
 	* @returns {boolean} True if rewards should be granted, false to skip all reward calculation.
 	*/
 	canGainReward(defeatedEnemy, victoriousActor) {
-		return true;
+		return defeatedEnemy.hasNoRewardPoints() === false;
 	}
 	/**
 	* Determines how much experience the defeated enemy yielded.
@@ -19429,6 +19485,7 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	determineExperienceGained(defeatedEnemy, victoriousActor) {
 		if (this.canGainReward(defeatedEnemy, victoriousActor) === false) return 0;
+		if (defeatedEnemy.hasNoExp() === true) return 0;
 		const experience = defeatedEnemy.exp();
 		const rewardScalingMultiplier = this.getRewardScalingMultiplier(defeatedEnemy, victoriousActor);
 		const scaledExperience = Math.ceil(experience * rewardScalingMultiplier);
@@ -19442,6 +19499,7 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	determineGoldGained(defeatedEnemy, victoriousActor) {
 		if (this.canGainReward(defeatedEnemy, victoriousActor) === false) return 0;
+		if (defeatedEnemy.hasNoGold() === true) return 0;
 		const gold = defeatedEnemy.gold();
 		const rewardScalingMultiplier = this.getRewardScalingMultiplier(defeatedEnemy, victoriousActor);
 		const scaledGold = Math.ceil(gold * rewardScalingMultiplier);
@@ -22871,6 +22929,28 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigInanimate", { get: f
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigNotInanimate", { get: function() {
 	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.ConfigNotInanimate, true);
+} });
+/**
+* Whether this enemy refuses every reward point on defeat, as declared by `<noRewardPoints>`.
+* The shared reward gate reads this, so it stops experience, gold, and any extension's points at once.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Enemy.prototype, "noRewardPoints", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.NoRewardPoints);
+} });
+/**
+* Whether this enemy refuses experience on defeat, as declared by `<no:exp>`.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Enemy.prototype, "noExp", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.NoExp);
+} });
+/**
+* Whether this enemy refuses gold on defeat, as declared by `<no:gold>`.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Enemy.prototype, "noGold", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.NoGold);
 } });
 
 //#endregion
@@ -29175,6 +29255,28 @@ Game_Enemy.prototype.isInanimate = function() {
 	const notInanimate = referenceData.jabsConfigNotInanimate;
 	if (notInanimate !== null) return !notInanimate;
 	return J.ABS.Metadata.DefaultEnemyIsInanimate;
+};
+/**
+* Whether this enemy refuses every reward point when defeated.
+* Read by the shared reward gate, so one tag refuses experience, gold, and any extension's points.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.hasNoRewardPoints = function() {
+	return this.enemy().noRewardPoints;
+};
+/**
+* Whether this enemy refuses experience when defeated, leaving its other rewards alone.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.hasNoExp = function() {
+	return this.enemy().noExp;
+};
+/**
+* Whether this enemy refuses gold when defeated, leaving its other rewards alone.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.hasNoGold = function() {
+	return this.enemy().noGold;
 };
 /**
 * Gets all collections of sources that will be scanned for bonus hits.

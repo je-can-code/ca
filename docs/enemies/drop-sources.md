@@ -575,9 +575,10 @@ at what rate, and which rung comes from which tier. See [the drop rules](#drop-r
   implemented members and exist here purely as reservations — and that is fine: a subgroup can be
   built and placed when the area that needs it is built. Fish on the beach, a milk-giver in the
   Deluge Plains.
-- **Which rung comes from where.** Rungs track the level curve, and built content stops at level 70
-  while the ladder runs to 150 — so tiers 4 and 5 will land overwhelmingly on the planned bands in
-  [`../maps/progression-bands.md`](../maps/progression-bands.md), not on anything shipped.
+- **Which rung comes from where.** Rungs track the level curve, which runs to 150. Finished content
+  stops at level 70, but the bands past it in [`../maps/progression-bands.md`](../maps/progression-bands.md)
+  have drafted maps carrying enemy stamps since the fourth enemy pass, so tiers 4 and 5 land on those
+  drafts rather than on nothing at all.
 - **Whether a subgroup's yields split into signature and incidental.** A creature carrying six drop
   lines risks having no drop that feels like *its* drop; whether that matters is unresolved.
 - **Whether the fruit families become `farm` *and* `drop`** in `ingredient-sorting.md`.

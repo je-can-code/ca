@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.1 APT] A plugin that grants the ability to learn by gaining points.
+ * [v2.1.0 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -544,7 +544,7 @@ J.APT.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "2.0.1");
+J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "2.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -592,6 +592,23 @@ J.APT.RegExp.AptitudeTeachable = /<aptitude:[ ]?(\[\d+,[ ]?\d+])>/gi;
 * @type {RegExp}
 */
 J.APT.RegExp.ApReward = /<ap: ?(\d+)>/i;
+/**
+* The declaration that a defeated enemy grants no AP.
+* Only AP is refused; every other reward the enemy carries is paid as usual.
+*
+* <pre>
+* Structure:
+*  <no:ap>
+*
+* Example:
+*  <no:ap>
+*
+* Translation:
+*  Defeating this enemy grants no AP. Its experience, gold, SDP points and drops are untouched.
+* </pre>
+* @type {RegExp}
+*/
+J.APT.RegExp.NoAp = /<no: ?ap>/i;
 J.APT.RegExp.AptMultiplier = /<aptMultiplier:(-?\d+)>/i;
 J.APT.RegExp.AptRateBuffPlus = /<aprBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
 J.APT.RegExp.AptRateBuffRate = /<aprBuffRate:\[([+\-*/ ().\w]+)]>/gi;
@@ -625,6 +642,13 @@ RPG_Base.prototype.buildAptitudeTeachings = function() {
 */
 Object.defineProperty(RPG_Enemy.prototype, "apPoints", { get() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.APT.RegExp.ApReward);
+} });
+/**
+* Whether this enemy refuses AP on defeat, as declared by `<no:ap>`.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Enemy.prototype, "noAp", { get() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.APT.RegExp.NoAp);
 } });
 
 //#endregion
@@ -682,6 +706,16 @@ Game_Actor.prototype.baseAptFactor = function() {
 */
 Game_Battler.prototype.apPoints = function() {
 	return this.databaseData().apPoints;
+};
+
+//#endregion
+//#region src/plugins/apt/core/objects/Game_Enemy.js
+/**
+* Whether this enemy refuses AP when defeated, leaving its other rewards alone.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.hasNoAp = function() {
+	return this.enemy().noAp;
 };
 
 //#endregion
@@ -1413,6 +1447,7 @@ if (J.ABS) {
 	*/
 	JABS_Engine.prototype.determineApGained = function(defeatedEnemy) {
 		if (this.canGainReward(defeatedEnemy, null) === false) return 0;
+		if (defeatedEnemy.hasNoAp() === true) return 0;
 		return defeatedEnemy.apPoints();
 	};
 	/**

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.0 OMNI-MONSTER] Extends the Omnipedia with a Monsterpedia entry.
+ * [v3.0.0 OMNI-MONSTER] Extends the Omnipedia with a Monsterpedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -22,7 +22,12 @@
 //endregion annotations
 
 //#region src/plugins/omni/ext/monster/_metadata/_pluginMetadata.js
-var J_OmniMonster_PluginMetadata = class extends PluginMetadata {
+var J_OmniMonster_PluginMetadata = class J_OmniMonster_PluginMetadata extends PluginMetadata {
+	/**
+	* The path where the omnipedia's configuration is located.
+	* @type {string}
+	*/
+	static CONFIG_PATH = "data/config.omni.json";
 	/**
 	* Constructor.
 	* @param {string} name The plugin name.
@@ -38,6 +43,24 @@ var J_OmniMonster_PluginMetadata = class extends PluginMetadata {
 	postInitialize() {
 		super.postInitialize();
 		this.initializeMetadata();
+		this.initializeMonsterTypes();
+	}
+	/**
+	* Loads the kinds of entry the monsterpedia lists, each a page of its own, from the omnipedia's
+	* configuration file.<br/>
+	* A kind carries the key enemy rows name with `<monsterType:KEY>`, plus the name and icon its page
+	* shows in the strip above the list. The order they are authored in is the order L2/R2 walks them,
+	* and the first of them is the page the monsterpedia opens on.
+	*/
+	initializeMonsterTypes() {
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-OMNI-Monsters").configName("omnipedia configuration").build();
+		const parsedConfiguration = ExternalJsonConfigLoader.load(J_OmniMonster_PluginMetadata.CONFIG_PATH, options);
+		/**
+		* Every kind of entry the monsterpedia lists, in the order its pages are walked, and whether the
+		* entries on each page show their stats.
+		* @type {{key: string, name: string, iconIndex: number, showsStats: boolean}[]}
+		*/
+		this.monsterTypes = parsedConfiguration.monsterTypes;
 	}
 	/**
 	* Initializes the metadata associated with this plugin.
@@ -67,7 +90,7 @@ var J_OmniMonster_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "4.3.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -89,7 +112,7 @@ J.OMNI.EXT.MONSTER = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.OMNI.EXT.MONSTER.Metadata = new J_OmniMonster_PluginMetadata("J-OMNI-Monsters", "2.1.0");
+J.OMNI.EXT.MONSTER.Metadata = new J_OmniMonster_PluginMetadata("J-OMNI-Monsters", "3.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -108,6 +131,24 @@ J.OMNI.EXT.MONSTER.RegExp = {};
 J.OMNI.EXT.MONSTER.RegExp.HideFromMonsterpedia = /<hideFromMonsterpedia>/i;
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaFamilyIcon = /<monsterFamilyIcon:[ ]?(\d+)>/i;
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s.?!,\-'"]+)>/i;
+/**
+* The kind of entry an enemy is, which decides the page of the monsterpedia it is listed on.
+* The kinds themselves, and the name and icon each page shows, are authored in `data/config.omni.json`.
+* An enemy without the tag is an ordinary enemy.
+*
+* <pre>
+* Structure:
+*  <monsterType:KEY>
+*
+* Example:
+*  <monsterType:destructible>
+*
+* Translation:
+*  This enemy is listed on the page whose key is "destructible", rather than among the ordinary enemies.
+* </pre>
+* @type {RegExp}
+*/
+J.OMNI.EXT.MONSTER.RegExp.MonsterType = /<monsterType:[ ]?([\w-]+)>/i;
 
 //#endregion
 //#region src/plugins/omni/ext/monster/__models/MonsterpediaObservations.js
@@ -213,7 +254,167 @@ var MonsterpediaObservations = class {
 SerializableRegistry.register(MonsterpediaObservations);
 
 //#endregion
+//#region src/plugins/omni/ext/monster/managers/MonsterpediaTypes.js
+/**
+* Which enemies the monsterpedia lists, and on which of its pages.
+*
+* The monsterpedia is one scene with several pages, each listing one kind of entry: ordinary enemies,
+* destructibles, or whatever else the omnipedia's configuration authors. An enemy names its kind with
+* `<monsterType:KEY>`, and every rule about whether a row shows up at all lives here rather than in the
+* list window that draws the result.
+*/
+var MonsterpediaTypes = class {
+	/**
+	* The kind every enemy is unless its row says otherwise.
+	* @type {string}
+	*/
+	static DEFAULT_KEY = "enemy";
+	/**
+	* The pages the monsterpedia flips between, in the order L2/R2 walks them.<br/>
+	* A kind already carries a key, a name and an icon, which is exactly what a ring position is.
+	* @returns {{key: string, name: string, iconIndex: number, showsStats: boolean}[]}
+	*/
+	static positions() {
+		return J.OMNI.EXT.MONSTER.Metadata.monsterTypes;
+	}
+	/**
+	* Whether an entry's detail shows its stats: its level, its resources and its parameters.<br/>
+	* The page listing the entry decides, for every entry it lists. Enemies are read largely for their
+	* stats, while a crate's or a tree's would only be noise beside what it drops and what breaks it.
+	* @param {RPG_Enemy} enemy The database row, which is listed on one of the configured pages.
+	* @returns {boolean}
+	*/
+	static showsStatsFor(enemy) {
+		const page = this.positions().find((position) => position.key === enemy.monsterType);
+		return page.showsStats;
+	}
+	/**
+	* Whether a database row belongs on the page listing the given kind.<br/>
+	* Some rows are never entries on any page: the empty slot the database array opens with, a row with
+	* no name, a row hidden by `<hideFromMonsterpedia>`, and a `===` placeholder awaiting an enemy.
+	* @param {RPG_Enemy|null} enemy The database row; null for the array's opening slot.
+	* @param {string} typeKey The kind of entry the page lists.
+	* @returns {boolean}
+	*/
+	static isListed(enemy, typeKey) {
+		if (enemy === null) return false;
+		if (enemy.name === String.empty) return false;
+		if (enemy.hideFromMonsterpedia === true) return false;
+		if (enemy.name.startsWith("===") === true) return false;
+		return enemy.monsterType === typeKey;
+	}
+	/**
+	* Every database row listed on the page of the given kind, in database order.
+	* @param {string} typeKey The kind of entry the page lists.
+	* @returns {RPG_Enemy[]}
+	*/
+	static entriesFor(typeKey) {
+		return $dataEnemies.filter((enemy) => this.isListed(enemy, typeKey));
+	}
+};
+
+//#endregion
+//#region src/plugins/omni/ext/monster/managers/MonsterpediaRoster.js
+/**
+* The map sprite each enemy wears, read off J-ABS's roster of enemy templates.
+*
+* J-ABS loads one map as its roster: one event per enemy, each event's id matching its enemy's, and
+* each wearing the character sheet that enemy wears in the world. The monsterpedia pictures an enemy
+* the way it looks on the map, so it reads those same events rather than keeping a second record of
+* who wears what, which would only ever drift from the first.
+*/
+var MonsterpediaRoster = class {
+	/**
+	* The character sheet and index an enemy wears on the map.<br/>
+	* J-ABS fetches its roster asynchronously at boot, so for the first moments of a session there is no
+	* roster to read. Before it lands, and for an enemy the roster holds no event for, the enemy wears
+	* nothing, which reads as an empty sheet name.
+	* @param {number} enemyId The id of the enemy to picture.
+	* @returns {{characterName: string, characterIndex: number}}
+	*/
+	static characterOf(enemyId) {
+		const rosterEvents = JABS_Engine.getEnemyCloneList();
+		if (rosterEvents === null) return this.#noCharacter();
+		const rosterEvent = rosterEvents[enemyId] ?? null;
+		if (rosterEvent === null) return this.#noCharacter();
+		const { characterName, characterIndex } = rosterEvent.pages[0].image;
+		return {
+			characterName,
+			characterIndex
+		};
+	}
+	/**
+	* The sentinel for an enemy the roster cannot picture.
+	* @returns {{characterName: string, characterIndex: number}}
+	*/
+	static #noCharacter() {
+		return {
+			characterName: String.empty,
+			characterIndex: 0
+		};
+	}
+};
+
+//#endregion
+//#region src/plugins/omni/ext/monster/managers/MonsterpediaDropSummary.js
+/**
+* Folds an enemy's drop rolls into one line per item for the monsterpedia.
+*
+* An enemy's drop list holds one entry per roll, and one item can be rolled several times, each roll
+* with a chance of its own: that is how a tree drops up to five logs. Listing every roll buries the
+* page, since the largest enemies roll sixty-odd times, so the pedia shows each item once with the
+* best chance any of its rolls has and how many times it can drop.
+*/
+var MonsterpediaDropSummary = class {
+	/**
+	* One line per distinct item across the given rolls, in the order each item first appears.
+	* @param {RPG_DropItem[]} drops The rolls, as the enemy's drop list holds them.
+	* @returns {{drop: RPG_DropItem, bestChance: number, rolls: number}[]}
+	*/
+	static summarize(drops) {
+		const lines = new Map();
+		drops.forEach((drop) => {
+			const key = `${drop.kind}-${drop.dataId}`;
+			if (lines.has(key) === false) {
+				lines.set(key, {
+					drop,
+					bestChance: drop.denominator,
+					rolls: 1
+				});
+				return;
+			}
+			const line = lines.get(key);
+			line.bestChance = Math.max(line.bestChance, drop.denominator);
+			line.rolls += 1;
+		});
+		return Array.from(lines.values());
+	}
+	/**
+	* The value shown beside an item in the drop list: its best chance, and how many times it can drop
+	* when that is more than once.<br/>
+	* The value is kept as short as it can be read, since every character it takes is one the item's
+	* name beside it cannot.
+	* @param {number} bestChance The best chance among the item's rolls, as a percent.
+	* @param {number} rolls How many times the item is rolled, and so the most it can drop.
+	* @returns {string}
+	*/
+	static lineText(bestChance, rolls) {
+		if (rolls === 1) return `${bestChance}%`;
+		return `${bestChance}% ×${rolls}`;
+	}
+};
+
+//#endregion
 //#region src/plugins/omni/ext/monster/database/RPG_Enemy.js
+/**
+* The kind of entry this enemy is, which decides the page of the monsterpedia it is listed on.
+* An enemy without a `<monsterType:KEY>` tag is an ordinary enemy.
+* @type {string}
+*/
+Object.defineProperty(RPG_Enemy.prototype, "monsterType", { get: function() {
+	const declaredType = RPGManager.getStringFromNoteByRegex(this, J.OMNI.EXT.MONSTER.RegExp.MonsterType, true);
+	return declaredType ?? MonsterpediaTypes.DEFAULT_KEY;
+} });
 /**
 * Whether or not this enemy should be hidden from the monsterpedia.
 * @type {boolean} True if the enemy should be hidden, false otherwise.
@@ -532,7 +733,7 @@ JABS_Engine.prototype.processElementalisticObservations = function(action, targe
 //#endregion
 //#region src/plugins/omni/ext/monster/windows/Window_MonsterpediaList.js
 /**
-* A window containing the list of all enemies perceived for the monsterpedia.
+* A window listing every entry on whichever page of the monsterpedia is open, one row per enemy.
 */
 var Window_MonsterpediaList = class extends Window_Command {
 	/**
@@ -543,39 +744,50 @@ var Window_MonsterpediaList = class extends Window_Command {
 		super(rect);
 	}
 	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* This cannot be a class field declaration: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from it and found it undefined.
+	*/
+	initMembers() {
+		/**
+		* The kind of entry this list shows, which is the page of the monsterpedia that is open. Empty until
+		* the scene points the list at a page, which lists nothing.
+		* @type {string}
+		*/
+		this._currentTypeKey = String.empty;
+	}
+	/**
+	* Gets the kind of entry this list is showing.
+	* @returns {string}
+	*/
+	getCurrentTypeKey() {
+		return this._currentTypeKey;
+	}
+	/**
+	* Sets the kind of entry this list shows.
+	* @param {string} typeKey The key of the page to show.
+	*/
+	setCurrentTypeKey(typeKey) {
+		this._currentTypeKey = typeKey;
+	}
+	/**
 	* Implements {@link #makeCommandList}.<br/>
-	* Creates the command list of all observable monsters in this window.
+	* Creates the command list of every entry on the open page.
 	*/
 	makeCommandList() {
 		const commands = this.buildCommands();
 		commands.forEach(this.addBuiltCommand, this);
 	}
 	/**
-	* Builds all commands for this command window.
-	* Adds all monsters to the list that can possibly be observed.
+	* Builds all commands for this command window, one per entry on the open page.
+	* Which rows those are is {@link MonsterpediaTypes}' call, not this window's.
 	* @returns {BuiltWindowCommand[]}
 	*/
 	buildCommands() {
-		const enemies = [];
-		const forEacher = (enemy) => {
-			if (!this.isValidEnemy(enemy)) return;
-			enemies.push(enemy);
-		};
-		$dataEnemies.forEach(forEacher, this);
-		const commands = enemies.map(this.buildCommand, this);
-		return commands;
-	}
-	/**
-	* Determines whether or not the enemy is a valid enemy.
-	* @param {RPG_Enemy} enemy The enemy database data.
-	* @returns {boolean} True if the enemy should be listed in the monsterpedia, false otherwise.
-	*/
-	isValidEnemy(enemy) {
-		if (!enemy) return false;
-		if (!enemy.name) return false;
-		if (enemy.hideFromMonsterpedia) return false;
-		if (enemy.name.startsWith("===")) return false;
-		return true;
+		const enemies = MonsterpediaTypes.entriesFor(this.getCurrentTypeKey());
+		return enemies.map(this.buildCommand, this);
 	}
 	/**
 	* Builds a {@link BuiltWindowCommand} based on the enemy data.
@@ -605,11 +817,6 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	* @type {MonsterpediaObservations|null}
 	*/
 	_currentObservations = null;
-	/**
-	* A cache of all sprites associated with enemies in the monsterpedia.
-	* @type {Map<number, Sprite_Enemy>}
-	*/
-	_battlerImageCache = new Map();
 	/**
 	* A cache of all sprites associated with base parameters.
 	* @type {Map<number, Sprite_Icon>}
@@ -647,13 +854,6 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		this._currentObservations = observations;
 	}
 	/**
-	* Gets the battler image cache.
-	* @returns {Map<number, Sprite_Enemy>}
-	*/
-	getEnemyImageCache() {
-		return this._battlerImageCache;
-	}
-	/**
 	* Gets the b-parameter icon image cache.
 	* @returns {Map<number, Sprite_Icon>}
 	*/
@@ -678,16 +878,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	* Populates the sprite cache ahead of rendering.
 	*/
 	populateImageCache() {
-		this.populateEnemySpriteImageCache();
 		this.populateParameterIconSpriteCache();
-	}
-	/**
-	* Caches all enemy battler sprites that have been at least perceived once.
-	*/
-	populateEnemySpriteImageCache() {
-		const monsterpediaCache = $gameParty.getMonsterpediaObservationsCache();
-		const forEacherEnemySprites = (_, enemyId) => this.getOrCreateEnemySprite(enemyId);
-		monsterpediaCache.forEach(forEacherEnemySprites, this);
 	}
 	/**
 	* Caches all sprites associated with parameters icons.
@@ -720,24 +911,6 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		const xparamIds = Game_BattlerBase.knownExParameterIds();
 		const forEacher = (_, xParamId) => this.getOrCreateExParameterIconSprite(xParamId);
 		xparamIds.forEach(forEacher, this);
-	}
-	/**
-	* Gets the enemy's sprite. If it is already cached, the cached one will be
-	* returned, otherwise it'll be created and then cached.
-	* @param {number} enemyId The id of the battler to retrieve the sprite for.
-	* @returns {Sprite_Enemy}
-	*/
-	getOrCreateEnemySprite(enemyId) {
-		const cache = this.getEnemyImageCache();
-		if (cache.has(enemyId)) {
-			return cache.get(enemyId);
-		}
-		const battler = new Game_Enemy(enemyId, 0, 0);
-		const sprite = new Sprite_Enemy(battler);
-		cache.set(enemyId, sprite);
-		sprite.hide();
-		this.addChild(sprite);
-		return sprite;
 	}
 	/**
 	* Gets the base parameter icon sprite. If it is already cached, the cached one will be
@@ -794,15 +967,6 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		return sprite;
 	}
 	/**
-	* Extends {@link #clearContent}.<br/>
-	* Also hides all cached images.
-	*/
-	clearContent() {
-		super.clearContent();
-		const cache = this.getEnemyImageCache();
-		cache.forEach((sprite) => sprite.hide());
-	}
-	/**
 	* Implements {@link Window_Base.drawContent}.<br/>
 	* Draws a header and some detail for the omnipedia list header.
 	*/
@@ -817,12 +981,12 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		this.drawEnemyName(enemyNameX, y);
 		const enemySpriteY = y + lh * 3;
 		this.drawEnemySprite(x, enemySpriteY);
-		const parametersX = this.width - 300;
-		this.drawEnemyParameters(parametersX, y);
-		const dropsX = this.width - 600;
-		this.drawEnemyDrops(dropsX, y);
-		const descriptionY = this.height - lh * 6;
-		this.drawDescription(x, descriptionY);
+		const databaseEnemy = $dataEnemies.at(observations.id);
+		if (MonsterpediaTypes.showsStatsFor(databaseEnemy) === true) {
+			this.drawEnemyParameters(this.parametersColumnX(), y);
+		}
+		this.drawEnemyDrops(this.dropsColumnX(), y);
+		this.drawDescription(x, this.descriptionY());
 		this.drawElementalistics();
 	}
 	/**
@@ -879,22 +1043,91 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		this.drawText(possiblyMaskedName, x, y, textWidth, Window_Base.TextAlignments.Left);
 	}
 	/**
-	* Draws the enemy's battler sprite at the given point.
-	* @param {number} x The x coordinate of the point.
-	* @param {number} y The y coordinate of the point.
+	* Draws the enemy the way it looks on the map, standing in the space between the header and the
+	* elementalistics beneath it.<br/>
+	* An enemy is only pictured once it has been defeated at least once, and one the roster cannot
+	* picture leaves the space empty. Its sheet may still be loading the first time its page opens, in
+	* which case the page draws itself again the moment the sheet arrives.
+	* @param {number} x The x coordinate of the space's top-left corner.
+	* @param {number} y The y coordinate of the space's top-left corner.
 	*/
 	drawEnemySprite(x, y) {
 		const { id, numberDefeated } = this.getObservations();
 		if (numberDefeated < 1) return;
-		const sprite = this.getOrCreateEnemySprite(id);
-		let homeX = x + sprite.width;
-		const homeY = y + sprite.height;
-		if (sprite.width > 300) {
-			const xModifier = sprite.width * .4;
-			homeX -= xModifier;
+		const { characterName, characterIndex } = MonsterpediaRoster.characterOf(id);
+		if (characterName === String.empty) return;
+		const bitmap = ImageManager.loadCharacter(characterName);
+		if (bitmap.isReady() === false) {
+			bitmap.addLoadListener(this.refresh.bind(this));
+			return;
 		}
-		sprite.setHome(homeX, homeY);
-		sprite.show();
+		const box = this.enemySpriteBox(x, y);
+		const frame = CharacterFrame.standing(characterName, characterIndex, bitmap.width, bitmap.height);
+		const scale = CharacterFrame.fitScale(frame.width, frame.height, box.width, box.height, this.enemySpriteScale());
+		const centerX = box.x + Math.floor(box.width / 2);
+		const baselineY = box.y + Math.floor((box.height + frame.height * scale) / 2);
+		this.drawCharacterStanding(characterName, characterIndex, centerX, baselineY, scale);
+	}
+	/**
+	* The space an enemy's portrait stands in: from the given corner across to the drops column, and
+	* down to where the elementalistics begin.
+	* @param {number} x The x coordinate of the space's top-left corner.
+	* @param {number} y The y coordinate of the space's top-left corner.
+	* @returns {Rectangle}
+	*/
+	enemySpriteBox(x, y) {
+		const right = this.dropsColumnX() - this.enemySpriteGutter();
+		const bottom = this.elementalisticsTop() - this.enemySpriteGutter();
+		return new Rectangle(x, y, right - x, bottom - y);
+	}
+	/**
+	* The breathing room kept between an enemy's portrait and the columns around it.
+	* @returns {number}
+	*/
+	enemySpriteGutter() {
+		return 24;
+	}
+	/**
+	* How many times larger than native an enemy's portrait is drawn whenever its space allows.<br/>
+	* Every enemy is drawn at the same scale, so a slime still reads as small beside a dragon; only a
+	* portrait too large for its space is shrunk to fit.
+	* @returns {number}
+	*/
+	enemySpriteScale() {
+		return 3;
+	}
+	/**
+	* Where the drops column begins, measured from the left of this window's contents.<br/>
+	* The column is wide because item names are long, and every line of it is an item's name beside its
+	* chance.
+	* @returns {number}
+	*/
+	dropsColumnX() {
+		return this.innerWidth - 700;
+	}
+	/**
+	* The extra room every row of the drops column puts between its name and its value, carrying each
+	* value to the column's right edge so the values line up and the names get the column's width.
+	* @returns {number}
+	*/
+	dropsColumnSpacePlus() {
+		return 100;
+	}
+	/**
+	* Where the parameters column begins, measured from the left of this window's contents.<br/>
+	* Measured from the contents rather than the whole window, since the contents end a padding short of
+	* the window's edge and a value drawn past them is cut off.
+	* @returns {number}
+	*/
+	parametersColumnX() {
+		return this.innerWidth - 300;
+	}
+	/**
+	* Where the description begins, measured from this window's top edge.
+	* @returns {number}
+	*/
+	descriptionY() {
+		return this.height - this.lineHeight() * 6;
 	}
 	/**
 	* Draws the primary parameters of the enemy.
@@ -1023,17 +1256,32 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		const iconWidthPadding = iconIndex === 0 ? 0 : 40;
 		const nameValueSpace = 48 + spacePlus;
 		const parameterNameX = x + iconWidthPadding;
-		const parameterNameWidth = parameterName !== String.empty ? 300 : 0;
-		let parameterValueX = parameterNameX + 48;
-		if (parameterName !== String.empty) {
+		const hasName = parameterName !== String.empty;
+		const parameterValueX = hasName ? parameterNameX + 48 + nameValueSpace : parameterNameX + 48;
+		const displayValue = maskValue ? J.BASE.Helpers.maskString(parameterValue.padZero(padZeroCount)) : parameterValue.padZero(padZeroCount);
+		const parameterValueWidth = hasName ? 128 : this.textWidth(displayValue);
+		if (hasName) {
+			const parameterNameWidth = this.parameterNameRoom(parameterNameX, parameterValueX, parameterValueWidth, displayValue);
 			this.toggleBold(true);
 			this.drawText(`${parameterName}`, parameterNameX, y, parameterNameWidth, Window_Base.TextAlignments.Left);
 			this.toggleBold(false);
-			parameterValueX += nameValueSpace;
 		}
-		const displayValue = maskValue ? J.BASE.Helpers.maskString(parameterValue.padZero(padZeroCount)) : parameterValue.padZero(padZeroCount);
-		const parameterValueWidth = parameterName !== String.empty ? 128 : this.textWidth(displayValue);
 		this.drawEnemyParameterValue(parameterValueX, y, displayValue, parameterValueWidth, valueColorIndex);
+	}
+	/**
+	* How wide a parameter's name may be drawn: from where it starts up to a small gap before its value.<br/>
+	* The value is right-aligned in its box at one digit's width per character, so it begins as far left as
+	* its characters reach, and a name wider than the room that leaves is narrowed to fit rather than
+	* running under it.
+	* @param {number} nameX The x coordinate the name starts at.
+	* @param {number} valueX The x coordinate of the value's box.
+	* @param {number} valueWidth The width of the value's box.
+	* @param {string} displayValue The value exactly as it will be drawn.
+	* @returns {number}
+	*/
+	parameterNameRoom(nameX, valueX, valueWidth, displayValue) {
+		const valueStartX = valueX + valueWidth - displayValue.length * this.textWidth("0");
+		return valueStartX - nameX - 8;
 	}
 	/**
 	* Draws an enemy's parameter value.
@@ -1071,20 +1319,21 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		const observations = this.getObservations();
 		const { id, knowsParameters } = observations;
 		const gameEnemy = $gameEnemies.enemy(id);
+		const spacePlus = this.dropsColumnSpacePlus();
 		const expIcon = IconManager.rewardParam(0);
 		const expName = TextManager.rewardParam(0);
 		const expValue = gameEnemy.exp();
-		this.drawEnemyParameter(x, y, expIcon, expName, expValue, !knowsParameters, 0);
+		this.drawEnemyParameter(x, y, expIcon, expName, expValue, !knowsParameters, 0, spacePlus);
 		const goldIcon = IconManager.rewardParam(1);
 		const goldName = TextManager.rewardParam(1);
 		const goldValue = gameEnemy.gold();
 		const goldYPlus = lh * 1;
-		this.drawEnemyParameter(x, y + goldYPlus, goldIcon, goldName, goldValue, !knowsParameters, 0);
+		this.drawEnemyParameter(x, y + goldYPlus, goldIcon, goldName, goldValue, !knowsParameters, 0, spacePlus);
 		const sdpIcon = IconManager.rewardParam(4);
 		const sdpName = TextManager.sdpPoints();
 		const sdpValue = gameEnemy.sdpPoints();
 		const sdpYPlus = lh * 2;
-		this.drawEnemyParameter(x, y + sdpYPlus, sdpIcon, sdpName, sdpValue, !knowsParameters, 0);
+		this.drawEnemyParameter(x, y + sdpYPlus, sdpIcon, sdpName, sdpValue, !knowsParameters, 0, spacePlus);
 	}
 	/**
 	* Draws the sdp drop.
@@ -1112,10 +1361,13 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 			dropText = `✅`;
 		}
 		const panelName = knowsParameters ? panel.name : J.BASE.Helpers.maskString(panel.name);
-		this.drawEnemyParameter(x, y, panel.iconIndex, panelName, dropText, false, 0, 20);
+		const spacePlus = this.dropsColumnSpacePlus();
+		this.drawEnemyParameter(x, y, panel.iconIndex, panelName, dropText, false, 0, spacePlus);
 	}
 	/**
-	* Draws the standard list of all loot that this enemy can drop.
+	* Draws the standard list of all loot that this enemy can drop, one line per item.<br/>
+	* An item rolled several times shows once, with the best chance among its rolls and how many times it
+	* can drop; {@link MonsterpediaDropSummary} does the folding.
 	* @param {number} x The x coordinate of the point.
 	* @param {number} y The y coordinate of the point.
 	*/
@@ -1133,21 +1385,21 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 			this.drawText(noDropsText, x, y, noDropsTextWidth);
 			return;
 		}
-		let numberSkipped = 0;
-		const forEacher = (drop, index) => {
-			if (this.isSkippableDrop(drop)) {
-				numberSkipped++;
-				return;
-			}
+		const shownDrops = drops.filter((drop) => this.isSkippableDrop(drop) === false);
+		const dropLines = MonsterpediaDropSummary.summarize(shownDrops);
+		const spacePlus = this.dropsColumnSpacePlus();
+		const forEacher = (dropLine, index) => {
+			const { drop, bestChance, rolls } = dropLine;
 			const implementation = drop.toImplementation();
-			const { dataId: dropId, denominator: dropChance, kind: dropType } = drop;
+			const { dataId: dropId, kind: dropType } = drop;
 			const isDropKnown = observations.isDropKnown(dropType, dropId) || numberDefeated > 100;
 			const dropIcon = isDropKnown ? implementation.iconIndex : 93;
 			const dropName = isDropKnown ? implementation.name : J.BASE.Helpers.maskString(implementation.name);
-			const dropYPlus = (index - numberSkipped) * lh;
-			this.drawEnemyParameter(x, y + dropYPlus, dropIcon, dropName, `${dropChance}%`, false, 4);
+			const dropYPlus = index * lh;
+			const dropText = MonsterpediaDropSummary.lineText(bestChance, rolls);
+			this.drawEnemyParameter(x, y + dropYPlus, dropIcon, dropName, dropText, false, 4, spacePlus);
 		};
-		drops.forEach(forEacher, this);
+		dropLines.forEach(forEacher, this);
 	}
 	/**
 	* Determines whether or not the drop should be drawn in the monsterpedia.
@@ -1220,35 +1472,22 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		});
 	}
 	/**
-	* Draws damage-type elementalistics plus prefixed taxonomy rows (`vs ` / `x ` / `tool-`).
-	* Damage types render in a column shifted left; family/traits/tools use the original right-hand x so the block
-	* does not grow upward into the parameter stack when multiple taxonomy lines exist.
-	* Both columns share the same top row so taxonomy reads downward beside Cut through Typeless.
+	* Draws damage-type elementalistics plus prefixed taxonomy rows (`vs ` / `x ` / `tool-`), as a block of
+	* two columns beneath the portrait: the damage types on the left, and family/traits/tools reading
+	* downward beside them from the same top row.<br/>
 	* Taxonomy rows only appear when the effective rate differs from 100% (same signal as the Aptitude typed extension).
 	*/
 	drawElementalistics() {
 		this.resetFontSettings();
 		const lh = this.lineHeight() - 10;
-		const damageColumnOffset = 280;
 		const observations = this.getObservations();
-		const { id } = observations;
-		const gameEnemy = $gameEnemies.enemy(id);
 		this.modFontSize(-4);
-		const taxonomy = this.collectMonsterpediaTaxonomyRows(gameEnemy);
-		const taxonomyLineCount = this.countMonsterpediaTaxonomyDrawLines(taxonomy);
-		const damageTypeCount = 10;
-		const blockRowCount = Math.max(damageTypeCount, taxonomyLineCount);
-		const descriptionTop = this.height - this.lineHeight() * 6;
-		const elemBlockBottom = descriptionTop - lh;
-		let yTop = elemBlockBottom - lh * blockRowCount;
-		if (yTop < 48) {
-			yTop = 48;
-		}
-		const taxonomyColumnX = this.width - 300;
-		const damageColumnX = taxonomyColumnX - damageColumnOffset;
-		const damageStartRow = 0;
-		const taxonomyStartRow = 0;
-		this.drawMonsterpediaTaxonomySections(taxonomyColumnX, yTop, lh, taxonomyStartRow, observations, taxonomy);
+		const blockX = this.elementalisticsX();
+		const blockY = this.elementalisticsTop();
+		const damageColumnX = blockX;
+		const taxonomyColumnX = blockX + this.elementalisticsColumnPitch();
+		const taxonomy = this.elementalisticsTaxonomy();
+		this.drawMonsterpediaTaxonomySections(taxonomyColumnX, blockY, lh, 0, observations, taxonomy);
 		const damageElementIds = [
 			1,
 			2,
@@ -1261,10 +1500,51 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 			9,
 			10
 		];
-		damageElementIds.forEach((elementId, index) => {
-			const row = damageStartRow + index;
-			this.drawMonsterpediaDamageElementRow(damageColumnX, yTop, lh, row, observations, elementId);
+		damageElementIds.forEach((elementId, row) => {
+			this.drawMonsterpediaDamageElementRow(damageColumnX, blockY, lh, row, observations, elementId);
 		});
+	}
+	/**
+	* The highlighted enemy's family, traits and tools, keeping only the rows that differ from neutral.
+	* @returns {{ vs: object[], x: object[], tool: object[] }}
+	*/
+	elementalisticsTaxonomy() {
+		const { id } = this.getObservations();
+		const gameEnemy = $gameEnemies.enemy(id);
+		return this.collectMonsterpediaTaxonomyRows(gameEnemy);
+	}
+	/**
+	* Where the elementalistics block begins, measured from the top of this window's contents.<br/>
+	* The block ends a line above the description and climbs from there, so its top moves with how many
+	* rows it holds: the ten damage types, or more when the taxonomy beside them runs longer. The
+	* portrait's space ends where the block begins, so the two never overlap.
+	* @returns {number}
+	*/
+	elementalisticsTop() {
+		const lh = this.lineHeight() - 10;
+		const damageTypeCount = 10;
+		const taxonomy = this.elementalisticsTaxonomy();
+		const rowCount = Math.max(damageTypeCount, this.countMonsterpediaTaxonomyDrawLines(taxonomy));
+		const top = this.descriptionY() - lh - lh * rowCount;
+		return Math.max(top, 48);
+	}
+	/**
+	* Where the elementalistics block begins, measured from the left of this window's contents: centered
+	* beneath the portrait, in the same space the portrait stands in.
+	* @returns {number}
+	*/
+	elementalisticsX() {
+		const spaceWidth = this.dropsColumnX() - this.enemySpriteGutter();
+		const blockWidth = this.elementalisticsColumnPitch() * 2;
+		return Math.floor((spaceWidth - blockWidth) / 2);
+	}
+	/**
+	* How far apart the elementalistics block's two columns begin: enough for a row's icon, name and
+	* value, plus a little room before the next column.
+	* @returns {number}
+	*/
+	elementalisticsColumnPitch() {
+		return 280;
 	}
 	/**
 	* Collects non-neutral prefixed element rows for monsterpedia display.
@@ -1457,8 +1737,10 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 *
 * Built on the facet skeleton rather than laid out from scratch, so it shares the control legend and
 * the bounded region every other menu in the ecosystem draws inside. The left column lists every
-* monster that can be observed; the right side details whichever one is highlighted. There is
-* nothing to confirm here, only to read.
+* entry that can be observed on the open page, beneath a strip naming that page; the right side
+* details whichever entry is highlighted. Each page lists one kind of entry, ordinary enemies or
+* destructibles or whatever else the omnipedia's configuration authors, and L2/R2 flips between them.
+* There is nothing to confirm here, only to read.
 */
 var Scene_Monsterpedia = class extends Scene_MenuFacetBase {
 	/**
@@ -1516,6 +1798,16 @@ var Scene_Monsterpedia = class extends Scene_MenuFacetBase {
 		*/
 		this._j._omni._monster = {};
 		/**
+		* The L2/R2 ring of pages this scene flips between, one per kind of entry.
+		* @type {FilterCycle}
+		*/
+		this._j._omni._monster._typeFilter = new FilterCycle(this.buildTypePositions());
+		/**
+		* The strip naming whichever page is currently open.
+		* @type {Window_FilterStrip}
+		*/
+		this._j._omni._monster._typeStrip = null;
+		/**
 		* The window that shows the list of perceived monsters.
 		* @type {Window_MonsterpediaList}
 		*/
@@ -1527,14 +1819,22 @@ var Scene_Monsterpedia = class extends Scene_MenuFacetBase {
 		this._j._omni._monster._pediaDetail = null;
 	}
 	/**
+	* The positions of the page ring, in the order the kinds of entry were authored.
+	* @returns {{key: string, name: string, iconIndex: number, showsStats: boolean}[]}
+	*/
+	buildTypePositions() {
+		return MonsterpediaTypes.positions();
+	}
+	/**
 	* Extends {@link #create}.<br/>
 	* Also creates this scene's own windows.
 	*/
 	create() {
 		super.create();
+		this.createTypeStripWindow();
 		this.createMonsterpediaListWindow();
 		this.createMonsterpediaDetailWindow();
-		this.onMonsterpediaIndexChange();
+		this.applyActiveType();
 		this.getMonsterpediaListWindow().activate();
 	}
 	/**
@@ -1557,12 +1857,24 @@ var Scene_Monsterpedia = class extends Scene_MenuFacetBase {
 		return false;
 	}
 	/**
-	* The rectangle for the monster list, filling the left column of the region.
+	* The rectangle for the page strip, crowning the left column.
+	* @returns {Rectangle}
+	*/
+	typeStripRectangle() {
+		const facetArea = this.facetAreaRect();
+		const height = this.calcWindowHeight(1, false);
+		return new Rectangle(facetArea.x, facetArea.y, this.commandColumnWidth(), height);
+	}
+	/**
+	* The rectangle for the monster list, filling the left column beneath the strip.
 	* @returns {Rectangle}
 	*/
 	monsterpediaListRectangle() {
 		const facetArea = this.facetAreaRect();
-		return new Rectangle(facetArea.x, facetArea.y, this.commandColumnWidth(), facetArea.height);
+		const stripRectangle = this.typeStripRectangle();
+		const y = stripRectangle.y + stripRectangle.height;
+		const height = facetArea.y + facetArea.height - y;
+		return new Rectangle(facetArea.x, y, this.commandColumnWidth(), height);
 	}
 	/**
 	* The rectangle for the detail pane, filling the region beside the list.
@@ -1576,12 +1888,45 @@ var Scene_Monsterpedia = class extends Scene_MenuFacetBase {
 	}
 	/**
 	* Implements {@link #controlLegendEntries}.<br/>
-	* There is nothing here that leaves no mark on screen: moving the cursor is self-evident and
-	* cancel is named by what it lands on, so the legend has nothing to teach.
+	* Teaches the one control that leaves no mark on screen until pressed: the shoulder triggers that
+	* flip between pages. Moving the cursor is self-evident and cancel is named by what it lands on.
 	* @returns {{semantic: (string|string[]), label: string}[]}
 	*/
 	controlLegendEntries() {
-		return [];
+		return [{
+			semantic: ["content-prev", "content-next"],
+			label: "pedia"
+		}];
+	}
+	/**
+	* Creates the strip naming the open page.
+	*/
+	createTypeStripWindow() {
+		const window = this.buildTypeStripWindow();
+		this.setTypeStripWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Sets up and defines the page strip window.
+	* @returns {Window_FilterStrip}
+	*/
+	buildTypeStripWindow() {
+		const rectangle = this.typeStripRectangle();
+		return new Window_FilterStrip(rectangle);
+	}
+	/**
+	* Gets the currently tracked page strip window.
+	* @returns {Window_FilterStrip}
+	*/
+	getTypeStripWindow() {
+		return this._j._omni._monster._typeStrip;
+	}
+	/**
+	* Sets the currently tracked page strip window.
+	* @param {Window_FilterStrip} stripWindow The page strip window to track.
+	*/
+	setTypeStripWindow(stripWindow) {
+		this._j._omni._monster._typeStrip = stripWindow;
 	}
 	/**
 	* Creates the list of monsters the player has perceived.
@@ -1599,6 +1944,8 @@ var Scene_Monsterpedia = class extends Scene_MenuFacetBase {
 		const rectangle = this.monsterpediaListRectangle();
 		const window = new Window_MonsterpediaList(rectangle);
 		window.setHandler("cancel", this.onCancelMonsterpedia.bind(this));
+		window.setHandler("content-next", this.cycleMonsterTypes.bind(this, true));
+		window.setHandler("content-prev", this.cycleMonsterTypes.bind(this, false));
 		window.onIndexChange = this.onMonsterpediaIndexChange.bind(this);
 		return window;
 	}
@@ -1646,6 +1993,48 @@ var Scene_Monsterpedia = class extends Scene_MenuFacetBase {
 	*/
 	setMonsterpediaDetailWindow(detailWindow) {
 		this._j._omni._monster._pediaDetail = detailWindow;
+	}
+	/**
+	* The page ring this scene flips through.
+	* @returns {FilterCycle}
+	*/
+	getTypeFilter() {
+		return this._j._omni._monster._typeFilter;
+	}
+	/**
+	* Points the strip and the list at whichever page is now open, then the detail at whatever the list
+	* lands on.
+	*/
+	applyActiveType() {
+		const typeFilter = this.getTypeFilter();
+		const activePosition = typeFilter.activePosition();
+		this.getTypeStripWindow().setPosition(activePosition);
+		const listWindow = this.getMonsterpediaListWindow();
+		listWindow.setCurrentTypeKey(activePosition.key);
+		listWindow.refresh();
+		listWindow.select(0);
+		this.onMonsterpediaIndexChange();
+	}
+	/**
+	* Walks the page ring, wrapping at either end.
+	* @param {boolean} isForward Whether to walk forwards.
+	*/
+	cycleMonsterTypes(isForward) {
+		const typeFilter = this.getTypeFilter();
+		const listWindow = this.getMonsterpediaListWindow();
+		if (!typeFilter.canCycle()) {
+			SoundManager.playBuzzer();
+			listWindow.activate();
+			return;
+		}
+		if (isForward) {
+			typeFilter.next();
+		} else {
+			typeFilter.previous();
+		}
+		SoundManager.playCursor();
+		this.applyActiveType();
+		listWindow.activate();
 	}
 	/**
 	* Synchronizes the detail pane with the highlighted monster.

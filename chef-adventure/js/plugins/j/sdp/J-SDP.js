@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.8.1 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v4.9.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -3429,7 +3429,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.8.1");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.9.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3461,6 +3461,24 @@ J.SDP.RegExp = {
 	SdpBonusFormula: /<sdpBonusFormula:\[(.+?)]>/i,
 	SdpDropData: /<sdpDropData: ?(\[[-\w]+,[ ]?\d+])>/i,
 	SdpUnlockKey: /<sdpUnlock: ?(.+)>/i,
+	/**
+	* The declaration that a defeated enemy grants no SDP points.
+	* Only SDP points are refused; every other reward the enemy carries is paid as usual, and a panel
+	* it drops is loot rather than points, so that still falls too.
+	*
+	* <pre>
+	* Structure:
+	*  <no:sdp>
+	*
+	* Example:
+	*  <no:sdp>
+	*
+	* Translation:
+	*  Defeating this enemy grants no SDP points. Its experience, gold, AP and drops are untouched.
+	* </pre>
+	* @type {RegExp}
+	*/
+	NoSdp: /<no: ?sdp>/i,
 	SdpRateBuffPlus: /<sdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
 	SdpRateBuffRate: /<sdrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
 	SdpRateGrowthPlus: /<sdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
@@ -3516,6 +3534,13 @@ Object.defineProperty(RPG_Item.prototype, "sdpKey", { get: function() {
 */
 Object.defineProperty(RPG_Enemy.prototype, "sdpPoints", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.SDP.RegExp.SdpPoints);
+} });
+/**
+* Whether this enemy refuses SDP points on defeat, as declared by `<no:sdp>`.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Enemy.prototype, "noSdp", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.SDP.RegExp.NoSdp);
 } });
 /**
 * Gets the SDP drop data for this enemy.
@@ -4083,6 +4108,13 @@ Game_Enemy.prototype.buildSdpLoot = function(drop) {
 Game_Enemy.prototype.sdpPoints = function() {
 	return this.enemy().sdpPoints;
 };
+/**
+* Whether this enemy refuses SDP points when defeated, leaving its other rewards alone.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.hasNoSdp = function() {
+	return this.enemy().noSdp;
+};
 
 //#endregion
 //#region src/plugins/sdp/core/objects/Game_Party.js
@@ -4407,6 +4439,7 @@ if (J.ABS) {
 	*/
 	JABS_Engine.prototype.determineSdpGained = function(defeatedEnemy, actor) {
 		if (this.canGainReward(defeatedEnemy, actor.getBattler()) === false) return 0;
+		if (defeatedEnemy.hasNoSdp() === true) return 0;
 		const sdpPoints = defeatedEnemy.sdpPoints();
 		if (!sdpPoints) return 0;
 		const levelMultiplier = this.getRewardScalingMultiplier(defeatedEnemy, actor);

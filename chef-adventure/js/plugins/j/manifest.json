@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "generatedBy": "rmmz-plugins src/build-tools/generate-manifest.js - generated, never edit by hand",
   "files": {
-    "abs/J-ABS.js": "be1c37b07d7c9f8fbc01dc3c5c8b74623cb65e8b917293ccdda0b3d08c358f68",
+    "abs/J-ABS.js": "f028cab759f410c8b41d47cc88cc65922e366e16c388fa6547d33d8284d769e6",
     "abs/ext/J-ABS-AllyAI.js": "97354c203a158cc0b89e92d21fc259a045b9b3a9f75bd1dbea258a33e2b8b681",
     "abs/ext/J-ABS-Boss.js": "469b9752b880a4069fdef5eafaf217be6bbc25a7f598190059c961f796232398",
     "abs/ext/J-ABS-Charge.js": "2d7d5bddab9327c8d47194fba3b241fbba0a280b83fb7e1a6c56011e2c62c1ff",
@@ -25,14 +25,14 @@
     "abs/ext/J-ABS-Timing.js": "0a2da42008d3bd97be9b7a211fb9e5ac7190d4cb25b5ff6171671be211e6f14c",
     "abs/ext/J-ABS-Tools.js": "c0660e89d1e37f868ce06e0ee9e3bc5d9f30af1df58c1391c1d9c6436fc53f00",
     "apt/J-Aptitude-Typed.js": "b5d853e34c06a7469ac330e3ee47eed4c70f513225ec9e3c2fb3edc85225dc56",
-    "apt/J-Aptitude.js": "6452bf1310ccc92a00fac87d980f81823ed9af0510681ca7b10080c840be5ce3",
-    "base/J-Base.js": "eef1530bc1bebf416856bc7def713ae6e1a18b9fa527556e589ff7d3cdb705a2",
+    "apt/J-Aptitude.js": "f02e3b843bc8f982c45cb8dc1f62a9ff868d10f882e6c8d5445c11124e764c86",
+    "base/J-Base.js": "368d7e847e4e1062acef7920e18b152d10c67a04bdee15be5ccd2bbfc9e469c2",
     "base/ext/J-Base-Save.js": "d4547c431b0d5c7c1db87100035a74ef40c8819548b55d783c16d86ad0dcae62",
     "ca-mods/J-CA-Mods.js": "53cab17fd03fa1d8f710383f7135a0e8bbf694d8663f484e825ce947fc497996",
     "class/J-Classes.js": "54f43005ba401d069d0d9696137af5837168ee754c3b5d7cc8ecf7a02e5c4b02",
     "class/ext/J-Classes-Aptitude.js": "392bdc362da3b6da6a814604b1dfb09edc865bf577bf56180c27c1fc53df2dc1",
     "class/ext/J-Classes-Natural.js": "1bf280439630ded235ba7d7818ec33182684d741b6c375fb5c2efb43482caa2a",
-    "cms/core/J-CMS.js": "6adf4681f632f70947b07b389032567f06f2bc9eff40f50cb281d1fa93e0c170",
+    "cms/core/J-CMS.js": "97ae53cc5c4cd432361b5da83a00c4d245fae0eed3890552fe0ca8623fa3c8b0",
     "cms/ext/J-CMS-Equip.js": "5f887139f6e1f271222b9bca871b7d7b4ba558c132aaff3f35277e50caa28503",
     "cms/ext/J-CMS-Skill.js": "bbf4915dd221d2a7718f30b5a6cdacaf90248271e030e251203d93d086ffed39",
     "crit/J-CriticalFactors.js": "8fd13c0489441802f8e87e1c387b632c25592c42be51a49a845f7da9d7363f1c",
@@ -55,7 +55,7 @@
     "jafting/ext/J-JAFTING-Creation.js": "945e96b12ef9cd94f620d16a873b1ff6073fdddd24c4b5d5e2dae038c9564efa",
     "jafting/ext/J-JAFTING-Refinement.js": "67c05a173733b29baddfdf36cb8ffa79a88b5c78aae8e9dff431b610d5c1bca1",
     "level/J-LevelMaster.js": "1ba657113423450f0086111823be5eb8a1852874793f4044feac86a1ca90c560",
-    "level/ext/J-Level-Flat.js": "35b72f62bd88a63acd15857d005e8d7e531f67c90742cd0804e54e2d08b55582",
+    "level/ext/J-Level-Flat.js": "e7fcc7bf15f46a159d45ba17d6445b673a140ae32918907e132a57e3972d3f4e",
     "level/ext/J-Level-Sync.js": "c388da2b3d89ce1c295a121427e16dd4daa910e3ae35371a165da9b9171d0ee5",
     "lighting/J-Lighting.js": "7b09a21ea1270c358f21917b08f014d9d915daa4c756fb1294c5ec9055fe401b",
     "lighting/ext/J-Lighting-Time.js": "530b39b7fb7a7cd1c2ac58d5c447b6cf37194cfc7d9a1d439b19858cd2fe7818",
@@ -69,7 +69,7 @@
     "motion/ext/J-Motion-Passive.js": "8a4b92a4a1ebfd5deaee05214cc9dd2b8cc4b409c6cb4231ec7da2f005cfd7dd",
     "natural/J-NaturalGrowth.js": "666ccfe5adbaf9fc7f635b0d98f0f8a950715b7a4b25afdaa18f78f9d90694da",
     "omni/J-Omnipedia.js": "72ac8fefe0d1ed2d684dc64531104e39cc1817e32e171224566f172828d24ed8",
-    "omni/ext/J-OMNI-Monsters.js": "bcce9128a19b96bd5b2bcc0d50c41c8faf14e2c4dc17843a4ed76dcd2453dbc8",
+    "omni/ext/J-OMNI-Monsters.js": "a8459f7f97aac05feb46a8bd3b40c32c9e67ff55cd70a8c5b36503b711149631",
     "omni/ext/J-OMNI-Quests.js": "a89e846328644f33c3a5383dcd0ff1ba3d4fb99d034662fce785a98614d87f8f",
     "omni/ext/J-OMNI-Stats.js": "7d662c477589720c1e43b310b40bc6c7f3e3de6ef3099c29c1c084ad805b8c85",
     "passive/J-Passive.js": "8d1fc0c896254f336df48b23a8640bacb47763827cd6839305641938115a2c22",
@@ -92,7 +92,7 @@
     "regions/ext/J-Regions-States.js": "0fc3951c83abb7ef346f59b7e31d8167a26e4f535b7c85d9a566f96477b0ebe3",
     "resources/J-Resources.js": "91d91ecbab2f209ae2f6e016daec2de1443e86e3a85938b365a6801f3c93a364",
     "resources/ext/J-Resources-ABS.js": "fa340c994241638bf7bff52a760248e5671d1e0d9d5d14a3af53d9bb9c6b93e7",
-    "sdp/J-SDP.js": "8f6e7cf5d1742d58cd6b552b1131e2a8308b0d62de8cd096d98d7e650aff0850",
+    "sdp/J-SDP.js": "38e81defccbc1a9d776d8b6e08f467317c2e0afee50cbeaa05231d8ad61097a3",
     "sks/J-SkillSlots.js": "bab81ef9ef0cd717ca18355cf18d3d97479cf3fd15b16b83822efd30cad64e55",
     "sks/ext/J-SkillSlots-ABS.js": "56c496777478fd0100cee1f2bf6ddbce8a38d6656ea05dfb0b05582f32678576",
     "time/J-TIME.js": "dc7d21662c250b259a4c0e1c4d5f5dbf19b5446c1bcb2d435d55b8e74f28d985",
@@ -1646,6 +1646,22 @@
       "flags": "gi"
     },
     {
+      "label": "J.ABS.RegExp.NoExp",
+      "names": [
+        "no"
+      ],
+      "pattern": "<no:[ ]?exp>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.NoGold",
+      "names": [
+        "no"
+      ],
+      "pattern": "<no:[ ]?gold>",
+      "flags": "i"
+    },
+    {
       "label": "J.ABS.RegExp.NoLogs",
       "names": [
         "noLogs"
@@ -1659,6 +1675,14 @@
         "noRespawn"
       ],
       "pattern": "<noRespawn>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.NoRewardPoints",
+      "names": [
+        "noRewardPoints"
+      ],
+      "pattern": "<noRewardPoints>",
       "flags": "i"
     },
     {
@@ -2821,6 +2845,14 @@
       ],
       "pattern": "<aptitude:[ ]?(\\[\\d+,[ ]?\\d+])>",
       "flags": "gi"
+    },
+    {
+      "label": "J.APT.RegExp.NoAp",
+      "names": [
+        "no"
+      ],
+      "pattern": "<no: ?ap>",
+      "flags": "i"
     },
     {
       "label": "J.BASE.RegExp.ClassifierType",
@@ -5042,6 +5074,14 @@
       "flags": "i"
     },
     {
+      "label": "J.OMNI.EXT.MONSTER.RegExp.MonsterType",
+      "names": [
+        "monsterType"
+      ],
+      "pattern": "<monsterType:[ ]?([\\w-]+)>",
+      "flags": "i"
+    },
+    {
       "label": "J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription",
       "names": [
         "descriptionLine"
@@ -6143,6 +6183,14 @@
         "tp-gain"
       ],
       "pattern": "<tp-gain:(\\d+)%>",
+      "flags": "i"
+    },
+    {
+      "label": "J.SDP.RegExp.NoSdp",
+      "names": [
+        "no"
+      ],
+      "pattern": "<no: ?sdp>",
       "flags": "i"
     },
     {
