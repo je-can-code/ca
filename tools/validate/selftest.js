@@ -313,6 +313,8 @@ const buildControls = project =>
   const missingAnimationId = tables.Animations.length;
   const animationStep = animation => ({ verb: 'animation', animation, expect: '' });
   const dialogueStep = lines => ({ verb: 'dialogue', speaker: 'Planted', lines });
+  const blinkStep = patch => ({ verb: 'blink', x: body.x, y: body.y, direction: 0, animation: realAnimationId, ...patch });
+  const realSkillId = findRealRowId(tables.Skills);
 
   const [ someBuiltFile ] = project.pluginFiles.keys();
 
@@ -618,6 +620,63 @@ const buildControls = project =>
       check: checkConfigs,
       planted: withReaction(reactionTo('start', [], [ dialogueStep([ 'BRING IT' ]) ])),
       expect: null,
+    },
+    {
+      label: 'a blink facing a way no character can face (5)',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ blinkStep({ direction: 5 }) ])),
+      expect: [ 'reaction "planted" steps[0] blinks to face 5' ],
+    },
+    {
+      label: `a blink landing one tile past its arena's far edge (Map #${encounter.map} at (${arena.width}, 0))`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ blinkStep({ x: arena.width, y: 0 }) ])),
+      expect: [ 'reaction "planted" steps[0] appears at', `outside Map #${encounter.map}` ],
+    },
+    {
+      label: `the same blink landing on the arena's last tile, facing right (${arena.width - 1}, ${arena.height - 1})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ blinkStep({ x: arena.width - 1, y: arena.height - 1, direction: 6 }) ])),
+      expect: null,
+    },
+    {
+      label: `a skill learned from a blank row (skill #${blankSkillId})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'learnSkill', skill: blankSkillId, expect: '' } ])),
+      expect: [ 'reaction "planted" steps[0] skill', `Skills #${blankSkillId}` ],
+    },
+    {
+      label: `the same step learning a real skill instead (skill #${realSkillId})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'learnSkill', skill: realSkillId, expect: '' } ])),
+      expect: null,
+    },
+    {
+      label: 'a step starting a routine the fight does not have ("wavse")',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'startRoutine', routine: 'wavse' } ])),
+      expect: [ 'steps[0] starts routine "wavse"', 'no routine by that name' ],
+    },
+    {
+      label: `a dormant routine nothing ever starts ("${routine.key}")`,
+      check: checkConfigs,
+      planted: withEncounter({ routines: [ { ...routine, dormant: true } ], reactions: [] }),
+      expect: [ `routine "${routine.key}" is dormant, but no step ever starts it` ],
+    },
+    {
+      label: `the same dormant routine, started as the fight opens ("${routine.key}")`,
+      check: checkConfigs,
+      planted: withEncounter({
+        routines: [ { ...routine, dormant: true } ],
+        reactions: [ reactionTo('start', [], [ { verb: 'startRoutine', routine: routine.key } ]) ],
+      }),
+      expect: null,
+    },
+    {
+      label: `a spawn arriving in an animation the database does not have (animation #${missingAnimationId})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ spawnStep({ animation: missingAnimationId }) ])),
+      expect: [ 'reaction "planted" steps[0] animation', `Animations #${missingAnimationId}` ],
     },
     {
       label: 'a boss changing into a sprite with no file ("$m_planted-nothing")',

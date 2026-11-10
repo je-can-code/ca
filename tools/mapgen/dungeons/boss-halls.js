@@ -49,7 +49,8 @@ const LOBBY = { id: 542, tree: 'TESTING: Boss Halls' };
  * names. `arrival` is where the hall sets the player down: the arena's own landing square, turned to face
  * into the room, so that holding the key they walked in with never carries them straight back out through
  * the exit. `exitEventId` is the arena's way out, which the hall keeps where it stands and points at the
- * lobby instead. An arena with no way out of its own, like the pit Aqualock waits at the bottom of, names
+ * lobby instead. An arena with no way out of its own, like the pit Aqualock waits at the bottom of, or with
+ * one the fight's floor cannot walk back to, like the one-way stairs below Lucian's throne, names
  * `exitEventId: 0` and an `exit` square, and its hall gets a plain labelled exit there. `kit` places the test
  * kit off the fight's floor and out of the walk from the arrival to it. `seals` names the arena's events that
  * shut a way out while the fight is on, each by its id and the page that shuts it, so the hall stands in the room
@@ -90,6 +91,15 @@ const HALLS = [
     exitEventId: 19,
     kit: { init: [ 27, 9 ], levels: [ 28, 9 ], fight: [ 34, 9 ], watch: [ 35, 9 ] },
     seals: [ { eventId: 22, page: 1 } ],
+  },
+  {
+    id: 547,
+    name: 'Wrath',
+    encounter: 'wrath',
+    arrival: { x: 22, y: 19, dir: 8 },
+    exitEventId: 0,
+    exit: [ 22, 34 ],
+    kit: { init: [ 18, 19 ], levels: [ 19, 19 ], fight: [ 25, 19 ], watch: [ 26, 19 ] },
   },
 ];
 

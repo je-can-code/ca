@@ -49086,7 +49086,7 @@
   {
     "id": 553,
     "name": "Cynder",
-    "note": "\u003clevel:45\u003e\n\u003cpassive:[323]\u003e\n\u003cabsorbElements:[4]\u003e\n\u003cmtpBuffPlus:[1500]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 249]\u003e\n\u003catkBuffPlus:[(a.level * 7.5)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 3.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 5.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1)]\u003e\n\u003chideTargetFrame\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003cdescriptionLine:A fire elemental.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_3,1]\u003e\n\u003caiTrait:executor\u003e\n\u003csight:8\u003e\n\u003cpursuit:9\u003e\n\u003calertDuration:180\u003e\n\u003calertedSightBoost:10\u003e\n\u003calertedPursuitBoost:10\u003e\n\u003cjabsConfig:noIdle\u003e",
+    "note": "\u003clevel:45\u003e\n\u003cpassive:[323]\u003e\n\u003cabsorbElements:[4]\u003e\n\u003cmtpBuffPlus:[1500]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 272]\u003e\n\u003catkBuffPlus:[(a.level * 7.5)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 3.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 5.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1)]\u003e\n\u003chideTargetFrame\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003cdescriptionLine:A fire elemental.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_3,1]\u003e\n\u003caiTrait:executor\u003e\n\u003csight:8\u003e\n\u003cpursuit:9\u003e\n\u003calertDuration:180\u003e\n\u003calertedSightBoost:10\u003e\n\u003calertedPursuitBoost:10\u003e\n\u003cjabsConfig:noIdle\u003e",
     "battlerName": "Firespirit",
     "traits": [
       {
@@ -51841,7 +51841,7 @@
   {
     "id": 582,
     "name": "Vampire King",
-    "note": "\u003clevel:70\u003e\n\u003cpassive:[322]\u003e\n\u003cretaliate:[276,25]\u003e\n\u003cmrgBuffPlus:[4000]\u003e\n\u003catkBuffPlus:[(a.level * 3.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 9)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7)]\u003e\n\u003cagiBuffPlus:[(a.level * 5.25)]\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e\n\u003cmonsterFamilyIcon:48\u003e\n\u003cdescriptionLine:The vampire form of the random guy who presumably caused the Erocian Kingdom to fall.\u003e\n\u003cdescriptionLine:You don't know much about him because you decided to slay him before you made him spill the beans.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_2,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e",
+    "note": "\u003clevel:70\u003e\n\u003cpassive:[322]\u003e\n\u003cretaliate:[276,25]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 275]\u003e\n\u003cmrgBuffPlus:[4000]\u003e\n\u003catkBuffPlus:[(a.level * 3.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 9)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7)]\u003e\n\u003cagiBuffPlus:[(a.level * 5.25)]\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e\n\u003cmonsterFamilyIcon:48\u003e\n\u003cdescriptionLine:The vampire form of the random guy who presumably caused the Erocian Kingdom to fall.\u003e\n\u003cdescriptionLine:You don't know much about him because you decided to slay him before you made him spill the beans.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_2,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e",
     "battlerName": "Vampire",
     "traits": [
       {
@@ -52016,7 +52016,7 @@
     "exp": 0,
     "gold": 0,
     "params": [
-      999999,
+      535,
       9999,
       15,
       28,

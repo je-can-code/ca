@@ -285,7 +285,14 @@ const findTemplateEnemyId = template =>
  */
 const BOSS_VERBS = [
   'forceSkill', 'addState', 'removeState', 'changeImage', 'quickenRoutine', 'spawn', 'tint', 'animation', 'dialogue',
+  'blink', 'wait', 'learnSkill', 'startRoutine',
 ];
+
+/**
+ * The facings a blink may leave its participant with: 0 keeps the one it had, the rest are down, left, right and up.
+ * @type {number[]}
+ */
+const BLINK_DIRECTIONS = [ 0, 2, 4, 6, 8 ];
 
 /**
  * The moments of a fight a J-ABS-Boss reaction can answer.
@@ -383,6 +390,44 @@ const checkBossStep = (project, findings, encounter, step, where) =>
   {
     findings.add(`${where} has a participant say nothing at all, so the fight refuses to start`);
   }
+
+  if (step.verb === 'blink') checkBossBlink(project, findings, encounter, step, where);
+
+  if (step.verb === 'learnSkill') resolveExpected(project, findings, `${where} skill`, 'Skills', step.skill ?? 0, step.expect ?? '');
+
+  if (step.verb === 'startRoutine' && !encounter.routines.some(routine => routine.key === step.routine))
+  {
+    findings.add(`${where} starts routine "${step.routine}", but the encounter has no routine by that name`);
+  }
+
+  // a spawn can arrive in a flash; one that names an animation needs the animation to exist.
+  if (step.verb === 'spawn' && (step.animation ?? 0) > 0)
+  {
+    findings.resolve(project, `${where} animation`, 'Animations', step.animation);
+  }
+};
+
+/**
+ * A blink step: the tile it lands on has to be on the arena, the way it leaves its participant facing has to be one a
+ * character can face, and the flare it names has to exist.
+ * @param {object} project The loaded project.
+ * @param {Findings} findings Where failures go.
+ * @param {object} encounter The encounter owning the step.
+ * @param {object} step The blink step.
+ * @param {string} where Where the step lives, for the report.
+ */
+const checkBossBlink = (project, findings, encounter, step, where) =>
+{
+  const tileProblem = findTileProblem(project.maps.get(encounter.map), encounter.map, step.x ?? 0, step.y ?? 0);
+  if (tileProblem !== '') findings.add(`${where} ${tileProblem}`);
+
+  const direction = step.direction ?? 0;
+  if (!BLINK_DIRECTIONS.includes(direction))
+  {
+    findings.add(`${where} blinks to face ${direction}, which is not down (2), left (4), right (6) or up (8), so the fight refuses to start`);
+  }
+
+  if ((step.animation ?? 0) > 0) findings.resolve(project, `${where} animation`, 'Animations', step.animation);
 };
 
 /**
@@ -493,7 +538,28 @@ const checkBosses = (project, jabs, findings) =>
 
     (encounter.reactions ?? []).forEach(reaction =>
       checkBossReaction(project, findings, encounter, reaction, `${where} reaction "${reaction.key}"`));
+
+    // a dormant routine runs only once something starts it, so one that nothing starts never runs at all.
+    const started = findStartedRoutines(encounter);
+    encounter.routines
+      .filter(routine => routine.dormant === true && !started.has(routine.key))
+      .forEach(routine => findings.add(`${where} routine "${routine.key}" is dormant, but no step ever starts it, so it never runs`));
   });
+};
+
+/**
+ * Every routine some step of an encounter starts, by name.
+ * @param {object} encounter The encounter.
+ * @returns {Set<string>}
+ */
+const findStartedRoutines = encounter =>
+{
+  const steps = [
+    ...encounter.routines.flatMap(routine => routine.steps),
+    ...(encounter.reactions ?? []).flatMap(reaction => reaction.steps),
+  ];
+
+  return new Set(steps.filter(step => step.verb === 'startRoutine').map(step => step.routine));
 };
 
 /**

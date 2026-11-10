@@ -1519,8 +1519,9 @@ Game_Actor.prototype.forgetSkill = function(skillId) {
 */
 J.EXTEND.Aliased.Game_Enemy.set("learnSkill", Game_Enemy.prototype.learnSkill);
 Game_Enemy.prototype.learnSkill = function(skillId) {
-	J.EXTEND.Aliased.Game_Enemy.get("learnSkill").call(this, skillId);
+	const learnedSkill = J.EXTEND.Aliased.Game_Enemy.get("learnSkill").call(this, skillId);
 	OverlayManager.invalidate(this);
+	return learnedSkill;
 };
 
 //#endregion

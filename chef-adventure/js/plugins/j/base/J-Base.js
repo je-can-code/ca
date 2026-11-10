@@ -13319,6 +13319,52 @@ Game_Enemy.prototype.getEnemyNotes = function() {
 	return [enemy];
 };
 /**
+* Extends {@link #initMembers}.<br/>
+* Also gives this enemy somewhere of its own to keep the skills it learns.
+*/
+J.BASE.Aliased.Game_Enemy.set("initMembers", Game_Enemy.prototype.initMembers);
+Game_Enemy.prototype.initMembers = function() {
+	J.BASE.Aliased.Game_Enemy.get("initMembers").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with the base plugin.
+	*/
+	this._j._base ||= {};
+	/**
+	* The actions this enemy has learned since it was created, on top of the ones its database entry lists.<br/>
+	* They live on the enemy rather than in that entry because the entry is shared: every enemy of the same id reads
+	* the same row, so a skill written there would be known by all of them, including every one spawned afterward.
+	* @type {RPG_EnemyAction[]}
+	*/
+	this._j._base._learnedActions = [];
+};
+/**
+* Gets the actions this enemy has learned since it was created.
+* @returns {RPG_EnemyAction[]}
+*/
+Game_Enemy.prototype.learnedActions = function() {
+	return this._j._base._learnedActions;
+};
+/**
+* Sets the actions this enemy has learned since it was created.
+* @param {RPG_EnemyAction[]} newLearnedActions The new collection of learned actions.
+*/
+Game_Enemy.prototype.setLearnedActions = function(newLearnedActions) {
+	this._j._base._learnedActions = newLearnedActions;
+};
+/**
+* Gets every action this enemy can take: the ones its database entry lists, followed by any it has learned since.<br/>
+* Anything asking what an enemy knows reads this rather than the database entry, which is what keeps a learned skill
+* with the one enemy that learned it. The entry itself is the catalog, so it stays exactly as authored.
+* @returns {RPG_EnemyAction[]}
+*/
+Game_Enemy.prototype.enemyActions = function() {
+	return [...this.enemy().actions, ...this.learnedActions()];
+};
+/**
 * Extends {@link #setup}.<br/>
 * Adds a hook for performing actions when an enemy is setup.
 */
@@ -13361,7 +13407,7 @@ Game_Enemy.prototype.buildTraitObjects = function() {
 * @returns {RPG_Skill[]}
 */
 Game_Enemy.prototype.skills = function() {
-	const actions = this.enemy().actions.filter(this.canMapActionToSkill, this).map((action) => this.skill(action.skillId), this);
+	const actions = this.enemyActions().filter(this.canMapActionToSkill, this).map((action) => this.skill(action.skillId), this);
 	const skillTraits = this.traitObjects().filter((trait) => trait.code === J.BASE.Traits.ADD_SKILL).map((skillTrait) => this.skill(skillTrait.dataId), this);
 	return actions.concat(skillTraits).sort();
 };
@@ -13374,7 +13420,7 @@ Game_Enemy.prototype.skills = function() {
 * @returns {number[]}
 */
 Game_Enemy.prototype.skillIds = function() {
-	const actionIds = this.enemy().actions.filter(this.canMapActionToSkill, this).map((action) => action.skillId);
+	const actionIds = this.enemyActions().filter(this.canMapActionToSkill, this).map((action) => action.skillId);
 	const traitIds = this.traitObjects().filter((trait) => trait.code === J.BASE.Traits.ADD_SKILL).map((trait) => trait.dataId);
 	return [...new Set(actionIds.concat(traitIds))];
 };
@@ -13395,22 +13441,32 @@ Game_Enemy.prototype.hasSkill = function(skillId) {
 	return this.skills().some((skill) => skill.id === skillId);
 };
 /**
-* Forces this enemy to learn the skill of the given id.<br/>
-* Will not learn the skill again if it is already learned.
+* Forces this enemy, and only this enemy, to learn the skill of the given id.<br/>
+* Will not learn the skill again if it is already learned. Others of the same id are untouched, both those already
+* on the map and those spawned afterward- see {@link #enemyActions} for why that has to be stated.
 * @param {number} skillId The skill id to learn.
 * @returns {boolean} True if the enemy learned the new skill, false if it already knew it.
 */
 Game_Enemy.prototype.learnSkill = function(skillId) {
 	if (this.hasSkill(skillId)) return false;
-	const rpgEnemyAction = {
-		"conditionParam1": 0,
-		"conditionParam2": 0,
-		"conditionType": 0,
-		"rating": 5,
-		"skillId": skillId
-	};
-	this.enemy().actions.push(rpgEnemyAction);
+	const rpgEnemyAction = this.buildLearnedAction(skillId);
+	this.setLearnedActions([...this.learnedActions(), rpgEnemyAction]);
 	return true;
+};
+/**
+* Builds the action that a learned skill adds to this enemy.<br/>
+* Unconditional, at the default rating of 5, so the skill is on offer whenever the enemy is choosing at all.
+* @param {number} skillId The skill being learned.
+* @returns {RPG_EnemyAction}
+*/
+Game_Enemy.prototype.buildLearnedAction = function(skillId) {
+	return new RPG_EnemyAction({
+		conditionParam1: 0,
+		conditionParam2: 0,
+		conditionType: 0,
+		rating: 5,
+		skillId
+	});
 };
 /**
 * Extends {@link #die}.<br/>
@@ -17053,6 +17109,17 @@ Sprite_Gauge.prototype.setMaxValue = function(newMaxValue) {
 Spriteset_Base.prototype.baseSprite = function() {
 	return this._baseSprite;
 };
+/**
+* Gets the animations currently playing.
+*
+* Each one remembers the characters it was requested on, as `targetObjects`, and reads the position of their sprites
+* every frame until it finishes. So anything taking a character's sprite away before then has to end the
+* animations playing on it first.
+* @returns {(Sprite_Animation|Sprite_AnimationMV)[]} The animationSprites.
+*/
+Spriteset_Base.prototype.animationSprites = function() {
+	return this._animationSprites;
+};
 
 //#endregion
 //#region src/plugins/_base/core/sprites/Spriteset_Map.js
@@ -17087,6 +17154,17 @@ Spriteset_Map.prototype.characterSprites = function() {
 */
 Spriteset_Map.prototype.setCharacterSprites = function(newCharacterSprites) {
 	this._characterSprites = newCharacterSprites;
+};
+/**
+* Gets the balloons currently showing over characters on the map.
+*
+* Each one remembers the character it was requested on, as `targetObject`, and reads the position of that
+* character's sprite every frame until it finishes. So anything taking a character's sprite away before then has to
+* end the balloons over it first.
+* @returns {Sprite_Balloon[]} The balloonSprites.
+*/
+Spriteset_Map.prototype.balloonSprites = function() {
+	return this._balloonSprites;
 };
 /**
 * Extends {@link Spriteset_Map.createLowerLayer}.<br/>

@@ -11540,7 +11540,7 @@ var JABS_Battler = class JABS_Battler {
 	* @returns {number[]} The skill ids available to this enemy.
 	*/
 	getSkillIdsFromEnemy() {
-		const battlerActions = this.getBattler().enemy().actions;
+		const battlerActions = this.getBattler().enemyActions();
 		const filtering = (action) => {
 			const skill = this.getBattler().skill(action.skillId);
 			const keep = this.aiSkillFilter(skill);
@@ -13321,13 +13321,16 @@ var JABS_Battler = class JABS_Battler {
 		const scopeEverything = gameAction.isForEveryone();
 		const scopeAllAllies = scopeAlly && scopeMany;
 		const scopeAllOpponents = scopeOpponent && scopeMany;
-		const targetIsSelf = user.getUuid() === target.getUuid() || action.getAction().isForUser();
+		const targetIsSelf = user.getUuid() === target.getUuid();
 		const actionIsSameTeam = JABS_TeamRules.isFriendly(user.getTeam(), this.getTeam());
 		const targetIsOpponent = JABS_TeamRules.isOpposed(user.getTeam(), this.getTeam());
 		if (scopeSingle && alreadyHitOne) {
 			return false;
 		}
-		if (targetIsSelf && (scopeSelf || scopeAlly || scopeAllAllies || scopeEverything)) {
+		if (scopeSelf) {
+			return targetIsSelf;
+		}
+		if (targetIsSelf && (scopeAlly || scopeAllAllies || scopeEverything)) {
 			return true;
 		}
 		if (actionIsSameTeam && (scopeAlly || scopeAllAllies || scopeEverything) && !(action.isDirectAction() && target.isInanimate())) {
@@ -18891,6 +18894,9 @@ var JABS_Engine = class JABS_Engine {
 	getCollisionTargets(jabsAction) {
 		const gameAction = jabsAction.getAction();
 		const casterJabsBattler = jabsAction.getCaster();
+		if (gameAction.isForUser()) {
+			return [casterJabsBattler];
+		}
 		const allyTarget = casterJabsBattler.getAllyTarget();
 		if (allyTarget && gameAction.isForOne()) {
 			if (allyTarget.canActionConnect() && allyTarget.isWithinScope(jabsAction, allyTarget, false)) {
@@ -18959,11 +18965,6 @@ var JABS_Engine = class JABS_Engine {
 						targetsHit.push(battler);
 						hitOne = true;
 					}
-					return;
-				}
-				if (gameAction.isForUser()) {
-					targetsHit.push(battler);
-					hitOne = true;
 					return;
 				}
 				const maxDistance = jabsAction.getProximity();
@@ -21561,8 +21562,7 @@ var JABS_SkillSlotManager = class {
 		const gcdSlot = new JABS_SkillSlot(J.ABS.Globals.GlobalCooldownKey, 0);
 		gcdSlot.getCooldown().enableBase();
 		this.slots().push(gcdSlot);
-		const battlerData = enemy.databaseData();
-		const skillIds = battlerData.actions.filter((action) => this.filterActionSkills(enemy, action)).map((action) => action.skillId);
+		const skillIds = enemy.enemyActions().filter((action) => this.filterActionSkills(enemy, action)).map((action) => action.skillId);
 		const basicAttackSkillId = enemy.basicAttackSkillId();
 		if (basicAttackSkillId) {
 			skillIds.push(basicAttackSkillId);
@@ -28963,6 +28963,12 @@ Game_Enemy.prototype.onBattlerDataChange = function() {
 Game_Enemy.prototype.onLearnNewSkill = function(skillId) {
 	this.onBattlerDataChange();
 };
+/**
+* Extends {@link #learnSkill}.<br/>
+* Also rebuilds this enemy's skill slots when the skill is new to it, so its AI can reach for the skill straight away.
+* @param {number} skillId The skill id to learn.
+* @returns {boolean}
+*/
 J.ABS.Aliased.Game_Enemy.set("learnSkill", Game_Enemy.prototype.learnSkill);
 Game_Enemy.prototype.learnSkill = function(skillId) {
 	const learnedSkill = J.ABS.Aliased.Game_Enemy.get("learnSkill").call(this, skillId);
@@ -28970,6 +28976,7 @@ Game_Enemy.prototype.learnSkill = function(skillId) {
 		this.onLearnNewSkill(skillId);
 		this.initAbsSkills();
 	}
+	return learnedSkill;
 };
 /**
 * Gets the enemy's basic attack skill id.
@@ -33227,6 +33234,7 @@ Spriteset_Map.prototype.removeActionSprite = function(actionEvent) {
 				this.tilemap().removeChild(sprite);
 			}
 			if (!sprite.destroyed) {
+				this.endEffectsOn(sprite);
 				sprite.destroy();
 			}
 			matches.push(sprite);
@@ -33240,6 +33248,7 @@ Spriteset_Map.prototype.removeActionSprite = function(actionEvent) {
 				this.tilemap().removeChild(sprite);
 			}
 			if (sprite && !sprite.destroyed) {
+				this.endEffectsOn(sprite);
 				sprite.destroy();
 			}
 		}
@@ -33278,6 +33287,29 @@ Spriteset_Map.prototype.purgeActionSpritesByUuid = function(uuid) {
 		this.destroyCastPreviewSprite(previewSprite);
 		delete previewDict[previewKey];
 	}
+};
+/**
+* Ends every balloon and animation still playing on a character sprite that is about to be destroyed.<br/>
+* Called by every path here that destroys a character sprite: expired actions and collected loot alike.
+*
+* The engine never destroys a character's sprite while the map is up, so its balloons and animations hold on to
+* their target until they finish, reading its position every frame. J-ABS does destroy them, and a destroyed sprite
+* has no position left to read: whatever is still playing on it throws on the very next frame. An ordinary projectile
+* never carries either, but a summon is an action that is also a battler. It gets alerted, engaged and struck like
+* any other, so its time can run out with a "!" over its head or a hit still flashing on it.
+*
+* Ending them, rather than holding the sprite back until they finish, is deliberate. The character they belong to is
+* leaving the map this frame, and a balloon or a flash hanging over a spot nobody occupies would only read as a
+* ghost. Nor does it cut a killing blow short as a rule: defeat only erases a summon, and its sprite stays until its
+* time runs out, so the animation that felled it plays on unless the kill came in that time's last moments.
+* @param {Sprite_Character} sprite The character sprite about to be destroyed.
+*/
+Spriteset_Map.prototype.endEffectsOn = function(sprite) {
+	const character = sprite.character();
+	const balloons = this.balloonSprites().filter((balloon) => balloon.targetObject === character);
+	balloons.forEach(this.removeBalloon, this);
+	const animations = this.animationSprites().filter((animation) => animation.targetObjects.includes(character));
+	animations.forEach(this.removeAnimation, this);
 };
 /**
 * Processes incoming requests to add/remove generated battler sprites.
@@ -33368,6 +33400,7 @@ Spriteset_Map.prototype.removeLootSprite = function(lootEvent) {
 		}
 		this.characterSprites().splice(spriteIndex, 1);
 		if (!sprite.destroyed) {
+			this.endEffectsOn(sprite);
 			sprite.destroy();
 		}
 	}

@@ -281,6 +281,54 @@ var JabsBossReaction = class {
 //#endregion
 //#region src/plugins/abs/ext/boss/managers/JabsBossManager.js
 /**
+* The opacities a blinking body passes through as it fades out of sight.
+* @type {number[]}
+*/
+var BLINK_FADE_OUT = [
+	200,
+	150,
+	100,
+	50,
+	0
+];
+/**
+* The opacities a blinking body passes through as it fades back in.
+* @type {number[]}
+*/
+var BLINK_FADE_IN = [
+	50,
+	100,
+	150,
+	200,
+	255
+];
+/**
+* How many frames each opacity of a blink's fade holds before the next.
+* @type {number}
+*/
+var BLINK_FADE_STEP_FRAMES = 3;
+/**
+* How many frames a blinking body is away: its fade out plays during them, so it is out of sight for most.
+* @type {number}
+*/
+var BLINK_AWAY_FRAMES = 60;
+/**
+* How many frames a blinking body holds still once it has faded back in, before whatever follows it.
+* @type {number}
+*/
+var BLINK_SETTLE_FRAMES = 30;
+/**
+* The facings a blink may leave a body with: zero keeps the one it had, and the rest are down, left, right and up.
+* @type {number[]}
+*/
+var BLINK_DIRECTIONS = [
+	0,
+	2,
+	4,
+	6,
+	8
+];
+/**
 * The authority on boss encounters: which one is running, who is in it, and what recurs while it
 * does.
 *
@@ -334,7 +382,24 @@ var JabsBossManager = class JabsBossManager {
 		/**
 		* Has a participant say a line, holding the fight still until the player has read it.
 		*/
-		Dialogue: "dialogue"
+		Dialogue: "dialogue",
+		/**
+		* Has a participant vanish from where it stands and reappear on another tile, such as a boss taking its place
+		* on each of the room's platforms in turn.
+		*/
+		Blink: "blink",
+		/**
+		* Holds the steps behind it for a while, such as a boss gathering itself between one blast and the next.
+		*/
+		Wait: "wait",
+		/**
+		* Teaches a participant a skill its own AI uses from then on, such as a summon learned partway through.
+		*/
+		LearnSkill: "learnSkill",
+		/**
+		* Wakes a dormant routine, so something the fight keeps doing only starts once the fight reaches a moment.
+		*/
+		StartRoutine: "startRoutine"
 	};
 	/**
 	* Every encounter known to the game, keyed by its author-facing name.
@@ -388,14 +453,26 @@ var JabsBossManager = class JabsBossManager {
 	*/
 	static #bossDefeated = false;
 	/**
-	* The steps waiting their turn, oldest first.
+	* One firing of a reaction, or one execution of a routine, playing its steps in order.
 	*
-	* Steps run the moment their routine or reaction does, all in the same frame, except that a line being
-	* said holds every step queued behind it until the player has read it. A boss that says something and
-	* then lashes out does so in that order, rather than lashing out while the line is still on screen.
-	* @type {JabsBossStep[]}
+	* A step that takes time- a line being said, a blink across the room, a pause- plays out as a scene: the same
+	* event commands an event would run, run by an interpreter belonging to the participant's own event, so
+	* anything that reads who is acting, such as a message floating above whoever speaks, finds them exactly as it
+	* would during a scene. Every step behind a scene waits until it is over.
+	* @typedef {Object} JabsBossLane
+	* @property {JabsBossRoutine|JabsBossReaction} owner The routine or reaction whose steps these are.
+	* @property {JabsBossStep[]} steps The steps it has yet to take, oldest first.
+	* @property {Game_Interpreter|null} scene The scene the step it is on is playing, or null when it plays none.
 	*/
-	static #pendingSteps = [];
+	/**
+	* Every lane still playing, in the order they began.
+	*
+	* Lanes play side by side, the way a fight's separate events would: a boss blinking around the room on one
+	* routine does not hold up the spawner on another, or the turning point its health just passed. A scene holds
+	* only the lane playing it. Steps in a lane with nothing to wait on all play in the same frame.
+	* @type {JabsBossLane[]}
+	*/
+	static #lanes = [];
 	/**
 	* The bodies the active encounter's steps spawned that are no part of its win condition, such as hazards.
 	*
@@ -405,15 +482,6 @@ var JabsBossManager = class JabsBossManager {
 	* @type {Game_Event[]}
 	*/
 	static #extraBodies = [];
-	/**
-	* The interpreter saying a participant's line, or null when no line has been said this fight.
-	*
-	* A line is said the way an event says one- a Show Text command run by an interpreter belonging to the
-	* speaker's own event- so anything that reads who is speaking, such as a message floating above them,
-	* finds the speaker exactly as it would during a scene.
-	* @type {Game_Interpreter|null}
-	*/
-	static #dialogue = null;
 	/**
 	* The screen tone the active encounter found when it first tinted the screen, or empty when it has not.
 	*
@@ -470,8 +538,7 @@ var JabsBossManager = class JabsBossManager {
 		}
 		this.#validateEncounter(encounter);
 		this.#clearExtraBodies();
-		this.#pendingSteps = [];
-		this.#dialogue = null;
+		this.#lanes = [];
 		this.#spawnParticipants(encounter);
 		this.#activeEncounter = encounter;
 		this.#bossDefeated = false;
@@ -481,6 +548,9 @@ var JabsBossManager = class JabsBossManager {
 	}
 	/**
 	* Seeds each of an encounter's routines with the cadence it was authored with, a full interval away.
+	*
+	* A dormant routine gets a cadence but no countdown: it is not running until a step starts it, and a routine
+	* with no countdown is one the fight never advances.
 	* @param {JabsBossEncounter} encounter The encounter whose routines to seed.
 	*/
 	static #seedRoutines(encounter) {
@@ -488,6 +558,7 @@ var JabsBossManager = class JabsBossManager {
 		this.#routineCadences.clear();
 		encounter.routines().forEach((routine) => {
 			this.#routineCadences.set(routine.key(), routine.cadenceFrames());
+			if (routine.isDormant()) return;
 			this.#routineCountdowns.set(routine.key(), routine.cadenceFrames());
 		});
 	}
@@ -515,8 +586,7 @@ var JabsBossManager = class JabsBossManager {
 		this.#firedReactions.clear();
 		this.#participantBodies.clear();
 		this.#bossDefeated = false;
-		this.#pendingSteps = [];
-		this.#dialogue = null;
+		this.#lanes = [];
 	}
 	/**
 	* Takes every extra body the active encounter spawned off the map, and forgets them all.
@@ -721,7 +791,31 @@ var JabsBossManager = class JabsBossManager {
 				this.#validateStepParticipant(encounter, step, where);
 				this.#validateLines(step, where);
 				return;
+			case JabsBossManager.Verbs.Blink:
+				this.#validateStepParticipant(encounter, step, where);
+				this.#validateDirection(step, where);
+				return;
+			case JabsBossManager.Verbs.LearnSkill:
+				this.#validateStepParticipant(encounter, step, where);
+				this.#validateReference($dataSkills[step.skillId()], step.skillId(), step.expect(), `${where} skill`);
+				return;
+			case JabsBossManager.Verbs.StartRoutine:
+				this.#validateRoutineKey(encounter, step.routineKey(), where);
+				return;
 		}
+	}
+	/**
+	* Confirms a blink faces a way a character can face: down, left, right or up, or none to keep its facing.
+	*
+	* The engine reads any other number as a facing too, and a body facing nowhere fires whatever it fires next
+	* at nothing.
+	* @param {JabsBossStep} step The step to check.
+	* @param {string} where Where in the configuration the step lives, named for the error.
+	*/
+	static #validateDirection(step, where) {
+		if (BLINK_DIRECTIONS.includes(step.direction())) return;
+		const facing = `blinks to face [ ${step.direction()} ]`;
+		throw new Error(`Boss ${where} ${facing}, which is not down (2), left (4), right (6) or up (8).`);
 	}
 	/**
 	* Confirms a tint names a whole screen tone: red, green, blue and gray.
@@ -876,27 +970,30 @@ var JabsBossManager = class JabsBossManager {
 	static update() {
 		if (!this.hasActiveEncounter()) return;
 		if ($gameMap.isEventRunning()) return;
-		this.#updateDialogue();
+		this.#lanes.forEach((lane) => this.#updateScene(lane));
 		if (this.#isFightHeld()) return;
-		this.#runPendingSteps();
+		this.#lanes.forEach((lane) => this.#runLane(lane));
+		this.#lanes = this.#lanes.filter((lane) => this.#isScenePlaying(lane));
 		this.#updateReactions();
 		this.#updateDefeat();
 		this.#activeEncounter.routines().forEach((routine) => this.#updateRoutine(routine));
 	}
 	/**
-	* Advances the line a participant is saying, if one is being said.
+	* Advances the scene a lane is playing, if it is playing one.
+	* @param {JabsBossLane} lane The lane whose scene to advance.
 	*/
-	static #updateDialogue() {
-		if (this.#isDialogueRunning() === false) return;
-		this.#dialogue.update();
+	static #updateScene(lane) {
+		if (this.#isScenePlaying(lane) === false) return;
+		lane.scene.update();
 	}
 	/**
-	* Determines whether a participant is in the middle of saying a line.
+	* Determines whether a lane is in the middle of playing a scene.
+	* @param {JabsBossLane} lane The lane to check.
 	* @returns {boolean}
 	*/
-	static #isDialogueRunning() {
-		if (this.#dialogue === null) return false;
-		return this.#dialogue.isRunning();
+	static #isScenePlaying(lane) {
+		if (lane.scene === null) return false;
+		return lane.scene.isRunning();
 	}
 	/**
 	* Fires every reaction whose moment has just arrived.
@@ -957,24 +1054,30 @@ var JabsBossManager = class JabsBossManager {
 	* @param {JabsBossReaction} reaction The reaction to perform.
 	*/
 	static #performReaction(reaction) {
-		this.#performSteps(reaction.steps());
+		this.#performSteps(reaction, reaction.steps());
 	}
 	/**
-	* Queues steps behind any already waiting, then runs as many as may run right now.
+	* Opens a lane for steps, then plays as many of them as may play right now.
+	* @param {JabsBossRoutine|JabsBossReaction} owner The routine or reaction whose steps these are.
 	* @param {JabsBossStep[]} steps The steps to perform, in order.
 	*/
-	static #performSteps(steps) {
-		steps.forEach((step) => this.#pendingSteps.push(step));
-		this.#runPendingSteps();
+	static #performSteps(owner, steps) {
+		const lane = {
+			owner,
+			steps: [...steps],
+			scene: null
+		};
+		this.#lanes.push(lane);
+		this.#runLane(lane);
 	}
 	/**
-	* Runs waiting steps in the order they were queued, stopping at a line being said: every step behind a
-	* line waits until the player has read it.
+	* Plays a lane's steps in order, stopping at a scene: every step behind one waits until it is over.
+	* @param {JabsBossLane} lane The lane to play.
 	*/
-	static #runPendingSteps() {
-		while (this.#pendingSteps.length > 0 && this.#isDialogueRunning() === false) {
-			const step = this.#pendingSteps.shift();
-			this.#executeStep(step);
+	static #runLane(lane) {
+		while (lane.steps.length > 0 && this.#isScenePlaying(lane) === false) {
+			const step = lane.steps.shift();
+			this.#executeStep(step, lane);
 		}
 	}
 	/**
@@ -986,6 +1089,7 @@ var JabsBossManager = class JabsBossManager {
 		if (!this.#isEveryBodyGone()) return;
 		this.#bossDefeated = true;
 		this.#clearExtraBodies();
+		this.#lanes = [];
 		this.#announceDefeat();
 	}
 	/**
@@ -1023,11 +1127,13 @@ var JabsBossManager = class JabsBossManager {
 	* @param {JabsBossRoutine} routine The routine to advance.
 	*/
 	static #updateRoutine(routine) {
+		if (this.#routineCountdowns.has(routine.key()) === false) return;
 		const remaining = this.#routineCountdowns.get(routine.key());
 		if (remaining > 0) {
 			this.#routineCountdowns.set(routine.key(), remaining - 1);
 			return;
 		}
+		if (this.#isRoutinePlaying(routine)) return;
 		if (this.#canExecuteRoutine() === false) return;
 		this.#executeRoutine(routine);
 		this.#routineCountdowns.set(routine.key(), this.#routineCadences.get(routine.key()));
@@ -1047,17 +1153,26 @@ var JabsBossManager = class JabsBossManager {
 		return true;
 	}
 	/**
+	* Determines whether a routine's last run is still playing.
+	* @param {JabsBossRoutine} routine The routine to check.
+	* @returns {boolean}
+	*/
+	static #isRoutinePlaying(routine) {
+		return this.#lanes.some((lane) => lane.owner === routine);
+	}
+	/**
 	* Performs every step of a routine, in order.
 	* @param {JabsBossRoutine} routine The routine to perform.
 	*/
 	static #executeRoutine(routine) {
-		this.#performSteps(routine.steps());
+		this.#performSteps(routine, routine.steps());
 	}
 	/**
-	* Performs a single step of a routine.
+	* Performs a single step of a routine or reaction.
 	* @param {JabsBossStep} step The step to perform.
+	* @param {JabsBossLane} lane The lane playing it, which a step that takes time plays its scene on.
 	*/
-	static #executeStep(step) {
+	static #executeStep(step, lane) {
 		switch (step.verb()) {
 			case JabsBossManager.Verbs.ForceSkill:
 				this.#executeForceSkill(step);
@@ -1084,7 +1199,19 @@ var JabsBossManager = class JabsBossManager {
 				this.#executeAnimation(step);
 				break;
 			case JabsBossManager.Verbs.Dialogue:
-				this.#executeDialogue(step);
+				this.#executeDialogue(step, lane);
+				break;
+			case JabsBossManager.Verbs.Blink:
+				this.#executeBlink(step, lane);
+				break;
+			case JabsBossManager.Verbs.Wait:
+				this.#executeWait(step, lane);
+				break;
+			case JabsBossManager.Verbs.LearnSkill:
+				this.#executeLearnSkill(step);
+				break;
+			case JabsBossManager.Verbs.StartRoutine:
+				this.#executeStartRoutine(step);
 				break;
 			default: throw new Error(`Unrecognized boss step verb: [ ${step.verb()} ].`);
 		}
@@ -1181,19 +1308,44 @@ var JabsBossManager = class JabsBossManager {
 		const key = step.routineKey();
 		const cadence = this.#routineCadences.get(key);
 		this.#routineCadences.set(key, cadence - step.frames());
+		if (this.#routineCountdowns.has(key) === false) return;
 		const remaining = this.#routineCountdowns.get(key);
 		this.#routineCountdowns.set(key, remaining - step.frames());
 	}
 	/**
+	* Wakes the dormant routine a step names: it plays at once, then keeps its cadence from there.
+	*
+	* A fight that turns a corner- a summoner starting at two thirds, a tour of the room starting at two fifths- is a
+	* routine that sat dormant until a reaction to that moment started it.
+	* @param {JabsBossStep} step The step naming the routine.
+	*/
+	static #executeStartRoutine(step) {
+		const key = step.routineKey();
+		if (this.#routineCountdowns.has(key)) return;
+		this.#routineCountdowns.set(key, 0);
+	}
+	/**
 	* Puts the body a step names onto its tile, as part of the fight without being a body the fight needs
 	* felled.
-	* @param {JabsBossStep} step The step naming the enemy, its template and its tile.
+	* @param {JabsBossStep} step The step naming the enemy, its template, its tile, and how it arrives.
 	*/
 	static #executeSpawn(step) {
 		const body = $jabsEngine.addEnemyToMap(step.x(), step.y(), step.templateId());
 		const who = `encounter [ ${this.#activeEncounter.key()} ] spawn of enemy [ ${step.enemyId()} ]`;
 		this.#confirmBody(body, step.enemyId(), step.templateId(), who);
 		this.#extraBodies.push(body);
+		if (step.animationId() > 0) {
+			$gameTemp.requestAnimation([body], step.animationId());
+		}
+	}
+	/**
+	* Teaches the participant a step names the skill it names, so its own AI can use it from now on.
+	* @param {JabsBossStep} step The step naming the participant and the skill.
+	*/
+	static #executeLearnSkill(step) {
+		const jabsBattler = this.#stepJabsBattler(step);
+		if (!jabsBattler) return;
+		jabsBattler.getBattler().learnSkill(step.skillId());
 	}
 	/**
 	* Shifts the whole screen toward the tone a step names, over the time it names.
@@ -1217,53 +1369,161 @@ var JabsBossManager = class JabsBossManager {
 	}
 	/**
 	* Has a step's participant say its line, holding the fight until the player has read it.
-	*
-	* The line runs through an interpreter belonging to the speaker's own event, the way a scene's lines do,
-	* so a message that floats above whoever is speaking floats above the speaker here too.
-	* @param {JabsBossStep} step The step naming the participant, their name and their line.
+	* @param {JabsBossStep} step The step naming the participant, their face and name, and their line.
+	* @param {JabsBossLane} lane The lane playing it.
 	*/
-	static #executeDialogue(step) {
+	static #executeDialogue(step, lane) {
 		const jabsBattler = this.#stepJabsBattler(step);
 		if (!jabsBattler) return;
 		const speaker = jabsBattler.getCharacter();
 		const commands = this.#dialogueCommands(step);
-		const interpreter = new Game_Interpreter();
-		interpreter.setup(commands, speaker.eventId());
-		this.#dialogue = interpreter;
+		this.#playScene(lane, commands, speaker.eventId());
 	}
 	/**
-	* Builds the event commands that say a step's line: one Show Text naming the speaker, then each of its
-	* lines, then the end of the list.
+	* Builds the event commands that say a step's line: one Show Text with the speaker's face and name, then each
+	* of its lines, then the end of the list.
 	* @param {JabsBossStep} step The step naming the speaker and the line.
 	* @returns {object[]}
 	*/
 	static #dialogueCommands(step) {
-		const showText = {
-			code: 101,
-			indent: 0,
-			parameters: [
-				String.empty,
-				0,
-				0,
-				2,
-				step.speaker()
-			]
-		};
-		const textLines = step.lines().map((line) => ({
-			code: 401,
-			indent: 0,
-			parameters: [line]
-		}));
-		const end = {
-			code: 0,
-			indent: 0,
-			parameters: []
-		};
+		const showText = this.#command(101, [
+			step.face(),
+			step.faceIndex(),
+			0,
+			2,
+			step.speaker()
+		]);
+		const textLines = step.lines().map((line) => this.#command(401, [line]));
 		return [
 			showText,
 			...textLines,
-			end
+			this.#endOfList()
 		];
+	}
+	/**
+	* Has a step's participant blink across the room: it flares and fades from where it stands, and a moment later
+	* fades back in on the tile the step names, facing the way it names.
+	* @param {JabsBossStep} step The step naming the participant, the tile, the facing, and the flare.
+	* @param {JabsBossLane} lane The lane playing it.
+	*/
+	static #executeBlink(step, lane) {
+		const jabsBattler = this.#stepJabsBattler(step);
+		if (!jabsBattler) return;
+		const body = jabsBattler.getCharacter();
+		const commands = this.#blinkCommands(step);
+		this.#playScene(lane, commands, body.eventId());
+	}
+	/**
+	* Builds the event commands for a blink, every one of them acting on the event playing it.
+	* @param {JabsBossStep} step The step naming the tile, the facing, and the flare.
+	* @returns {object[]}
+	*/
+	static #blinkCommands(step) {
+		const flare = this.#flareCommands(step);
+		const fadeOut = this.#fadeRoute(BLINK_FADE_OUT, false);
+		const fadeIn = this.#fadeRoute(BLINK_FADE_IN, true);
+		const vanish = [
+			...flare,
+			this.#command(205, [0, fadeOut]),
+			this.#command(230, [BLINK_AWAY_FRAMES])
+		];
+		const arrive = [
+			this.#command(203, [
+				0,
+				0,
+				step.x(),
+				step.y(),
+				step.direction()
+			]),
+			...flare,
+			this.#command(205, [0, fadeIn]),
+			this.#command(230, [BLINK_SETTLE_FRAMES])
+		];
+		return [
+			...vanish,
+			...arrive,
+			this.#endOfList()
+		];
+	}
+	/**
+	* Builds the command that plays a step's flare over the event playing it, when the step names one.
+	* @param {JabsBossStep} step The step naming the flare.
+	* @returns {object[]} The command, or none when the step names no animation.
+	*/
+	static #flareCommands(step) {
+		if (step.animationId() === 0) return [];
+		return [this.#command(212, [
+			0,
+			step.animationId(),
+			false
+		])];
+	}
+	/**
+	* Builds a move route that walks a body's opacity through the given values, a few frames apart.
+	* @param {number[]} opacities The opacities to pass through, in order.
+	* @param {boolean} wait Whether the scene waits for the fade to finish before moving on.
+	* @returns {object}
+	*/
+	static #fadeRoute(opacities, wait) {
+		const fade = opacities.flatMap((opacity) => [{
+			code: 42,
+			parameters: [opacity]
+		}, {
+			code: 15,
+			parameters: [BLINK_FADE_STEP_FRAMES]
+		}]);
+		return {
+			list: [...fade, {
+				code: 0,
+				parameters: []
+			}],
+			repeat: false,
+			skippable: true,
+			wait
+		};
+	}
+	/**
+	* Holds a step's lane for the time the step names, before anything behind it plays.
+	* @param {JabsBossStep} step The step naming how long.
+	* @param {JabsBossLane} lane The lane to hold.
+	*/
+	static #executeWait(step, lane) {
+		const commands = [this.#command(230, [step.frames()]), this.#endOfList()];
+		this.#playScene(lane, commands, 0);
+	}
+	/**
+	* Plays event commands on a lane as a scene, run by an interpreter belonging to the given event.
+	*
+	* Running them the way an event runs them is what lets "this event" in a command, and anything reading who is
+	* speaking, mean the participant- exactly as it would during a scene the map plays.
+	* @param {JabsBossLane} lane The lane to play the scene on.
+	* @param {object[]} commands The event commands, ending with the end of the list.
+	* @param {number} eventId The event the scene belongs to, or zero for none.
+	*/
+	static #playScene(lane, commands, eventId) {
+		const scene = new Game_Interpreter();
+		scene.setup(commands, eventId);
+		lane.scene = scene;
+	}
+	/**
+	* Builds a single event command at the top level of a list.
+	* @param {number} code The command's code.
+	* @param {Array} parameters The command's parameters.
+	* @returns {object}
+	*/
+	static #command(code, parameters) {
+		return {
+			code,
+			indent: 0,
+			parameters
+		};
+	}
+	/**
+	* Builds the command that ends an event list, where an interpreter stops.
+	* @returns {object}
+	*/
+	static #endOfList() {
+		return this.#command(0, []);
 	}
 };
 
@@ -1417,15 +1677,25 @@ var JabsBossRoutine = class {
 	*/
 	#steps = [];
 	/**
+	* Whether this routine waits, not running at all, until a step starts it.
+	*
+	* Most of what a fight keeps doing, it does from the first frame. Some of it only begins once the fight turns a
+	* corner- a summoner from two thirds of the boss's health on- and a reaction to that moment is what starts it.
+	* @type {boolean}
+	*/
+	#dormant = false;
+	/**
 	* Constructor.
 	* @param {string} key The author-facing name for this routine.
 	* @param {number} cadenceFrames How many frames elapse between executions.
 	* @param {JabsBossStep[]} steps The steps performed each time this routine comes due.
+	* @param {boolean} dormant Whether this routine waits for a step to start it.
 	*/
-	constructor(key, cadenceFrames, steps) {
+	constructor(key, cadenceFrames, steps, dormant = false) {
 		this.#key = key;
 		this.#cadenceFrames = cadenceFrames;
 		this.#steps = steps;
+		this.#dormant = dormant;
 	}
 	/**
 	* Gets the author-facing name for this routine.
@@ -1447,6 +1717,13 @@ var JabsBossRoutine = class {
 	*/
 	steps() {
 		return this.#steps;
+	}
+	/**
+	* Gets whether this routine waits, not running at all, until a step starts it.
+	* @returns {boolean}
+	*/
+	isDormant() {
+		return this.#dormant;
 	}
 };
 
@@ -1478,10 +1755,13 @@ var JabsBossStep = class {
 	* @property {number} frames How many frames a quickening takes off that routine's cadence, or a tint takes to settle.
 	* @property {number} enemyId The enemy a spawn puts on the map.
 	* @property {number} templateId The slot on the enemy clone map a spawn copies its body from.
-	* @property {number} x The tile column a spawn puts its body on.
-	* @property {number} y The tile row a spawn puts its body on.
+	* @property {number} x The tile column a spawn puts its body on, or a blink takes its participant to.
+	* @property {number} y The tile row a spawn puts its body on, or a blink takes its participant to.
+	* @property {number} direction The way a blink leaves its participant facing, or zero to keep its facing.
 	* @property {number[]} tone The screen tone a tint settles on: red, green, blue and gray.
-	* @property {number} animationId The animation played over a participant.
+	* @property {number} animationId The animation played over a participant, a blink's flare, or a spawn's arrival.
+	* @property {string} face The face image shown with a participant's line, or empty for none.
+	* @property {number} faceIndex The face on that image.
 	* @property {string} speaker The name shown with a participant's line.
 	* @property {string[]} lines The text a participant says, shown together as one message.
 	*/
@@ -1557,25 +1837,41 @@ var JabsBossStep = class {
 	*/
 	#templateId = 0;
 	/**
-	* The tile column this step puts its body on, for a spawn.
+	* The tile column this step puts its body on, for a spawn, or takes its participant to, for a blink.
 	* @type {number}
 	*/
 	#x = 0;
 	/**
-	* The tile row this step puts its body on, for a spawn.
+	* The tile row this step puts its body on, for a spawn, or takes its participant to, for a blink.
 	* @type {number}
 	*/
 	#y = 0;
+	/**
+	* The way this step leaves its participant facing, for a blink: 2, 4, 6 or 8, or zero to keep its facing.
+	* @type {number}
+	*/
+	#direction = 0;
 	/**
 	* The screen tone this step settles on, for a tint: red, green, blue and gray.
 	* @type {number[]}
 	*/
 	#tone = [];
 	/**
-	* The id of the animation this step plays over its participant.
+	* The id of the animation this step plays: over its participant, as a blink's flare, or as a spawn's arrival.
+	* Zero plays none.
 	* @type {number}
 	*/
 	#animationId = 0;
+	/**
+	* The face image shown with this step's line, for dialogue, or empty for none.
+	* @type {string}
+	*/
+	#face = String.empty;
+	/**
+	* The face on that image shown with this step's line.
+	* @type {number}
+	*/
+	#faceIndex = 0;
 	/**
 	* The name shown with this step's line, for dialogue.
 	* @type {string}
@@ -1606,8 +1902,11 @@ var JabsBossStep = class {
 		this.#templateId = details.templateId;
 		this.#x = details.x;
 		this.#y = details.y;
+		this.#direction = details.direction;
 		this.#tone = details.tone;
 		this.#animationId = details.animationId;
+		this.#face = details.face;
+		this.#faceIndex = details.faceIndex;
 		this.#speaker = details.speaker;
 		this.#lines = details.lines;
 	}
@@ -1697,18 +1996,25 @@ var JabsBossStep = class {
 		return this.#templateId;
 	}
 	/**
-	* Gets the tile column this step puts its body on.
+	* Gets the tile column this step puts its body on, or takes its participant to.
 	* @returns {number}
 	*/
 	x() {
 		return this.#x;
 	}
 	/**
-	* Gets the tile row this step puts its body on.
+	* Gets the tile row this step puts its body on, or takes its participant to.
 	* @returns {number}
 	*/
 	y() {
 		return this.#y;
+	}
+	/**
+	* Gets the way this step leaves its participant facing, which is zero to keep its facing.
+	* @returns {number}
+	*/
+	direction() {
+		return this.#direction;
 	}
 	/**
 	* Gets the screen tone this step settles on: red, green, blue and gray.
@@ -1718,11 +2024,25 @@ var JabsBossStep = class {
 		return this.#tone;
 	}
 	/**
-	* Gets the id of the animation this step plays over its participant.
+	* Gets the id of the animation this step plays, which is zero when it plays none.
 	* @returns {number}
 	*/
 	animationId() {
 		return this.#animationId;
+	}
+	/**
+	* Gets the face image shown with this step's line, which is empty for none.
+	* @returns {string}
+	*/
+	face() {
+		return this.#face;
+	}
+	/**
+	* Gets the face on that image shown with this step's line.
+	* @returns {number}
+	*/
+	faceIndex() {
+		return this.#faceIndex;
 	}
 	/**
 	* Gets the name shown with this step's line.
@@ -1835,7 +2155,8 @@ var J_BossPluginMetadata = class extends PluginMetadata {
 	parseRoutine(rawRoutine) {
 		const cadenceFrames = this.secondsToFrames(rawRoutine.cadence);
 		const steps = rawRoutine.steps.map((raw) => this.parseStep(raw));
-		return new JabsBossRoutine(rawRoutine.key, cadenceFrames, steps);
+		const dormant = rawRoutine.dormant === true;
+		return new JabsBossRoutine(rawRoutine.key, cadenceFrames, steps, dormant);
 	}
 	/**
 	* Builds one step out of its raw configuration.
@@ -1843,29 +2164,64 @@ var J_BossPluginMetadata = class extends PluginMetadata {
 	* @returns {JabsBossStep}
 	*/
 	parseStep(rawStep) {
-		const enemyId = rawStep.enemyId ?? 0;
-		const template = rawStep.template ?? 0;
-		const templateId = template === 0 ? enemyId : template;
 		const details = {
+			...this.parseStepReferences(rawStep),
+			...this.parseStepPlacement(rawStep),
+			...this.parseStepPresentation(rawStep)
+		};
+		return new JabsBossStep(rawStep.verb, details);
+	}
+	/**
+	* Reads what a step acts on and refers to: its participant, the skill, state or routine it names, and the
+	* time it works across.
+	* @param {any} rawStep The unparsed step from configuration.
+	* @returns {Object} Those fields of the step's details.
+	*/
+	parseStepReferences(rawStep) {
+		return {
 			participantKey: rawStep.participant ?? String.empty,
 			skillId: rawStep.skill ?? 0,
 			stateId: rawStep.state ?? 0,
 			expect: rawStep.expect ?? String.empty,
 			cast: rawStep.cast !== false,
-			characterName: rawStep.image ?? String.empty,
-			characterIndex: rawStep.index ?? 0,
 			routineKey: rawStep.routine ?? String.empty,
-			frames: this.secondsToFrames(rawStep.seconds ?? 0),
+			frames: this.secondsToFrames(rawStep.seconds ?? 0)
+		};
+	}
+	/**
+	* Reads where a step puts things: the enemy a spawn puts on the map, the clone map slot it copies, and the
+	* tile and facing a spawn or a blink lands on.
+	* @param {any} rawStep The unparsed step from configuration.
+	* @returns {Object} Those fields of the step's details.
+	*/
+	parseStepPlacement(rawStep) {
+		const enemyId = rawStep.enemyId ?? 0;
+		const template = rawStep.template ?? 0;
+		const templateId = template === 0 ? enemyId : template;
+		return {
 			enemyId,
 			templateId,
 			x: rawStep.x ?? 0,
 			y: rawStep.y ?? 0,
+			direction: rawStep.direction ?? 0
+		};
+	}
+	/**
+	* Reads how a step looks and sounds: a changed look, a tint, an animation, and a line with its face and speaker.
+	* @param {any} rawStep The unparsed step from configuration.
+	* @returns {Object} Those fields of the step's details.
+	*/
+	parseStepPresentation(rawStep) {
+		return {
+			characterName: rawStep.image ?? String.empty,
+			characterIndex: rawStep.index ?? 0,
 			tone: rawStep.tone ?? [],
 			animationId: rawStep.animation ?? 0,
+			face: rawStep.face ?? String.empty,
+			faceIndex: rawStep.faceIndex ?? 0,
 			speaker: rawStep.speaker ?? String.empty,
 			lines: rawStep.lines ?? []
 		};
-		return new JabsBossStep(rawStep.verb, details);
 	}
 	/**
 	* Translates an author-facing count of seconds into engine frames, rounded to a whole frame.

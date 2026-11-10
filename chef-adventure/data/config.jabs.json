@@ -466,6 +466,358 @@
           ]
         }
       ]
+    },
+    {
+      "key": "wrath",
+      "map": 284,
+      "defeatSwitch": 146,
+      "participants": [
+        {
+          "key": "lucian",
+          "enemyId": 582,
+          "expect": "Vampire King",
+          "x": 22,
+          "y": 15
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "harbingers",
+          "cadence": 15,
+          "dormant": true,
+          "steps": [
+            {
+              "verb": "spawn",
+              "enemyId": 366,
+              "expect": "Doom Harbinger",
+              "x": 20,
+              "y": 15,
+              "animation": 120
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 366,
+              "expect": "Doom Harbinger",
+              "x": 24,
+              "y": 15,
+              "animation": 120
+            }
+          ]
+        },
+        {
+          "key": "waves",
+          "cadence": 15,
+          "dormant": true,
+          "steps": [
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 8,
+              "y": 19,
+              "direction": 6,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 8,
+              "y": 26,
+              "direction": 6,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 8,
+              "y": 33,
+              "direction": 6,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 36,
+              "y": 19,
+              "direction": 4,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 36,
+              "y": 26,
+              "direction": 4,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 36,
+              "y": 33,
+              "direction": 4,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 22,
+              "y": 15,
+              "direction": 2,
+              "animation": 40
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "four-fifths",
+          "on": "health",
+          "below": 80,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 0,
+              "lines": [
+                "\\pop[self]\\C[13]Let the emptiness seep into your souls..."
+              ]
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -51,
+                -136,
+                0,
+                0
+              ],
+              "seconds": 2
+            },
+            {
+              "verb": "animation",
+              "animation": 55
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2587,
+              "expect": "Absolute Solitude",
+              "cast": false
+            }
+          ]
+        },
+        {
+          "key": "three-fifths",
+          "on": "health",
+          "below": 60,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 1,
+              "lines": [
+                "\\pop[self]Do you think you can defeat someone like me?\\|\\.\\.\\^"
+              ]
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_06",
+              "faceIndex": 7,
+              "lines": [
+                "\\pop[self]Prepare yourself for the wings of darkness!\\|\\^"
+              ]
+            },
+            {
+              "verb": "blink",
+              "x": 22,
+              "y": 15,
+              "direction": 2,
+              "animation": 40
+            },
+            {
+              "verb": "animation",
+              "animation": 102
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "learnSkill",
+              "skill": 2362,
+              "expect": "Doom Wing"
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 2,
+              "lines": [
+                "\\pop[self]Have a taste of true darkness,\\. peasants!"
+              ]
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2362,
+              "expect": "Doom Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "startRoutine",
+              "routine": "harbingers"
+            }
+          ]
+        },
+        {
+          "key": "two-fifths",
+          "on": "health",
+          "below": 40,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 1,
+              "lines": [
+                "\\pop[self]No,\\. I won't fall here!"
+              ]
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 1,
+              "lines": [
+                "\\pop[self]You insolent elementals!\\.",
+                "It is YOUR fault this is happening!"
+              ]
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "",
+              "face": "face_je",
+              "faceIndex": 3,
+              "lines": [
+                "\\pop[a1]No credit for us?"
+              ]
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "",
+              "face": "face_rp",
+              "faceIndex": 3,
+              "lines": [
+                "\\pop[a2]Our stats are so much higher..."
+              ]
+            },
+            {
+              "verb": "startRoutine",
+              "routine": "waves"
+            }
+          ]
+        },
+        {
+          "key": "one-fifth",
+          "on": "health",
+          "below": 20,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 0,
+              "lines": [
+                "\\pop[self]Why won't you just DIE already?!"
+              ]
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2589,
+              "expect": "Power of Wrath",
+              "cast": false
+            }
+          ]
+        }
+      ]
     }
   ],
   "foodTypes": [

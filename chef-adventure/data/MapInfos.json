@@ -545,5 +545,6 @@ null,
 {"id":543,"expanded":false,"name":"Gluttonwolf Hall","order":543,"parentId":542,"scrollX":1101,"scrollY":701.5},
 {"id":544,"expanded":false,"name":"Earthie Hall","order":544,"parentId":542,"scrollX":1101,"scrollY":701.5},
 {"id":545,"expanded":false,"name":"Aqualock Hall","order":545,"parentId":542,"scrollX":1101,"scrollY":701.5},
-{"id":546,"expanded":false,"name":"Cynder Hall","order":546,"parentId":542,"scrollX":1101,"scrollY":701.5}
+{"id":546,"expanded":false,"name":"Cynder Hall","order":546,"parentId":542,"scrollX":1101,"scrollY":701.5},
+{"id":547,"expanded":false,"name":"Wrath Hall","order":547,"parentId":542,"scrollX":1101,"scrollY":701.5}
 ]
