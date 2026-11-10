@@ -818,6 +818,638 @@
           ]
         }
       ]
+    },
+    {
+      "key": "garuda",
+      "map": 320,
+      "defeatSwitch": 159,
+      "participants": [
+        {
+          "key": "garuda",
+          "enemyId": 373,
+          "expect": "Garuda",
+          "x": 25,
+          "y": 24,
+          "template": 606
+        },
+        {
+          "key": "skye",
+          "enemyId": 554,
+          "expect": "Skye",
+          "x": 25,
+          "y": 19,
+          "template": 607,
+          "bystander": true
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [],
+      "reactions": [
+        {
+          "key": "two-thirds",
+          "on": "health",
+          "below": 66,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "participant": "skye",
+              "speaker": "",
+              "face": "elemental-wind",
+              "faceIndex": 6,
+              "lines": [
+                "\\pop[self]\\C[13]Garuda!\\.",
+                "Use your Flappy Wind attack!"
+              ]
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -51,
+                85,
+                0,
+                0
+              ],
+              "seconds": 1
+            },
+            {
+              "verb": "log",
+              "face": "KH06-1_faces_MV_04",
+              "faceIndex": 3,
+              "lines": [
+                "SCREEEEE"
+              ]
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 10,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "face",
+              "participant": "garuda",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2376,
+              "expect": "Ruthless Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 18,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "face",
+              "participant": "garuda",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2376,
+              "expect": "Ruthless Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 26,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "face",
+              "participant": "garuda",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2376,
+              "expect": "Ruthless Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 34,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "face",
+              "participant": "garuda",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2376,
+              "expect": "Ruthless Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 42,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "face",
+              "participant": "garuda",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2376,
+              "expect": "Ruthless Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 25,
+              "y": 24,
+              "direction": 2,
+              "animation": 0
+            }
+          ]
+        },
+        {
+          "key": "one-fifth",
+          "on": "health",
+          "below": 20,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "participant": "skye",
+              "speaker": "",
+              "face": "elemental-wind",
+              "faceIndex": 7,
+              "lines": [
+                "\\pop[self]\\C[13]Garuda!\\.",
+                "Why are you losing?\\.",
+                "Flap harder damn you!"
+              ]
+            },
+            {
+              "verb": "log",
+              "face": "KH06-1_faces_MV_04",
+              "faceIndex": 3,
+              "lines": [
+                "SCREEEEEEEEEEEEEEEEEEEEE"
+              ]
+            },
+            {
+              "verb": "animation",
+              "participant": "garuda",
+              "animation": 92
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2375,
+              "expect": "Wings of Wrath",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2375,
+              "expect": "Wings of Wrath",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2375,
+              "expect": "Wings of Wrath",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "animation",
+              "participant": "garuda",
+              "animation": 54
+            },
+            {
+              "verb": "log",
+              "face": "KH06-1_faces_MV_04",
+              "faceIndex": 3,
+              "lines": [
+                "scr...eee..."
+              ]
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "log",
+              "face": "elemental-earth",
+              "faceIndex": 3,
+              "lines": [
+                "The barrage was powerful, but it appears weak!"
+              ]
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.25
+            },
+            {
+              "verb": "log",
+              "face": "elemental-fire",
+              "faceIndex": 0,
+              "lines": [
+                "Lets pile on it then!"
+              ]
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 2073,
+              "expect": "Overexerted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "skye",
+      "map": 320,
+      "defeatSwitch": 166,
+      "participants": [
+        {
+          "key": "skye",
+          "enemyId": 554,
+          "expect": "Skye",
+          "x": 25,
+          "y": 24
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "rising-force",
+          "cadence": 15,
+          "dormant": true,
+          "steps": [
+            {
+              "verb": "animation",
+              "animation": 92
+            },
+            {
+              "verb": "addState",
+              "state": 2074,
+              "expect": "Rising Force"
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "opening",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "tint",
+              "tone": [
+                -51,
+                85,
+                0,
+                0
+              ],
+              "seconds": 0
+            }
+          ]
+        },
+        {
+          "key": "three-quarters",
+          "on": "health",
+          "below": 75,
+          "steps": [
+            {
+              "verb": "animation",
+              "animation": 117
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "",
+              "face": "elemental-wind",
+              "faceIndex": 7,
+              "lines": [
+                "\\pop[self]No!\\. I\\..\\..\\.. have the POOwwweeRRRR!!"
+              ]
+            },
+            {
+              "verb": "startRoutine",
+              "routine": "rising-force"
+            }
+          ]
+        },
+        {
+          "key": "half",
+          "on": "health",
+          "below": 50,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "",
+              "face": "elemental-wind",
+              "faceIndex": 6,
+              "lines": [
+                "\\pop[self]ehehHHEHEHehehHEHHHH!"
+              ]
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 25,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 4
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 8
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 6
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 4
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 8
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 6
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 25,
+              "y": 25,
+              "direction": 2,
+              "animation": 0
+            }
+          ]
+        },
+        {
+          "key": "one-quarter",
+          "on": "health",
+          "below": 25,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "",
+              "face": "elemental-wind",
+              "faceIndex": 5,
+              "lines": [
+                "\\pop[self]The light is\\..\\..\\.. growing dim\\..\\..\\.."
+              ]
+            },
+            {
+              "verb": "addState",
+              "state": 2073,
+              "expect": "Overexerted"
+            }
+          ]
+        }
+      ]
     }
   ],
   "foodTypes": [

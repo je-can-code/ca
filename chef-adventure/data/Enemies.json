@@ -48848,7 +48848,7 @@
   {
     "id": 551,
     "name": "Earthie",
-    "note": "\u003clevel:30\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 14.69]\u003e\n\u003catkBuffPlus:[(a.level * 6.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 4.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 2.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 2.75)]\u003e\n\u003cabsorbElements:[7]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003chideTargetFrame\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1)]\u003e\n\u003csdpPoints:3\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_1,1]\u003e\n\u003caiTrait:executor\u003e",
+    "note": "\u003clevel:25\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 28]\u003e\n\u003catkBuffPlus:[(a.level * 6.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 4.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 2.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 2.75)]\u003e\n\u003chitBuffPlus:[(17.5+1.125*(a.level-1))*1.00]\u003e\n\u003cevaBuffPlus:[(6+0.75*(a.level-1))*1.00]\u003e\n\u003ccriBuffPlus:[(7.5+0.625*(a.level-1))*0.50]\u003e\n\u003ccevBuffPlus:[(1.5+0.175*(a.level-1))*1.50]\u003e\n\u003cmevBuffPlus:[(5+0.625*(a.level-1))*1.00]\u003e\n\u003cgrdBuffPlus:[(3.5+0.50*(a.level-1))*1.00]\u003e\n\u003cabsorbElements:[7]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003chideTargetFrame\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1)]\u003e\n\u003csdpPoints:3\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_1,1]\u003e\n\u003caiTrait:executor\u003e",
     "battlerName": "Earthspirit",
     "traits": [
       {
@@ -48874,17 +48874,27 @@
       {
         "code": 22,
         "dataId": 0,
-        "value": 0.75
+        "value": 0.2
       },
       {
         "code": 22,
-        "dataId": 2,
-        "value": 0.2
+        "dataId": 1,
+        "value": 0.06
+      },
+      {
+        "code": 22,
+        "dataId": 3,
+        "value": 0.03
+      },
+      {
+        "code": 22,
+        "dataId": 4,
+        "value": 0.06
       },
       {
         "code": 23,
         "dataId": 1,
-        "value": 0
+        "value": 1.04
       },
       {
         "code": 11,
@@ -48962,7 +48972,7 @@
   {
     "id": 552,
     "name": "Aqualock",
-    "note": "\u003clevel:30\u003e\n\u003cpassive:[322]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 83]\u003e\n\u003catkBuffPlus:[(a.level * 2.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 3.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 7.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 4.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 4.75)]\u003e\n\u003clukBuffPlus:[(a.level * 3.25)]\u003e\n\u003cabsorbElements:[5]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003chideTargetFrame\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_2,1]\u003e\n\u003caiTrait:executor\u003e",
+    "note": "\u003clevel:33\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 28]\u003e\n\u003catkBuffPlus:[(a.level * 2.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 3.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 7.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 4.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 4.75)]\u003e\n\u003clukBuffPlus:[(a.level * 3.25)]\u003e\n\u003chitBuffPlus:[(17.5+1.125*(a.level-1))*1.50]\u003e\n\u003cevaBuffPlus:[(6+0.75*(a.level-1))*1.00]\u003e\n\u003ccriBuffPlus:[(7.5+0.625*(a.level-1))*1.00]\u003e\n\u003ccevBuffPlus:[(1.5+0.175*(a.level-1))*0.50]\u003e\n\u003cmevBuffPlus:[(5+0.625*(a.level-1))*1.00]\u003e\n\u003cgrdBuffPlus:[(3.5+0.50*(a.level-1))*1.00]\u003e\n\u003cabsorbElements:[5]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003chideTargetFrame\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_2,1]\u003e\n\u003caiTrait:executor\u003e",
     "battlerName": "Waterspirit",
     "traits": [
       {
@@ -48988,17 +48998,32 @@
       {
         "code": 22,
         "dataId": 0,
-        "value": 0.75
+        "value": 0.3
       },
       {
         "code": 22,
         "dataId": 2,
-        "value": 0.2
+        "value": 0.1
+      },
+      {
+        "code": 22,
+        "dataId": 1,
+        "value": 0.06
+      },
+      {
+        "code": 22,
+        "dataId": 3,
+        "value": 0.01
+      },
+      {
+        "code": 22,
+        "dataId": 4,
+        "value": 0.06
       },
       {
         "code": 23,
         "dataId": 1,
-        "value": 0
+        "value": 1.04
       },
       {
         "code": 11,
@@ -49086,7 +49111,7 @@
   {
     "id": 553,
     "name": "Cynder",
-    "note": "\u003clevel:45\u003e\n\u003cpassive:[323]\u003e\n\u003cabsorbElements:[4]\u003e\n\u003cmtpBuffPlus:[1500]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 272]\u003e\n\u003catkBuffPlus:[(a.level * 7.5)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 3.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 5.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1)]\u003e\n\u003chideTargetFrame\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003cdescriptionLine:A fire elemental.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_3,1]\u003e\n\u003caiTrait:executor\u003e\n\u003csight:8\u003e\n\u003cpursuit:9\u003e\n\u003calertDuration:180\u003e\n\u003calertedSightBoost:10\u003e\n\u003calertedPursuitBoost:10\u003e\n\u003cjabsConfig:noIdle\u003e",
+    "note": "\u003clevel:45\u003e\n\u003cabsorbElements:[4]\u003e\n\u003cmtpBuffPlus:[1500]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 42]\u003e\n\u003catkBuffPlus:[(a.level * 7.5)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 3.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 5.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1)]\u003e\n\u003chitBuffPlus:[(17.5+1.125*(a.level-1))*0.50]\u003e\n\u003cevaBuffPlus:[(6+0.75*(a.level-1))*1.00]\u003e\n\u003ccriBuffPlus:[(7.5+0.625*(a.level-1))*0.50]\u003e\n\u003ccevBuffPlus:[(1.5+0.175*(a.level-1))*1.50]\u003e\n\u003cmevBuffPlus:[(5+0.625*(a.level-1))*1.00]\u003e\n\u003cgrdBuffPlus:[(3.5+0.50*(a.level-1))*1.50]\u003e\n\u003chideTargetFrame\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003cdescriptionLine:A fire elemental.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_3,1]\u003e\n\u003caiTrait:executor\u003e\n\u003csight:8\u003e\n\u003cpursuit:9\u003e\n\u003calertDuration:180\u003e\n\u003calertedSightBoost:10\u003e\n\u003calertedPursuitBoost:10\u003e\n\u003cjabsConfig:noIdle\u003e",
     "battlerName": "Firespirit",
     "traits": [
       {
@@ -49112,17 +49137,27 @@
       {
         "code": 22,
         "dataId": 0,
-        "value": 1.5
+        "value": 0.1
       },
       {
         "code": 22,
-        "dataId": 2,
-        "value": 0.4
+        "dataId": 1,
+        "value": 0.06
+      },
+      {
+        "code": 22,
+        "dataId": 3,
+        "value": 0.03
+      },
+      {
+        "code": 22,
+        "dataId": 4,
+        "value": 0.06
       },
       {
         "code": 23,
         "dataId": 1,
-        "value": 2.5
+        "value": 1.06
       },
       {
         "code": 11,
@@ -49210,7 +49245,7 @@
   {
     "id": 554,
     "name": "Skye",
-    "note": "\u003clevel:70\u003e\n\u003cpassive:[324]\u003e\n\u003cabsorbElements:[6]\u003e\n\u003cmtpBuffPlus:[2000]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 26.17]\u003e\n\u003catkBuffPlus:[(a.level * 4.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 3.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 2.75)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 9.5)]\u003e\n\u003clukBuffPlus:[(a.level * 2.75)]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.33)]\u003e\n\u003csdpPoints:21\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_4,1]\u003e\n\u003caiTrait:executor\u003e\n\u003csight:8\u003e\n\u003cpursuit:9\u003e\n\u003calertDuration:1200\u003e\n\u003calertedSightBoost:99\u003e\n\u003calertedPursuitBoost:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cknockbackResist:100\u003e",
+    "note": "\u003clevel:70\u003e\n\u003cabsorbElements:[6]\u003e\n\u003cmtpBuffPlus:[2000]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 28]\u003e\n\u003catkBuffPlus:[(a.level * 4.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 3.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 2.75)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 9.5)]\u003e\n\u003clukBuffPlus:[(a.level * 2.75)]\u003e\n\u003chitBuffPlus:[(17.5+1.125*(a.level-1))*1.50]\u003e\n\u003cevaBuffPlus:[(6+0.75*(a.level-1))*1.00]\u003e\n\u003ccriBuffPlus:[(7.5+0.625*(a.level-1))*1.50]\u003e\n\u003ccevBuffPlus:[(1.5+0.175*(a.level-1))*0.50]\u003e\n\u003cmevBuffPlus:[(5+0.625*(a.level-1))*1.00]\u003e\n\u003cgrdBuffPlus:[(3.5+0.50*(a.level-1))*0.50]\u003e\n\u003cmonsterFamilyIcon:57\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.33)]\u003e\n\u003csdpPoints:21\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[ELE_4,1]\u003e\n\u003caiTrait:executor\u003e\n\u003csight:8\u003e\n\u003cpursuit:9\u003e\n\u003calertDuration:1200\u003e\n\u003calertedSightBoost:99\u003e\n\u003calertedPursuitBoost:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cknockbackResist:100\u003e",
     "battlerName": "Windspirit",
     "traits": [
       {
@@ -49231,22 +49266,32 @@
       {
         "code": 22,
         "dataId": 0,
-        "value": 5
+        "value": 0.3
       },
       {
         "code": 22,
         "dataId": 2,
-        "value": 1
+        "value": 0.15
       },
       {
         "code": 23,
         "dataId": 1,
-        "value": 2.5
+        "value": 1.02
       },
       {
         "code": 22,
         "dataId": 3,
-        "value": 1
+        "value": 0.01
+      },
+      {
+        "code": 22,
+        "dataId": 1,
+        "value": 0.06
+      },
+      {
+        "code": 22,
+        "dataId": 4,
+        "value": 0.06
       },
       {
         "code": 11,
@@ -49279,7 +49324,22 @@
         "value": 0
       }
     ],
-    "actions": [],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2558
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2559
+      }
+    ],
     "battlerHue": 0,
     "dropItems": [
       {
@@ -51709,22 +51769,32 @@
       {
         "code": 22,
         "dataId": 0,
-        "value": 0.8
+        "value": 0.3
       },
       {
         "code": 22,
         "dataId": 2,
-        "value": 0.12
+        "value": 0.05
       },
       {
         "code": 23,
         "dataId": 1,
-        "value": 1.3
+        "value": 1.06
       },
       {
         "code": 22,
         "dataId": 3,
-        "value": 0.1
+        "value": 0.03
+      },
+      {
+        "code": 22,
+        "dataId": 1,
+        "value": 0.03
+      },
+      {
+        "code": 22,
+        "dataId": 4,
+        "value": 0.03
       },
       {
         "code": 23,
@@ -51862,22 +51932,32 @@
       {
         "code": 22,
         "dataId": 0,
-        "value": 2.5
+        "value": 0.3
       },
       {
         "code": 22,
         "dataId": 2,
-        "value": 0.5
+        "value": 0.05
       },
       {
         "code": 23,
         "dataId": 1,
-        "value": 3
+        "value": 1.06
       },
       {
         "code": 22,
         "dataId": 3,
-        "value": 0.5
+        "value": 0.03
+      },
+      {
+        "code": 22,
+        "dataId": 1,
+        "value": 0.03
+      },
+      {
+        "code": 22,
+        "dataId": 4,
+        "value": 0.03
       },
       {
         "code": 11,

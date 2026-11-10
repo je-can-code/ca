@@ -9,6 +9,7 @@
  * @base J-ABS
  * @orderAfter J-Base
  * @orderAfter J-ABS
+ * @orderAfter J-Log
  * @help
  * ============================================================================
  * Please refer to J-ABS-Boss's book for more details:
@@ -329,6 +330,17 @@ var BLINK_DIRECTIONS = [
 	8
 ];
 /**
+* The facings a facing step may turn a body to: down, left, right and up. Unlike a blink's, these have no zero,
+* since turning to keep the facing a body already has is no turn at all.
+* @type {number[]}
+*/
+var FACE_DIRECTIONS = [
+	2,
+	4,
+	6,
+	8
+];
+/**
 * The authority on boss encounters: which one is running, who is in it, and what recurs while it
 * does.
 *
@@ -399,7 +411,16 @@ var JabsBossManager = class JabsBossManager {
 		/**
 		* Wakes a dormant routine, so something the fight keeps doing only starts once the fight reaches a moment.
 		*/
-		StartRoutine: "startRoutine"
+		StartRoutine: "startRoutine",
+		/**
+		* Turns a participant to face a given way, such as a boss spinning in place to fire every way in turn.
+		*/
+		Face: "face",
+		/**
+		* Writes a line to the dialogue log on the map without holding the fight for it, such as a shriek, or a
+		* word called from the sidelines.
+		*/
+		Log: "log"
 	};
 	/**
 	* Every encounter known to the game, keyed by its author-facing name.
@@ -538,6 +559,7 @@ var JabsBossManager = class JabsBossManager {
 		}
 		this.#validateEncounter(encounter);
 		this.#clearExtraBodies();
+		this.#clearBystanders();
 		this.#lanes = [];
 		this.#spawnParticipants(encounter);
 		this.#activeEncounter = encounter;
@@ -574,11 +596,12 @@ var JabsBossManager = class JabsBossManager {
 	*
 	* Any participant still standing is left where it is. Ending a fight is bookkeeping, and whatever the
 	* story wants done with a survivor belongs to the scene that ends it. What the fight put on the map for
-	* itself is different: a hazard it woke, or a tint it laid over the screen, is the fight's own and leaves
-	* with it.
+	* itself is different: a hazard it woke, a bystander it stood at the edge of the room, or a tint it laid
+	* over the screen, is the fight's own and leaves with it.
 	*/
 	static endEncounter() {
 		this.#clearExtraBodies();
+		this.#clearBystanders();
 		this.#restoreTone();
 		this.#activeEncounter = null;
 		this.#routineCountdowns.clear();
@@ -597,6 +620,17 @@ var JabsBossManager = class JabsBossManager {
 	static #clearExtraBodies() {
 		this.#extraBodies.filter((body) => this.#isStillStanding(body)).forEach((body) => body.erase());
 		this.#extraBodies = [];
+	}
+	/**
+	* Takes every bystander of the active encounter that is still standing off the map.
+	*
+	* A bystander is part of the fight without being part of winning it, so it leaves when the fight is won or
+	* ended, the same way whatever the fight spawned for itself does. The participants the fight is won by
+	* felling are another matter: a survivor of an ended fight is the story's to deal with.
+	*/
+	static #clearBystanders() {
+		if (!this.#activeEncounter) return;
+		this.#activeEncounter.participants().filter((participant) => participant.isBystander()).map((participant) => this.#participantBodies.get(participant.key())).filter((body) => this.#isStillStanding(body)).forEach((body) => body.erase());
 	}
 	/**
 	* Determines whether a spawned body is still on the map and still standing.
@@ -669,10 +703,28 @@ var JabsBossManager = class JabsBossManager {
 	* @param {JabsBossEncounter} encounter The encounter to check.
 	*/
 	static #validateEncounter(encounter) {
+		this.#validateBoss(encounter);
 		encounter.participants().forEach((participant) => this.#validateReference($dataEnemies[participant.enemyId()], participant.enemyId(), participant.expect(), `encounter [ ${encounter.key()} ] participant [ ${participant.key()} ] enemy`));
 		encounter.routines().forEach((routine) => this.#validateRoutine(encounter, routine));
 		encounter.reactions().forEach((reaction) => this.#validateReaction(encounter, reaction));
 		this.#validateDefeatSwitch(encounter);
+	}
+	/**
+	* Confirms an encounter has a boss: a first participant that the fight is won by felling.
+	*
+	* The first participant is who a step naming nobody acts on, whose health a reaction naming nobody watches,
+	* and whose turn every routine waits for. A fight with nobody in it would count as won on its very first
+	* frame, and a bystander in the boss's place would hand all of that to a body the fight never needs felled.
+	* @param {JabsBossEncounter} encounter The encounter to check.
+	*/
+	static #validateBoss(encounter) {
+		const where = `encounter [ ${encounter.key()} ]`;
+		if (encounter.participants().length === 0) {
+			throw new Error(`Boss ${where} has no participants, so it would be won the moment it began.`);
+		}
+		const boss = encounter.primaryParticipant();
+		if (boss.isBystander() === false) return;
+		throw new Error(`Boss ${where} lists bystander [ ${boss.key()} ] first, where its boss belongs.`);
 	}
 	/**
 	* Confirms the switch an encounter turns on when it is won is one the game actually has.
@@ -789,7 +841,7 @@ var JabsBossManager = class JabsBossManager {
 				return;
 			case JabsBossManager.Verbs.Dialogue:
 				this.#validateStepParticipant(encounter, step, where);
-				this.#validateLines(step, where);
+				this.#validateLines(step, where, "has a participant say nothing at all");
 				return;
 			case JabsBossManager.Verbs.Blink:
 				this.#validateStepParticipant(encounter, step, where);
@@ -801,6 +853,13 @@ var JabsBossManager = class JabsBossManager {
 				return;
 			case JabsBossManager.Verbs.StartRoutine:
 				this.#validateRoutineKey(encounter, step.routineKey(), where);
+				return;
+			case JabsBossManager.Verbs.Face:
+				this.#validateStepParticipant(encounter, step, where);
+				this.#validateFacing(step, where);
+				return;
+			case JabsBossManager.Verbs.Log:
+				this.#validateLines(step, where, "writes nothing at all to the dialogue log");
 				return;
 		}
 	}
@@ -818,6 +877,20 @@ var JabsBossManager = class JabsBossManager {
 		throw new Error(`Boss ${where} ${facing}, which is not down (2), left (4), right (6) or up (8).`);
 	}
 	/**
+	* Confirms a facing step turns its participant a way a character can face: down, left, right or up.
+	*
+	* Unlike a blink, a facing step has no "keep the way it faced" to fall back on: turning to face nowhere in
+	* particular is no turn at all, and the engine reads any other number as a facing anyway, leaving the body
+	* to fire whatever it fires next at nothing.
+	* @param {JabsBossStep} step The step to check.
+	* @param {string} where Where in the configuration the step lives, named for the error.
+	*/
+	static #validateFacing(step, where) {
+		if (FACE_DIRECTIONS.includes(step.direction())) return;
+		const facing = `turns to face [ ${step.direction()} ]`;
+		throw new Error(`Boss ${where} ${facing}, which is not down (2), left (4), right (6) or up (8).`);
+	}
+	/**
 	* Confirms a tint names a whole screen tone: red, green, blue and gray.
 	*
 	* The engine reads a tone by position, so one with a value missing would not fail- it would settle on a
@@ -830,16 +903,17 @@ var JabsBossManager = class JabsBossManager {
 		throw new Error(`Boss ${where} tints the screen to [ ${step.tone()} ], which is not red, green, blue and gray.`);
 	}
 	/**
-	* Confirms a line of dialogue says something.
+	* Confirms a line says something, whether it is said aloud or written to the dialogue log.
 	*
 	* An empty message still opens a window and still holds the fight until the player dismisses it, which
-	* reads as the game stalling for no reason.
+	* reads as the game stalling for no reason. An empty entry in the log is a blank row that means nothing.
 	* @param {JabsBossStep} step The step to check.
 	* @param {string} where Where in the configuration the step lives, named for the error.
+	* @param {string} failure What the step would do with no lines, named for the error.
 	*/
-	static #validateLines(step, where) {
+	static #validateLines(step, where, failure) {
 		if (step.lines().length > 0) return;
-		throw new Error(`Boss ${where} has a participant say nothing at all.`);
+		throw new Error(`Boss ${where} ${failure}.`);
 	}
 	/**
 	* Confirms the participant a step acts on is one the encounter has. A step naming nobody acts on the
@@ -905,8 +979,8 @@ var JabsBossManager = class JabsBossManager {
 		return body.getJabsBattler();
 	}
 	/**
-	* Determines whether a battler is the body of one of the active encounter's participants: the boss, or any
-	* other body the fight is won by felling.
+	* Determines whether a battler is the body of one of the active encounter's participants: the boss, any other
+	* body the fight is won by felling, or a bystander standing in it.
 	*
 	* What a fight spawns for itself, such as a hazard, is no participant, and neither is anything that was on the
 	* map before the fight began.
@@ -1089,20 +1163,22 @@ var JabsBossManager = class JabsBossManager {
 		if (!this.#isEveryBodyGone()) return;
 		this.#bossDefeated = true;
 		this.#clearExtraBodies();
+		this.#clearBystanders();
 		this.#lanes = [];
 		this.#announceDefeat();
 	}
 	/**
-	* Determines whether every body the active encounter spawned has fallen and finished dying.
+	* Determines whether every body the active encounter is won by felling has fallen and finished dying.
 	*
 	* J-ABS erases a fallen body only once its death scene has played out, so an erased body is one whose
 	* last words have all been said. Each body is asked directly rather than looked up on the map: a body
 	* the map no longer holds may only have been left behind by a player walking off of it, which is not
-	* the same thing at all as a boss that has fallen.
+	* the same thing at all as a boss that has fallen. A bystander is never asked at all, since the fight is
+	* not won by felling it.
 	* @returns {boolean}
 	*/
 	static #isEveryBodyGone() {
-		return this.#activeEncounter.participants().every((participant) => this.#participantBodies.get(participant.key()).isErased());
+		return this.#activeEncounter.participants().filter((participant) => participant.isBystander() === false).every((participant) => this.#participantBodies.get(participant.key()).isErased());
 	}
 	/**
 	* Turns on the active encounter's defeat switch, when it names one and the fight was won in its arena.
@@ -1212,6 +1288,12 @@ var JabsBossManager = class JabsBossManager {
 				break;
 			case JabsBossManager.Verbs.StartRoutine:
 				this.#executeStartRoutine(step);
+				break;
+			case JabsBossManager.Verbs.Face:
+				this.#executeFace(step);
+				break;
+			case JabsBossManager.Verbs.Log:
+				this.#executeLog(step);
 				break;
 			default: throw new Error(`Unrecognized boss step verb: [ ${step.verb()} ].`);
 		}
@@ -1353,7 +1435,7 @@ var JabsBossManager = class JabsBossManager {
 	*/
 	static #executeTint(step) {
 		if (this.#toneBeforeFight.length === 0) {
-			this.#toneBeforeFight = [...$gameScreen.tone()];
+			this.#toneBeforeFight = [...$gameScreen.toneTarget()];
 		}
 		$gameScreen.startTint(step.tone(), step.frames());
 	}
@@ -1483,6 +1565,31 @@ var JabsBossManager = class JabsBossManager {
 		};
 	}
 	/**
+	* Turns a step's participant to face the way the step names.
+	*
+	* Whatever a participant performs next fires the way it faces, so a boss spinning in place to fire every way
+	* in turn is a facing and a forced skill, over and over. The turn is instant and holds nothing up.
+	* @param {JabsBossStep} step The step naming the participant and the way to face.
+	*/
+	static #executeFace(step) {
+		const jabsBattler = this.#stepJabsBattler(step);
+		if (!jabsBattler) return;
+		const body = jabsBattler.getCharacter();
+		body.setDirection(step.direction());
+	}
+	/**
+	* Writes a step's line to the dialogue log on the map, wearing the face it names, without holding the fight.
+	*
+	* A line in the log is chatter: a shriek mid-barrage, or a word called from the sidelines. The fight plays on
+	* while it is read, which is the whole difference between it and a line of dialogue.
+	* @param {JabsBossStep} step The step naming the line and its face.
+	*/
+	static #executeLog(step) {
+		if (!J.LOG) return;
+		const log = new DiaLogBuilder().setLines(step.lines()).setFaceName(step.face()).setFaceIndex(step.faceIndex()).build();
+		$mapLogs.dialog.addLog(log);
+	}
+	/**
 	* Holds a step's lane for the time the step names, before anything behind it plays.
 	* @param {JabsBossStep} step The step naming how long.
 	* @param {JabsBossLane} lane The lane to hold.
@@ -1547,6 +1654,10 @@ var JabsBossManager = class JabsBossManager {
 * name a different template instead, for a body that is that same enemy but dressed for this one fight:
 * a prefix it always wears, a role it plays, a level it fights at. The enemy's own template stays exactly
 * as it is for every other place that enemy turns up.
+*
+* Most participants are bodies the fight is won by felling. A bystander is the exception: it stands in the
+* fight from its first frame without being part of winning it, the way an elemental might watch from the
+* edge of the room and cheer its champion on.
 */
 var JabsBossParticipant = class {
 	/**
@@ -1590,6 +1701,15 @@ var JabsBossParticipant = class {
 	*/
 	#y = 0;
 	/**
+	* Whether this participant is part of the fight without being part of winning it.
+	*
+	* A bystander is spawned with the rest and can be named by any step, so it can say its lines from where it
+	* stands. The fight is won once every other participant has fallen, and a bystander still standing then
+	* leaves the map with the fight, the way anything the fight spawned for itself does.
+	* @type {boolean}
+	*/
+	#bystander = false;
+	/**
 	* Constructor.
 	* @param {string} key The author-facing name for this participant.
 	* @param {number} enemyId The id of the enemy this participant is.
@@ -1597,14 +1717,16 @@ var JabsBossParticipant = class {
 	* @param {number} x The x coordinate of the tile this participant appears on.
 	* @param {number} y The y coordinate of the tile this participant appears on.
 	* @param {number} templateId The id of the clone map event this participant spawns from.
+	* @param {boolean} bystander Whether this participant is part of the fight without being part of winning it.
 	*/
-	constructor(key, enemyId, expect, x, y, templateId) {
+	constructor(key, enemyId, expect, x, y, templateId, bystander = false) {
 		this.#key = key;
 		this.#enemyId = enemyId;
 		this.#expect = expect;
 		this.#x = x;
 		this.#y = y;
 		this.#templateId = templateId;
+		this.#bystander = bystander;
 	}
 	/**
 	* Gets the author-facing name for this participant.
@@ -1647,6 +1769,13 @@ var JabsBossParticipant = class {
 	*/
 	y() {
 		return this.#y;
+	}
+	/**
+	* Gets whether this participant is part of the fight without being part of winning it.
+	* @returns {boolean}
+	*/
+	isBystander() {
+		return this.#bystander;
 	}
 };
 
@@ -1757,13 +1886,14 @@ var JabsBossStep = class {
 	* @property {number} templateId The slot on the enemy clone map a spawn copies its body from.
 	* @property {number} x The tile column a spawn puts its body on, or a blink takes its participant to.
 	* @property {number} y The tile row a spawn puts its body on, or a blink takes its participant to.
-	* @property {number} direction The way a blink leaves its participant facing, or zero to keep its facing.
+	* @property {number} direction The way a blink leaves its participant facing (zero keeps its facing), or the way a
+	* facing step turns it.
 	* @property {number[]} tone The screen tone a tint settles on: red, green, blue and gray.
 	* @property {number} animationId The animation played over a participant, a blink's flare, or a spawn's arrival.
-	* @property {string} face The face image shown with a participant's line, or empty for none.
+	* @property {string} face The face image shown with a line, said aloud or written to the log, or empty for none.
 	* @property {number} faceIndex The face on that image.
 	* @property {string} speaker The name shown with a participant's line.
-	* @property {string[]} lines The text a participant says, shown together as one message.
+	* @property {string[]} lines The text of a line, said aloud as one message or written to the log as one entry.
 	*/
 	/**
 	* The verb this step performs.
@@ -1847,7 +1977,8 @@ var JabsBossStep = class {
 	*/
 	#y = 0;
 	/**
-	* The way this step leaves its participant facing, for a blink: 2, 4, 6 or 8, or zero to keep its facing.
+	* The way this step leaves its participant facing: 2, 4, 6 or 8. A blink may also name zero to keep the facing
+	* its participant had, which a facing step may not.
 	* @type {number}
 	*/
 	#direction = 0;
@@ -1863,7 +1994,7 @@ var JabsBossStep = class {
 	*/
 	#animationId = 0;
 	/**
-	* The face image shown with this step's line, for dialogue, or empty for none.
+	* The face image shown with this step's line, for dialogue or the log, or empty for none.
 	* @type {string}
 	*/
 	#face = String.empty;
@@ -1878,7 +2009,8 @@ var JabsBossStep = class {
 	*/
 	#speaker = String.empty;
 	/**
-	* The text this step's participant says, for dialogue, shown together as one message.
+	* The text of this step's line: what its participant says, for dialogue, shown together as one message, or
+	* what it writes to the dialogue log, as one entry.
 	* @type {string[]}
 	*/
 	#lines = [];
@@ -2133,7 +2265,8 @@ var J_BossPluginMetadata = class extends PluginMetadata {
 		const { key, enemyId, expect, x, y } = rawParticipant;
 		const template = rawParticipant.template ?? 0;
 		const templateId = template === 0 ? enemyId : template;
-		return new JabsBossParticipant(key, enemyId, expect, x, y, templateId);
+		const bystander = rawParticipant.bystander === true;
+		return new JabsBossParticipant(key, enemyId, expect, x, y, templateId, bystander);
 	}
 	/**
 	* Builds one reaction out of its raw configuration.
@@ -2189,8 +2322,8 @@ var J_BossPluginMetadata = class extends PluginMetadata {
 		};
 	}
 	/**
-	* Reads where a step puts things: the enemy a spawn puts on the map, the clone map slot it copies, and the
-	* tile and facing a spawn or a blink lands on.
+	* Reads where a step puts things: the enemy a spawn puts on the map, the clone map slot it copies, the tile
+	* and facing a spawn or a blink lands on, and the way a facing step turns its participant.
 	* @param {any} rawStep The unparsed step from configuration.
 	* @returns {Object} Those fields of the step's details.
 	*/
@@ -2207,7 +2340,8 @@ var J_BossPluginMetadata = class extends PluginMetadata {
 		};
 	}
 	/**
-	* Reads how a step looks and sounds: a changed look, a tint, an animation, and a line with its face and speaker.
+	* Reads how a step looks and sounds: a changed look, a tint, an animation, and a line with its face and speaker,
+	* whether said aloud or written to the dialogue log.
 	* @param {any} rawStep The unparsed step from configuration.
 	* @returns {Object} Those fields of the step's details.
 	*/

@@ -512,8 +512,8 @@ Five subgroup slots. Mastery skill/state ID = enemy ID + 1000. See [Deity family
 
 ### 1 — Elemental (551–560)
 
-- (??) [551]Earthie
-- (30) [552]Aqualock
+- (25) [551]Earthie
+- (33) [552]Aqualock
 - (45) [553]Cynder
 - (70) [554]Skye
 

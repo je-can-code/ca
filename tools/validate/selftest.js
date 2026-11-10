@@ -673,6 +673,42 @@ const buildControls = project =>
       expect: null,
     },
     {
+      label: 'a turn facing no way at all (0)',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'face', direction: 0 } ])),
+      expect: [ 'reaction "planted" steps[0] turns to face 0', 'not down (2), left (4), right (6) or up (8)' ],
+    },
+    {
+      label: 'the same turn facing up (8)',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'face', direction: 8 } ])),
+      expect: null,
+    },
+    {
+      label: 'a line in the dialogue log that says nothing',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'log', lines: [], face: 'elemental-earth', faceIndex: 3 } ])),
+      expect: [ 'reaction "planted" steps[0] writes nothing at all to the dialogue log' ],
+    },
+    {
+      label: 'the same line in the log saying something',
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'log', lines: [ 'SCREEEE' ], face: 'elemental-earth', faceIndex: 3 } ])),
+      expect: null,
+    },
+    {
+      label: `a bystander listed first, where the boss belongs ("${body.key}")`,
+      check: checkConfigs,
+      planted: withEncounter({ participants: [ { ...body, bystander: true } ] }),
+      expect: [ `boss "${encounter.key}" lists bystander "${body.key}" first, where its boss belongs` ],
+    },
+    {
+      label: `the same body fighting rather than standing by ("${body.key}")`,
+      check: checkConfigs,
+      planted: withEncounter({ participants: [ { ...body, bystander: false } ] }),
+      expect: null,
+    },
+    {
       label: `a spawn arriving in an animation the database does not have (animation #${missingAnimationId})`,
       check: checkConfigs,
       planted: withReaction(reactionTo('start', [], [ spawnStep({ animation: missingAnimationId }) ])),

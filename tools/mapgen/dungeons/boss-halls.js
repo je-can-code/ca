@@ -101,6 +101,22 @@ const HALLS = [
     exit: [ 22, 34 ],
     kit: { init: [ 18, 19 ], levels: [ 19, 19 ], fight: [ 25, 19 ], watch: [ 26, 19 ] },
   },
+  {
+    id: 548,
+    name: 'Garuda',
+    encounter: 'garuda',
+    arrival: { x: 24, y: 47, dir: 8 },
+    exitEventId: 1,
+    kit: { init: [ 21, 46 ], levels: [ 22, 46 ], fight: [ 27, 46 ], watch: [ 28, 46 ] },
+  },
+  {
+    id: 549,
+    name: 'Skye',
+    encounter: 'skye',
+    arrival: { x: 24, y: 47, dir: 8 },
+    exitEventId: 1,
+    kit: { init: [ 21, 46 ], levels: [ 22, 46 ], fight: [ 27, 46 ], watch: [ 28, 46 ] },
+  },
 ];
 
 /**

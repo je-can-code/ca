@@ -285,7 +285,7 @@ const findTemplateEnemyId = template =>
  */
 const BOSS_VERBS = [
   'forceSkill', 'addState', 'removeState', 'changeImage', 'quickenRoutine', 'spawn', 'tint', 'animation', 'dialogue',
-  'blink', 'wait', 'learnSkill', 'startRoutine',
+  'blink', 'wait', 'learnSkill', 'startRoutine', 'face', 'log',
 ];
 
 /**
@@ -293,6 +293,12 @@ const BOSS_VERBS = [
  * @type {number[]}
  */
 const BLINK_DIRECTIONS = [ 0, 2, 4, 6, 8 ];
+
+/**
+ * The facings a turn may face its participant: down, left, right and up. No 0, since keeping a facing is no turn.
+ * @type {number[]}
+ */
+const FACE_DIRECTIONS = [ 2, 4, 6, 8 ];
 
 /**
  * The moments of a fight a J-ABS-Boss reaction can answer.
@@ -398,6 +404,18 @@ const checkBossStep = (project, findings, encounter, step, where) =>
   if (step.verb === 'startRoutine' && !encounter.routines.some(routine => routine.key === step.routine))
   {
     findings.add(`${where} starts routine "${step.routine}", but the encounter has no routine by that name`);
+  }
+
+  // a turn has to face one of the four ways; the plugin reads anything else, 0 included, as no turn and refuses it.
+  if (step.verb === 'face' && !FACE_DIRECTIONS.includes(step.direction ?? 0))
+  {
+    findings.add(`${where} turns to face ${step.direction ?? 0}, which is not down (2), left (4), right (6) or up (8), so the fight refuses to start`);
+  }
+
+  // an empty entry in the dialogue log is a blank row that means nothing, and the plugin refuses it.
+  if (step.verb === 'log' && (step.lines ?? []).length === 0)
+  {
+    findings.add(`${where} writes nothing at all to the dialogue log, so the fight refuses to start`);
   }
 
   // a spawn can arrive in a flash; one that names an animation needs the animation to exist.
@@ -514,6 +532,13 @@ const checkBosses = (project, jabs, findings) =>
 
     // a fight with no bodies counts as won on its first frame, since every one of its bodies has fallen.
     if (encounter.participants.length === 0) findings.add(`${where} has no participants, so it is won the moment it starts`);
+
+    // the first body is the boss, which a bystander cannot be: the fight is never won by felling a bystander.
+    const [ boss ] = encounter.participants;
+    if (boss && boss.bystander === true)
+    {
+      findings.add(`${where} lists bystander "${boss.key}" first, where its boss belongs, so the fight refuses to start`);
+    }
 
     encounter.participants.forEach(participant =>
     {
