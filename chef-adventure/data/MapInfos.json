@@ -550,5 +550,6 @@ null,
 {"id":548,"expanded":false,"name":"Garuda Hall","order":548,"parentId":542,"scrollX":1101,"scrollY":701.5},
 {"id":549,"expanded":false,"name":"Skye Hall","order":549,"parentId":542,"scrollX":1101,"scrollY":701.5},
 {"id":550,"expanded":false,"name":"Gloria Hall","order":550,"parentId":542,"scrollX":1101,"scrollY":701.5},
-{"id":551,"expanded":false,"name":"Sloth Hall","order":551,"parentId":542,"scrollX":1101,"scrollY":701.5}
+{"id":551,"expanded":false,"name":"Sloth Hall","order":551,"parentId":542,"scrollX":1101,"scrollY":701.5},
+{"id":552,"expanded":false,"name":"Lust Hall","order":552,"parentId":542,"scrollX":1101,"scrollY":701.5}
 ]

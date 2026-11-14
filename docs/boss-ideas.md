@@ -345,6 +345,125 @@ time their own sounds), so the beat that went silent when you reached her comes 
 
 `Map443` "Basement 13: Lust", the 80×46 dome; enemy `587`. Rupert alone; Fortress band 115-130.
 
+### Talked through (2026-11-13)
+
+His answers on the picks below, after re-running them against the morning rules:
+
+- **The re-run.** Lust sits at the band's peak, 130, and Rupert stands there too: his floor bar is 3,848 HP, 437 DEF
+  and 579 MDF (`band-probe.js`, tier 6). Scrambled is simply `<noDamage>`, so the leak below no longer touches it. The
+  grab is `b.mhp * 0.45 - (b.def * 1)`, about a third of the floor bar. The window is about 2.5-3 seconds: Lavos's
+  longest everyday cast is Dargin Breath at 1.5.
+- **Slot 1: a window after every reach (A), and the reach is a pounce.** Jeremy: "The leap is what my spear skill
+  does... It works." *Read tonight*: a gap close is an on-hit effect (it runs on a hit or a parry), so D as written
+  below, a leap that distance never protects against, can't come from the tags alone. The pounce has two beats
+  instead, Cross Dive's own pattern (skill 35: `<gapClose:pierce>`, `<gapClosePosition:infront>`,
+  `<thisOnGapCloseEnd:[36]>`): a tell, then a room-wide Certain Hit lock-on (`<gapCloseAny>`, `<gapCloseMode:jump>`)
+  that leaps him at Rupert, and the grab goes off where he lands. Still *unread*:
+  - the airtime at point-blank;
+  - whether a body rooted for the tell still makes the leap (rooting is what lets a forced cast fire past the
+    15-tile AI range);
+  - how long the window really is once a fixed `wait` has absorbed the leap.
+
+  A pounce-only hall probe goes first. The lunge (C) is the fallback.
+- **Slots 2-5 as picked** (his "I see nothing wrong"):
+  - a caught grab is damage plus a hold that drains MP;
+  - between reaches, goop vents and a groan pulse;
+  - he quickens at 66% and 33%, with the double-reach feint in the last third;
+  - a flare and a flicker tell the player he's open.
+- **Scene text**: TODO placeholders, as in Sloth's hall (his "Your TODO is perfect").
+- **His look**: Jeremy said, "It's lust. Wanna find a luxurious elf dude or something?" A lineup of six went out.
+  He picked CA's own unused incubus (`$m_incubus`), recolored: "Use option 1, but recolor with dark skin and red
+  eyes as you described. Incubus through and through. The sin acceptance transforms you." Dark skin and red eyes
+  are Majik's, the one look canon gives a void clown ("black-skinned, red-eyed", `prequel-jr2.md`). Three shades
+  went out; the build uses the void black, installed as `$m_sin-incubus`. What "acceptance" means for a sin that
+  was forced is in `story-canon.md` under the Basement: forced, then accepted with resignation.
+- **The feint is not built.** *Read tonight*: no step stops or swaps a routine, and a second routine started at 33%
+  would play during the first one's window (`#canExecuteRoutine` only holds a routine while the boss casts), so its
+  own resealing would cut the window short. The feint waits on a small `verb`, if wanted.
+
+### Built (2026-11-13, at his "Otherwise that all sounds good"; uncommitted on `boss-pass`)
+
+Data only, so no plugin changed. Script `/tmp/claude-1000/lust/data/build-lust.js` (RAM); validate OK.
+
+- **His look:** `$m_sin-incubus.png`, CA's incubus with the skin ramp taken to void black and the eyes to red.
+- **Rows:**
+  - Enemy 587 "Lust": lv130, a provisional bar of 60,000, his groan as his basic attack, GRD 0. His stub's SDP lines
+    are kept.
+  - Enemy 597 "Goop Vent": Liquihazard's row at lv130 with its rewards taken out.
+  - Skills: 2593 Desire (the lock-on and leap), 2594 Embrace (the grab, `b.mhp * 0.45 - (b.def * 1)`), 2595 Groan
+    (`b.mhp * 0.3 - (b.mdf * 1)`, radius 2), and 2596 Goop Geyser (Geyser Trap made Certain Hit).
+  - States: 2079 Scrambled (`<immuneToAll>`, `<noDamage>`) and 2080 Embraced (3 s, held, 5% of max MP a tick).
+    2081 Overreached and 2082 Fraying (+20% speed a stack) are appended, since the table ended at 2080.
+  - Switch 194 "lust defeated"; Map361 templates ev587 and ev597.
+- **The encounter `lust`:** Map443, with Lust at (40, 9).
+  - A reach every 10 s. The tell: lifted out of Scrambled, rooted, the lock-on cast, unrooted and rescrambled, all in
+    one frame. A root makes a forced cast fire from where he stands past the AI's 15 tiles, and `<immuneToAll>` would
+    refuse even his own root.
+  - Then 2.5 s, then the window: 3 s of Overreached, with a Flash over him and a flicker of the room.
+  - Two vents at the start and one each at 66% and 33%, which also quicken the reach by 2 s and add a Fraying stack.
+- **His hall:** Map552 "Lust Hall", with its door in the lobby.
+
+**Proven in the hall** (`dist/playtest/lust-pounce-probe.js`, Rupert alone, Lavos lv130, tier 6):
+
+- **The pounce works at every range.** The lock-on lands 57-61 frames after the tell, and the leap follows.
+  - Airtime runs about 19 frames point-blank, 31-33 at 6-7 tiles and 67 at 24 tiles.
+  - The 24-tile case fired past the AI's reach.
+  - Against the west wall he lands on the room side of Rupert, never in the wall.
+- **The dodge works.** Stepped 3 tiles aside at takeoff, the grab misses at 2 tiles and at 8. Standing still, it
+  lands every time for exactly 1,304, which is 34% of the floor bar.
+- **The window** opens and shuts on time: 180 frames, with Scrambled back after it.
+- **The vents** wake untouchable. Rupert never came within 6 tiles of one, so they never erupted.
+
+**Open after the probe:**
+
+- **The hold landed on only 12 of 23 caught grabs.** J-ABS skipped a target's state resistances for a Certain Hit, as
+  its comment says, but still multiplied in luck, which its comment says it skips too (vanilla RMMZ skips both), and
+  Lust's LUK is 1. **Fixed in the engine at his call** ("LUK should be fixed at the engine level"): J-ABS core's
+  `calculateStateApplicationD100` now skips luck along with the resistances on a Certain Hit. Uncommitted on
+  `boss-pass`; hotfix green.
+- **The window opened on a timer, about 1.1 s after a short leap lands,** so a caught Rupert's 3 s hold ended with about
+  a second of window left. **Now 1.5 s after the tell** (his default, 11-13): it opens as he lands on a leap of up to six
+  tiles, and in the air on a longer one, which the landing grab doesn't mind.
+- **His bar is still provisional.** The bot never once hit him in a window, so his 60,000 waits on Jeremy's own
+  playtest, as Sloth's final bar does.
+- **The vents didn't erupt as first built:** J-ABS gives an inanimate battler no combat AI at all (*read*), so a
+  hazard's action list never fires. They now carry `<autoExecuteSkill:[2596, enemiesNearby, 1, 120, 6]>`.
+
+**Proven in the second run** (`dist/playtest/lust-fight-probe.js`, the engine fix and both data fixes in):
+
+- **Holds:** 5 of 5 caught grabs held, and Rupert's MP drained through each one.
+- **The window opens as he lands:** 7-30 frames after touchdown, against 60-79 before.
+- **The vents erupt:** Goop Geyser hit for 825 every two seconds while Rupert stood 3 tiles from one.
+- **The reactions:** health set to 65%, then 32%, inside a window. Each time the next vent woke and Fraying stacked, and
+  the gap between tells went 600, 480, 360 frames. One Fraying stack took his pace from 0.0313 to 0.0375 tiles a frame
+  (+20%).
+- **The kill:** Rupert lands it, and the hall resets: frame off, menu back, vents gone.
+
+### The arena wired (2026-11-13, at his "Yeah let's go"; uncommitted)
+
+Map443, by `/tmp/claude-1000/lust/data/arena.js` (RAM), modeled on Sloth's Map409. Switch 195 is "lust fight started".
+
+- **The way back to Basement 12** (ev1) shuts while the fight is on and transfers again once he falls.
+- **His stand-in** (ev2) waits at his post, (40, 9).
+- **The pre-boss scene** (ev3) is an autorun on arrival, with watch or skip.
+  - **Watched:** Rupert steps in three squares, and Lust lurches toward him in three stretches of eight, to (40, 33),
+    seven squares short of him. A TODO marks each beat of the 9-16 draft where the walk has brought him, so the scene
+    lasts exactly as long as the walk. The flashback is its own content item.
+  - **Skipped:** both are set down where the walk would have left them.
+  - Then the big boss music, the fight, the boss frame, and the menu off.
+- **The encounter's participant now spawns at (40, 33),** where the approach leaves him; the hall's fight starts there
+  too.
+- **The post-boss stub** (ev4), on switch 194: ends the encounter, cleans up, and leaves a TODO for the post-amble.
+- **The elevator** (ev5) stands in the back wall's recess at (39, 2) as a placeholder `!SF_Door1`, dead until he falls.
+  Then it holds a TODO for the lane's exit, "How the two exits line up": the ride up to the entry hall, and the
+  Rupert-first or Jerald-first scenes.
+- **Proven both ways** (`dist/playtest/lust-arena-probe.js`, `LUST_PREAMBLE=watch|skip`). The scene starts on its own,
+  15 s watched and 3 s skipped. His body lands on (40, 33), the way back shuts, and the frame, the menu lock and the
+  boss music all come in. Once he falls: the frame goes, the menu comes back, the way back transfers again, and the
+  elevator wakes.
+- **Still his:** every TODO line, the flashback, the elevator's look and where it goes, and a look for the shut way back,
+  which is invisible for now.
+
 ### Already yours
 
 - **The hook** `LOCKED (2026-09-17)`: he is only vulnerable when he wants something. Scrambled to zero, nothing gets in

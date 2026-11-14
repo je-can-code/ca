@@ -2227,6 +2227,208 @@
           ]
         }
       ]
+    },
+    {
+      "key": "lust",
+      "map": 443,
+      "defeatSwitch": 194,
+      "participants": [
+        {
+          "key": "lust",
+          "enemyId": 587,
+          "expect": "Lust",
+          "x": 40,
+          "y": 33,
+          "template": 587
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "reach",
+          "cadence": 10,
+          "steps": [
+            {
+              "verb": "removeState",
+              "state": 2079,
+              "expect": "Scrambled",
+              "participant": "lust"
+            },
+            {
+              "verb": "addState",
+              "state": 2075,
+              "expect": "Stilled",
+              "participant": "lust"
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2593,
+              "expect": "Desire",
+              "cast": true,
+              "participant": "lust"
+            },
+            {
+              "verb": "removeState",
+              "state": 2075,
+              "expect": "Stilled",
+              "participant": "lust"
+            },
+            {
+              "verb": "addState",
+              "state": 2079,
+              "expect": "Scrambled",
+              "participant": "lust"
+            },
+            {
+              "verb": "wait",
+              "seconds": 1.5
+            },
+            {
+              "verb": "removeState",
+              "state": 2079,
+              "expect": "Scrambled",
+              "participant": "lust"
+            },
+            {
+              "verb": "addState",
+              "state": 2081,
+              "expect": "Overreached",
+              "participant": "lust"
+            },
+            {
+              "verb": "animation",
+              "animation": 40,
+              "participant": "lust"
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                68,
+                68,
+                68,
+                0
+              ],
+              "seconds": 0.1
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.2
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "seconds": 0.3
+            },
+            {
+              "verb": "wait",
+              "seconds": 2.8
+            },
+            {
+              "verb": "removeState",
+              "state": 2081,
+              "expect": "Overreached",
+              "participant": "lust"
+            },
+            {
+              "verb": "addState",
+              "state": 2079,
+              "expect": "Scrambled",
+              "participant": "lust"
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "scrambled",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "state": 2079,
+              "expect": "Scrambled",
+              "participant": "lust"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 597,
+              "expect": "Goop Vent",
+              "template": 597,
+              "x": 22,
+              "y": 16,
+              "animation": 146
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 597,
+              "expect": "Goop Vent",
+              "template": 597,
+              "x": 58,
+              "y": 16,
+              "animation": 146
+            }
+          ]
+        },
+        {
+          "key": "two-thirds",
+          "on": "health",
+          "below": 66,
+          "steps": [
+            {
+              "verb": "quickenRoutine",
+              "routine": "reach",
+              "seconds": 2
+            },
+            {
+              "verb": "addState",
+              "state": 2082,
+              "expect": "Fraying",
+              "participant": "lust"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 597,
+              "expect": "Goop Vent",
+              "template": 597,
+              "x": 20,
+              "y": 32,
+              "animation": 146
+            }
+          ]
+        },
+        {
+          "key": "one-third",
+          "on": "health",
+          "below": 33,
+          "steps": [
+            {
+              "verb": "quickenRoutine",
+              "routine": "reach",
+              "seconds": 2
+            },
+            {
+              "verb": "addState",
+              "state": 2082,
+              "expect": "Fraying",
+              "participant": "lust"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 597,
+              "expect": "Goop Vent",
+              "template": 597,
+              "x": 60,
+              "y": 32,
+              "animation": 146
+            }
+          ]
+        }
+      ]
     }
   ],
   "foodTypes": [

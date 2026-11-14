@@ -25243,7 +25243,10 @@ Game_Action.prototype.handleApplyState = function(target, stateId, chance, useAt
 };
 /**
 * Calculates the fully-modified d100 chance of applying the given state to the target, shared
-* by both {@link #shouldApplyState} and {@link #resolveApplyStateProcCount}.
+* by both {@link #shouldApplyState} and {@link #resolveApplyStateProcCount}.<br/>
+* A certain hit sets aside the target's resistances and the two battlers' luck alike, the way RMMZ's
+* own state effects do, so the state it carries lands at its authored chance. Only the attacker's
+* own state rate still shapes it.
 * @param {Game_Battler} target The battler being afflicted with the state.
 * @param {number} stateId The id of the state being applied.
 * @param {number} baseChance The decimal base chance of applying the state.
@@ -25258,8 +25261,8 @@ Game_Action.prototype.calculateStateApplicationD100 = function(target, stateId, 
 	if (this.shouldTargetApplyResistances()) {
 		applicationModifier *= target.stateRate(stateId);
 		applicationModifier *= target.stateTypeResistRate(stateId);
+		applicationModifier *= this.lukEffectRate(target);
 	}
-	applicationModifier *= this.lukEffectRate(target);
 	const calculatedChance = baseChance * applicationModifier;
 	return Math.round(calculatedChance * 100);
 };

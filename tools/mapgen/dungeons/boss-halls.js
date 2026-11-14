@@ -133,6 +133,14 @@ const HALLS = [
     exitEventId: 1,
     kit: { init: [ 52, 24 ], levels: [ 53, 24 ], fight: [ 54, 24 ], watch: [ 55, 24 ] },
   },
+  {
+    id: 552,
+    name: 'Lust',
+    encounter: 'lust',
+    arrival: { x: 39, y: 43, dir: 8 },
+    exitEventId: 1,
+    kit: { init: [ 34, 42 ], levels: [ 35, 42 ], fight: [ 36, 42 ], watch: [ 37, 42 ] },
+  },
 ];
 
 /**

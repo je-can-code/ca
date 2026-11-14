@@ -52527,98 +52527,23 @@
   },
   {
     "id": 587,
-    "name": "=== TBD Sin",
-    "note": "\u003clevel:15\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.33)]\u003e\n\u003csdpPoints:21\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_7,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
-    "battlerName": "Wolfman",
+    "name": "Lust",
+    "note": "\u003clevel:130\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003cdescriptionLine:The Sin of Lust, a void clown scrambled to zero by his own kin.\u003e\n\u003cdescriptionLine:Nothing gets in while he lurches. Only when he reaches for you is he open.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.33)]\u003e\n\u003csdpPoints:21\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_7,1]\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e",
+    "battlerName": "",
     "traits": [
       {
         "code": 35,
-        "dataId": 2581,
+        "dataId": 2595,
         "value": 1
       },
       {
-        "code": 31,
-        "dataId": 1,
-        "value": 0
-      },
-      {
-        "code": 33,
-        "dataId": 0,
-        "value": 30
-      },
-      {
-        "code": 22,
-        "dataId": 0,
-        "value": 0.8
-      },
-      {
-        "code": 22,
-        "dataId": 2,
-        "value": 0.12
-      },
-      {
         "code": 23,
         "dataId": 1,
-        "value": 1.3
-      },
-      {
-        "code": 22,
-        "dataId": 3,
-        "value": 0.1
-      },
-      {
-        "code": 23,
-        "dataId": 6,
-        "value": 0.9
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 1.1
-      },
-      {
-        "code": 11,
-        "dataId": 16,
-        "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 18,
-        "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 20,
-        "value": 2
-      },
-      {
-        "code": 13,
-        "dataId": 36,
-        "value": 0.5
-      },
-      {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
-      },
-      {
-        "code": 31,
-        "dataId": 16,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 18,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 20,
         "value": 0
       }
     ],
     "actions": [],
-    "battlerHue": 254,
+    "battlerHue": 0,
     "dropItems": [
       {
         "dataId": 0,
@@ -52639,14 +52564,14 @@
     "exp": 0,
     "gold": 0,
     "params": [
-      22500,
-      650,
-      53,
-      33,
-      40,
-      33,
-      40,
-      46
+      60000,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
     ]
   },
   {
@@ -53773,126 +53698,94 @@
   },
   {
     "id": 597,
-    "name": "=== TBD Sin Votary",
-    "note": "\u003clevel:66\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 48.12]\u003e\n\u003catkBuffPlus:[(a.level * 6.5)]\u003e\n\u003cdefBuffPlus:[(a.level * 7.25)]\u003e\n\u003cmatBuffPlus:[(a.level * 8.75)]\u003e\n\u003cmdfBuffPlus:[(a.level * 9.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 3)]\u003e\n\u003clukBuffPlus:[(a.level * 1.25)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.33)]\u003e\n\u003csdpPoints:21\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_7,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
-    "battlerName": "Tigerbunny",
+    "name": "Goop Vent",
+    "note": "\u003clevel:130\u003e\n\u003cpassive:[2012, 322]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 15.93]\u003e\n\u003catkBuffPlus:[(a.level * 1.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 7.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 1.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 0)]\u003e\n\u003clukBuffPlus:[(a.level * 0)]\u003e\n\u003cmonsterFamilyIcon:56\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cknockbackResist:100\u003e\n\u003cautoExecuteSkill:[2596, enemiesNearby, 1, 120, 6]\u003e",
+    "battlerName": "Waterspirit",
     "traits": [
       {
         "code": 35,
-        "dataId": 2591,
+        "dataId": 2511,
         "value": 1
       },
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 5,
         "value": 0
-      },
-      {
-        "code": 33,
-        "dataId": 0,
-        "value": 30
       },
       {
         "code": 22,
         "dataId": 0,
-        "value": 0.8
+        "value": 0.15
       },
       {
         "code": 22,
         "dataId": 2,
-        "value": 0.12
+        "value": 0.15
       },
       {
         "code": 23,
         "dataId": 1,
-        "value": 1.3
+        "value": 0
       },
       {
         "code": 22,
-        "dataId": 3,
-        "value": 0.1
-      },
-      {
-        "code": 23,
-        "dataId": 6,
-        "value": 0.9
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 1.1
+        "dataId": 1,
+        "value": -1
       },
       {
         "code": 11,
-        "dataId": 16,
-        "value": 2
+        "dataId": 19,
+        "value": 10
       },
       {
         "code": 11,
-        "dataId": 18,
-        "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 20,
-        "value": 2
-      },
-      {
-        "code": 13,
-        "dataId": 36,
-        "value": 0.5
-      },
-      {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
+        "dataId": 21,
+        "value": 10
       },
       {
         "code": 31,
-        "dataId": 16,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 18,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 20,
+        "dataId": 19,
         "value": 0
       }
     ],
-    "actions": [],
-    "battlerHue": 0,
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2596
+      }
+    ],
+    "battlerHue": 36,
     "dropItems": [
       {
         "dataId": 0,
-        "denominator": 4,
+        "denominator": 1,
         "kind": 0
       },
       {
         "dataId": 0,
-        "denominator": 8,
+        "denominator": 1,
         "kind": 0
       },
       {
         "dataId": 0,
-        "denominator": 20,
+        "denominator": 1,
         "kind": 0
       }
     ],
     "exp": 0,
     "gold": 0,
     "params": [
-      765,
-      650,
-      26,
-      29,
-      35,
-      38,
-      12,
-      5
+      90,
+      0,
+      7,
+      31,
+      6,
+      31,
+      0,
+      0
     ]
   },
   {

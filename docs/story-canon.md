@@ -716,6 +716,14 @@ the duo's only forewarning is Sloth's oblique lore back in Ch4 — and to them, 
 Demon In Hell whose technodisk drop was a happy coincidence. Meeting Lust is where the pieces start to
 assemble: **Rupert begins to question the shape of the plot.** The dread arrives spoken, not shown.
 
+**Forced, then accepted** (Jeremy, 2026-11-13). Every sin wears an altered version of who it was, some further
+gone than others, and the change is the sin taking hold. Lust's was forced on him, but his body accepted it and
+in the end embraced it. Not "yay, I get to be Lust now", but "well, here we go, I guess this is my life now": the
+opposite of the hero who resists an evil transformation. Jeremy's line: "The sin acceptance transforms you." So the
+origin table above still reads **Forced**, and what that force left behind is a void clown turned incubus, dark-skinned
+and red-eyed (`$m_sin-incubus`). An idea, not yet a scene: "Might be worth a cutscene showing the gradual
+transformation from not sin to sin."
+
 ### The Tower — Envy `LOCKED`
 
 The tower room was *built for Sloth* — the chamber where the gent meant to scramble the sister too, before
