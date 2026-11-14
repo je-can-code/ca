@@ -354,7 +354,7 @@ JABS_Battler.prototype.tryStartPose = function(skill) {
 	this.captureBaseSpriteInfo();
 	this.setPoseDuration(skill.jabsPoseDuration);
 	const newCharacterSprite = `${baseSpriteName}${skill.jabsPoseSuffix}`;
-	const spritePath = `img/characters/${Utils.encodeURI(newCharacterSprite)}.png`;
+	const spritePath = `img/characters/${newCharacterSprite}.png`;
 	const spriteExists = J.ABS.EXT.POSES.Helpers.gameAssetExists(spritePath);
 	if (spriteExists) {
 		ImageManager.loadCharacter(newCharacterSprite);
