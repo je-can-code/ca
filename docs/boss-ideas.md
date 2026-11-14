@@ -62,7 +62,8 @@ by up to 2.5×, and every "pulses to fall" count below moves with it: out-classi
 5. [The ghost (Tower 9)](#the-ghost-tower-9)
 6. [The horde (Basement 9)](#the-horde-basement-9)
 7. [One leak that touches four fights](#one-leak-that-touches-four-fights)
-8. [The shopping list](#the-shopping-list)
+8. [Every boss's secondary stats](#every-bosss-secondary-stats)
+9. [The shopping list](#the-shopping-list)
 
 ---
 
@@ -108,12 +109,13 @@ by up to 2.5×, and every "pulses to fall" count below moves with it: out-classi
 - **My picks, all yours to change:** the names (her canon name is still `OPEN`, so the row just says "Sloth"),
   her two Monsterpedia lines, the animations, the break's tint, the tiles, the death scene, the votaries' bar,
   Lethargy's numbers (Certain Hit so EVA can't dodge it, a 1.5-second cast, radius 3, Void, light damage, 10-second
-  cooldown), her GRD 0, and the stub traits I dropped from her row (a PDR of 0.9, an MDR of 1.1, and the
+  cooldown; magical since 11-14, see [Every boss's secondary stats](#every-bosss-secondary-stats)), her GRD 0, and the stub traits I dropped from her row (a PDR of 0.9, an MDR of 1.1, and the
   Beast/Humanoid/Deity weaknesses copied from Wyatt's), since nothing on her side was meant to blunt or amplify a hit.
-- **Two things I left alone, for you:** the votaries' HIT stays the stub's 0.8, so their basic swing never lands on a
-  floor-built Jerald (EVA 249%; 144 landed on Rupert, 0 on Jerald), the same as this band's regular enemies; Lethargy
-  lands on him regardless. And skills with no element at all (Tesla Coiling, Overcharge, Capacitor Surge, Meltdown) skip
-  her 5% the way Typeless does, since her rates only name elements 1-9.
+- **Two things I left alone, for you:** the votaries' HIT stayed the stub's 0.8, so their basic swing never landed on
+  a floor-built Jerald (EVA 249%; 144 landed on Rupert, 0 on Jerald). **Since 11-14 the votary rides Enemy Rank T5**
+  and lands on him too, and Lethargy is magical rather than Certain Hit (see
+  [Every boss's secondary stats](#every-bosss-secondary-stats)). And skills with no element at all (Tesla Coiling,
+  Overcharge, Capacitor Surge, Meltdown) skip her 5% the way Typeless does, since her rates only name elements 1-9.
 - **The real arena, wired** (2026-11-13, at your "wire her up... like we did nimbus with placeholders... as soon as the
   player enters the map, the event kicks off"): Map409 ev2 "sloth: the statue" stands in at (15,22) until switch 193
   "sloth fight started"; ev3 "partner" is Jerald's sprite on switch 1; ev4 "story: pre-boss" is an autorun with
@@ -391,7 +393,8 @@ Data only, so no plugin changed. Script `/tmp/claude-1000/lust/data/build-lust.j
     are kept.
   - Enemy 597 "Goop Vent": Liquihazard's row at lv130 with its rewards taken out.
   - Skills: 2593 Desire (the lock-on and leap), 2594 Embrace (the grab, `b.mhp * 0.45 - (b.def * 1)`), 2595 Groan
-    (`b.mhp * 0.3 - (b.mdf * 1)`, radius 2), and 2596 Goop Geyser (Geyser Trap made Certain Hit).
+    (`b.mhp * 0.3 - (b.mdf * 1)`, radius 2), and 2596 Goop Geyser (Geyser Trap made Certain Hit). Since 11-14 none
+    of the four is Certain Hit (see [Every boss's secondary stats](#every-bosss-secondary-stats)).
   - States: 2079 Scrambled (`<immuneToAll>`, `<noDamage>`) and 2080 Embraced (3 s, held, 5% of max MP a tick).
     2081 Overreached and 2082 Fraying (+20% speed a stack) are appended, since the table ended at 2080.
   - Switch 194 "lust defeated"; Map361 templates ev587 and ev597.
@@ -963,6 +966,94 @@ Options:
   into sealed Earthie and lands 0, takes 5,538 off a golem and 5,068 off Earthie once unsealed; 362 hits on sealed
   Gloria all landed 0, and she hops down unsealed on cue. Both halls reset clean, 0 exceptions.
 
+## Every boss's secondary stats
+
+Built 2026-11-14 at Jeremy's "Go for it" (07:45), uncommitted on `boss-pass`. Script
+`/tmp/claude-1000/envy/build-growth.js` (RAM), backups beside it; validate OK.
+
+**His rulings** (11-13 and 11-14):
+
+- "All bosses should have level-based growth for: HIT/EVA/CRI/CEV/MEV/GRD. In fact, ALL enemies should have it", but
+  the sweep over every enemy is a later pass, not this one.
+- "The sins are not tiered, they are bosses." Enemy Rank T1-T5 is the families' ladder.
+- Sloth's pulse stays Certain Hit. The rest of the sins' kits don't.
+- No trailing multipliers: "What's the point of the x2 or x0.5? Why not just halve or double the values?... Think:
+  nested ternaries."
+- "A basic formula for growth plus a base (like regular params)", and "keep the full growth formula in the tags... the
+  traits aren't where i look first".
+
+**The rule.** Each line is the whole stat in plain numbers: a base worth ten levels of growth, plus the growth per
+level, `<hitBuffPlus:[25 + (a.level * 2.5)]>`. A stat that grows fast also starts high, so the base shows what the
+boss grows up to be good at. The regular enemies near every boss level work out to about HIT 2, EVA 1.25, CRI 1, CEV
+0.3, MEV 1 and GRD 0.75 a level: a rate above that leads, one below it lags. The six flat traits came off each boss
+row, so every stat has one home. GRD adds on top of the engine's 100% (every battler starts there; it's how a
+lv130 Raving Lunatic Jerald reads exactly 174.1%). Sloth's and Lust's GRD ×0 trait zeroes that 100%, so they end at
+0.6 and 0.7. *Read in source:* J-ABS skips the parry roll only at GRD 0 or below, so it rolls for them again, but GRD
+under 1.0 counts against the defender, and the odds come out 0% against an at-level duo. Sloth's hold against anyone
+at her level; Lust's hold against a floor Rupert with half again the margin 0% needs.
+
+Each cell is base + per level, then what it reaches at the boss's level:
+
+| Boss | Lv | HIT | EVA | CRI | CEV | MEV | GRD |
+|---|---|---|---|---|---|---|---|
+| Gluttonwolf Mayor (581) | 15 | 30 + 3 (75%) | 5 + 0.5 (12.5%) | 15 + 1.5 (37.5%) | 2.5 + 0.25 (6.25%) | 5 + 0.5 (12.5%) | 7.5 + 0.75 (118.75%) |
+| Vampire King (582) | 70 | 20 + 2 (160%) | 12.5 + 1.25 (100%) | 15 + 1.5 (120%) | 2.5 + 0.25 (20%) | 15 + 1.5 (120%) | 5 + 0.5 (140%) |
+| Gloria (583) | 85 | 20 + 2 (190%) | 15 + 1.5 (142.5%) | 7.5 + 0.75 (71.25%) | 4 + 0.4 (38%) | 10 + 1 (95%) | 5 + 0.5 (147.5%) |
+| Sloth (585) | 110 | 12.5 + 1.25 (150%) | 7.5 + 0.75 (90%) | 7.5 + 0.75 (90%) | 2 + 0.2 (24%) | 7.5 + 0.75 (90%) | 5 + 0.5 (60%) |
+| Lust (587) | 130 | 25 + 2.5 (350%) | 10 + 1 (140%) | 10 + 1 (140%) | 2.5 + 0.25 (35%) | 10 + 1 (140%) | 5 + 0.5 (70%) |
+| Envy (584) | 130 | 25 + 2.5 (350%) | 15 + 1.5 (210%) | 15 + 1.5 (210%) | 4 + 0.4 (56%) | 10 + 1 (140%) | 5 + 0.5 (170%) |
+
+Envy's lines sit on her slot, which is otherwise still the lv15 stub until her own build, so hers read at 130 here.
+
+- **Mayor:** gluttony is intake. The tongue finds you and Devour bites deep, but he's too gorged to dodge a blade or a
+  spell.
+- **Vampire King:** Lucian wields wrath, and wrath is output, so his smites crit. Spells slide off a vampire lord, and
+  he drains instead of blocking.
+- **Gloria:** pride. Nothing touches her and nothing catches her off guard, while her masterworks do the fighting.
+- **Sloth:** the sin of not trying grows the slowest. Her pulse is Certain Hit and can't crit, so her lines only decide
+  how easily the duo lands while racing her.
+- **Lust:** all reach, no guard. Nothing he throws misses Rupert, and in his windows Rupert lands everything.
+- **Envy:** Jerald's own class shape, sharp and slippery, soft to magic and guard. Her 350% lands on a floor Jerald
+  (293% EVA) every swing: his shape, never his numbers.
+
+**Also in this build:**
+
+- The Mayor and the Vampire King left Enemy Rank T1 and T2. Garuda (373) keeps T3: it's the bird family's own T3, which
+  Skye borrows.
+- The Slothful Votary (595) rides Enemy Rank T5, the way its siblings ride theirs, so its swing now lands on Jerald.
+- Off Certain Hit: Desire, Embrace and Goop Geyser are physical (Goop Geyser is Geyser Trap's own type again); Groan and
+  Lethargy are magical, matching the stat each formula reads. Heartbeat stays Certain Hit.
+- Lust's LUK grows 4 a level (521 at 130), so his hold still lands now that luck counts against Rupert's 457.
+
+**Proven in Sloth's and Lust's halls** (re-run on the new lines, `sloth-hall-probe.js` and `lust-fight-probe.js`).
+The Mayor, the Vampire King and Gloria have not been run on theirs; their probes are `gluttonwolf-probe.js`,
+`wrath-hall-probe.js` and the `gloria-*-probe.js` set. Before → after at their own level:
+
+- **Mayor (lv15):** HIT 55% → 75%, CRI 17% → 37.5%; the other four within a few points.
+- **Vampire King (lv70):** HIT 125% → 160%, EVA 61% → 100%, CRI 56% → 120%, MEV 51% → 120%; CEV and GRD within a few
+  points.
+- **Gloria (lv85):** she had no growth at all, so HIT 10% → 190%, EVA 3% → 142.5%, CRI 0% → 71%, CEV 1% → 38%, MEV 6% →
+  95%, GRD 102% → 147.5%.
+
+In the two halls:
+
+- **Sloth:** her GRD reads 0.6. Every pulse still costs her 4,000, Jerald 884 and Rupert 717, 242 frames apart; the kill
+  floor held her at 1, Rupert landed the kill, and the hall reset clean. Lethargy, now magical, landed all 23 of its
+  hits that reached the duo (all on Rupert, since the bot's Jerald stepped out of every telegraph), and its slow stuck
+  on 12 of them, the same rate as before the change (23 of 43 in a control run on the old data). The votaries' basic
+  swing now lands on Jerald too, where it never did before. These halls only prove that mechanics fire, so no damage
+  number from them is a balance reading.
+- **Lust:** his LUK reads 521. All 5 grabs landed and all 5 holds stuck, each draining Rupert's MP. The Goop Geyser
+  still hits for 825 every two seconds, the reactions at 65% and 32% woke their vents and frayed him on time, Rupert's
+  groan took the kill, and the hall reset clean.
+
+**Still open:**
+
+- The elementals get the same plain rewrite. Whether Skye (lv70, beside the Vampire King) and Cynder move up to their
+  band's rates is Jeremy's call.
+- Grudj gets his lines once he has a row.
+- Every other enemy's growth (the 39 harvest nodes and breakables, the placeholder slots) is the later sweep.
+
 ## The shopping list
 
 **The headline: none of the picks above needs a new J-ABS-Boss verb.** The earlier builds were expensive in part
@@ -973,7 +1064,7 @@ unblocks:
 
 | # | What | Kind | Unblocks |
 |---|---|---|---|
-| 1 | **Measure the duo at each band**: damage per second and max HP for each lead around 110, 130 and 150, plus Rupert's cast times. One probe per band, the way `boss-matchup-probe.js` was run. **Read 11-13 as a floor, your framing: "we're only testing that the mechanics fire, not for balance"** (SDPs, classes, passives and refinement are anyone's guess). `dist/playtest/band-probe.js`: Raving Lunatic Jerald and Lavos Rupert, crafted gear of the band's tier in what each class wears for free (RL: Glaive and Mail, no offhand type at all; Lavos: Rod, Relic, Cloth, so no Tome), no SDPs, no accessory. **Lv110, tier 5:** Jerald MHP 7,967, MDF 354; Rupert MHP 3,278, MDF 379. **Lv130, tier 6:** Jerald 9,687 / 439; Rupert 3,848 / 579. Sloth's pulse fires at both bands, never swallowed by MDF: 885 on Jerald and 719 on Rupert at 110, so Rupert drops on pulse 5 and Jerald on pulse 10 (the 1% of her bar does most of Jerald's). Anything a real build adds only stretches that. Floor stats also read EVA 249% (Jerald) and MEV 126% (Rupert), so a votary's basic attack may never land; check its HIT when the votary is built | measurement | all six (every Numbers block hangs off it) |
+| 1 | **Measure the duo at each band**: damage per second and max HP for each lead around 110, 130 and 150, plus Rupert's cast times. One probe per band, the way `boss-matchup-probe.js` was run. **Read 11-13 as a floor, your framing: "we're only testing that the mechanics fire, not for balance"** (SDPs, classes, passives and refinement are anyone's guess). `dist/playtest/band-probe.js`: Raving Lunatic Jerald and Lavos Rupert, crafted gear of the band's tier in what each class wears for free (RL: Glaive and Mail, no offhand type at all; Lavos: Rod, Relic, Cloth, so no Tome), no SDPs, no accessory. **Lv110, tier 5:** Jerald MHP 7,967, MDF 354; Rupert MHP 3,278, MDF 379. **Lv130, tier 6:** Jerald 9,687 / 439; Rupert 3,848 / 579. Sloth's pulse fires at both bands, never swallowed by MDF: 885 on Jerald and 719 on Rupert at 110, so Rupert drops on pulse 5 and Jerald on pulse 10 (the 1% of her bar does most of Jerald's). Anything a real build adds only stretches that. Floor stats also read EVA 249% (Jerald) and MEV 126% (Rupert), so a votary's basic attack may never land; check its HIT when the votary is built (done 11-14: it rides Enemy Rank T5) | measurement | all six (every Numbers block hangs off it) |
 | 2 | **The immunity leak**: `<noDamage>` (yours, 11-13), on any note source: 0 damage of any type from any source, DoTs included (they still apply), healing still works. **Built 11-13** (rmmz-plugins `boss-pass`, uncommitted): hits, drains, formula packets, DoT ticks, regen run below zero, damage floors and below-zero Recover effects all land as nothing; skill costs, TP, event commands and the death state are left alone | `engine (small)` | Sloth, Lust, Envy, and Earthie's shipped seal |
 | 3 | **Sprites**: Sloth is done (her statue built 11-13, her votary chosen: `m_winter-spirits` index 2); Lust; the off-Jerald sheet for Envy; Grudj and his machine | `art`, yours | Sloth, Lust, Envy, Grudj |
 | 4 | **`<interrupt:N>` on some player skills**, Rupert's Meltima (484) at least. Nothing in the game can interrupt a cast today | class kits, yours | Grudj, and any later boss that casts |
