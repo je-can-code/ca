@@ -316,6 +316,12 @@ const buildControls = project =>
   const blinkStep = patch => ({ verb: 'blink', x: body.x, y: body.y, direction: 0, animation: realAnimationId, ...patch });
   const realSkillId = findRealRowId(tables.Skills);
 
+  // the summon controls hold a copy of that first body back, then summon it, or fail to, one way at a time.
+  const heldBack = { ...body, key: 'held', summoned: true };
+  const summonStep = participant => ({ verb: 'summon', participant });
+  const withHeldBack = (reactions, routines = encounter.routines) =>
+    withEncounter({ participants: [ ...encounter.participants, heldBack ], reactions, routines });
+
   const [ someBuiltFile ] = project.pluginFiles.keys();
 
   // the gate control needs any event on any map; the first one found will do.
@@ -706,6 +712,71 @@ const buildControls = project =>
       label: `the same body fighting rather than standing by ("${body.key}")`,
       check: checkConfigs,
       planted: withEncounter({ participants: [ { ...body, bystander: false } ] }),
+      expect: null,
+    },
+    {
+      label: `a body held back to be summoned that nothing ever summons ("${heldBack.key}")`,
+      check: checkConfigs,
+      planted: withHeldBack([]),
+      expect: [ `participant "${heldBack.key}" waits to be summoned, but no reaction ever summons it` ],
+    },
+    {
+      label: `the same body, summoned as the fight opens ("${heldBack.key}")`,
+      check: checkConfigs,
+      planted: withHeldBack([ reactionTo('start', [], [ summonStep(heldBack.key) ]) ]),
+      expect: null,
+    },
+    {
+      label: `the same body summoned twice ("${heldBack.key}")`,
+      check: checkConfigs,
+      planted: withHeldBack([ reactionTo('start', [], [ summonStep(heldBack.key), summonStep(heldBack.key) ]) ]),
+      expect: [ `participant "${heldBack.key}" is summoned by 2 steps`, 'a body arrives only once' ],
+    },
+    {
+      label: `a routine summoning the same body over and over ("${routine.key}")`,
+      check: checkConfigs,
+      planted: withHeldBack(
+        [ reactionTo('start', [], [ summonStep(heldBack.key) ]) ],
+        [ { ...routine, steps: [ summonStep(heldBack.key) ] } ]),
+      expect: [ `routine "${routine.key}" steps[0] summons a participant`, 'a routine runs over and over' ],
+    },
+    {
+      label: 'a summon naming nobody',
+      check: checkConfigs,
+      planted: withHeldBack([ reactionTo('start', [], [ summonStep(heldBack.key), { verb: 'summon' } ]) ]),
+      expect: [ 'reaction "planted" steps[1] summons nobody' ],
+    },
+    {
+      label: `a summon naming the boss, who is there from the start ("${body.key}")`,
+      check: checkConfigs,
+      planted: withHeldBack([ reactionTo('start', [], [ summonStep(heldBack.key), summonStep(body.key) ]) ]),
+      expect: [ `reaction "planted" steps[1] summons participant "${body.key}", who is there from the start` ],
+    },
+    {
+      label: `the boss held back to be summoned ("${body.key}")`,
+      check: checkConfigs,
+      planted: withEncounter({
+        participants: [ { ...body, summoned: true } ],
+        reactions: [ reactionTo('start', [], [ summonStep(body.key) ]) ],
+      }),
+      expect: [ `boss "${encounter.key}" lists summoned participant "${body.key}" first, where its boss belongs` ],
+    },
+    {
+      label: `a summon arriving in an animation the database does not have (animation #${missingAnimationId})`,
+      check: checkConfigs,
+      planted: withHeldBack([ reactionTo('start', [], [ { ...summonStep(heldBack.key), animation: missingAnimationId } ]) ]),
+      expect: [ 'reaction "planted" steps[0] animation', `Animations #${missingAnimationId}` ],
+    },
+    {
+      label: `a jump landing one tile past its arena's far edge (Map #${encounter.map} at (${arena.width}, 0))`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'jump', x: arena.width, y: 0 } ])),
+      expect: [ 'reaction "planted" steps[0] appears at', `outside Map #${encounter.map}` ],
+    },
+    {
+      label: `the same jump landing on the arena's last tile (${arena.width - 1}, ${arena.height - 1})`,
+      check: checkConfigs,
+      planted: withReaction(reactionTo('start', [], [ { verb: 'jump', x: arena.width - 1, y: arena.height - 1 } ])),
       expect: null,
     },
     {

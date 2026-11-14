@@ -19,7 +19,7 @@
                       "activeView": "map-tree",
                       "id": "1"
                     },
-                    "size": 962
+                    "size": 35
                   },
                   {
                     "type": "leaf",
@@ -31,7 +31,7 @@
                       "activeView": "palette",
                       "id": "2"
                     },
-                    "size": 35
+                    "size": 691
                   },
                   {
                     "type": "leaf",
@@ -42,22 +42,23 @@
                       "activeView": "layers",
                       "id": "3"
                     },
-                    "size": 35
+                    "size": 572
                   }
                 ],
-                "size": 300
+                "size": 372.27734375
               },
               {
                 "type": "leaf",
                 "data": {
                   "views": [
                     "start",
-                    "map-361"
+                    "map-361",
+                    "map-380"
                   ],
-                  "activeView": "map-361",
+                  "activeView": "map-380",
                   "id": "4"
                 },
-                "size": 1178
+                "size": 1402.72265625
               },
               {
                 "type": "branch",
@@ -84,16 +85,16 @@
                       "activeView": "events",
                       "id": "6"
                     },
-                    "size": 997
+                    "size": 1263
                   }
                 ],
-                "size": 442
+                "size": 532
               }
             ],
-            "size": 1032
+            "size": 1298
           },
-          "width": 1920,
-          "height": 1032,
+          "width": 2307,
+          "height": 1298,
           "orientation": "HORIZONTAL"
         },
         "panels": {
@@ -103,20 +104,19 @@
             "tabComponent": "props.defaultTabComponent",
             "params": {
               "expanded": [
-                122,
                 364,
-                119,
                 20,
                 39,
                 14,
                 3,
                 386,
                 388,
-                13,
-                290,
                 407,
                 403,
-                2
+                12,
+                13,
+                120,
+                122
               ]
             },
             "title": "Maps",
@@ -158,6 +158,15 @@
             },
             "title": "_FullEnemyMap"
           },
+          "map-380": {
+            "id": "map-380",
+            "contentComponent": "map",
+            "tabComponent": "props.defaultTabComponent",
+            "params": {
+              "mapId": 380
+            },
+            "title": "Throne of Glory"
+          },
           "map-properties": {
             "id": "map-properties",
             "contentComponent": "map-properties",
@@ -189,13 +198,8 @@
         },
         "activeGroup": "4",
         "collapsedGroups": {
-          "2": {
-            "height": 641,
-            "minimumHeight": 100,
-            "maximumHeight": 9007199254740991
-          },
-          "3": {
-            "height": 393,
+          "1": {
+            "height": 356,
             "minimumHeight": 100,
             "maximumHeight": 9007199254740991
           },

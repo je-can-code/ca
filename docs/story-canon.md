@@ -885,7 +885,7 @@ post-game stinger, not the main plot. Drafted scene:
 | 2 | Ammit's region | `OPEN` — candidate: Desolate Graves ("we'll see") |
 | 3 | Desolate Graves' purpose | **RESOLVED (2026-07-24): the Graveyard Unit** — Four Great Stones + Echoes + Mother-Sigil + the Cerak/Gilbert braid. Ammit candidacy still separate/open |
 | 4 | **The energy/light elemental** — is there one? | `OPEN` — Jeremy's own flagged curiosity; see Part 0 |
-| 5 | Names: Pride, Lust, Sloth, Envy | `OPEN` — low importance, needed eventually |
+| 5 | Names: Lust, Sloth, Envy | `OPEN` — low importance, needed eventually. **Pride RESOLVED (2026-08-31): Gloria**, Leo's master (see Disk 1) |
 | 6 | Greed thresholds (X SDPs / Y recipes / Z foods) | `OPEN` — pends end-of-Ch4 data |
 | 7 | Final level ladder (gent ~150 et al.) | `OPEN` — ballparks |
 | 8 | "What Lords would Jerald and Rupert even be?" | flavor musing — the ending quietly answers it |

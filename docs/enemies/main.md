@@ -538,11 +538,12 @@ Five subgroup slots. Mastery skill/state ID = enemy ID + 1000. See [Deity family
 ### 4 — Sin bosses (581–590)
 
 - (15) [581]Gluttonwolf Mayor (gluttony)
-  - (17) [582]Gluttonwolf
-- (70) [583]Vampire King (wrath)
-  - (72) [584]Vampire Shade
-- (??) [585–590]TBD Sin
+  - (17) [591]Gluttonwolf
+- (70) [582]Vampire King (wrath)
+  - (72) [592]Vampire Shade
+- (??) [583]Gloria (pride)
+- (??) [584–590]TBD Sin
 
 ### 5 — Sin votaries (591–600)
 
-- (??) [591–600]TBD Sin Votary — respawning helpers; ~1% drop for matching `SIN_*` panel (no mastery IDs wired yet)
+- (??) [593–597]TBD Sin Votary — respawning helpers; ~1% drop for matching `SIN_*` panel (no mastery IDs wired yet)

@@ -51,7 +51,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] The tonal pivot: the jokes stop (Map393)
 - [ ] The inert voidal figures on the way down, if they stay
 - [ ] Treasure in the ribs and the dead-end pockets
-- [ ] Absolute Solitude and its neighbours: assign them or retire them
+- [x] Absolute Solitude and its neighbours: already the Vampire King's kit, all four in use (Map284)
 
 ## The Frozen Fortress
 

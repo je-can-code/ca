@@ -26,19 +26,19 @@ what the shadow turned out to be.
 Already authored: six pages, six locations (the 4a–8a bird, the lakeside view, Highwater, the forest cliffs,
 the toothpick ledge, and the low-tide cove, added 2026-10-26). Each page traded for formulae, and the sixth completes
 the journal with the Philosopher's Stone. This doc anchors the existing quest to his arc: every page
-is in the master's handwriting, and Leo's commentary while decoding them quietly builds the portrait of the man
+is in the master's handwriting, and Leo's commentary while decoding them quietly builds the portrait of the woman
 who left him behind.
 
 ### 2) The Note in the Attic: `leo-001`
 The player has read it (Map035). Leo hasn't — not in years, not since it stopped hurting enough to avoid. Sit
-with him while he reads it again. What he takes from it before Nimbus: "he went somewhere I couldn't follow."
+with him while he reads it again. What he takes from it before Nimbus: "she went somewhere I couldn't follow."
 He's wrong about how, and the game knows it.
 
 ### 3) The Student: `leo-002`
 > Gate: post-Nimbus (Pride defeated).
 
-The news reaches Raevula. The master didn't leave for a grander world — he *became* the grandest thing he could
-imagine and it ate him, and two strangers put him down on a floating rock above the peaks. Leo takes the beat.
+The news reaches Raevula. The master didn't leave for a grander world — she *became* the grandest thing she could
+imagine and it ate her, and two strangers put her down on a floating rock above the peaks. Leo takes the beat.
 And then — the arc's answer — he goes back to the bench and brews the thing he could never manage while the
 shadow was over him. It works. **"Leo's Original"** enters the game: a top-tier alchemy line the master never
 made, because the master never could — pride doesn't experiment; it performs.

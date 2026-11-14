@@ -548,5 +548,7 @@ null,
 {"id":546,"expanded":false,"name":"Cynder Hall","order":546,"parentId":542,"scrollX":1101,"scrollY":701.5},
 {"id":547,"expanded":false,"name":"Wrath Hall","order":547,"parentId":542,"scrollX":1101,"scrollY":701.5},
 {"id":548,"expanded":false,"name":"Garuda Hall","order":548,"parentId":542,"scrollX":1101,"scrollY":701.5},
-{"id":549,"expanded":false,"name":"Skye Hall","order":549,"parentId":542,"scrollX":1101,"scrollY":701.5}
+{"id":549,"expanded":false,"name":"Skye Hall","order":549,"parentId":542,"scrollX":1101,"scrollY":701.5},
+{"id":550,"expanded":false,"name":"Gloria Hall","order":550,"parentId":542,"scrollX":1101,"scrollY":701.5},
+{"id":551,"expanded":false,"name":"Sloth Hall","order":551,"parentId":542,"scrollX":1101,"scrollY":701.5}
 ]

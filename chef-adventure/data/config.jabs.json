@@ -1450,6 +1450,783 @@
           ]
         }
       ]
+    },
+    {
+      "key": "gloria",
+      "map": 380,
+      "defeatSwitch": 190,
+      "participants": [
+        {
+          "key": "gloria",
+          "enemyId": 583,
+          "expect": "Gloria",
+          "x": 24,
+          "y": 5,
+          "template": 583
+        },
+        {
+          "key": "brine",
+          "enemyId": 531,
+          "expect": "Puppet",
+          "x": 23,
+          "y": 13,
+          "template": 608,
+          "summoned": true
+        },
+        {
+          "key": "char",
+          "enemyId": 531,
+          "expect": "Puppet",
+          "x": 26,
+          "y": 13,
+          "template": 609,
+          "summoned": true
+        },
+        {
+          "key": "skewer",
+          "enemyId": 531,
+          "expect": "Puppet",
+          "x": 23,
+          "y": 13,
+          "template": 610,
+          "summoned": true
+        },
+        {
+          "key": "salt",
+          "enemyId": 532,
+          "expect": "Nutcracker",
+          "x": 26,
+          "y": 13,
+          "template": 611,
+          "summoned": true
+        },
+        {
+          "key": "umami",
+          "enemyId": 532,
+          "expect": "Nutcracker",
+          "x": 23,
+          "y": 13,
+          "template": 612,
+          "summoned": true
+        },
+        {
+          "key": "fillet",
+          "enemyId": 533,
+          "expect": "Mannequin",
+          "x": 26,
+          "y": 13,
+          "template": 613,
+          "summoned": true
+        },
+        {
+          "key": "draught",
+          "enemyId": 533,
+          "expect": "Mannequin",
+          "x": 23,
+          "y": 13,
+          "template": 614,
+          "summoned": true
+        },
+        {
+          "key": "merit",
+          "enemyId": 534,
+          "expect": "Homunculus",
+          "x": 26,
+          "y": 13,
+          "template": 615,
+          "summoned": true
+        },
+        {
+          "key": "impact",
+          "enemyId": 534,
+          "expect": "Homunculus",
+          "x": 23,
+          "y": 13,
+          "template": 616,
+          "summoned": true
+        },
+        {
+          "key": "halo",
+          "enemyId": 535,
+          "expect": "Pandora",
+          "x": 26,
+          "y": 13,
+          "template": 617,
+          "summoned": true
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [],
+      "reactions": [
+        {
+          "key": "on-her-throne",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "skill": 0,
+              "expect": "Sealed",
+              "cast": true,
+              "participant": "gloria",
+              "state": 2072
+            },
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "brine",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "brine-falls",
+          "on": "fallen",
+          "participants": [
+            "brine"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "char",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "char-falls",
+          "on": "fallen",
+          "participants": [
+            "char"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "skewer",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "skewer-falls",
+          "on": "fallen",
+          "participants": [
+            "skewer"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "salt",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "salt-falls",
+          "on": "fallen",
+          "participants": [
+            "salt"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "umami",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "umami-falls",
+          "on": "fallen",
+          "participants": [
+            "umami"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "fillet",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "fillet-falls",
+          "on": "fallen",
+          "participants": [
+            "fillet"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "draught",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "draught-falls",
+          "on": "fallen",
+          "participants": [
+            "draught"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "merit",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "merit-falls",
+          "on": "fallen",
+          "participants": [
+            "merit"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "impact",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "impact-falls",
+          "on": "fallen",
+          "participants": [
+            "impact"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "halo",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "halo-falls",
+          "on": "fallen",
+          "participants": [
+            "halo"
+          ],
+          "steps": [
+            {
+              "verb": "jump",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "gloria",
+              "x": 24,
+              "y": 13
+            },
+            {
+              "verb": "removeState",
+              "skill": 0,
+              "expect": "Sealed",
+              "cast": true,
+              "participant": "gloria",
+              "state": 2072
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "sloth",
+      "map": 409,
+      "defeatSwitch": 192,
+      "participants": [
+        {
+          "key": "sloth",
+          "enemyId": 585,
+          "expect": "Sloth",
+          "x": 15,
+          "y": 22
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "heartbeat",
+          "cadence": 4,
+          "dormant": true,
+          "steps": [
+            {
+              "verb": "forceSkill",
+              "skill": 2590,
+              "expect": "Heartbeat",
+              "cast": true
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "the-vow",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "state": 2072,
+              "expect": "Sealed",
+              "participant": "sloth"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 20,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 25,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 14,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 30,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 21,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 23,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 20,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 25,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 14,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 30,
+              "animation": 154
+            },
+            {
+              "verb": "animation",
+              "animation": 86,
+              "participant": "sloth"
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack1-pulse",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack1",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 9
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 21,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 23,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 20,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 25,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 14,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 30,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 21,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 23,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 20,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 25,
+              "animation": 154
+            },
+            {
+              "verb": "animation",
+              "animation": 86,
+              "participant": "sloth"
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack2-pulse",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack2",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 9
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 14,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 30,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 21,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 23,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 20,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 25,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 14,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 30,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 21,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 23,
+              "animation": 154
+            },
+            {
+              "verb": "animation",
+              "animation": 86,
+              "participant": "sloth"
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack3-pulse",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack3",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 9
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                68,
+                -51,
+                34,
+                0
+              ],
+              "seconds": 2
+            },
+            {
+              "verb": "animation",
+              "animation": 56,
+              "participant": "sloth"
+            },
+            {
+              "verb": "removeState",
+              "state": 2072,
+              "expect": "Sealed",
+              "participant": "sloth"
+            },
+            {
+              "verb": "addState",
+              "state": 2075,
+              "expect": "Stilled",
+              "participant": "sloth"
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack3-pulse",
+              "participant": "sloth"
+            },
+            {
+              "verb": "startRoutine",
+              "routine": "heartbeat"
+            }
+          ]
+        }
+      ]
     }
   ],
   "foodTypes": [

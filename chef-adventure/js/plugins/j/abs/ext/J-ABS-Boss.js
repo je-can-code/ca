@@ -420,7 +420,16 @@ var JabsBossManager = class JabsBossManager {
 		* Writes a line to the dialogue log on the map without holding the fight for it, such as a shriek, or a
 		* word called from the sidelines.
 		*/
-		Log: "log"
+		Log: "log",
+		/**
+		* Brings a participant the fight held back onto its tile, such as a masterwork its maker calls down the moment
+		* the last one falls.
+		*/
+		Summon: "summon",
+		/**
+		* Has a participant leap onto another tile, such as a boss hopping down from a ledge nobody else can reach.
+		*/
+		Jump: "jump"
 	};
 	/**
 	* Every encounter known to the game, keyed by its author-facing name.
@@ -457,7 +466,8 @@ var JabsBossManager = class JabsBossManager {
 	*/
 	static #firedReactions = new Set();
 	/**
-	* The bodies the active encounter spawned, keyed by the name of the participant each one plays.
+	* The bodies the active encounter spawned, keyed by the name of the participant each one plays. A summoned
+	* participant has no entry until the step that summons it has played.
 	*
 	* These are held as the events themselves rather than as their ids. A spawned body's slot is freed
 	* once it leaves the map, and the next thing dropped there- loot, most often- can move into it, so an
@@ -476,7 +486,7 @@ var JabsBossManager = class JabsBossManager {
 	/**
 	* One firing of a reaction, or one execution of a routine, playing its steps in order.
 	*
-	* A step that takes time- a line being said, a blink across the room, a pause- plays out as a scene: the same
+	* A step that takes time- a line being said, a blink across the room, a leap, a pause- plays out as a scene: the same
 	* event commands an event would run, run by an interpreter belonging to the participant's own event, so
 	* anything that reads who is acting, such as a message floating above whoever speaks, finds them exactly as it
 	* would during a scene. Every step behind a scene waits until it is over.
@@ -511,6 +521,16 @@ var JabsBossManager = class JabsBossManager {
 	* @type {number[]}
 	*/
 	static #toneBeforeFight = [];
+	/**
+	* Every cast the active encounter forced that has not been fired yet, by the battler winding it up, with the
+	* actions it was told to cast.
+	*
+	* A forced cast is fired the way any decided action is: by its battler's own AI, once the windup ends. But J-ABS
+	* only runs AI for battlers near the player, and a boss in a wide arena can stand further off than that, so the
+	* fight keeps watch on each windup and fires it itself when the AI is not there to.
+	* @type {Map<JABS_Battler, JABS_Action[]>}
+	*/
+	static #forcedCasts = new Map();
 	/**
 	* Registers every encounter parsed from configuration.
 	* @param {JabsBossEncounter[]} encounters The encounters to register.
@@ -561,6 +581,8 @@ var JabsBossManager = class JabsBossManager {
 		this.#clearExtraBodies();
 		this.#clearBystanders();
 		this.#lanes = [];
+		this.#forcedCasts.clear();
+		this.#participantBodies.clear();
 		this.#spawnParticipants(encounter);
 		this.#activeEncounter = encounter;
 		this.#bossDefeated = false;
@@ -610,6 +632,7 @@ var JabsBossManager = class JabsBossManager {
 		this.#participantBodies.clear();
 		this.#bossDefeated = false;
 		this.#lanes = [];
+		this.#forcedCasts.clear();
 	}
 	/**
 	* Takes every extra body the active encounter spawned off the map, and forgets them all.
@@ -630,7 +653,7 @@ var JabsBossManager = class JabsBossManager {
 	*/
 	static #clearBystanders() {
 		if (!this.#activeEncounter) return;
-		this.#activeEncounter.participants().filter((participant) => participant.isBystander()).map((participant) => this.#participantBodies.get(participant.key())).filter((body) => this.#isStillStanding(body)).forEach((body) => body.erase());
+		this.#activeEncounter.participants().filter((participant) => participant.isBystander()).filter((participant) => this.#participantBodies.has(participant.key())).map((participant) => this.#participantBodies.get(participant.key())).filter((body) => this.#isStillStanding(body)).forEach((body) => body.erase());
 	}
 	/**
 	* Determines whether a spawned body is still on the map and still standing.
@@ -650,22 +673,25 @@ var JabsBossManager = class JabsBossManager {
 		this.#toneBeforeFight = [];
 	}
 	/**
-	* Puts every participant of an encounter onto the current map.
+	* Puts every participant of an encounter that is there from its first frame onto the current map. A summoned
+	* participant waits off the map for the step that summons it.
 	* @param {JabsBossEncounter} encounter The encounter whose bodies to spawn.
 	*/
 	static #spawnParticipants(encounter) {
-		encounter.participants().forEach((participant) => this.#spawnParticipant(encounter, participant));
+		encounter.participants().filter((participant) => participant.isSummoned() === false).forEach((participant) => this.#spawnParticipant(encounter, participant));
 	}
 	/**
 	* Spawns a single participant from the enemy clone map onto its tile, and remembers the body.
 	* @param {JabsBossEncounter} encounter The encounter owning the participant, named for errors.
 	* @param {JabsBossParticipant} participant The participant to spawn.
+	* @returns {Game_Event} The body it spawned as.
 	*/
 	static #spawnParticipant(encounter, participant) {
 		const body = $jabsEngine.addEnemyToMap(participant.x(), participant.y(), participant.templateId());
 		const who = this.#describeParticipant(encounter, participant);
 		this.#confirmBody(body, participant.enemyId(), participant.templateId(), who);
 		this.#participantBodies.set(participant.key(), body);
+		return body;
 	}
 	/**
 	* Confirms a spawn produced a body at all, and that the body is the enemy it was spawned to be.
@@ -707,14 +733,18 @@ var JabsBossManager = class JabsBossManager {
 		encounter.participants().forEach((participant) => this.#validateReference($dataEnemies[participant.enemyId()], participant.enemyId(), participant.expect(), `encounter [ ${encounter.key()} ] participant [ ${participant.key()} ] enemy`));
 		encounter.routines().forEach((routine) => this.#validateRoutine(encounter, routine));
 		encounter.reactions().forEach((reaction) => this.#validateReaction(encounter, reaction));
+		this.#validateSummons(encounter);
 		this.#validateDefeatSwitch(encounter);
 	}
 	/**
-	* Confirms an encounter has a boss: a first participant that the fight is won by felling.
+	* Confirms an encounter has a boss: a first participant that the fight is won by felling, there from the
+	* fight's first frame.
 	*
 	* The first participant is who a step naming nobody acts on, whose health a reaction naming nobody watches,
 	* and whose turn every routine waits for. A fight with nobody in it would count as won on its very first
 	* frame, and a bystander in the boss's place would hand all of that to a body the fight never needs felled.
+	* A summoned participant in the boss's place would leave the fight with no boss at all until it arrived:
+	* nothing for the boss frame to show as the fight opens, and nobody for a routine to wait on.
 	* @param {JabsBossEncounter} encounter The encounter to check.
 	*/
 	static #validateBoss(encounter) {
@@ -723,8 +753,40 @@ var JabsBossManager = class JabsBossManager {
 			throw new Error(`Boss ${where} has no participants, so it would be won the moment it began.`);
 		}
 		const boss = encounter.primaryParticipant();
-		if (boss.isBystander() === false) return;
-		throw new Error(`Boss ${where} lists bystander [ ${boss.key()} ] first, where its boss belongs.`);
+		if (boss.isBystander()) {
+			throw new Error(`Boss ${where} lists bystander [ ${boss.key()} ] first, where its boss belongs.`);
+		}
+		if (boss.isSummoned() === false) return;
+		const summoned = `lists summoned participant [ ${boss.key()} ] first, where its boss belongs`;
+		throw new Error(`Boss ${where} ${summoned}, but a boss is there from the start.`);
+	}
+	/**
+	* Confirms every participant held back to be summoned is summoned exactly once over the fight.
+	*
+	* Every summon lives in a reaction, since a routine never may, and every reaction fires once per fight, so the
+	* summons among the reactions' steps are every arrival the fight will ever have. A participant none of them
+	* summons never arrives, and a fight waiting on it to fall could never be won. One summoned twice would arrive
+	* twice, and its first body would be left standing with nothing in the fight watching it.
+	* @param {JabsBossEncounter} encounter The encounter to check.
+	*/
+	static #validateSummons(encounter) {
+		const summonedKeys = encounter.reactions().flatMap((reaction) => reaction.steps()).filter((step) => step.verb() === JabsBossManager.Verbs.Summon).map((step) => step.participantKey());
+		encounter.participants().filter((participant) => participant.isSummoned()).forEach((participant) => this.#validateSummonCount(encounter, participant, summonedKeys));
+	}
+	/**
+	* Confirms a single summoned participant is summoned by exactly one step.
+	* @param {JabsBossEncounter} encounter The encounter owning the participant.
+	* @param {JabsBossParticipant} participant The participant held back to be summoned.
+	* @param {string[]} summonedKeys The participant named by every summon among the encounter's reactions.
+	*/
+	static #validateSummonCount(encounter, participant, summonedKeys) {
+		const where = `encounter [ ${encounter.key()} ] participant [ ${participant.key()} ]`;
+		const summons = summonedKeys.filter((key) => key === participant.key()).length;
+		if (summons === 0) {
+			throw new Error(`Boss ${where} waits to be summoned, but no reaction ever summons it.`);
+		}
+		if (summons === 1) return;
+		throw new Error(`Boss ${where} is summoned by [ ${summons} ] steps, but a participant arrives only once.`);
 	}
 	/**
 	* Confirms the switch an encounter turns on when it is won is one the game actually has.
@@ -742,13 +804,20 @@ var JabsBossManager = class JabsBossManager {
 		throw new Error(`Boss ${where} turns on switch [ ${switchId} ] when won, but the game only has switches 1-${lastSwitchId}.`);
 	}
 	/**
-	* Confirms every step within a single routine still refers to things that exist.
+	* Confirms every step within a single routine still refers to things that exist, and that none of them summons.
+	*
+	* A routine runs over and over, and a summoned participant arrives once. A summon in a routine would bring the same
+	* participant in again on every run, each new body leaving the last one standing with nothing watching it.
 	* @param {JabsBossEncounter} encounter The encounter owning the routine.
 	* @param {JabsBossRoutine} routine The routine to check.
 	*/
 	static #validateRoutine(encounter, routine) {
 		const where = `encounter [ ${encounter.key()} ] routine [ ${routine.key()} ]`;
 		routine.steps().forEach((step) => this.#validateStep(encounter, step, where));
+		const summons = routine.steps().some((step) => step.verb() === JabsBossManager.Verbs.Summon);
+		if (summons === false) return;
+		const reason = "a routine runs over and over, and a participant arrives once";
+		throw new Error(`Boss ${where} summons a participant, but ${reason}.`);
 	}
 	/**
 	* Confirms a reaction answers a moment a fight actually has, waits on bodies the fight actually has,
@@ -861,7 +930,34 @@ var JabsBossManager = class JabsBossManager {
 			case JabsBossManager.Verbs.Log:
 				this.#validateLines(step, where, "writes nothing at all to the dialogue log");
 				return;
+			case JabsBossManager.Verbs.Summon:
+				this.#validateSummonStep(encounter, step, where);
+				return;
+			case JabsBossManager.Verbs.Jump:
+				this.#validateStepParticipant(encounter, step, where);
+				return;
 		}
+	}
+	/**
+	* Confirms a summon names a participant the encounter has, and one held back to be summoned.
+	*
+	* A summon naming nobody would mean the boss, and the boss is there from the start. Summoning a participant that
+	* is also there from the start would put a second body for it on the map, leaving the first standing with nothing
+	* in the fight watching it.
+	* @param {JabsBossEncounter} encounter The encounter owning the step.
+	* @param {JabsBossStep} step The step to check.
+	* @param {string} where Where in the configuration the step lives, named for the error.
+	*/
+	static #validateSummonStep(encounter, step, where) {
+		const key = step.participantKey();
+		if (key === String.empty) {
+			throw new Error(`Boss ${where} summons nobody: a summon names the participant it brings in.`);
+		}
+		this.#validateParticipantKey(encounter, key, where);
+		const participant = encounter.participants().find((candidate) => candidate.key() === key);
+		if (participant.isSummoned()) return;
+		const summons = `summons participant [ ${key} ]`;
+		throw new Error(`Boss ${where} ${summons}, but it is there from the start and needs no summoning.`);
 	}
 	/**
 	* Confirms a blink faces a way a character can face: down, left, right or up, or none to keep its facing.
@@ -980,7 +1076,8 @@ var JabsBossManager = class JabsBossManager {
 	}
 	/**
 	* Determines whether a battler is the body of one of the active encounter's participants: the boss, any other
-	* body the fight is won by felling, or a bystander standing in it.
+	* body the fight is won by felling, or a bystander standing in it, whether it was there from the start or has
+	* since been summoned.
 	*
 	* What a fight spawns for itself, such as a hazard, is no participant, and neither is anything that was on the
 	* map before the fight began.
@@ -1050,7 +1147,29 @@ var JabsBossManager = class JabsBossManager {
 		this.#lanes = this.#lanes.filter((lane) => this.#isScenePlaying(lane));
 		this.#updateReactions();
 		this.#updateDefeat();
+		this.#forcedCasts.forEach((actions, jabsBattler) => this.#landForcedCast(jabsBattler, actions));
 		this.#activeEncounter.routines().forEach((routine) => this.#updateRoutine(routine));
+	}
+	/**
+	* Fires a cast the fight forced once its windup has ended, if its battler's own AI has not fired it already.
+	*
+	* It is fired by the AI's own hand, through the same checks and the same firing a decided action always gets,
+	* so a forced cast lands exactly as it would have with the AI there to fire it.
+	* @param {JABS_Battler} jabsBattler The battler winding the cast up.
+	* @param {JABS_Action[]} actions The actions it was told to cast.
+	*/
+	static #landForcedCast(jabsBattler, actions) {
+		if (jabsBattler.getDecidedAction() !== actions) {
+			this.#forcedCasts.delete(jabsBattler);
+			return;
+		}
+		if (jabsBattler.getBattler().isDead()) {
+			this.#forcedCasts.delete(jabsBattler);
+			return;
+		}
+		if (JABS_AiManager.needsActionExecution(jabsBattler) === false) return;
+		JABS_AiManager.executeAiPhase2Action(jabsBattler);
+		this.#forcedCasts.delete(jabsBattler);
 	}
 	/**
 	* Advances the scene a lane is playing, if it is playing one.
@@ -1083,7 +1202,19 @@ var JabsBossManager = class JabsBossManager {
 	static #isReactionDue(reaction) {
 		if (this.#firedReactions.has(reaction)) return false;
 		if (reaction.trigger() === JabsBossReaction.Triggers.Health) return this.#isHealthReached(reaction);
-		return reaction.participantKeys().every((key) => this.#participantBodies.get(key).isErased());
+		return reaction.participantKeys().every((key) => this.#hasFallen(key));
+	}
+	/**
+	* Determines whether the participant of the given name has fallen and finished dying.
+	*
+	* J-ABS erases a body only once its last words are said, so an erased body is one that has finished falling. A
+	* participant still waiting to be summoned has not fallen, since it has yet to arrive.
+	* @param {string} key The participant's author-facing name.
+	* @returns {boolean}
+	*/
+	static #hasFallen(key) {
+		if (this.#participantBodies.has(key) === false) return false;
+		return this.#participantBodies.get(key).isErased();
 	}
 	/**
 	* Determines whether every participant a health reaction watches is standing at or below its percent.
@@ -1174,11 +1305,12 @@ var JabsBossManager = class JabsBossManager {
 	* last words have all been said. Each body is asked directly rather than looked up on the map: a body
 	* the map no longer holds may only have been left behind by a player walking off of it, which is not
 	* the same thing at all as a boss that has fallen. A bystander is never asked at all, since the fight is
-	* not won by felling it.
+	* not won by felling it, and a participant still waiting to be summoned keeps the fight going until it has
+	* arrived and fallen too.
 	* @returns {boolean}
 	*/
 	static #isEveryBodyGone() {
-		return this.#activeEncounter.participants().filter((participant) => participant.isBystander() === false).every((participant) => this.#participantBodies.get(participant.key()).isErased());
+		return this.#activeEncounter.participants().filter((participant) => participant.isBystander() === false).every((participant) => this.#hasFallen(participant.key()));
 	}
 	/**
 	* Turns on the active encounter's defeat switch, when it names one and the fight was won in its arena.
@@ -1295,6 +1427,12 @@ var JabsBossManager = class JabsBossManager {
 			case JabsBossManager.Verbs.Log:
 				this.#executeLog(step);
 				break;
+			case JabsBossManager.Verbs.Summon:
+				this.#executeSummon(step);
+				break;
+			case JabsBossManager.Verbs.Jump:
+				this.#executeJump(step, lane);
+				break;
 			default: throw new Error(`Unrecognized boss step verb: [ ${step.verb()} ].`);
 		}
 	}
@@ -1348,6 +1486,7 @@ var JabsBossManager = class JabsBossManager {
 			jabsBattler.setInPosition(true);
 		}
 		jabsBattler.setPhase(2);
+		this.#forcedCasts.set(jabsBattler, actions);
 	}
 	/**
 	* Puts the state named by a step on its participant.
@@ -1416,9 +1555,26 @@ var JabsBossManager = class JabsBossManager {
 		const who = `encounter [ ${this.#activeEncounter.key()} ] spawn of enemy [ ${step.enemyId()} ]`;
 		this.#confirmBody(body, step.enemyId(), step.templateId(), who);
 		this.#extraBodies.push(body);
-		if (step.animationId() > 0) {
-			$gameTemp.requestAnimation([body], step.animationId());
-		}
+		this.#flareArrival(body, step.animationId());
+	}
+	/**
+	* Brings the participant a step names onto its own tile, from its own template, exactly the way a participant
+	* there from the start arrived. From here on it is a participant like any other.
+	* @param {JabsBossStep} step The step naming the participant and the flash it arrives in.
+	*/
+	static #executeSummon(step) {
+		const participant = this.#participantByKey(step.participantKey());
+		const body = this.#spawnParticipant(this.#activeEncounter, participant);
+		this.#flareArrival(body, step.animationId());
+	}
+	/**
+	* Plays the flash a body arrives in, so the player sees where the new threat came from.
+	* @param {Game_Event} body The body arriving.
+	* @param {number} animationId The animation it arrives in, or zero for none.
+	*/
+	static #flareArrival(body, animationId) {
+		if (animationId === 0) return;
+		$gameTemp.requestAnimation([body], animationId);
 	}
 	/**
 	* Teaches the participant a step names the skill it names, so its own AI can use it from now on.
@@ -1565,6 +1721,42 @@ var JabsBossManager = class JabsBossManager {
 		};
 	}
 	/**
+	* Has a step's participant leap from where it stands onto the tile the step names, the way a boss hops down from a
+	* ledge nobody else can reach. It lands facing the way it leapt, and the steps behind it wait until it has landed.
+	* @param {JabsBossStep} step The step naming the participant and the tile.
+	* @param {JabsBossLane} lane The lane playing it.
+	*/
+	static #executeJump(step, lane) {
+		const jabsBattler = this.#stepJabsBattler(step);
+		if (!jabsBattler) return;
+		const body = jabsBattler.getCharacter();
+		const commands = this.#jumpCommands(body, step);
+		this.#playScene(lane, commands, body.eventId());
+	}
+	/**
+	* Builds the event commands for a leap: a move route jumping the body playing it onto the step's tile, which the
+	* scene waits out.
+	* @param {Game_Event} body The body leaping.
+	* @param {JabsBossStep} step The step naming the tile.
+	* @returns {object[]}
+	*/
+	static #jumpCommands(body, step) {
+		const leap = {
+			code: 14,
+			parameters: [step.x() - body.x, step.y() - body.y]
+		};
+		const route = {
+			list: [leap, {
+				code: 0,
+				parameters: []
+			}],
+			repeat: false,
+			skippable: true,
+			wait: true
+		};
+		return [this.#command(205, [0, route]), this.#endOfList()];
+	}
+	/**
 	* Turns a step's participant to face the way the step names.
 	*
 	* Whatever a participant performs next fires the way it faces, so a boss spinning in place to fire every way
@@ -1658,6 +1850,11 @@ var JabsBossManager = class JabsBossManager {
 * Most participants are bodies the fight is won by felling. A bystander is the exception: it stands in the
 * fight from its first frame without being part of winning it, the way an elemental might watch from the
 * edge of the room and cheer its champion on.
+*
+* Most participants are also on the map from the fight's first frame. A summoned participant is the exception
+* to that: it is held back until a step summons it, the way a maker calls her masterworks down one at a time,
+* and it arrives on its own tile, from its own template. From then on it is a participant like any other, and
+* until then it is still one the fight is waiting on.
 */
 var JabsBossParticipant = class {
 	/**
@@ -1691,12 +1888,12 @@ var JabsBossParticipant = class {
 	*/
 	#expect = String.empty;
 	/**
-	* The x coordinate of the tile this participant appears on when the encounter starts.
+	* The x coordinate of the tile this participant appears on, when the encounter starts or when it is summoned.
 	* @type {number}
 	*/
 	#x = 0;
 	/**
-	* The y coordinate of the tile this participant appears on when the encounter starts.
+	* The y coordinate of the tile this participant appears on, when the encounter starts or when it is summoned.
 	* @type {number}
 	*/
 	#y = 0;
@@ -1710,6 +1907,15 @@ var JabsBossParticipant = class {
 	*/
 	#bystander = false;
 	/**
+	* Whether this participant is held back as the fight starts, with no body on the map until a step summons it.
+	*
+	* It is a participant all the while: the fight is not won until it has been summoned and has fallen, and a
+	* reaction can wait on it falling. Exactly one step brings it in, and once it has, nothing about it differs from
+	* a participant that was there from the first frame.
+	* @type {boolean}
+	*/
+	#summoned = false;
+	/**
 	* Constructor.
 	* @param {string} key The author-facing name for this participant.
 	* @param {number} enemyId The id of the enemy this participant is.
@@ -1718,8 +1924,9 @@ var JabsBossParticipant = class {
 	* @param {number} y The y coordinate of the tile this participant appears on.
 	* @param {number} templateId The id of the clone map event this participant spawns from.
 	* @param {boolean} bystander Whether this participant is part of the fight without being part of winning it.
+	* @param {boolean} summoned Whether this participant waits off the map until a step summons it.
 	*/
-	constructor(key, enemyId, expect, x, y, templateId, bystander = false) {
+	constructor(key, enemyId, expect, x, y, templateId, bystander = false, summoned = false) {
 		this.#key = key;
 		this.#enemyId = enemyId;
 		this.#expect = expect;
@@ -1727,6 +1934,7 @@ var JabsBossParticipant = class {
 		this.#y = y;
 		this.#templateId = templateId;
 		this.#bystander = bystander;
+		this.#summoned = summoned;
 	}
 	/**
 	* Gets the author-facing name for this participant.
@@ -1757,14 +1965,14 @@ var JabsBossParticipant = class {
 		return this.#expect;
 	}
 	/**
-	* Gets the x coordinate of the tile this participant appears on when the encounter starts.
+	* Gets the x coordinate of the tile this participant appears on, when the encounter starts or when it is summoned.
 	* @returns {number}
 	*/
 	x() {
 		return this.#x;
 	}
 	/**
-	* Gets the y coordinate of the tile this participant appears on when the encounter starts.
+	* Gets the y coordinate of the tile this participant appears on, when the encounter starts or when it is summoned.
 	* @returns {number}
 	*/
 	y() {
@@ -1776,6 +1984,13 @@ var JabsBossParticipant = class {
 	*/
 	isBystander() {
 		return this.#bystander;
+	}
+	/**
+	* Gets whether this participant waits off the map until a step summons it.
+	* @returns {boolean}
+	*/
+	isSummoned() {
+		return this.#summoned;
 	}
 };
 
@@ -1884,12 +2099,13 @@ var JabsBossStep = class {
 	* @property {number} frames How many frames a quickening takes off that routine's cadence, or a tint takes to settle.
 	* @property {number} enemyId The enemy a spawn puts on the map.
 	* @property {number} templateId The slot on the enemy clone map a spawn copies its body from.
-	* @property {number} x The tile column a spawn puts its body on, or a blink takes its participant to.
-	* @property {number} y The tile row a spawn puts its body on, or a blink takes its participant to.
+	* @property {number} x The tile column a spawn puts its body on, or a blink or a jump takes its participant to.
+	* @property {number} y The tile row a spawn puts its body on, or a blink or a jump takes its participant to.
 	* @property {number} direction The way a blink leaves its participant facing (zero keeps its facing), or the way a
 	* facing step turns it.
 	* @property {number[]} tone The screen tone a tint settles on: red, green, blue and gray.
-	* @property {number} animationId The animation played over a participant, a blink's flare, or a spawn's arrival.
+	* @property {number} animationId The animation played over a participant, a blink's flare, or the arrival of a
+	* spawn or a summoned participant.
 	* @property {string} face The face image shown with a line, said aloud or written to the log, or empty for none.
 	* @property {number} faceIndex The face on that image.
 	* @property {string} speaker The name shown with a participant's line.
@@ -1967,12 +2183,12 @@ var JabsBossStep = class {
 	*/
 	#templateId = 0;
 	/**
-	* The tile column this step puts its body on, for a spawn, or takes its participant to, for a blink.
+	* The tile column this step puts its body on, for a spawn, or takes its participant to, for a blink or a jump.
 	* @type {number}
 	*/
 	#x = 0;
 	/**
-	* The tile row this step puts its body on, for a spawn, or takes its participant to, for a blink.
+	* The tile row this step puts its body on, for a spawn, or takes its participant to, for a blink or a jump.
 	* @type {number}
 	*/
 	#y = 0;
@@ -1988,8 +2204,8 @@ var JabsBossStep = class {
 	*/
 	#tone = [];
 	/**
-	* The id of the animation this step plays: over its participant, as a blink's flare, or as a spawn's arrival.
-	* Zero plays none.
+	* The id of the animation this step plays: over its participant, as a blink's flare, or as the arrival of a spawn
+	* or a summoned participant. Zero plays none.
 	* @type {number}
 	*/
 	#animationId = 0;
@@ -2266,7 +2482,8 @@ var J_BossPluginMetadata = class extends PluginMetadata {
 		const template = rawParticipant.template ?? 0;
 		const templateId = template === 0 ? enemyId : template;
 		const bystander = rawParticipant.bystander === true;
-		return new JabsBossParticipant(key, enemyId, expect, x, y, templateId, bystander);
+		const summoned = rawParticipant.summoned === true;
+		return new JabsBossParticipant(key, enemyId, expect, x, y, templateId, bystander, summoned);
 	}
 	/**
 	* Builds one reaction out of its raw configuration.
@@ -2323,7 +2540,8 @@ var J_BossPluginMetadata = class extends PluginMetadata {
 	}
 	/**
 	* Reads where a step puts things: the enemy a spawn puts on the map, the clone map slot it copies, the tile
-	* and facing a spawn or a blink lands on, and the way a facing step turns its participant.
+	* a spawn, a blink or a jump lands on, the way a blink leaves its participant facing, and the way a facing
+	* step turns it.
 	* @param {any} rawStep The unparsed step from configuration.
 	* @returns {Object} Those fields of the step's details.
 	*/

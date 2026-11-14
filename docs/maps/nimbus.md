@@ -23,7 +23,7 @@ Subterranean has a reflex to break. If Nimbus goes even half-solemn, Hell lands 
 | Tileset 20 "Elemental - Air" | configured: `FWAE_A1`, `FWAE_Wind_A2`, `FWAE_A4`, `FWAE_B`..`FWAE_E` |
 | Switch 171 "pride sacrifice room" | set by the room's intro scene; gates the investigation pages |
 | Switch 169 "need more keys" | gates whether the room is worth investigating yet |
-| Enemy 583 | still `=== TBD Sin`; Gloria is not in the database |
+| Enemy 583 | **Gloria** since 2026-11-10, dropping `SIN_3` (Pride's Dogma, `1583`); her stats, look and kit come with the fight |
 | Enemy 259 | empty since the 2026-09-09 five-tier recut deleted Majestic Meringue |
 
 The Room of Sacrifice already carries the front half of the gate scene. Event 7 has three pages: a
@@ -178,10 +178,40 @@ and dies at once, because she has charisma and smarts and no power. Pride goeth 
 literally. She still gets the "the sin of pride will live on" line, and for her it is the most literal:
 her lessers are the homunculi she built. The products outlive the maker.
 
-- **Homunculi** live in the `531-540` family under Puppet. Ten distinct masterworks from one family via
-  affix dress: level 80 with no affix, then weak, moderate and strong affixes, then the same at 82, then
-  85 for the last. Placing this family also closes `Armors[501]` Vague Memory, an authored material with
-  no source (see [drop-sources.md](../enemies/drop-sources.md)).
+- **Homunculi `LOCKED (2026-11-10)`:** the Homunculus subgroup's five rows, `531` Puppet to `535` Pandora, all
+  at level 82 and all wearing the **Grand** prefix (`304`), since she thinks all her work is grand. One at a
+  time, so it is always the duo against one, each a tier or an affix better than the last. This replaces the
+  August ladder (level 80 to 85, no affix to strong).
+
+  | # | Row | Suffix |
+  |---|---|---|
+  | 1 | Puppet | Brine `371` (liquid, t1) |
+  | 2 | Puppet | Char `366` (heat, t1) |
+  | 3 | Puppet | Skewer `356` (poke, t1) |
+  | 4 | Nutcracker | Salt `382` (ground, t2) |
+  | 5 | Nutcracker | Umami `392` (void, t2) |
+  | 6 | Mannequin | Fillet `353` (cut, t3) |
+  | 7 | Mannequin | Draught `378` (air, t3) |
+  | 8 | Homunculus | Merit `399` (typeless, t4) |
+  | 9 | Homunculus | Impact `364` (blunt, t4) |
+  | 10 | Pandora | Halo `389` (energy, t4, the top suffix tier) |
+
+  Each carries about 2.52M HP (the Merit one 2.65M). Placing this family also closes `Armors[501]` Vague
+  Memory, an authored material with no source (see [drop-sources.md](../enemies/drop-sources.md)).
+- **Then her `LOCKED (2026-11-10)`:** once the tenth falls she hops down off the dais as the eleventh, a boss in
+  her own right (enemy 583) with a pittance of HP next to her masterworks, and the duo drop her in one or two hits.
+- **Built 2026-11-10, as one fight:** the encounter `gloria` (defeat switch 190). Gloria (583, template 583) sits
+  sealed (`2072`) on her throne at (24,5) from the first frame; the ten masterworks are summoned participants
+  (`brine` to `halo`, templates `Map361` ev608-617), each called down in the respawn flash (animation 154) the
+  moment the one before it falls, alternating the sky window's two circles at (23,13) and (26,13). Once `halo`
+  falls she jumps down to (24,13) and her seal comes off. On `Map380`, ev3 is her throne sprite, which gives way
+  to her body when ev5 (the corridor trigger, its pre-amble a TODO) turns switch 191 on and starts the fight; ev4
+  is the partner, and ev6 ends the fight on switch 190 (the post-amble is a TODO). The boss frame shows Gloria
+  the whole fight, the way it shows Earthie through her sealed phase. Her test hall is `Map550`.
+- **The masterworks pay nothing `LOCKED (2026-11-10)`:** each template carries **No Rewards** (state `183`) as a
+  passive beside Grand and its suffix, so the ten pay no EXP, gold, SDP or AP; their loot still drops, and Gloria
+  pays as she always did. A passive rather than a state the fight puts on them, because dying clears a body's
+  states before the rewards are paid. Sloth's votaries get the same on their fight's template.
 - **Difficulty:** an endurance trial. Not hard unless underleveled; it exists to make sure the player is
   eating food, using healing magic, and supporting or being supported by their ally. That is a rehearsal
   of the support loop the Fortress split later removes, and an endurance fight you eat your way through
@@ -229,7 +259,9 @@ drop-sources.md for the block layout rather than guessing positions.
   stubs now run five per family (for example Sovereign `572-575`), and their `<level:>` tags are
   copy-pasta placeholders rather than plan. Levels for the Nimbus tiers get set when the rows are
   authored.
-- **Gloria is not in the database.** Enemy 583 is the slot.
+- **Gloria is in the database** as of 2026-11-10: enemy 583, named, dropping `SIN_3` (Pride's Dogma, `1583`).
+  Pride now sits before Envy across the sin band, so `584` and `SIN_4` are Envy's. Her stats, look and kit
+  come with the fight.
 - **Teleportal hub (`Map194`) needs a reckoning `OPEN`.** Its ten doors were built for motivation and do
   not match reality: no Nimbus door, and the Forest of Dreams, a large dungeon, has no door at all.
   Ideas Jeremy liked: underwater becomes Crystalline Ravine, voidal becomes the Desolate Graves, tundra

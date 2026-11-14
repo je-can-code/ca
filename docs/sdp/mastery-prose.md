@@ -146,7 +146,7 @@ changing its meaning is refused outright.
 | Deity | elemental, emotion, devil | approved |
 | Deity | sin, sin-votary | **undecided, and staying that way** |
 
-`deity-sin` (1581-1590) carries ten named shells with zero tags: Glutton's, Wrath's, Envy's, Pride's,
+`deity-sin` (1581-1590) carries ten named shells with zero tags: Glutton's, Wrath's, Pride's, Envy's,
 Sloth's, Greed's, Lust's, Vanity's, Despair's and Irony's Dogma. `deity-sin-votary` (1591-1600) is ten
 "Reserved" shells. Both are deliberately undecided; prose cannot precede mechanics, so neither gets
 written until that changes.

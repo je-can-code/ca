@@ -2,15 +2,15 @@
   "formatVersion": 1,
   "generatedBy": "rmmz-plugins src/build-tools/generate-manifest.js - generated, never edit by hand",
   "files": {
-    "abs/J-ABS.js": "3bbe4a3b1f01030541dfe52c51527dc8f1cb19417e6b2cfa5006a65bb9b2915e",
+    "abs/J-ABS.js": "32c58ad72c66ea539448bbb4cf25bc42f9e0ce39517060cdf514f0c219518a84",
     "abs/ext/J-ABS-AllyAI.js": "97354c203a158cc0b89e92d21fc259a045b9b3a9f75bd1dbea258a33e2b8b681",
-    "abs/ext/J-ABS-Boss.js": "ad02c50aed4aa7271b54d620e2cd081c811a7674af4e0a9564dd4804a0073d5a",
+    "abs/ext/J-ABS-Boss.js": "4c3c9137875d69ad3f08a24be2ff372607578749c46cb5b649c318428f007d61",
     "abs/ext/J-ABS-Charge.js": "2d7d5bddab9327c8d47194fba3b241fbba0a280b83fb7e1a6c56011e2c62c1ff",
     "abs/ext/J-ABS-DangerIndicator.js": "41daeb31a901d6ad0189cfea80bbbc745bc6e723e7d3532e5c9d3b888ef67416",
     "abs/ext/J-ABS-Diagonals.js": "50e1c17fe1b3b7537d29d93070340fd57ef38feff2df36ca25f4fe8a19e1e2e2",
     "abs/ext/J-ABS-Dps.js": "c048b35684b96f96e43e793e630e66d21a22f5c2731df301ecda6abc1074c354",
     "abs/ext/J-ABS-Food.js": "226fcdeca56ec71488bb23e28072df45233691f1e9e1160c6984b55fef6f1835",
-    "abs/ext/J-ABS-Formula.js": "f72c229078815fdb625d1d04e5eca8c81792b6a37a4f165b983cc4d1cfa43e69",
+    "abs/ext/J-ABS-Formula.js": "f24781f18d3d50778902c14ed7bbde65beb1dcc4269dd45a20e1b5fc72c1741d",
     "abs/ext/J-ABS-Hitstop.js": "8cede2a9bf2bc8da44294e35132460953a13fbe8d3c196e69f2953e4e4829bcd",
     "abs/ext/J-ABS-InputManager.js": "e1703cb992197a4057a5f5075745b05bc7594dcca33e34259522cd3d90386274",
     "abs/ext/J-ABS-Juice.js": "3d30e067beb40536ef5226cb01c07b8bbf110e43c897b11f91708cb186ca2c68",
@@ -1646,6 +1646,14 @@
       "flags": "gi"
     },
     {
+      "label": "J.ABS.RegExp.NoDamage",
+      "names": [
+        "noDamage"
+      ],
+      "pattern": "<noDamage>",
+      "flags": "i"
+    },
+    {
       "label": "J.ABS.RegExp.NoExp",
       "names": [
         "no"
@@ -1686,11 +1694,27 @@
       "flags": "i"
     },
     {
+      "label": "J.ABS.RegExp.NoSelfKill",
+      "names": [
+        "noSelfKill"
+      ],
+      "pattern": "<noSelfKill>",
+      "flags": "i"
+    },
+    {
       "label": "J.ABS.RegExp.NoSkillUpgrading",
       "names": [
         "noUpgrade"
       ],
       "pattern": "<noUpgrade>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.NoTargetKill",
+      "names": [
+        "noTargetKill"
+      ],
+      "pattern": "<noTargetKill>",
       "flags": "i"
     },
     {
@@ -2445,6 +2469,22 @@
       ],
       "pattern": "<thisLuckyRolls:[ ]?\\[([+\\-*/ ().\\w]+)]>",
       "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisNoSelfKill",
+      "names": [
+        "thisNoSelfKill"
+      ],
+      "pattern": "<thisNoSelfKill>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.ThisNoTargetKill",
+      "names": [
+        "thisNoTargetKill"
+      ],
+      "pattern": "<thisNoTargetKill>",
+      "flags": "i"
     },
     {
       "label": "J.ABS.RegExp.ThisProximityBuff",

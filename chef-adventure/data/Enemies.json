@@ -52108,9 +52108,9 @@
   },
   {
     "id": 583,
-    "name": "=== TBD Sin",
-    "note": "\u003clevel:15\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_5,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
-    "battlerName": "Wolfman",
+    "name": "Gloria",
+    "note": "\u003clevel:85\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 0.2]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_3,1]\u003e",
+    "battlerName": "",
     "traits": [
       {
         "code": 35,
@@ -52118,88 +52118,41 @@
         "value": 1
       },
       {
-        "code": 31,
-        "dataId": 1,
-        "value": 0
-      },
-      {
-        "code": 33,
+        "code": 22,
         "dataId": 0,
-        "value": 30
+        "value": 0.1
       },
       {
         "code": 22,
-        "dataId": 0,
-        "value": 0.8
-      },
-      {
-        "code": 22,
-        "dataId": 2,
-        "value": 0.12
-      },
-      {
-        "code": 23,
         "dataId": 1,
-        "value": 1.3
+        "value": 0.03
       },
       {
         "code": 22,
         "dataId": 3,
-        "value": 0.1
+        "value": 0.01
+      },
+      {
+        "code": 22,
+        "dataId": 4,
+        "value": 0.06
       },
       {
         "code": 23,
-        "dataId": 6,
-        "value": 0.9
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 1.1
-      },
-      {
-        "code": 11,
-        "dataId": 16,
-        "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 18,
-        "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 20,
-        "value": 2
-      },
-      {
-        "code": 13,
-        "dataId": 36,
-        "value": 0.5
-      },
-      {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
-      },
-      {
-        "code": 31,
-        "dataId": 16,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 18,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 20,
-        "value": 0
+        "dataId": 1,
+        "value": 1.02
       }
     ],
-    "actions": [],
-    "battlerHue": 254,
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2001
+      }
+    ],
+    "battlerHue": 0,
     "dropItems": [
       {
         "dataId": 0,
@@ -52220,20 +52173,20 @@
     "exp": 0,
     "gold": 0,
     "params": [
-      22500,
-      650,
-      53,
-      33,
-      40,
-      33,
-      40,
-      46
+      300,
+      300,
+      1,
+      5,
+      8,
+      10,
+      15,
+      5
     ]
   },
   {
     "id": 584,
     "name": "=== TBD Sin",
-    "note": "\u003clevel:15\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_5,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
+    "note": "\u003clevel:15\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_4,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
     "battlerName": "Wolfman",
     "traits": [
       {
@@ -52356,9 +52309,9 @@
   },
   {
     "id": 585,
-    "name": "=== TBD Sin",
-    "note": "\u003clevel:15\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_5,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
-    "battlerName": "Wolfman",
+    "name": "Sloth",
+    "note": "\u003clevel:110\u003e\n\u003cnoSelfKill\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003cdescriptionLine:The Sin of Sloth, a statue of a grieving angel, crumbling in real time.\u003e\n\u003cdescriptionLine:Her votaries keep the vow while she keeps still. When she finally moves, it is to break.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_5,1]\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e",
+    "battlerName": "",
     "traits": [
       {
         "code": 35,
@@ -52366,88 +52319,58 @@
         "value": 1
       },
       {
-        "code": 31,
+        "code": 23,
         "dataId": 1,
         "value": 0
       },
       {
-        "code": 33,
-        "dataId": 0,
-        "value": 30
+        "code": 11,
+        "dataId": 1,
+        "value": 0.05
       },
       {
-        "code": 22,
-        "dataId": 0,
-        "value": 0.8
-      },
-      {
-        "code": 22,
+        "code": 11,
         "dataId": 2,
-        "value": 0.12
+        "value": 0.05
       },
       {
-        "code": 23,
-        "dataId": 1,
-        "value": 1.3
-      },
-      {
-        "code": 22,
+        "code": 11,
         "dataId": 3,
-        "value": 0.1
+        "value": 0.05
       },
       {
-        "code": 23,
+        "code": 11,
+        "dataId": 4,
+        "value": 0.05
+      },
+      {
+        "code": 11,
+        "dataId": 5,
+        "value": 0.05
+      },
+      {
+        "code": 11,
         "dataId": 6,
-        "value": 0.9
+        "value": 0.05
       },
       {
-        "code": 23,
+        "code": 11,
         "dataId": 7,
-        "value": 1.1
+        "value": 0.05
       },
       {
         "code": 11,
-        "dataId": 16,
-        "value": 2
+        "dataId": 8,
+        "value": 0.05
       },
       {
         "code": 11,
-        "dataId": 18,
-        "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 20,
-        "value": 2
-      },
-      {
-        "code": 13,
-        "dataId": 36,
-        "value": 0.5
-      },
-      {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
-      },
-      {
-        "code": 31,
-        "dataId": 16,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 18,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 20,
-        "value": 0
+        "dataId": 9,
+        "value": 0.05
       }
     ],
     "actions": [],
-    "battlerHue": 254,
+    "battlerHue": 0,
     "dropItems": [
       {
         "dataId": 0,
@@ -52468,14 +52391,14 @@
     "exp": 0,
     "gold": 0,
     "params": [
-      22500,
-      650,
-      53,
-      33,
-      40,
-      33,
-      40,
-      46
+      100000,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1
     ]
   },
   {
@@ -53357,126 +53280,115 @@
   },
   {
     "id": 593,
-    "name": "=== TBD Sin Votary",
-    "note": "\u003clevel:34\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 26.09]\u003e\n\u003catkBuffPlus:[(a.level * 4.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 4.5)]\u003e\n\u003cmatBuffPlus:[(a.level * 5.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 6)]\u003e\n\u003cagiBuffPlus:[(a.level * 1.75)]\u003e\n\u003clukBuffPlus:[(a.level * 1)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_3,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
-    "battlerName": "Tigerbunny",
+    "name": "Prideful Homunculus",
+    "note": "\u003clevel:87\u003e\n\u003cpassive:[2034, 324]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 18.74]\u003e\n\u003catkBuffPlus:[(a.level * 5.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 4.5)]\u003e\n\u003cmatBuffPlus:[(a.level * 4.75)]\u003e\n\u003cmdfBuffPlus:[(a.level * 4.25)]\u003e\n\u003cagiBuffPlus:[(a.level * 6.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003cknockbackResist:100\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.33)]\u003e\n\u003csdpPoints:21\u003e\n\u003caiTrait:executor\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_3,1]\u003e\n\u003cdrops:[a,502,70]\u003e\n\u003cdrops:[a,502,65]\u003e\n\u003cdrops:[a,502,60]\u003e\n\u003cdrops:[a,512,70]\u003e\n\u003cdrops:[a,512,65]\u003e\n\u003cdrops:[a,512,60]\u003e\n\u003cdrops:[a,532,70]\u003e\n\u003cdrops:[a,532,65]\u003e\n\u003cdrops:[a,532,60]\u003e\n\u003cdrops:[a,503,30]\u003e\n\u003cdrops:[a,503,20]\u003e\n\u003cdrops:[a,513,30]\u003e\n\u003cdrops:[a,513,20]\u003e\n\u003cdrops:[a,533,30]\u003e\n\u003cdrops:[a,533,20]\u003e\n\u003cdrops:[a,504,30]\u003e\n\u003cdrops:[a,504,20]\u003e\n\u003cdrops:[a,514,30]\u003e\n\u003cdrops:[a,514,20]\u003e\n\u003cdrops:[a,534,30]\u003e\n\u003cdrops:[a,534,20]\u003e\n\u003cdrops:[a,505,5]\u003e\n\u003cdrops:[a,515,5]\u003e\n\u003cdrops:[a,535,5]\u003e\n\u003chitboxSize:[1.4, 1.7]\u003e",
+    "battlerName": "SF_Cyborg",
     "traits": [
       {
         "code": 35,
-        "dataId": 2591,
+        "dataId": 2531,
         "value": 1
       },
       {
         "code": 31,
-        "dataId": 1,
+        "dataId": 3,
         "value": 0
       },
       {
         "code": 33,
         "dataId": 0,
-        "value": 30
+        "value": 45
       },
       {
         "code": 22,
         "dataId": 0,
-        "value": 0.8
-      },
-      {
-        "code": 22,
-        "dataId": 2,
-        "value": 0.12
-      },
-      {
-        "code": 23,
-        "dataId": 1,
-        "value": 1.3
-      },
-      {
-        "code": 22,
-        "dataId": 3,
         "value": 0.1
       },
       {
         "code": 23,
-        "dataId": 6,
-        "value": 0.9
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 1.1
-      },
-      {
-        "code": 11,
-        "dataId": 16,
-        "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 18,
-        "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 20,
-        "value": 2
-      },
-      {
-        "code": 13,
-        "dataId": 36,
+        "dataId": 1,
         "value": 0.5
       },
       {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
+        "code": 22,
+        "dataId": 2,
+        "value": 0.15
+      },
+      {
+        "code": 22,
+        "dataId": 3,
+        "value": 0.05
+      },
+      {
+        "code": 11,
+        "dataId": 19,
+        "value": 2
       },
       {
         "code": 31,
-        "dataId": 16,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 18,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 20,
+        "dataId": 19,
         "value": 0
       }
     ],
-    "actions": [],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2535
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2533
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2534
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2532
+      }
+    ],
     "battlerHue": 0,
     "dropItems": [
       {
         "dataId": 0,
-        "denominator": 4,
-        "kind": 0
-      },
-      {
-        "dataId": 0,
-        "denominator": 8,
-        "kind": 0
-      },
-      {
-        "dataId": 0,
         "denominator": 20,
+        "kind": 0
+      },
+      {
+        "dataId": 0,
+        "denominator": 10,
+        "kind": 0
+      },
+      {
+        "dataId": 0,
+        "denominator": 30,
         "kind": 0
       }
     ],
     "exp": 0,
     "gold": 0,
     "params": [
-      315,
-      650,
-      17,
+      110,
+      0,
+      21,
       18,
-      22,
-      24,
-      7,
-      4
+      19,
+      17,
+      25,
+      5
     ]
   },
   {
@@ -53605,9 +53517,9 @@
   },
   {
     "id": 595,
-    "name": "=== TBD Sin Votary",
-    "note": "\u003clevel:50\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 42]\u003e\n\u003catkBuffPlus:[(a.level * 5.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 6)]\u003e\n\u003cmatBuffPlus:[(a.level * 7)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1.25)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_5,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
-    "battlerName": "Tigerbunny",
+    "name": "Slothful Votary",
+    "note": "\u003clevel:110\u003e\n\u003cpassive:[2077]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 1.6]\u003e\n\u003catkBuffPlus:[(a.level * 5.25)]\u003e\n\u003cdefBuffPlus:[(a.level * 6)]\u003e\n\u003cmatBuffPlus:[(a.level * 7)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1.25)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_5,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
+    "battlerName": "",
     "traits": [
       {
         "code": 35,
@@ -53695,7 +53607,15 @@
         "value": 0
       }
     ],
-    "actions": [],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2592
+      }
+    ],
     "battlerHue": 0,
     "dropItems": [
       {

@@ -31,7 +31,7 @@ courtyard unseals.
 | `Map116` "Frozen Fortress" | the Lakeside Road **exterior**, 50x35, tileset 12 Outside (VisuStella): event 1 "overly advanced gate", event 5 "story: need more keys", the four elemental NPC events, a save platform. Not the dungeon |
 | A `DUNGEON:` tree node | **none**. Nimbus has `Map122` and the Subterranean has `Map290`; the Fortress has no node and no child maps |
 | `Items[174]` RGB Technohypercube | authored; its description still ends "This is not yet implemented" |
-| Enemies `583-590` | all `=== TBD Sin` at lv15. `583` is Gloria's slot per [nimbus.md](nimbus.md); Lust, Envy and the gent have no chosen slots. `593-597` are `=== TBD Sin Votary` stubs |
+| Enemies `583-590` | `583` is Gloria per [nimbus.md](nimbus.md), named 2026-11-10; `584-590` are `=== TBD Sin` at lv15. Envy is `584` and Lust `587`, matching their sin panels in [the mastery cheatsheet](../sdp/mastery-cheatsheet.md); the gent has no chosen slot. `593-597` are `=== TBD Sin Votary` stubs |
 | `ice-cavern_A2` / `_A5` / `_B` | on disk under `img/tilesets/`, referenced by **no** Tilesets row |
 | `SnowForest.png` | the only wintry parallax on disk |
 | [progression-bands.md](progression-bands.md) | carries Fortress 115-130 and the gent ~150 |

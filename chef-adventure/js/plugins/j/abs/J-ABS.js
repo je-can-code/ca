@@ -1950,6 +1950,11 @@ J.ABS.RegExp = {
 	ImmuneToStates: /<immuneToStates>/gi,
 	ImmuneToAll: /<immuneToAll>/gi,
 	CannotBeInterrupted: /<cannotBeInterrupted>/i,
+	NoDamage: /<noDamage>/i,
+	NoSelfKill: /<noSelfKill>/i,
+	ThisNoSelfKill: /<thisNoSelfKill>/i,
+	NoTargetKill: /<noTargetKill>/i,
+	ThisNoTargetKill: /<thisNoTargetKill>/i,
 	ReapplyType: /<stackType:[ ]?(refresh|extend|stack)>/gi,
 	ReapplyRefreshDiminish: /<stateRefreshDiminish:[ ]?(-?\d+)>/gi,
 	ReapplyRefreshReset: /<stateRefreshReset:[ ]?(\d+)>/gi,
@@ -14134,6 +14139,7 @@ var JABS_Battler = class JABS_Battler {
 		if (battler.hp < battler.mhp) {
 			const { hrg, rec } = battler;
 			const naturalHp = this.calculatedRegen(hrg, isReduced) * rec;
+			if (this.isIgnoredRegenHarm(naturalHp)) return;
 			battler.gainHp(naturalHp);
 		}
 	}
@@ -14145,8 +14151,20 @@ var JABS_Battler = class JABS_Battler {
 		if (battler.mp < battler.mmp) {
 			const { mrg, rec } = battler;
 			const naturalMp = this.calculatedRegen(mrg, isReduced) * rec;
+			if (this.isIgnoredRegenHarm(naturalMp)) return;
 			battler.gainMp(naturalMp);
 		}
+	}
+	/**
+	* Whether or not a natural regeneration tick is harm that this battler ignores.<br/>
+	* A regeneration rate below zero drains HP or MP instead of restoring it, and a battler that takes no
+	* damage shrugs that drain off. TP regeneration never asks, because TP isn't damage.
+	* @param {number} amount The regeneration about to be applied.
+	* @returns {boolean}
+	*/
+	isIgnoredRegenHarm(amount) {
+		if (amount >= 0) return false;
+		return this.getBattler().isImmuneToDamage();
 	}
 	/**
 	* Processes the natural TRG for this battler.
@@ -14193,7 +14211,7 @@ var JABS_Battler = class JABS_Battler {
 	* @param {JABS_State} jabsState The state tracker that owns the slip.
 	*/
 	processSlipEffect(slipAmount, index, jabsState) {
-		if (this.canProcessSlipEffect(slipAmount) === false) return;
+		if (this.canProcessSlipEffect(slipAmount, index) === false) return;
 		const modifiedSlipAmount = this.calculateModifiedSlipAmount(slipAmount, jabsState);
 		this.applySlipEffect(modifiedSlipAmount, index);
 		if (modifiedSlipAmount < 0) {
@@ -14204,13 +14222,30 @@ var JABS_Battler = class JABS_Battler {
 		this.onSlipRegenTick(displayAmount, index, jabsState.stateId);
 	}
 	/**
-	* Determines whether the slip can be processed.
+	* Determines whether the slip can be processed.<br/>
+	* A battler that takes no damage shrugs off a harmful tick to its HP or MP whole: nothing lands,
+	* nothing pops up, and nothing is recorded as the last thing that hit it.
 	* @param {number} slipAmount The amount to slip.
+	* @param {0|1|2} index The type of resource this slip represents.
 	* @returns {boolean}
 	*/
-	canProcessSlipEffect(slipAmount) {
+	canProcessSlipEffect(slipAmount, index) {
 		if (slipAmount === 0) return false;
+		if (this.isIgnoredSlipHarm(slipAmount, index)) return false;
 		return true;
+	}
+	/**
+	* Whether or not a slip tick is harm that this battler ignores.<br/>
+	* A negative tick to HP or MP is damage over time, which a battler that takes no damage shrugs off.
+	* A tick that drains TP still lands, because TP isn't damage.
+	* @param {number} slipAmount The amount to slip, negative when it harms.
+	* @param {0|1|2} index The type of resource this slip represents: HP, MP or TP.
+	* @returns {boolean}
+	*/
+	isIgnoredSlipHarm(slipAmount, index) {
+		if (slipAmount > 0) return false;
+		if (index === 2) return false;
+		return this.getBattler().isImmuneToDamage();
 	}
 	/**
 	* Calculate the slip amount against any additional modifiers.
@@ -24817,11 +24852,114 @@ Game_Action.prototype.executeJabsAction = function(target) {
 		if (result.glancing) {
 			value = this.applyGlancingDamageReduction(value);
 		}
+		value = this.applyDamageImmunity(target, value);
 		this.executeDamage(target, value);
 	}
 	this.item().effects.forEach((effect) => this.applyItemEffect(target, effect));
 	this.applyItemUserEffect(target);
 	this.applyGlobal();
+};
+/**
+* Holds back all of a hit's damage when its target takes no damage, via `<noDamage>`.<br/>
+* This runs on the final number, after every multiplier and the glancing cut, and before shields or
+* drains ever see it. So a shield loses nothing to a hit that couldn't hurt, a drain takes nothing,
+* and none of the target's on-damage reactions fire. A negative value is a heal and always lands.
+* @param {Game_Battler} target The target of this action.
+* @param {number} value The damage this action would deal.
+* @returns {number}
+*/
+Game_Action.prototype.applyDamageImmunity = function(target, value) {
+	if (value <= 0) return value;
+	if (target.isImmuneToDamage()) return 0;
+	return value;
+};
+/**
+* Extends {@link #executeHpDamage}.<br/>
+* Holds a blow barred from killing its target one HP short of doing so. This sits beneath shields,
+* so a shield absorbs its share first and only what gets past it is held back.
+*/
+J.ABS.Aliased.Game_Action.set("executeHpDamage", Game_Action.prototype.executeHpDamage);
+Game_Action.prototype.executeHpDamage = function(target, value) {
+	const heldValue = this.applyKillFloor(target, value);
+	J.ABS.Aliased.Game_Action.get("executeHpDamage").call(this, target, heldValue);
+};
+/**
+* Holds HP damage one point short of killing its target, when this action is barred from killing
+* that target ({@link #isBarredFromKilling}).<br/>
+* HP can sit at a fraction, because regeneration and level scaling don't round, so the most a held
+* blow can take is the whole HP above one, and never less than nothing.
+* @param {Game_Battler} target The target of this action.
+* @param {number} value The HP damage this action would deal.
+* @returns {number}
+*/
+Game_Action.prototype.applyKillFloor = function(target, value) {
+	if (value <= 0) return value;
+	if (this.isBarredFromKilling(target) === false) return value;
+	const mostItCanTake = Math.max(0, Math.floor(target.hp) - 1);
+	return Math.min(value, mostItCanTake);
+};
+/**
+* Whether or not a kill floor bars this action from killing the given target.<br/>
+* `<noSelfKill>` covers the caster hitting itself, and `<noTargetKill>` covers the caster hitting an
+* opponent. Both read the caster's own note sources, and their `this` forms read the skill's own
+* note. An ally caught by friendly fire is covered by neither.
+* @param {Game_Battler} target The target of this action.
+* @returns {boolean}
+*/
+Game_Action.prototype.isBarredFromKilling = function(target) {
+	const subject = this.subject();
+	const skill = this.item();
+	if (subject === target) return subject.hasNoSelfKill(skill);
+	if (subject.hasNoTargetKill(skill) === false) return false;
+	return this.isAgainstOpponent(target);
+};
+/**
+* Whether or not the given target stands on a team opposed to this action's caster.<br/>
+* Teams belong to the battlers on the map. A caster that left the map before its action landed, such
+* as one felled with a projectile still in flight, leaves only the database's copy of its row behind
+* as this action's subject, which has no team to read. Then an actor and an enemy count as opponents,
+* which is how the two sides stand unless an event says otherwise.
+* @param {Game_Battler} target The target of this action.
+* @returns {boolean}
+*/
+Game_Action.prototype.isAgainstOpponent = function(target) {
+	const subject = this.subject();
+	const caster = JABS_AiManager.getBattlerByUuid(subject.getUuid());
+	if (!caster) return subject.isActor() !== target.isActor();
+	const victim = JABS_AiManager.getBattlerByUuid(target.getUuid());
+	return caster.isOpposingTeam(victim.getTeam());
+};
+/**
+* Extends {@link #itemEffectRecoverHp}.<br/>
+* A Recover HP effect written below zero is harm, which a target that takes no damage ignores.
+*/
+J.ABS.Aliased.Game_Action.set("itemEffectRecoverHp", Game_Action.prototype.itemEffectRecoverHp);
+Game_Action.prototype.itemEffectRecoverHp = function(target, effect) {
+	if (this.isIgnoredRecoverHarm(target, target.mhp, effect)) return;
+	J.ABS.Aliased.Game_Action.get("itemEffectRecoverHp").call(this, target, effect);
+};
+/**
+* Extends {@link #itemEffectRecoverMp}.<br/>
+* A Recover MP effect written below zero is harm, which a target that takes no damage ignores.
+*/
+J.ABS.Aliased.Game_Action.set("itemEffectRecoverMp", Game_Action.prototype.itemEffectRecoverMp);
+Game_Action.prototype.itemEffectRecoverMp = function(target, effect) {
+	if (this.isIgnoredRecoverHarm(target, target.mmp, effect)) return;
+	J.ABS.Aliased.Game_Action.get("itemEffectRecoverMp").call(this, target, effect);
+};
+/**
+* Whether or not a recover effect is harm that its target ignores.<br/>
+* Recover HP and Recover MP each take a rate of the target's maximum plus a flat amount, and either
+* may be written below zero, which turns the effect into damage.
+* @param {Game_Battler} target The target of this action.
+* @param {number} maximum The target's maximum of the resource being recovered.
+* @param {RPG_UsableEffect} effect The recover effect being applied.
+* @returns {boolean}
+*/
+Game_Action.prototype.isIgnoredRecoverHarm = function(target, maximum, effect) {
+	const recovered = maximum * effect.value1 + effect.value2;
+	if (recovered >= 0) return false;
+	return target.isImmuneToDamage();
 };
 /**
 * Calculates whether or not this action is evaded by the target.
@@ -26615,6 +26753,15 @@ Game_Actor.prototype.getBonusHitsSources = function() {
 	];
 };
 /**
+* Extends {@link #executeFloorDamage}.<br/>
+* An actor that takes no damage walks damage floors unharmed, so the floor neither hurts nor flashes.
+*/
+J.ABS.Aliased.Game_Actor.set("executeFloorDamage", Game_Actor.prototype.executeFloorDamage);
+Game_Actor.prototype.executeFloorDamage = function() {
+	if (this.isImmuneToDamage()) return;
+	J.ABS.Aliased.Game_Actor.get("executeFloorDamage").call(this);
+};
+/**
 * Replaces the map damage with JABS' version of the map damage.
 */
 J.ABS.Aliased.Game_Actor.set("performMapDamage", Game_Actor.prototype.performMapDamage);
@@ -27511,6 +27658,54 @@ Game_Battler.prototype.isStateAddable = function(stateId) {
 		if (this.isImmuneToStateByType(state)) return false;
 	}
 	return J.ABS.Aliased.Game_Battler.get("isStateAddable").call(this, stateId);
+};
+/**
+* Whether or not this battler takes no damage at all, from any of its own note sources via
+* `<noDamage>`.<br/>
+* No harm lowers its HP or MP while this holds: hits and drains, formula packets, damage over time,
+* regeneration run below zero, damage floors and recover effects written below zero all land as
+* nothing. Healing still lands, and so does what the battler pays or a designer sets on purpose:
+* skill costs, event commands and the death state are all left alone.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isImmuneToDamage = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.NoDamage) === true;
+};
+/**
+* Whether or not the given skill, cast by this battler, is barred from taking this battler's own HP
+* to zero. `<noSelfKill>` on any of this battler's own note sources bars every skill it casts, and
+* `<thisNoSelfKill>` on a skill's own note bars that skill alone.
+* @param {RPG_UsableItem} skill The skill being executed.
+* @returns {boolean}
+*/
+Game_Battler.prototype.hasNoSelfKill = function(skill) {
+	return this.hasBattlerOrSkillTag(skill, J.ABS.RegExp.NoSelfKill, J.ABS.RegExp.ThisNoSelfKill);
+};
+/**
+* Whether or not the given skill, cast by this battler, is barred from taking an opponent's HP to
+* zero. `<noTargetKill>` on any of this battler's own note sources bars every skill it casts, and
+* `<thisNoTargetKill>` on a skill's own note bars that skill alone.
+* @param {RPG_UsableItem} skill The skill being executed.
+* @returns {boolean}
+*/
+Game_Battler.prototype.hasNoTargetKill = function(skill) {
+	return this.hasBattlerOrSkillTag(skill, J.ABS.RegExp.NoTargetKill, J.ABS.RegExp.ThisNoTargetKill);
+};
+/**
+* Whether or not a tag is present either battler-wide, on any of this battler's own note sources,
+* or on the executing skill's own note.<br/>
+* Both kill floors read their tags this way and differ only in which pair they read. A skill this
+* battler merely knows is one of its note sources, so the battler-wide tag can be granted by a
+* passive skill, while the skill-scoped tag only ever counts on the skill being cast.
+* @param {RPG_UsableItem} skill The skill being executed.
+* @param {RegExp} battlerWideStructure The tag that covers every skill this battler casts.
+* @param {RegExp} thisSkillStructure The tag that covers only the skill carrying it.
+* @returns {boolean}
+*/
+Game_Battler.prototype.hasBattlerOrSkillTag = function(skill, battlerWideStructure, thisSkillStructure) {
+	const battlerWide = RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), battlerWideStructure);
+	if (battlerWide === true) return true;
+	return RPGManager.checkForBooleanFromNoteByRegex(skill, thisSkillStructure) === true;
 };
 /**
 * Handles logic surrounding state application in regards to JABS.

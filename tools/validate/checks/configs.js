@@ -285,7 +285,7 @@ const findTemplateEnemyId = template =>
  */
 const BOSS_VERBS = [
   'forceSkill', 'addState', 'removeState', 'changeImage', 'quickenRoutine', 'spawn', 'tint', 'animation', 'dialogue',
-  'blink', 'wait', 'learnSkill', 'startRoutine', 'face', 'log',
+  'blink', 'wait', 'learnSkill', 'startRoutine', 'face', 'log', 'summon', 'jump',
 ];
 
 /**
@@ -423,6 +423,39 @@ const checkBossStep = (project, findings, encounter, step, where) =>
   {
     findings.resolve(project, `${where} animation`, 'Animations', step.animation);
   }
+
+  if (step.verb === 'summon') checkBossSummon(project, findings, encounter, step, where);
+
+  // a jump lands on the tile it names, which has to be somewhere on the arena.
+  if (step.verb === 'jump')
+  {
+    const tileProblem = findTileProblem(project.maps.get(encounter.map), encounter.map, step.x ?? 0, step.y ?? 0);
+    if (tileProblem !== '') findings.add(`${where} ${tileProblem}`);
+  }
+};
+
+/**
+ * A summon step: it has to name a body held back to be summoned, and the flash it arrives in has to exist. Naming
+ * nobody would mean the boss, and the boss is there from the start; a body there from the start needs no
+ * summoning, and the plugin refuses both. A name the fight does not have is reported with every other step's.
+ * @param {object} project The loaded project.
+ * @param {Findings} findings Where failures go.
+ * @param {object} encounter The encounter owning the step.
+ * @param {object} step The summon step.
+ * @param {string} where Where the step lives, for the report.
+ */
+const checkBossSummon = (project, findings, encounter, step, where) =>
+{
+  const key = step.participant ?? '';
+  if (key === '') findings.add(`${where} summons nobody, so the fight refuses to start: a summon names the body it brings in`);
+
+  const body = encounter.participants.find(participant => participant.key === key);
+  if (body && body.summoned !== true)
+  {
+    findings.add(`${where} summons participant "${key}", who is there from the start, so the fight refuses to start`);
+  }
+
+  if ((step.animation ?? 0) > 0) findings.resolve(project, `${where} animation`, 'Animations', step.animation);
 };
 
 /**
@@ -540,6 +573,12 @@ const checkBosses = (project, jabs, findings) =>
       findings.add(`${where} lists bystander "${boss.key}" first, where its boss belongs, so the fight refuses to start`);
     }
 
+    // nor can the boss be held back to be summoned: it is framed, and every routine waits on it, from the first frame.
+    if (boss && boss.summoned === true)
+    {
+      findings.add(`${where} lists summoned participant "${boss.key}" first, where its boss belongs, so the fight refuses to start`);
+    }
+
     encounter.participants.forEach(participant =>
     {
       const participantWhere = `${where} participant "${participant.key}"`;
@@ -569,7 +608,43 @@ const checkBosses = (project, jabs, findings) =>
     encounter.routines
       .filter(routine => routine.dormant === true && !started.has(routine.key))
       .forEach(routine => findings.add(`${where} routine "${routine.key}" is dormant, but no step ever starts it, so it never runs`));
+
+    checkBossSummons(findings, encounter, where);
   });
+};
+
+/**
+ * The summons of a boss encounter: a routine runs over and over, so it may never summon, and every body held back
+ * to be summoned has to be summoned by exactly one reaction's step. Never, and the fight waits on it forever; twice,
+ * and its first body is left standing with nothing in the fight watching it. The plugin refuses all three.
+ * @param {Findings} findings Where failures go.
+ * @param {object} encounter The encounter.
+ * @param {string} where Where the encounter lives, for the report.
+ */
+const checkBossSummons = (findings, encounter, where) =>
+{
+  encounter.routines.forEach(routine => routine.steps.forEach((step, index) =>
+  {
+    if (step.verb !== 'summon') return;
+
+    findings.add(`${where} routine "${routine.key}" steps[${index}] summons a participant, but a routine runs over and over, so the fight refuses to start`);
+  }));
+
+  const summoned = (encounter.reactions ?? [])
+    .flatMap(reaction => reaction.steps)
+    .filter(step => step.verb === 'summon')
+    .map(step => step.participant ?? '');
+
+  encounter.participants
+    .filter(participant => participant.summoned === true)
+    .forEach(participant =>
+    {
+      const summons = summoned.filter(key => key === participant.key).length;
+      const participantWhere = `${where} participant "${participant.key}"`;
+
+      if (summons === 0) findings.add(`${participantWhere} waits to be summoned, but no reaction ever summons it, so the fight refuses to start`);
+      if (summons > 1) findings.add(`${participantWhere} is summoned by ${summons} steps, but a body arrives only once, so the fight refuses to start`);
+    });
 };
 
 /**
