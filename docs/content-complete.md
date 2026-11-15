@@ -98,10 +98,10 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Lust: the approach on proximity beats (Map443)
 - [ ] Lust: Rupert's flashback, the ship, the castle and the crater
 - [ ] Lust: the fight, immune until he reaches, with the avoidable grab (Map443)
-- [ ] Envy: her row and the off-sprite clone charset (Map426)
+- [ ] Envy: her row, her sheet and her phase-4 glitch look (Map426)
 - [ ] Envy: the scene with the chatter stream under it (Map426)
 - [ ] Envy: Jerald's flashbacks, Weird Island and the morph manifestation
-- [ ] Envy: the fight, thirty invincible milling Jeralds and one wrong one (Map426)
+- [ ] Envy: the fight, Grudj's stolen remote cranked through four phases, then his intercom (Map426)
 - [ ] Grudj: his row and sprite, and stepping out from behind the statue (Map444)
 - [ ] Grudj: the reveal and the thesis, said out loud (Map444)
 - [ ] Grudj: the scrambler machine's cycle, ailments and SDP blackout (Map444)
@@ -270,7 +270,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Is the HUD redesign in 1.0?
 - [ ] Are spawner enemies in 1.0?
 - [ ] One fork quest per trunk, or one per fork?
-- [ ] Names for Sloth, Lust and Envy
+- [ ] Names for Sloth and Lust
 - [ ] Where the meal happens, and whether Nare gets a map
 - [ ] What fills the drop rows the berries left behind?
 - [ ] Do ingredients need descriptions? 396 items have none

@@ -51748,7 +51748,7 @@
   {
     "id": 581,
     "name": "Gluttonwolf Mayor",
-    "note": "\u003clevel:15\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003catkBuffPlus:[(a.level * 2.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 1.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 2.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 2.5)]\u003e\n\u003chitBuffPlus:[30 + (a.level * 3)]\u003e\n\u003cevaBuffPlus:[5 + (a.level * 0.5)]\u003e\n\u003ccriBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003ccevBuffPlus:[2.5 + (a.level * 0.25)]\u003e\n\u003cmevBuffPlus:[5 + (a.level * 0.5)]\u003e\n\u003cgrdBuffPlus:[7.5 + (a.level * 0.75)]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1)]\u003e\n\u003csdpPoints:3\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_1,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
+    "note": "\u003clevel:15\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 18]\u003e\n\u003catkBuffPlus:[(a.level * 2.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 1.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 2.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 1.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 2.5)]\u003e\n\u003chitBuffPlus:[30 + (a.level * 3)]\u003e\n\u003cevaBuffPlus:[5 + (a.level * 0.5)]\u003e\n\u003ccriBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003ccevBuffPlus:[2.5 + (a.level * 0.25)]\u003e\n\u003cmevBuffPlus:[5 + (a.level * 0.5)]\u003e\n\u003cgrdBuffPlus:[7.5 + (a.level * 0.75)]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1)]\u003e\n\u003csdpPoints:3\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_1,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
     "battlerName": "Wolfman",
     "traits": [
       {
@@ -51868,7 +51868,7 @@
     "exp": 0,
     "gold": 0,
     "params": [
-      22500,
+      450,
       650,
       11,
       7,
@@ -51881,7 +51881,7 @@
   {
     "id": 582,
     "name": "Vampire King",
-    "note": "\u003clevel:70\u003e\n\u003cretaliate:[276,25]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 275]\u003e\n\u003cmrgBuffPlus:[4000]\u003e\n\u003catkBuffPlus:[(a.level * 3.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 9)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7)]\u003e\n\u003cagiBuffPlus:[(a.level * 5.25)]\u003e\n\u003chitBuffPlus:[20 + (a.level * 2)]\u003e\n\u003cevaBuffPlus:[12.5 + (a.level * 1.25)]\u003e\n\u003ccriBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003ccevBuffPlus:[2.5 + (a.level * 0.25)]\u003e\n\u003cmevBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003cgrdBuffPlus:[5 + (a.level * 0.5)]\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e\n\u003cmonsterFamilyIcon:48\u003e\n\u003cdescriptionLine:The vampire form of the random guy who presumably caused the Erocian Kingdom to fall.\u003e\n\u003cdescriptionLine:You don't know much about him because you decided to slay him before you made him spill the beans.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_2,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e",
+    "note": "\u003clevel:70\u003e\n\u003cretaliate:[276,25]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 28]\u003e\n\u003cmrgBuffPlus:[4000]\u003e\n\u003catkBuffPlus:[(a.level * 3.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 7)]\u003e\n\u003cmatBuffPlus:[(a.level * 9)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7)]\u003e\n\u003cagiBuffPlus:[(a.level * 5.25)]\u003e\n\u003chitBuffPlus:[20 + (a.level * 2)]\u003e\n\u003cevaBuffPlus:[12.5 + (a.level * 1.25)]\u003e\n\u003ccriBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003ccevBuffPlus:[2.5 + (a.level * 0.25)]\u003e\n\u003cmevBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003cgrdBuffPlus:[5 + (a.level * 0.5)]\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e\n\u003cmonsterFamilyIcon:48\u003e\n\u003cdescriptionLine:The vampire form of the random guy who presumably caused the Erocian Kingdom to fall.\u003e\n\u003cdescriptionLine:You don't know much about him because you decided to slay him before you made him spill the beans.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.44)]\u003e\n\u003csdpPoints:9\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_2,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e",
     "battlerName": "Vampire",
     "traits": [
       {
@@ -52423,7 +52423,7 @@
   {
     "id": 587,
     "name": "Lust",
-    "note": "\u003clevel:130\u003e\n\u003chitBuffPlus:[25 + (a.level * 2.5)]\u003e\n\u003cevaBuffPlus:[10 + (a.level * 1)]\u003e\n\u003ccriBuffPlus:[10 + (a.level * 1)]\u003e\n\u003ccevBuffPlus:[2.5 + (a.level * 0.25)]\u003e\n\u003cmevBuffPlus:[10 + (a.level * 1)]\u003e\n\u003cgrdBuffPlus:[5 + (a.level * 0.5)]\u003e\n\u003clukBuffPlus:[(a.level * 4)]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003cdescriptionLine:The Sin of Lust, a void clown scrambled to zero by his own kin.\u003e\n\u003cdescriptionLine:Nothing gets in while he lurches. Only when he reaches for you is he open.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.33)]\u003e\n\u003csdpPoints:21\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_7,1]\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e",
+    "note": "\u003clevel:130\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 28]\u003e\n\u003chitBuffPlus:[25 + (a.level * 2.5)]\u003e\n\u003cevaBuffPlus:[10 + (a.level * 1)]\u003e\n\u003ccriBuffPlus:[10 + (a.level * 1)]\u003e\n\u003ccevBuffPlus:[2.5 + (a.level * 0.25)]\u003e\n\u003cmevBuffPlus:[10 + (a.level * 1)]\u003e\n\u003cgrdBuffPlus:[5 + (a.level * 0.5)]\u003e\n\u003clukBuffPlus:[(a.level * 4)]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003cdescriptionLine:The Sin of Lust, a void clown scrambled to zero by his own kin.\u003e\n\u003cdescriptionLine:Nothing gets in while he lurches. Only when he reaches for you is he open.\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.33)]\u003e\n\u003csdpPoints:21\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_7,1]\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e",
     "battlerName": "",
     "traits": [
       {
@@ -52459,7 +52459,7 @@
     "exp": 0,
     "gold": 0,
     "params": [
-      60000,
+      310,
       0,
       1,
       1,

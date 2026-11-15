@@ -428,7 +428,9 @@ Data only, so no plugin changed. Script `/tmp/claude-1000/lust/data/build-lust.j
   a second of window left. **Now 1.5 s after the tell** (his default, 11-13): it opens as he lands on a leap of up to six
   tiles, and in the air on a longer one, which the landing grab doesn't mind.
 - **His bar is still provisional.** The bot never once hit him in a window, so his 60,000 waits on Jeremy's own
-  playtest, as Sloth's final bar does.
+  playtest, as Sloth's final bar does. *Since 11-14 22:15 the 60,000 is gone:* a level line plus Plump on ev587,
+  4,735,100 (see [the sponge pass](#the-sponge-pass-over-the-earlier-bosses-2026-11-14-1920-his-work-backwards-over-the-previous-bosses)).
+  Still unplaytested.
 - **The vents didn't erupt as first built:** J-ABS gives an inanimate battler no combat AI at all (*read*), so a
   hazard's action list never fires. They now carry `<autoExecuteSkill:[2596, enemiesNearby, 1, 120, 6]>`.
 
@@ -572,11 +574,168 @@ range, so a short-range reach could land late, after the fixed `wait` has alread
 
 `Map426` "Tower 13: Envy", 40×46, two screens tall; enemy `584`. Jerald alone; Fortress band 115-130.
 
+**2026-11-14: the clone design below is RETIRED.** His words: "I put some thought into it, and don't think the
+'crowd of Jerald clones' is really a great thing. We need something... more conceptually fitting." Everything under
+"Already yours" and "Open slots" about clones, tells, counts, blinks, Know/Spend and nameplates is dead.
+
+**His design (2026-11-14, still moving): she swiped Grudj's remote.** Grudj owns the scrambler machine, and the
+remote makes it target things; she turns it on herself. A volume dial, phase by phase:
+
+1. **6/10** at the start: "rather angry but still in control".
+2. **80% HP, "MAX" 10/10**: a buff that grants her a new skill (unnamed); "teetering her on the boundary of 'livid'
+   and 'insane'".
+3. **50% HP, 13/10**: another buff; untargetable tendrils erupt from the floor and whip if you get too close; a damage
+   aura like the wisp's fire aura melting MHP% ("something like 5% + small flat per second").
+4. **25% HP, the dial twisted until it breaks**: the final buff; "devolves into a spacial glitchy mess of voidal ruin";
+   the aura at 10% MHP + a medium flat per second and wider; tendrils spawn from the arena's sides and lash "massive
+   lines across the whole arena".
+
+**His kit (16:23):** a caster, "never a fighter". One small ranged shot plus `+Ranged` (2001) on her basic, and
+"Attack Element: Void" innately (element 9), so void protection makes it an easy fight ("recommended, not that you'd
+ever know in advance"). 6/10 = stronger plus about -20% cast time (J-ABS-Timing `<castSpeedRate>`: negative =
+faster). MAX adds a direct skill, cast about 1.5 s (90 frames), radius 2; dodgeable, and only a real danger once the
+tendrils join. **The room stays big** (walkable x 2-37, rows 3-43; a wall block at x 31-37, rows 5-17; exit (18,44)).
+"Reclaiming the space... a variety of OTHER things to avoid". The edge tendrils are "tentacles that reach up out of
+the pit surrounding the main fighting arena, and then lash across the arena on regular intervals". His two ways in:
+AI plus high proximity, or AI off plus move route, wait and forced actions. The precedent is Lust's Goop Vent (597,
+Map361 ev597): `<jabsConfig:inanimate>`, `<knockbackResist:100>`, `<autoExecuteSkill:[2596, enemiesNearby, 1, 120,
+6]>`, with Scrambled 2079 and No Rewards 183 on the template. J-ABS paints a cast's telegraph
+(`JABS_HitboxPainter`). The remote was his only one, so the courtyard machine's repeating cycle is her doing.
+
+**Her votary = the tendrils (his, 16:54):** 594 becomes "Voidal Tendril". One row, several templates: the fight's
+untouchable ones (the floor whip, the pit lash) and a killable world one carrying the SIN_4 roll, released into the
+world at her death. **Lust's votary is open again:** 597 "Goop Vent" sits in his slot only because the 11-13 build
+took the free id; nothing ever decided it was his votary, and as a rewards-stripped arena hazard nothing drops SIN_7.
+His words: "We might need to rethink how Lust's votary works a bit if we want it to appear around so you can ever get
+the Lust SDP".
+
+**THE BUILD SHEET (2026-11-14 ~17:45, sent; awaiting his go; nothing built).** Picture:
+`/tmp/claude-1000/envy/art/voidella-layout.png` (`overlay.js`; render via `bun tools/mapgen/snapshot.js 426`).
+
+- **E584 "Voidella"**, lv130. A flat 60,000 bar, PROVISIONAL like Lust's. Small base params plus Aqualock's six
+  lines (atk 2.75, def 3.75, mat 7.5, mdf 4.75, agi 4.75, luk 3.25 a level; MAT 975 at 130). Trait 35 = 2551 (the
+  elementals' Attack); actions `+Ranged` 2001 and her shot 2597. Trait 31 = 9 (Void) only; absorb and weakness are
+  his to answer. The sin boss tags from Lust's row: sight and pursuit 99, `noIdle`, `noHpBar`, `knockbackResist:100`,
+  `hideTargetFrame`, `noDangerIndicator`. Kept as committed: the six growth lines, the SDP lines, SIN_4 and icon 53.
+  Description lines are TODO.
+- **E594 "Voidal Tendril"**, lv132 (votary = boss + 2), the stub's stat lines kept (ATK 627 and MAT 825 at 132), so
+  the fight tendrils' damage rides these. `<jabsConfig:inanimate>`, `<knockbackResist:100>`, SIN_4 kept, action 2601.
+- **Skills:** 2597-2600 are free in the sin block, and 2601-2602 append. Names are TODO (his).
+  - **2597, her shot:** Warding Bolt 2542's flying bolt (action 25, line, thickness 0.3, proximity 6, cast 30,
+    cooldown 120), minus its energy element and its orb self-state. Element 9, `(a.mat * 2) - (b.mdf * 1)`.
+  - **2598, MAX:** `<direct>` (snapshots his tile at decision, so the cast is a dodge window), cast 90, circle
+    radius 2, proximity 8, cooldown 480. Element 9, `(a.mat * 4) - (b.mdf * 1)`.
+  - **2599 and 2600, the auras:** radius 3 and radius 5, no cast, `<unparryable>`, magical (her HIT lands them), element
+    9. Formulas `b.mhp * 0.05 + 500 - (b.mdf * 1)` and `b.mhp * 0.10 + 1000 - (b.mdf * 1)`.
+  - **2601, the whip:** a 2551 clone, circle radius 2, cast 30, element 9, `(a.atk * 2) - (b.def * 1)`.
+  - **2602, the lash:** line radius 38, thickness 2, cast 60 (J-ABS paints the telegraph), element 9,
+    `(a.atk * 4) - (b.def * 1)`.
+- **States, appended 2083-2088. HIS NUMBERS (17:36), as totals per crank, ATK/MAT/cast-speed:**
+  - 6/10 = +20/+20/20% faster; MAX = +20/+40/20 with the AoE and the floor tendrils; 13/10 = +20/+70/30 with more
+    tendrils and "small weaker aura"; BROKEN = +50/+100/40 with "giant tendrils", a "moderate stronger aura" and the
+    glitch. Each crank's state replaces the last, so the states carry the totals.
+  - 2083 "6/10": ATK x1.2, MAT x1.2, `<castSpeedRate:[-20]>` (multiplier `(rate + 100) / 100`).
+  - 2084 "MAX": ATK x1.2, MAT x1.4, -20.
+  - 2085 "13/10": ATK x1.2, MAT x1.7, -30, `<autoExecuteSkill:[2599, enemiesNearby, 1, 60, 3]>`.
+  - 2086 "BROKEN": ATK x1.5, MAT x2, -40, `[2600, enemiesNearby, 1, 60, 5]`.
+  - At -40 her 90-frame AoE casts in 54 frames (0.9 s), and her 30-frame shot in 18.
+  - 2087 "Whipping": `[2601, enemiesNearby, 1, 90, 2]`. 2088 "Lashing": `[2602, time, 240]`.
+  - SETTLED 17:44: his lists were running tallies. It's one AoE, learned at MAX and kept. The floor tendrils all
+    arrive at MAX, so the 50% reaction spawns nothing. 13/10 adds only the small aura. The giant pit tendrils come at
+    BROKEN. If the 0.9 s AoE proves too tight, lengthen its base cast ("it'll take some testing").
+  - HIS CAVEAT, her bar: "Voidella will need a good amount of MHP in order to have distinct phases with someone like
+    Jerald obliterating her" (T6 gear refined past max, SDPs maxed, maxed forks). He's considering HP-sponge passives
+    shaped like the affix tiers (301 Origin x2 MHP, 302 Vintage x4, 303 Prime x10, 304 Grand x20, 305 Elysian x50;
+    each also lifts the other params x1.1-1.5 and the rewards), but "purely 'HP sponge time' so that the enemy rows can
+    have reasonable base stats but still fight like bosses."
+  - **WHY (his, 17:49):** an Ancient Cave-style crawl dungeon (Lufia II), entered from the Fallen Kingdom's jail
+    (Map289 "Deep Dungeon Entrance", ev3 "difficulty gate" at (15,13): "Looks like our benevolent developer has yet to
+    implement this door."), with bosses down there as regular enemies at any level: "fighting a level 6 sin of
+    gluttony becomes something of a challenge" if the row's HP is huge. **So boss rows stay level-scaled, and the
+    sponge rides the fight template.** Sheet change: E584 drops the flat 60,000 for Aqualock's MHP line,
+    `(a.level ** 2) * 28` over base 310, which is about 1,300 at lv6 and about 473,500 at lv130. A sponge passive goes
+    on Map361 ev584, its multiplier and name his. Lust 587 (flat 60,000, params 1) and Sloth 585 (flat 100,000)
+    need the same conversion before they can roam the Deep Dungeon. *Lust's HP got it on 11-14 (see the sponge
+    pass); Sloth stays held by his call.*
+  - **THE SPONGES (his, built 17:58 in his editor):** States 306 "Healthy" x5, 307 "Healthy+" x10, 308 "Healthy++"
+    x20, 309 "Healthy+++" x50, 310 "Healthy++++" x100. Each is MHP rate only (trait 21/0), `<indefiniteState>`, icon
+    32, and sits in what were empty slots, so no ids moved. On her ~473,500 at lv130 they give about 2.4M / 4.7M /
+    9.5M / 23.7M / 47.4M. **HIS PICK (18:52): Healthy+ (307, x10, ~4.7M)** to start; stepping up or down is one
+    passive swap on her template. **RENAMED 19:08 at his pick** (`rename-sponges.js`, five name lines only,
+    validate OK): 306 Hearty x5, 307 Plump x10 (hers), 308 Stuffed x20, 309 Gorged x50, 310 Bottomless x100.
+
+### The sponge pass over the earlier bosses (2026-11-14 ~19:20, his "work backwards over the previous bosses")
+
+- **The engine math:** vanilla `param = (paramBase + paramPlus) x paramRate x paramBuffRate`, enemies uncapped
+  (`paramMax` Infinity). J-Natural folds the `mhpBuffPlus` line into `paramBase` (`Game_Enemy.paramBase` alias), so a
+  sponge multiplies the whole level line. **Proven live:** `cynder-hall-probe.js` read Cynder at 855,850/855,850 =
+  85,585 x 10, zero exceptions (`/tmp/claude-1000/envy/cynder-sponge-probe.log`).
+- **Tagged with Plump (307), uniform as a starting point**, via `<passive:[307]>` on each template (`tag-sponges.js`,
+  one comment line each, validate OK):
+  - Earthie, ev551: 17,930 → 179,300.
+  - Aqualock, ev602-604: 30,802 → 308,020 in each of her three fights.
+  - Cynder, ev553: 85,585 → 855,850.
+  - Skye's own fight, ev554: 137,490 → 1,374,900.
+  - A participant with no `template` spawns from the slot matching its enemy id (`parseParticipant`).
+- **Converted (2026-11-14 ~22:15, his "fix the bosses accordingly... 'regular enemy'-ready- scaling included- with
+  something like `Plump` doing the heavy lifting" and "Fix Lust")**: `/tmp/claude-1000/envy/hp2/convert.js`, Enemies
+  diff 5 in / 5 out, three template lines; validate OK. Totals are computed (`hp2/after.js`), not probed: Cynder proved
+  the slot-matched template path and the masterworks the explicit one.
+  - The Mayor 581: flat 22,500 → base 450 + `(a.level ** 2) * 18` (4,500 at lv15, 1,098 at lv6 against a lv≤8
+    regular median of ~1,213), and ev581 wears **Hearty** (306) = 22,500, unchanged. Plump would need K≈9, under
+    every regular row (K floor 11.47; regular K median 27.06).
+  - The Vampire King 582: `* 275` → `* 28`, base 535 kept (137,735 at lv70), ev582 wears Plump = 1,377,350 (+2.2%).
+    Power of Wrath heals `a.mhp * 0.15`, proportional, so the tier doesn't move it.
+  - Lust 587: flat 60,000 → base 310 + `(a.level ** 2) * 28` (473,510 at lv130), ev587 wears Plump = 4,735,100, the
+    same as Voidella's sheet. He is hittable only 3 s per 10/8/6 s cycle, so his bar plays longer than hers; Hearty
+    (2,367,550) is the step-down if his playtest drags. His other params are still the 1s from his build (his damage
+    reads the target's HP), left as they are. *Read:* Scrambled's `<immuneToAll>` gates only `isStateAddable` (J-ABS
+    core `Game_Battler`), and J-Passive's tracker never passes through it (`addPassiveStateId` checks duplicates
+    only; passives join through `allStates`), so the sponge holds while he's sealed and his bar never jumps.
+- **Held, by his call ("Gloria is a wet noodle, intentionally. Sloth makes sense... garuda and golems- can stay with
+  their current passive states"):**
+  - Skye in Garuda's fight (ev607): a bystander.
+  - Sloth: Heartbeat reads her own HP, and her flat 100,000 sits under a regular lv110 (~332k), so no tier keeps her
+    total.
+  - Gloria: weak on purpose.
+  - Bodies already dressed in Prime or Grand: Earthie's golems, Garuda, and Gloria's masterworks.
+- **Switches:** 196 "envy defeated", 197 "envy fight started" (the 190-195 pattern).
+- **Templates on Map361:**
+  - ev584 "boss: voidella": her sheet TBD. Her page's death scene carries Grudj's line, then TODO.
+  - ev594, the world tendril: `<passive:[2087]>`, killable.
+  - ev618, the fight floor tendril: `[2087, 183]` plus `<jabsConfig:invincible>`, since his "untargetable" means hits
+    pass through.
+  - ev619 and ev620, the pit tentacles: `[2088, 183]`, invincible, direction fixed; 619 faces right, 620 faces left.
+  - Staggered timers would cost one state and one template per interval per side, so all six lash together.
+- **Encounter `envy`:** map 426, defeatSwitch 196, participant 584 at (19,9) with template 584, aiControl shared.
+  - start: addState 2083, plus a tint and a log line (TODO).
+  - below 80: removeState 2083, addState 2084, learnSkill 2598.
+  - below 50: swap to 2085, and spawn template 618 at (9,18), (19,18), (29,18), (9,30), (19,30) and (29,30).
+  - below 25: swap to 2086; spawn 619 at (0,8), (0,14) and (0,26), and 620 at (39,20), (39,32) and (39,38); then
+    changeImage to the glitch sheet.
+  - Every crank also gets a tint and a TODO line.
+- **Map426:** a "story: pre-boss" autorun with TODO text, then start-encounter `envy` and sw197, the same as Map443
+  ev3. Then a hall like Lust's Map552, with a lobby door.
+- **Art, lineups before install:** her sheet (an elemental base in void colours; Aqualock's, the caster), her BROKEN
+  glitch sheet, and the tendril (`$m_crawler-wriggle-worm`, the glowing tube, recoloured void, or a scout).
+- **A hall must prove:** the `time` rule in live data, spawned facing, an auto-cast from an invincible inanimate body,
+  the 38-tile line, and the 60-frame aura beside her casts.
+
+Then her death runs Grudj's intercom (see `story-canon.md`, The gent's voice after each fall). Engine reads
+2026-11-14: `learnSkill`, `addState`, `spawn`, `tint`, `dialogue`, `changeImage` and health reactions are all boss
+verbs. `<autoExecuteSkill>` ticks for every map battler (spawned ones included) and goes through `forceMapAction`,
+which nothing blocks mid-cast. A spawned body faces its template's way (`addEnemyToMap(x, y, template)` takes no
+direction), so it needs one template per wall. The aura's house shape is Heartbeat's (2590):
+`b.mhp * 0.03 + a.mhp * 0.01 - (b.mdf * 1)`, Certain Hit, `<unparryable>`. The MDF term eats a small flat.
+
 ### Already yours
 
 - **The shape** (2026-08-03, reviewed 2026-09-17; "shape settled" in `fortress.md`'s open items): many copies, only one
-  real, and the real one subtly *wrong*, because envy imitates but never achieves. The copies are **copies of Jerald**,
-  not of her. One boss and one bar, the boss frame.
+  real, and the real one subtly *wrong*, ~~because envy imitates but never achieves~~. The copies are **copies of
+  Jerald**, not of her. One boss and one bar, the boss frame.
+- **She is not a copycat** (2026-11-14), which retires the "imitates" line above: *"I don't want Envy to be a copy
+  cat- she may want what you have, but technically she already has it, doesn't she? She has a junction."* See
+  `story-canon.md`, The Tower — Envy.
 - **The tell is visual and the difficulty is the count** (2026-09-17): a sprite cue, "a hair color, say". Three with one
   off is obvious; thirty with one off is an effort.
 - **The clones are invincible, so they mill about at random.** Clones that converged on Jerald would be impassable
@@ -603,17 +762,16 @@ immune to states) lets a hit land for 0.
 **2. The sprite cue.**
 
 - **A, the hair** (your example): Jerald's sheet with his hair shifted to her void purple. `art`
-- **B, mirrored**: the one Jerald carrying his weapon in the wrong hand, a reflection rather than the man. Reads best
-  side-on. `art`
+- **B, mirrored**: the one Jerald carrying his weapon in the wrong hand. Reads best side-on. `art`
 - **C, the eyes**: too small at map scale to find in thirty.
-- **My pick: A.** It is your idea and the cheapest sheet to make. B is the wittier one if you want to draw it.
+- **My pick: A.** It is your idea and the cheapest sheet to make.
 
 **3. The count.**
 
 - **A, thirty from the first frame.**
 - **B, a ramp that teaches first**: 10 when the fight starts, 10 more at 66%, 10 more at 33%, each a `spawn` in a health
   reaction. The player learns what "off" looks like among ten, then has to find it among thirty. `data`
-- **C, the crowd collapses at the end**: at 10% every clone fades and she fights as herself, the imitation spent.
+- **C, the crowd collapses at the end**: at 10% every clone fades and she fights as herself.
   Nothing takes a body off the map mid-fight today: a `spawn` body can't be named by a step, and even a bystander can
   only be given the death state, which has never been tried under J-ABS-Boss. So either thirty bystander participants
   and an untested death state, or a new `despawn` verb. `verb`
@@ -645,21 +803,23 @@ Three engine notes, all *read in source*:
 
 **5. What she does to Jerald.** Without a threat the search is free.
 
-- **A, she imitates him**: her kit is Jerald-shaped (his swing, his dash) in void, because envy copies. She only
-  swings when he comes within a couple of tiles, so attacking him gives her away. `data`
+- ~~**A, she imitates him**~~: retired 2026-11-14, because Envy is not a copycat (see `story-canon.md`, The Tower —
+  Envy).
 - **B, she can't keep it in**: every 12 seconds or so a routine forces a burst of hate around her, a short-range blast
   that punishes standing next to her and briefly shows where she is. `data`
 - **C, she steals**: her hit takes one of his buffs, since she wants what he has. Nothing in J-ABS strips a buff to
   hand it over. `engine`
-- **My pick: A and B.** The burst gives a player who is losing the search a way back in, at a price.
+- **My pick was A and B.** The burst gives a player who is losing the search a way back in, at a price. A is
+  retired; what she does besides the burst waits for the next mechanics talk.
 
 **6. Leaks.** Two things could out her without the eye test.
 
 - **The targeting list names everything.** *Read in source:* the target-selection window draws each candidate's name,
   so a targeted skill would list thirty Jeralds and one Envy. **Make the clones her own row** on a second template
   (Hollow, `noHpBar`, a sight of 0, Jerald's sheet): `spawn` takes a `template`, so the clones need no row of their own
-  and the names match for free. Naming that row "Jerald" is the funny version: her boss frame then says Jerald too,
-  because she wears his name as well as his face. `data`
+  and the names match for free. `data`
+- **Since 2026-11-14:** *"The clones will become the votaries"* (Jeremy). Naming her row "Jerald" is retired with the
+  copycat reading.
 - **HP bars:** `noHpBar` on the clone template and on hers, so only the boss frame shows her bar. `data`
 - Hits landing for 0 on a clone and for real on her is fine: you have already spent the cooldown to learn it.
 
@@ -865,9 +1025,9 @@ beat (`fortress.md`, The lanes, room by room, `PROPOSED` 2026-09-17). Jerald get
   punishes a careless approach. Move.
 - **B, it goes cold**: at half HP it fades to a near-invisible sheet (`changeImage`), and only its attacks show where it
   is. `art`
-- **C, it splits into copies.** **Don't.** That is Envy's trick four floors up, and it should land fresh there.
-- **My pick: A.** Envy is the fight where Jerald's force is wasted; this one should let force feel good: a big target
-  that won't hold still, hit hard whenever you catch it.
+- **C, it splits into copies.** Free again since Envy's clones were retired (2026-11-14).
+- **My pick: A.** This one should let force feel good: a big target that won't hold still, hit hard whenever you
+  catch it.
 
 **3. How overpowered.** By its own formula (`(a.level ** 2) * 46.57`), a level-135 Reapy has about 849k HP. Elysian
 (×50 HP) makes that about 42M; Grand (×20) about 17M; Prime (×10) about 8.5M. A suffix that also raises HP **adds** to
@@ -933,8 +1093,8 @@ summoned, two `fallen` reactions), the west door's sealed page until the last su
 
 ## One leak that touches four fights
 
-Every "can't be hurt" state in this doc (Sealed on Sloth in phase 1, Scrambled on Lust, Hollow on Envy's clones) is
-built the way Sealed is: PDR 0 and MDR 0. That is also how Earthie's shipped seal works. **It doesn't stop everything.**
+Every "can't be hurt" state in this doc (Sealed on Sloth in phase 1, Scrambled on Lust) is built the way Sealed is:
+PDR 0 and MDR 0. That is also how Earthie's shipped seal works. **It doesn't stop everything.**
 
 - *Read in source:* PDR only scales physical hits and MDR only magical ones (J-ABS-Formula's `Game_Action`, the same
   rule as vanilla RMMZ), so a **Certain Hit** skill ignores both.
@@ -1013,8 +1173,9 @@ Envy's lines sit on her slot, which is otherwise still the lv15 stub until her o
 - **Sloth:** the sin of not trying grows the slowest. Her pulse is Certain Hit and can't crit, so her lines only decide
   how easily the duo lands while racing her.
 - **Lust:** all reach, no guard. Nothing he throws misses Rupert, and in his windows Rupert lands everything.
-- **Envy:** Jerald's own class shape, sharp and slippery, soft to magic and guard. Her 350% lands on a floor Jerald
-  (293% EVA) every swing: his shape, never his numbers.
+- **Envy:** sharp and slippery, soft to magic and guard. Her 350% lands on a floor Jerald (293% EVA) every swing.
+  These rates were first shaped after Jerald's class, a copycat reading retired 2026-11-14 (see `story-canon.md`,
+  The Tower — Envy), so they are due a look at her own build. The numbers stand until then.
 
 **Also in this build:**
 
@@ -1066,27 +1227,23 @@ unblocks:
 |---|---|---|---|
 | 1 | **Measure the duo at each band**: damage per second and max HP for each lead around 110, 130 and 150, plus Rupert's cast times. One probe per band, the way `boss-matchup-probe.js` was run. **Read 11-13 as a floor, your framing: "we're only testing that the mechanics fire, not for balance"** (SDPs, classes, passives and refinement are anyone's guess). `dist/playtest/band-probe.js`: Raving Lunatic Jerald and Lavos Rupert, crafted gear of the band's tier in what each class wears for free (RL: Glaive and Mail, no offhand type at all; Lavos: Rod, Relic, Cloth, so no Tome), no SDPs, no accessory. **Lv110, tier 5:** Jerald MHP 7,967, MDF 354; Rupert MHP 3,278, MDF 379. **Lv130, tier 6:** Jerald 9,687 / 439; Rupert 3,848 / 579. Sloth's pulse fires at both bands, never swallowed by MDF: 885 on Jerald and 719 on Rupert at 110, so Rupert drops on pulse 5 and Jerald on pulse 10 (the 1% of her bar does most of Jerald's). Anything a real build adds only stretches that. Floor stats also read EVA 249% (Jerald) and MEV 126% (Rupert), so a votary's basic attack may never land; check its HIT when the votary is built (done 11-14: it rides Enemy Rank T5) | measurement | all six (every Numbers block hangs off it) |
 | 2 | **The immunity leak**: `<noDamage>` (yours, 11-13), on any note source: 0 damage of any type from any source, DoTs included (they still apply), healing still works. **Built 11-13** (rmmz-plugins `boss-pass`, uncommitted): hits, drains, formula packets, DoT ticks, regen run below zero, damage floors and below-zero Recover effects all land as nothing; skill costs, TP, event commands and the death state are left alone | `engine (small)` | Sloth, Lust, Envy, and Earthie's shipped seal |
-| 3 | **Sprites**: Sloth is done (her statue built 11-13, her votary chosen: `m_winter-spirits` index 2); Lust; the off-Jerald sheet for Envy; Grudj and his machine | `art`, yours | Sloth, Lust, Envy, Grudj |
+| 3 | **Sprites**: Sloth is done (her statue built 11-13, her votary chosen: `m_winter-spirits` index 2); Lust; Envy's sheet and her phase-4 glitch look; Grudj and his machine | `art`, yours | Sloth, Lust, Envy, Grudj |
 | 4 | **`<interrupt:N>` on some player skills**, Rupert's Meltima (484) at least. Nothing in the game can interrupt a cast today | class kits, yours | Grudj, and any later boss that casts |
 | 5 | **A heartbeat sound** for Sloth's pulse (the Subterranean's heartbeat BGS is still missing too) | `audio`, yours | Sloth |
 | 6 | **Two kill-floor tags** (yours, 11-13). `<noSelfKill>` on battlers, equips and states, `<thisNoSelfKill>` on a skill: a skill executed by the battler carrying it can't take that battler's own HP to 0 or less (Sloth 2A). `<noTargetKill>` / `<thisNoTargetKill>`, same homes: it can't take an *opposing* battler's HP to 0 or less, "think False Swipe from pokemon" (friendly fire can still kill). Both clamp where HP drops, after every multiplier. **Built 11-13** (same branch): a skill's damage and its formula packets stop one HP short, after shields absorb their share; "opposing" is J-ABS's team rules (an actor and an enemy count as opposed if the caster has already left the map); DoT ticks aren't a skill's damage, so they aren't held | `engine (small)` | Sloth, and any False Swipe you want |
-| 7 | Optional: `blink` and `jump` also move the body's home tile (a setter in J-ABS, no new field) | `engine (small)` | Envy (4) |
+| 7 | Optional: `blink` and `jump` also move the body's home tile (a setter in J-ABS, no new field) | `engine (small)` | none since Envy's clones were retired (2026-11-14) |
 | 8 | Later: the real SDP blackout in J-SDP, shared with Trainer Lord's exam after 1.0 | `engine` | Grudj (4A) |
 
 **Nice-to-haves that would each cost a full verb**, none of them a pick: spawn where a participant stands (Lust 3D, his
-goop trail), a "this skill landed / missed" trigger (Lust 1B), a `despawn` (Envy 3C), a machine that reboots
-(Grudj 1B). Stealing a buff (Envy 5C) would be core J-ABS work.
+goop trail), a "this skill landed / missed" trigger (Lust 1B), a machine that reboots (Grudj 1B).
 
 **Checks to run in a hall before building on them** (all *unread*):
 
 - Where a gap-close pounce lands when the skill has a cast time: Lust 1D.
 - A forced skill with room-wide range starts its cast where its caster stands: Lust's fallback reach, Grudj's Meltima.
-- A clone hit for 0 goes back to milling rather than chasing Jerald: Envy. **The most important one**, since a crowd
-  that converges deadlocks the fight.
-- J-ABS's "close" distance, which sets how far an idle clone wanders from its spawn: Envy.
 - Which way J-ABS Timing's `<castSpeedRate>` and `<fastCooldownRate>` numbers run: Grudj 6.
 - The worms' "harden while standing still" mechanism on a votary: Sloth 4.
-- The frame rate with thirty Prime votaries, or thirty clones, on screen: Sloth, Envy.
+- The frame rate with thirty Prime votaries on screen: Sloth.
 
 **Suggested build order:** the leak fix first, since three of these fights stand on it, with the two kill-floor tags
 beside it (the same kind of small J-ABS change), then Sloth (her design is

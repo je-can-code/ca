@@ -31,7 +31,7 @@
                       "activeView": "palette",
                       "id": "2"
                     },
-                    "size": 691
+                    "size": 549
                   },
                   {
                     "type": "leaf",
@@ -42,10 +42,10 @@
                       "activeView": "layers",
                       "id": "3"
                     },
-                    "size": 572
+                    "size": 448
                   }
                 ],
-                "size": 372.27734375
+                "size": 310
               },
               {
                 "type": "leaf",
@@ -58,7 +58,7 @@
                   "activeView": "map-380",
                   "id": "4"
                 },
-                "size": 1402.72265625
+                "size": 1167
               },
               {
                 "type": "branch",
@@ -85,16 +85,16 @@
                       "activeView": "events",
                       "id": "6"
                     },
-                    "size": 1263
+                    "size": 997
                   }
                 ],
-                "size": 532
+                "size": 443
               }
             ],
-            "size": 1298
+            "size": 1032
           },
-          "width": 2307,
-          "height": 1298,
+          "width": 1920,
+          "height": 1032,
           "orientation": "HORIZONTAL"
         },
         "panels": {

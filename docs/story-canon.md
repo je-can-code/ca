@@ -729,7 +729,7 @@ transformation from not sin to sin."
 The tower room was *built for Sloth* — the chamber where the gent meant to scramble the sister too, before
 she fled. It sat empty, meant-for-someone. **Someone else wanted to be the one it was meant for.**
 
-**The Sin of Envy: the fifth elemental — the void elemental** (name `OPEN`). Exiled by her own kind **for
+**The Sin of Envy: the fifth elemental — the void elemental**, **Voidella** (Jeremy, 2026-11-14). Exiled by her own kind **for
 what she was, not anything she did** — void, coded dark, condemned before agency entered the picture. The
 one origin in the roster that happened *to* someone for simply existing — which is the gent's condition too,
 arrived at from the opposite direction (his race taken from him; hers exiling her). "Void clown" and "void
@@ -738,8 +738,52 @@ gave him **centuries of devotion**, was never deemed good enough... and then the
 bestowed "the gift," it went to the sibling. Not her. *"Why do YOU get the power? I WANTED that power."*
 She festered into the sin naturally. Nothing was done to her. That's the tragedy.
 
+**What she envies** `LOCKED (Jeremy, 2026-11-14)`: all this time she has wanted to receive *"Grudj's gift of
+power (the scrambling effect to maximum intensity)."* She envies Lust his transformation, and Jerald and Rupert
+the junctions he handed them, *"all despite the fact that she has been at Grudj's side for eons."* He never
+scrambled her into a sin, and *"she perceives that as being deprived, being betrayed."*
+
+**She is not a copycat** `LOCKED (Jeremy, 2026-11-14)`: *"I don't want Envy to be a copy cat- she may want what
+you have, but technically she already has it, doesn't she? She has a junction."* (Every elemental is bound by a
+limiter, "precisely like your Node Junction": see *The Elementals*.) *"She just... I guess didn't realize that it
+could be utilized like the duo have utilized it. Grudj told them. Grudj did not tell anyone else- he scrambles them
+directly without SDPs or anything."*
+
+**Why he never scrambled her** `PROPOSED (Jeremy, 2026-11-14: "leaning towards")`: in her dying moment, the gent
+explains that he was preserving her, because he valued who she was and what she contributed in her time, and that
+he is disappointed she unleashed anyway and was promptly defeated. See *The gent's voice after each fall*, below.
+(If it lands, "was never deemed good enough" above is her reading, not his.)
+
+**The four elementals** `OPEN`: *"I wonder if we can tie that to the four elementals getting scrambled?"*
+(Jeremy, 2026-11-14). See *The Elementals*.
+
+**She swiped his remote** `PROPOSED (Jeremy, 2026-11-14)`: *"she probably WANTS to unleash herself, but how? With
+what? Grudj owns the machine- probably an engineer himself since he built it- and presumably has a handy dandy remote
+that makes it target things... do you suppose she got a hold of the remote somehow?"* In her fight she turns it on
+herself: 6/10, then MAX 10/10, then 13/10, then she twists the dial until it breaks. It was his only remote: *"like
+every engineer, they believe they are flawless... so OF COURSE he didn't make a backup. Who needs resiliency?"* So
+once she breaks it, his courtyard machine is left on its repeating cycle (Jeremy, 2026-11-14).
+
+**Never a fighter** (Jeremy, 2026-11-14): *"Voidella was never a fighter- she's the brainy type (a caster like
+Aqualock, except not an airhead)."*
+
+**Her lesser: the Voidal Tendril** (Jeremy, 2026-11-14). The tendrils of her fight are what she leaves behind, and
+they can be planted everywhere: *"when she broke the remote that sent her over the edge, and you killed her, she
+released her voidal overgasm into the world. Boom, explained."*
+
 *(Geometry note `LOCKED`: tower/basement deliberately rhyme with the limiter axis — throughput maxed above,
 zeroed below — the failure spectrum rendered as architecture.)*
+
+### The gent's voice after each fall `PROPOSED (Jeremy, 2026-11-14: "leaning towards")`
+
+The gent says something after the player defeats Lust, and again after the player defeats Envy. For Lust, he
+becomes further enraged at the duo for slaying yet one more of his kin. For Envy, in her dying moment, he tells
+her why he never scrambled her (see *The Tower — Envy*, above). Delivery `OPEN`: *"like via some intercom
+system? Maybe a haunting image? idk"*. *(Constraint: he "has not watched them since" scene one, which the
+courtyard's patch-notes gag rests on, so he knows each of them fell without having watched how.)*
+
+His opening line to her, drafted (Jeremy, 2026-11-14): *"Voidella... my darling. It truly is unfortunate what has
+befallen you..."*
 
 ### The Courtyard — the red-eyed gent `LOCKED`
 
@@ -842,8 +886,18 @@ Where else.
 *(A previous draft floated a "Raving Lunatic tradition" superboss whisper here — retired 2026-07-24: RL is
 already a class name and carries enough weight; and the Room of Sacrifice is the Nimbus gate, not a mystery.)*
 
-**The Tower of Naer** `PROPOSED (Jeremy tempted, 2026-07-24)`: the tower behind the Nare onsen — a post-game
-"fun romp" dungeon, **Ancient Cave-style** (Lufia II lineage: randomized floors, run-based). Source lore, from
+**The Deep Dungeon** `PROPOSED (Jeremy, 2026-11-14)`: a post-game *"'Ancient Cave'-esque (Lufia 2 reference) crawl
+dungeon"* below the Fallen Kingdom's castle, through the jail cell on Map289 "Deep Dungeon Entrance", whose door (a
+"difficulty gate") is not built yet. Bosses appear down there as regular enemies, at any level: *"If they just have
+ungodly amounts of HP from the get-go, fighting a level 6 sin of gluttony becomes something of a challenge."* So a
+boss's enemy row keeps level-scaled stats, and its boss fight adds HP through a passive (Healthy to Healthy++++,
+States 306-310).
+
+**The Tower of Naer** `PROPOSED (Jeremy tempted, 2026-07-24; corrected 2026-11-14)`: the tower behind the Nare
+onsen, a post-game "fun romp" dungeon of **hard-coded floors**, derived from an old game idea of his called "Tower of
+Naer" (where "Nare" came from as a kingdom, and where the King and backstory derive from). *"You can think of that
+more like 'Tower of Druaga'- except less stupid puzzles and an ARPG"*. It is not the Ancient Cave-style one; that is
+the Deep Dungeon, above. Source lore, from
 the hand-written 1995 docs: **King Naer traded his princess, Sophia, for the ultimate power in an act to protect
 his kingdom — that power being a weird multi-world tower that was never explained.** It stays never-explained;
 a multi-world tower fits the Lords/Omnidimensional register without a word of exposition. (Optional whisper,
@@ -893,7 +947,7 @@ post-game stinger, not the main plot. Drafted scene:
 | 2 | Ammit's region | `OPEN` — candidate: Desolate Graves ("we'll see") |
 | 3 | Desolate Graves' purpose | **RESOLVED (2026-07-24): the Graveyard Unit** — Four Great Stones + Echoes + Mother-Sigil + the Cerak/Gilbert braid. Ammit candidacy still separate/open |
 | 4 | **The energy/light elemental** — is there one? | `OPEN` — Jeremy's own flagged curiosity; see Part 0 |
-| 5 | Names: Lust, Sloth, Envy | `OPEN` — low importance, needed eventually. **Pride RESOLVED (2026-08-31): Gloria**, Leo's master (see Disk 1) |
+| 5 | Names: Lust, Sloth | `OPEN` — low importance, needed eventually. **Pride RESOLVED (2026-08-31): Gloria**, Leo's master (see Disk 1). **Envy RESOLVED (2026-11-14): Voidella** |
 | 6 | Greed thresholds (X SDPs / Y recipes / Z foods) | `OPEN` — pends end-of-Ch4 data |
 | 7 | Final level ladder (gent ~150 et al.) | `OPEN` — ballparks |
 | 8 | "What Lords would Jerald and Rupert even be?" | flavor musing — the ending quietly answers it |

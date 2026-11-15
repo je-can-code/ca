@@ -558,12 +558,6 @@ Notes on the draft:
 - **The knife is the crutch line.** She wanted it for centuries. He took it as a starter buff to carry
   him until his fighting legs came back, and says so cheerfully. Nothing in the game will make her
   angrier than that sentence, and it is true.
-- **Self-acceptance is the actual axis, not envy.** Her origin is exile for what she was; she spent the
-  centuries since trying to be chosen instead of being herself. Jerald's origin, shown here for the
-  first time, is a man who fought the monster wearing his skin, lost the argument, and swallowed him
-  whole: "I'm just accepting a new piece of myself." She is the sin of wanting to be someone else; he
-  is the one character in the game who has fully stopped. "At least I recognize who I am" is the line
-  that lands, and he does not know it landed.
 - **Both flashbacks are lineage payload.** Weird Island, the Raving Lunatic as a defeated doppelganger,
   morph manifestation as a permanent choice: the roleplay-era morph mechanic (see
   [origins-the-roleplay.md](../origins-the-roleplay.md)) becomes in-fiction history, and canon's "the
@@ -582,25 +576,28 @@ Notes on the draft:
 ### The fight `PROPOSED (2026-09-17, reviewing the August idea)`
 
 The August idea (Jeremy's, from the boss-design conversation of 2026-08-03): many copies, only one
-of them real, and the real one subtly *wrong*, because envy imitates but never achieves. The "Know"
+of them real, and the real one subtly *wrong*, ~~because envy imitates but never achieves~~. The "Know"
 verb nothing else in the game carries. There is one boss and one HP bar, the boss gauge; the clones
 have nothing to show and nothing to share.
+
+**Superseded 2026-11-14:** the "imitates" reading is retired. Jeremy: *"I don't want Envy to be a copy
+cat"* (see [story-canon.md](../story-canon.md), The Tower — Envy). The mechanics below wait on the next
+mechanics talk.
 
 Reviewed against the tower as now drafted, it gets stronger, because the man in the room is Jerald:
 
 - **It is the fight that is hard for him**, the same way Lust's timing duel is hard for Rupert. Jerald's
   answer to everything is force, and this is a fight where force at the wrong target is wasted. Each
   man gets the fight that would have been easy for the other.
-- **The copies should be copies of Jerald, not of her** `PROPOSED`. Envy wants what he has; she
-  imitates him. The player fights a room of Jeralds and has to know which one is not. That is his own
+- **The copies should be copies of Jerald, not of her** `PROPOSED`. Envy wants what he has. The
+  player fights a room of Jeralds and has to know which one is not. That is his own
   flashback turned into a mechanic: a doppelganger wore his skin once and it broke him; now the room is
   full of them and he is fine, because "at least I recognize who I am." The player does the
   recognizing for him.
 - **The tell is visual, and the difficulty is the count** (Jeremy, 2026-09-17). A behavioral tell
   is too vague: Jerald could be any class with any weapon, so "what only Jerald can do" does not
   describe a save file. A sprite cue does: she is the one that is slightly off, a hair color, say.
-  Three copies with one off is obvious. **Thirty copies with one off is an effort.** Envy imitates but
-  never achieves, rendered as one wrong pixel in a crowd.
+  Three copies with one off is obvious. **Thirty copies with one off is an effort.**
 - **The clones are invincible, and therefore they mill about at random.** They spawn everywhere and
   do nothing meaningful except get in the way of the time the player would otherwise spend chopping
   up the boss. They cannot home in on him: invincible bodies that converge on the player are
@@ -844,8 +841,8 @@ and golems around 130 for Rupert.
 - **Rosters and levels.** Deferred until the dungeons before this one have their enemies laid out.
 - **Lust's fight.** Hook locked (vulnerable only when he reaches). Speed-up on damage and the
   arena's behavior are open.
-- **Envy's fight.** Shape settled (clones of Jerald, invincible, milling; one off; cooldowns as the
-  tax). The exact sprite cue, the count, and whether she moves in the crowd are open.
+- **Envy's fight.** The clone shape was retired on 2026-11-14. Now: she turns Grudj's stolen remote on
+  herself, four dial settings by HP (see [boss-ideas.md](../boss-ideas.md), Envy).
 - **"You look kinda familiar."** Jeremy's intent was only that all elementals look vaguely alike.
   Whether the line stays is his call.
 - **Jerald's "one line, not a joke."** Written for the basement; he is in the tower now. Somewhere on
@@ -885,5 +882,5 @@ and golems around 130 for Rupert.
 - [ ] The courtyard gate needing both the key and the power.
 - [ ] The scrambler machine (cooldown, wind-up, interruptible), Grudj's Meltima as an enemy skill
       with a ten-second cast, his arsenal, the desperation CDR, and the Treis-gated paralysis.
-- [ ] The off-sprite clone charset for Envy, and the clones as invincible, randomly milling enemies.
+- [ ] Envy's fight: the stolen remote's four dial settings, the tendrils, the aura, and Grudj's intercom.
 - [ ] `Items[174]`'s description still says "not yet implemented."
