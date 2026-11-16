@@ -33680,15 +33680,17 @@ Spriteset_Map.prototype.collectActiveCastPreviewItems = function() {
 	/** @type {{ key:string, action:JABS_Action }[]} */
 	const items = [];
 	$gameMap.events().filter((ev) => ev.isJabsBattler()).forEach((ev) => {
+		if (ev.isErased()) return;
 		const jabsBattler = ev.getJabsBattler();
 		if (!jabsBattler) return;
 		if (jabsBattler.isPlayer()) return;
 		if (!jabsBattler.isCastingOrChanneling()) return;
+		const caster = jabsBattler.getBattler();
+		if (caster.isDead()) return;
 		const decided = jabsBattler.getDecidedAction();
 		if (!decided || !decided.length) return;
 		const [action] = decided;
-		const battlerCore = jabsBattler.getBattler();
-		const ref = battlerCore.databaseData();
+		const ref = caster.databaseData();
 		if (RPGManager.checkForBooleanFromNoteByRegex(ref, J.ABS.RegExp.NoCastPreviewsBattler)) return;
 		const skill = action.getBaseSkill();
 		if (RPGManager.checkForBooleanFromNoteByRegex(skill, J.ABS.RegExp.NoCastPreviewSkill)) return;

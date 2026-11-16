@@ -52100,78 +52100,38 @@
   },
   {
     "id": 584,
-    "name": "=== TBD Sin",
-    "note": "\u003clevel:15\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003chitBuffPlus:[25 + (a.level * 2.5)]\u003e\n\u003cevaBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003ccriBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003ccevBuffPlus:[4 + (a.level * 0.4)]\u003e\n\u003cmevBuffPlus:[10 + (a.level * 1)]\u003e\n\u003cgrdBuffPlus:[5 + (a.level * 0.5)]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_4,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
-    "battlerName": "Wolfman",
+    "name": "Voidella",
+    "note": "\u003clevel:130\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 28]\u003e\n\u003catkBuffPlus:[(a.level * 2.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 3.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 7.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 4.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 4.75)]\u003e\n\u003clukBuffPlus:[(a.level * 3.25)]\u003e\n\u003chitBuffPlus:[25 + (a.level * 2.5)]\u003e\n\u003cevaBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003ccriBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003ccevBuffPlus:[4 + (a.level * 0.4)]\u003e\n\u003cmevBuffPlus:[10 + (a.level * 1)]\u003e\n\u003cgrdBuffPlus:[5 + (a.level * 0.5)]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.89)]\u003e\n\u003csdpPoints:15\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_4,1]\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e",
+    "battlerName": "",
     "traits": [
       {
         "code": 35,
-        "dataId": 2581,
+        "dataId": 2551,
         "value": 1
       },
       {
         "code": 31,
-        "dataId": 1,
-        "value": 0
-      },
-      {
-        "code": 33,
-        "dataId": 0,
-        "value": 30
-      },
-      {
-        "code": 23,
-        "dataId": 6,
-        "value": 0.9
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 1.1
-      },
-      {
-        "code": 11,
-        "dataId": 16,
-        "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 18,
-        "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 20,
-        "value": 2
-      },
-      {
-        "code": 13,
-        "dataId": 36,
-        "value": 0.5
-      },
-      {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
-      },
-      {
-        "code": 31,
-        "dataId": 16,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 18,
-        "value": 0
-      },
-      {
-        "code": 31,
-        "dataId": 20,
+        "dataId": 9,
         "value": 0
       }
     ],
-    "actions": [],
-    "battlerHue": 254,
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2001
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2597
+      }
+    ],
+    "battlerHue": 0,
     "dropItems": [
       {
         "dataId": 0,
@@ -52192,14 +52152,14 @@
     "exp": 0,
     "gold": 0,
     "params": [
-      22500,
-      650,
-      53,
-      33,
-      40,
-      33,
-      40,
-      46
+      310,
+      2400,
+      11,
+      15,
+      30,
+      19,
+      19,
+      13
     ]
   },
   {
@@ -53213,8 +53173,8 @@
   },
   {
     "id": 594,
-    "name": "=== TBD Sin Votary",
-    "note": "\u003clevel:42\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 24.84]\u003e\n\u003catkBuffPlus:[(a.level * 4.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmatBuffPlus:[(a.level * 6.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.67)]\u003e\n\u003csdpPoints:12\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_4,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
+    "name": "Voidal Tendril",
+    "note": "\u003clevel:132\u003e\n\u003cpassive:[325]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 24.84]\u003e\n\u003catkBuffPlus:[(a.level * 4.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 5.25)]\u003e\n\u003cmatBuffPlus:[(a.level * 6.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.25)]\u003e\n\u003clukBuffPlus:[(a.level * 1)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 1.67)]\u003e\n\u003csdpPoints:12\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_4,1]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cknockbackResist:100\u003e",
     "battlerName": "Tigerbunny",
     "traits": [
       {
@@ -53303,7 +53263,15 @@
         "value": 0
       }
     ],
-    "actions": [],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2601
+      }
+    ],
     "battlerHue": 0,
     "dropItems": [
       {

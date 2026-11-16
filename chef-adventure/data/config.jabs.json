@@ -2429,6 +2429,285 @@
           ]
         }
       ]
+    },
+    {
+      "key": "envy",
+      "map": 426,
+      "defeatSwitch": 196,
+      "participants": [
+        {
+          "key": "voidella",
+          "enemyId": 584,
+          "expect": "Voidella",
+          "x": 19,
+          "y": 9,
+          "template": 584
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [],
+      "reactions": [
+        {
+          "key": "six-of-ten",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "state": 2083,
+              "expect": "6/10",
+              "participant": "voidella"
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -17,
+                -34,
+                17,
+                0
+              ],
+              "seconds": 1
+            },
+            {
+              "verb": "log",
+              "face": "elemental-void",
+              "faceIndex": 0,
+              "lines": [
+                "TODO: her line at 6/10"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "max",
+          "on": "health",
+          "below": 80,
+          "steps": [
+            {
+              "verb": "removeState",
+              "state": 2083,
+              "expect": "6/10",
+              "participant": "voidella"
+            },
+            {
+              "verb": "addState",
+              "state": 2084,
+              "expect": "MAX",
+              "participant": "voidella"
+            },
+            {
+              "verb": "learnSkill",
+              "skill": 2598,
+              "expect": "Void Burst",
+              "participant": "voidella"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 9,
+              "y": 18,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 19,
+              "y": 18,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 29,
+              "y": 18,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 9,
+              "y": 30,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 19,
+              "y": 30,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 29,
+              "y": 30,
+              "animation": 101
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -34,
+                -51,
+                34,
+                34
+              ],
+              "seconds": 1
+            },
+            {
+              "verb": "log",
+              "face": "elemental-void",
+              "faceIndex": 0,
+              "lines": [
+                "TODO: her line at MAX"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "thirteen",
+          "on": "health",
+          "below": 50,
+          "steps": [
+            {
+              "verb": "removeState",
+              "state": 2084,
+              "expect": "MAX",
+              "participant": "voidella"
+            },
+            {
+              "verb": "addState",
+              "state": 2085,
+              "expect": "13/10",
+              "participant": "voidella"
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -51,
+                -68,
+                51,
+                68
+              ],
+              "seconds": 1
+            },
+            {
+              "verb": "log",
+              "face": "elemental-void",
+              "faceIndex": 0,
+              "lines": [
+                "TODO: her line at 13/10"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "broken",
+          "on": "health",
+          "below": 25,
+          "steps": [
+            {
+              "verb": "removeState",
+              "state": 2085,
+              "expect": "13/10",
+              "participant": "voidella"
+            },
+            {
+              "verb": "addState",
+              "state": 2086,
+              "expect": "BROKEN",
+              "participant": "voidella"
+            },
+            {
+              "verb": "changeImage",
+              "participant": "voidella",
+              "image": "$m_elemental-voidella-broken"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 619,
+              "x": 0,
+              "y": 8,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 619,
+              "x": 0,
+              "y": 14,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 619,
+              "x": 0,
+              "y": 26,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 620,
+              "x": 39,
+              "y": 20,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 620,
+              "x": 39,
+              "y": 32,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 620,
+              "x": 39,
+              "y": 38,
+              "animation": 101
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -34,
+                -51,
+                34,
+                0
+              ],
+              "seconds": 1
+            },
+            {
+              "verb": "log",
+              "face": "elemental-void",
+              "faceIndex": 0,
+              "lines": [
+                "TODO: her line at BROKEN"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "foodTypes": [

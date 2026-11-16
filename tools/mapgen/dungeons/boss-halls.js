@@ -141,6 +141,14 @@ const HALLS = [
     exitEventId: 1,
     kit: { init: [ 34, 42 ], levels: [ 35, 42 ], fight: [ 36, 42 ], watch: [ 37, 42 ] },
   },
+  {
+    id: 553,
+    name: 'Voidella',
+    encounter: 'envy',
+    arrival: { x: 19, y: 43, dir: 8 },
+    exitEventId: 1,
+    kit: { init: [ 14, 43 ], levels: [ 15, 43 ], fight: [ 21, 43 ], watch: [ 22, 43 ] },
+  },
 ];
 
 /**

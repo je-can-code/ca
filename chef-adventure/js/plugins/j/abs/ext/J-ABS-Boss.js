@@ -1310,7 +1310,40 @@ var JabsBossManager = class JabsBossManager {
 	* @returns {boolean}
 	*/
 	static #isEveryBodyGone() {
-		return this.#activeEncounter.participants().filter((participant) => participant.isBystander() === false).every((participant) => this.#hasFallen(participant.key()));
+		return this.#winningParticipants().every((participant) => this.#hasFallen(participant.key()));
+	}
+	/**
+	* Gets the participants the active encounter is won by felling: every one of them but its bystanders.
+	* @returns {JabsBossParticipant[]}
+	*/
+	static #winningParticipants() {
+		return this.#activeEncounter.participants().filter((participant) => participant.isBystander() === false);
+	}
+	/**
+	* Answers an enemy falling while a fight is on. The moment the last body the fight is won by felling goes down,
+	* whatever the fight spawned for itself leaves the map with it, before any death scene can play: a hazard has
+	* no business striking at the player through the boss's last words. The win itself is still told to the story
+	* once every death scene has played out.<br/>
+	* J-ABS calls this from the very handler that starts a defeated enemy's death scene, because the fight's own
+	* update stands still for as long as a scene is playing, and would only notice once the scene was over.
+	*/
+	static onEnemyDefeated() {
+		if (!this.hasActiveEncounter()) return;
+		const isEveryWinningBodyDown = this.#winningParticipants().every((participant) => this.#isDown(participant.key()));
+		if (isEveryWinningBodyDown === false) return;
+		this.#clearExtraBodies();
+	}
+	/**
+	* Determines whether the participant of the given name is down: dead, whether or not its death scene has
+	* played out yet. A participant still waiting to be summoned is not down, since it has yet to arrive.
+	* @param {string} key The participant's author-facing name.
+	* @returns {boolean}
+	*/
+	static #isDown(key) {
+		if (this.#participantBodies.has(key) === false) return false;
+		const body = this.#participantBodies.get(key);
+		if (body.isErased()) return true;
+		return body.getJabsBattler().getBattler().isDead();
 	}
 	/**
 	* Turns on the active encounter's defeat switch, when it names one and the fight was won in its arena.
@@ -2667,6 +2700,19 @@ J.ABS.EXT.BOSS.Aliased.JABS_Engine.set("resolveKnockbackDistance", JABS_Engine.p
 JABS_Engine.prototype.resolveKnockbackDistance = function(action, target) {
 	if (JabsBossManager.isParticipant(target)) return null;
 	return J.ABS.EXT.BOSS.Aliased.JABS_Engine.get("resolveKnockbackDistance").call(this, action, target);
+};
+/**
+* Extends {@link #handleDefeatedEnemy}.<br/>
+* Also tells the boss fight an enemy fell, so the moment its last winning body goes down, whatever the fight
+* spawned leaves with it. This is the handler that starts the fallen enemy's death scene, and the fight's own
+* update stands still while a scene plays, so here is the last moment before the boss's last words.
+* @param {JABS_Battler} defeatedTarget The enemy that was defeated.
+* @param {JABS_Battler} caster The battler that defeated it.
+*/
+J.ABS.EXT.BOSS.Aliased.JABS_Engine.set("handleDefeatedEnemy", JABS_Engine.prototype.handleDefeatedEnemy);
+JABS_Engine.prototype.handleDefeatedEnemy = function(defeatedTarget, caster) {
+	J.ABS.EXT.BOSS.Aliased.JABS_Engine.get("handleDefeatedEnemy").call(this, defeatedTarget, caster);
+	JabsBossManager.onEnemyDefeated();
 };
 
 //#endregion

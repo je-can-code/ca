@@ -74,7 +74,8 @@ regulator of energy throughput.
 Chef Adventure has **six magical elements**: heat, liquid, ground, air, energy, void. The four rescued
 elementals cover four: **Earthie** (ground), **Aqualock** (liquid), **Cynder** (heat), **Skye** (air).
 Canon explicitly notes two elements lack coverage (`SHIPPED` — Peaks scene). **Void** is claimed by Envy
-(see Ch5). **Energy remains unclaimed — see Open Threads.**
+(see Ch5). **Energy** belongs to a sixth sibling, **Brighteene** (2026-11-15), whose place in the story is still
+open — see Open Threads.
 
 Timeline: the elementals last united **4,400 years ago**. Skye landed on Erocia long ago (visited the then-
 **lively** Erocian Kingdom; was met with racism; failed to reach the beach and the graves shrine; set an SOS
@@ -946,7 +947,7 @@ post-game stinger, not the main plot. Drafted scene:
 | 1 | **The ending scene** — the *answer* is locked (the meal); the scene needs authoring | `OPEN` |
 | 2 | Ammit's region | `OPEN` — candidate: Desolate Graves ("we'll see") |
 | 3 | Desolate Graves' purpose | **RESOLVED (2026-07-24): the Graveyard Unit** — Four Great Stones + Echoes + Mother-Sigil + the Cerak/Gilbert braid. Ammit candidacy still separate/open |
-| 4 | **The energy/light elemental** — is there one? | `OPEN` — Jeremy's own flagged curiosity; see Part 0 |
+| 4 | **The energy/light elemental** — is there one? | **RESOLVED (2026-11-15): yes.** Jeremy: "there is an energy/light/holy sprite coming too." A sixth sibling beside Voidella: **Brighteene** (named 2026-11-15). Her look is settled (floor-length golden hair, a gold glow); her role is still open — Jeremy: "I don't know what I'll use her for yet, but I want to have it available for when I inevitably do." See Part 0 |
 | 5 | Names: Lust, Sloth | `OPEN` — low importance, needed eventually. **Pride RESOLVED (2026-08-31): Gloria**, Leo's master (see Disk 1). **Envy RESOLVED (2026-11-14): Voidella** |
 | 6 | Greed thresholds (X SDPs / Y recipes / Z foods) | `OPEN` — pends end-of-Ch4 data |
 | 7 | Final level ladder (gent ~150 et al.) | `OPEN` — ballparks |
