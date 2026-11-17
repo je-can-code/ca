@@ -32,6 +32,12 @@ That genocide, ~**440 years ago "on this time loop"**, accidentally saved The El
 **the pact**: *if you save the life of an elemental, that elemental serves the rescuer until the end of their
 days.* It is written into their genetics. They literally cannot refuse. (`SHIPPED` — Earthen Layer dialogue.)
 
+**J&R1 is recovered (2026-11-15).** Robert dug the original off his old computer, and the whole game, every line
+verbatim, is at `/mnt/exdrive/dev/rm2k/jr1-dig/out/jr1-script.txt`. Its audience was about five people, all in
+their circle, and Jeremy is the only one who ever beat it. It doesn't match this section everywhere: Majik was a
+good creator-king taken over by a living virus, his race is the **Babagen**, and Jeremy *refuses* to fuse with the
+Raving Lune. Nothing has been reconciled yet; see Open Threads.
+
 There was also a **time adventure** (*J&R II: Disaster Of Time*) that the two barely remember — fittingly, because
 its source is literally lost to history. Running gag `PROPOSED`: J: "yeah, we went on that adventure through
 time, remember?" R: "...we did?" They are **cross-dimensional travelers**; they did not fly a ship here.
@@ -284,6 +290,32 @@ side-quest-driven passive grind may raise real-world numbers. Map sizes and enem
 
 **Theme:** learn to play; the vacation gets hijacked. **Sin defeated:** Gluttony.
 
+- **The summons, the new opener** `LOCKED (premise, Jeremy 2026-11-16) / OPEN (staging)`. Before the intro
+  cave, the game opens on the **Seashell Shores**: Jerald paces the beach, annoyed, until Rupert blinks into
+  existence. Drafted by Jeremy:
+  > J: *(paces back and forth, annoyed)*
+  > R: *(blinks into existence)*
+  > J: "jeez took you long enough"
+  > R: "I got here as fast as I could when you called! What is the universe-threatening emergency!?"
+  > J: "I found it Rupert."
+  > R: "found what, Jerald?"
+  > J: "the final ingredient for that FUCKING pudding recipe! It's on this godforsaken planet in some dank cave
+  > called 'The Lair of Erocian Death'!"
+  > R: *(dumbfounded that he was summoned across the galaxy for this)*
+  > J: "come on! There is no time to waste!"
+  > R: "well I guess I needed a vacation anyway…"
+  - **A beat about missing each other gets woven in** (wording `OPEN`). J&R1 ends with the two of them choosing
+    to go home to separate worlds, on Jeremy's "Miss ya bud..." and Robert's "I.... miss you too.. my
+    friend..."; this is them centuries later, still each other's first call.
+  - **How Jerald "called" stays unexplained.** If it ever comes up, it's something ridiculous. Jeremy's example:
+    *"I sliced open a sonic dimensional hole and just told him to come, then band-aided it back up."*
+  - **Then a few walking scenes** through the maps from the Shores up to the intro cave, so the shipped cave
+    opening ("We finally made it!" / "Phew, it's about time." / "I hope this is worth it.") becomes the second
+    half of the same trip, unchanged.
+  - **Staging waits on the Shores** (Shores 1 and 2, Maps 452-453), which get polished before Jeremy picks the
+    spots. Reaching the Shores in Ch4 then means returning to where the game began.
+  - Lineage: it inverts J&R II, where Jeremy found Robert on a beach, and it agrees with the shipped "You think
+    we flew a space ship here?" (cross-dimensional travel, never a ship).
 - **Intro cave (Lair of Erocian Death, Central Erocia).** Two ex-gods spelunk for an exclusive pudding
   ingredient. Tutorial beats: attack, skills, guard, party-cycle. Boss: a big slime (**Hard Syrup**) →
   **Big Pudding** (farmable, lol).
@@ -805,6 +837,11 @@ The final fight of the main story. The shape:
    absurdity is exactly what 400 years of isolation buys you.)
    *(The RL-uncage proposal was **rejected** 2026-07-24: non-elementals carry no suppression to uncage, and
    "Raving Lunatic" is already a class name — no additional story weight on the fusion.)*
+
+   **What the disable takes** `LOCKED (Jeremy, 2026-11-16)`: every panel goes dark, maxed ones included, and the
+   bars it shrinks stay chunked once it lifts (*"that is part of the pain! Incentivizes you to deal with it"*).
+   Masteries stay lit: *"They aren't on the SDP anymore, they are a part of you. A maxed SDP however is still just a
+   unit installed with the maximum resources pushed into it basically."*
 3. **The Treis gate** `LOCKED (ratified + specced)`: her Node Junction research questline (seeded in the
    Bellows, `SHIPPED`) is the optional subplot that defangs the scramble — the paralysis combo **never
    lands**, and the SDP disable drops to **3–5 seconds, or nothing at all**. Drafted gag:
@@ -818,6 +855,12 @@ The final fight of the main story. The shape:
    anything else. "Now I have a tool to defeat the otherwise preposterous-to-defeat machine." The only tech in the
    world is what Grudj brought with him, so the one tool that speaks his language comes from the other stranded
    spacefarer.
+
+   **How it defangs the scramble** `LOCKED (Jeremy, 2026-11-16)`, superseding "never lands" and "3–5 seconds"
+   above: the baton reduces nothing. *"It lets you oneshot the machine and you move on with your lives and never get
+   blacked out at all (because no scramble can be casted if the machine is dead)."* So there is one fight, not a
+   defanged variant; the questline's reward is the zap. The opening's scramble still lands on everyone, since it
+   fires before anyone can act.
    *(Design rhyme: the 15-second forced disable is the player's first taste of what Trainer Lord's postgame
    exam does for a full fight — the escalation ladder stands on its own.)*
 4. **The thesis, out loud**: from his side, righteous vengeance for a genocide. From their side, Tuesday, and
@@ -959,6 +1002,7 @@ post-game stinger, not the main plot. Drafted scene:
 | 13 | **The Fortress split** — whole sequence | `PROPOSED (2026-08-06)` — see Ch5 → THE SPLIT |
 | 14 | Who falls, who springs (Jerald→Lust / Rupert→Envy, or invert to put Jerald under Envy) | `OPEN` — draft assumes the former; the inversion argument is on file |
 | 15 | Is the freeze ever acknowledged out loud, and by whom? | `OPEN` — guardrail is notice-never-conclude |
+| 16 | **Reconcile Part 0 with the recovered J&R1**: Majik's nature and the Virus, Babagen vs. void clowns, whether there was a genocide, Jeremy the Astroidian and Robert the Darkoon, when and why Jerald fused with RL | `OPEN` — discussion started 2026-11-16; the opener (Ch1, "The summons") was its first decision |
 
 **Resolved 2026-07-24 (first pass):** RL-uncage → **rejected** (no suppression to uncage; RL is a class
 name). Room of Sacrifice → **explained** (the Nimbus gate). Technodisk L/R fragments → **nixed**. Lust

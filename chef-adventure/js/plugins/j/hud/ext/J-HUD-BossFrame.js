@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 HUD-BOSS] A HUD frame that displays a single target, like a boss.
+ * [v1.2.0 HUD-BOSS] A HUD frame that displays a single target, like a boss.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -65,11 +65,13 @@ J.HUD.EXT.BOSS = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudBoss_PluginMetadata}
 */
-J.HUD.EXT.BOSS.Metadata = new JHudBoss_PluginMetadata("J-HUD-BossFrame", "1.1.0");
+J.HUD.EXT.BOSS.Metadata = new JHudBoss_PluginMetadata("J-HUD-BossFrame", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.HUD.EXT.BOSS.Aliased = {};
+J.HUD.EXT.BOSS.Aliased.DataManager = new Map();
+J.HUD.EXT.BOSS.Aliased.Game_Map = new Map();
 J.HUD.EXT.BOSS.Aliased.Hud_Manager = new Map();
 J.HUD.EXT.BOSS.Aliased.JABS_Battler = new Map();
 J.HUD.EXT.BOSS.Aliased.Scene_Map = new Map();
@@ -268,6 +270,21 @@ var BossFrameManager = class {
 		this.#showBossRequest = false;
 	}
 	/**
+	* Stands the boss frame down entirely, as it stood when the game booted: nobody framed, nothing asked of it, and
+	* not up.<br/>
+	* This manager is static, so everything here outlives whatever it was framing. The frame's window is rebuilt with
+	* every map, but a frame left up when the party wipes mid-fight, walks out of the room, or loads a save would carry
+	* its flag into the next game or the next map, holding the target frame below a boss frame that is no longer there,
+	* and remembering a boss from a map that is gone.
+	*/
+	static resetBossFrame() {
+		this.boss = null;
+		this.#newBossRequest = false;
+		this.#hideBossRequest = false;
+		this.#showBossRequest = false;
+		this.#bossFrameActive = false;
+	}
+	/**
 	* Whether the boss frame is meant to be on screen right now.
 	* @returns {boolean}
 	*/
@@ -346,6 +363,53 @@ var BossFrameManager = class {
 		if (!bossEvent.getJabsBattler()) return false;
 		return true;
 	}
+};
+
+//#endregion
+//#region src/plugins/hud/ext/boss/managers/DataManager.js
+/**
+* Extends {@link #setupNewGame}.<br/>
+* Also stands down any boss frame the last game left up.
+*
+* The boss frame manager is static, so a frame outlives the game it was shown in. A party that wipes mid-fight goes
+* back to the title with the frame still up, and a new game started from there would begin with the target frame
+* held below a boss frame that is no longer there.
+*/
+J.HUD.EXT.BOSS.Aliased.DataManager.set("setupNewGame", DataManager.setupNewGame);
+DataManager.setupNewGame = function() {
+	BossFrameManager.resetBossFrame();
+	J.HUD.EXT.BOSS.Aliased.DataManager.get("setupNewGame").call(this);
+};
+/**
+* Extends {@link #extractSaveContents}.<br/>
+* Also stands down any boss frame the game being left behind had up.
+*
+* A loaded save brings back a world of its own, and the boss a frame was showing in the game it replaces is nowhere
+* in it.
+* @param {object} contents The save contents being applied.
+*/
+J.HUD.EXT.BOSS.Aliased.DataManager.set("extractSaveContents", DataManager.extractSaveContents);
+DataManager.extractSaveContents = function(contents) {
+	BossFrameManager.resetBossFrame();
+	J.HUD.EXT.BOSS.Aliased.DataManager.get("extractSaveContents").call(this, contents);
+};
+
+//#endregion
+//#region src/plugins/hud/ext/boss/objects/Game_Map.js
+/**
+* Extends {@link #setup}.<br/>
+* Also stands down any boss frame the map being left had up.
+*
+* Whatever the frame was showing stood on the old map: a boss placed there by hand, or the body of a fight that ends
+* with that map. Neither follows the party anywhere, so neither does the frame. It stands down once the new map is in
+* place, and a frame the new map raises for itself is never caught by this: event commands only begin running once the
+* map updates.
+* @param {number} mapId The id of the map being set up.
+*/
+J.HUD.EXT.BOSS.Aliased.Game_Map.set("setup", Game_Map.prototype.setup);
+Game_Map.prototype.setup = function(mapId) {
+	J.HUD.EXT.BOSS.Aliased.Game_Map.get("setup").call(this, mapId);
+	BossFrameManager.resetBossFrame();
 };
 
 //#endregion

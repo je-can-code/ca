@@ -149,6 +149,15 @@ const HALLS = [
     exitEventId: 1,
     kit: { init: [ 14, 43 ], levels: [ 15, 43 ], fight: [ 21, 43 ], watch: [ 22, 43 ] },
   },
+  {
+    id: 554,
+    name: 'Grudj',
+    encounter: 'grudj',
+    arrival: { x: 29, y: 35, dir: 8 },
+    exitEventId: 0,
+    exit: [ 29, 38 ],
+    kit: { init: [ 30, 38 ], levels: [ 31, 38 ], fight: [ 30, 37 ], watch: [ 31, 37 ] },
+  },
 ];
 
 /**
@@ -494,9 +503,11 @@ const doorEvent = (id, hall, index) =>
   const event = transferEvent(id, `door: ${hall.name}`, x, y, to);
   const [ page ] = event.pages;
 
-  // the door wears whoever the frame names: the encounter's first participant.
+  // the door wears whoever the frame names: the encounter's first participant, as the fight spawns it, from its
+  // template when it names one and otherwise from the slot matching its enemy id.
   const [ primary ] = encounters[index].participants;
-  page.image = structuredClone(palette.events[primary.enemyId].pages[0].image);
+  const slot = primary.template ?? primary.enemyId;
+  page.image = structuredClone(palette.events[slot].pages[0].image);
   page.list.unshift(comment(`<text:${hall.name}>`));
   page.priorityType = 1;
   page.directionFix = true;

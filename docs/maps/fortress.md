@@ -852,6 +852,14 @@ and golems around 130 for Rupert.
 - **Canon's split drafts** (the ambush, the dead button, the one line, the stillness paragraph) carry
   a reversed-assignment note each; the lines themselves are still written with Jerald below.
 - **The spoils.** Whether the regression power transfers is canon's `OPEN`, untouched here.
+- **The floor-9 encounter alerts: raise these with Jeremy when the polish pass reaches the Fortress.** Neither room
+  holds its fight yet (checked 2026-11-17): `Map422` "Tower 9: Mini-Boss" has one event and no enemy; `Map438`
+  "Basement 9: The Horde" has a single enemy event. Neither is a boss encounter (Jeremy, 2026-11-14: "They are
+  just… '🎶ENCOUNTER ALERT🚨' and you fight and kill the Elysian Reapy and Elysian Robot (maybe with a few
+  non-Elysian minions). Regular enemy AI. Nothing special. I have done that a few times across the game."), and they
+  are outside the boss pass (Jeremy, 2026-11-17: "they aren't bosses, thats just a part of the polish pass"). Build
+  them the way his other encounter alerts are built (read one first): the tower's is the Elysian Reapy, the
+  basement's is robots (his words, which settles the horde's robots-or-puppets question in the lane table).
 
 ---
 
@@ -863,6 +871,8 @@ and golems around 130 for Rupert.
       "AREA: Basement", its three levels and `Map429`-`Map443`) and the courtyard (`Map444`) are drafted:
       the rough pass is complete (2026-10-25).
 - [x] Tileset decision, then a Tilesets row: tileset 21 "EX Dungeon Fortress" (2026-10-24).
+- [ ] Polish pass: the floor-9 encounter alerts in `Map422` (Elysian Reapy) and `Map438` (Elysian Robot, robots).
+      Raise with Jeremy first; see Open items.
 - [ ] Entry hall: the mundane-castle exchange, the spring trap and trapdoor, the moogle-style pick.
 - [ ] Both lanes room by room, with switcher rooms enemy-free and a sigil at every block.
 - [ ] The two mandatory causes (floor collapse, lever), evented so they cannot be skipped, with the

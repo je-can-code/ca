@@ -2,22 +2,22 @@
   "formatVersion": 1,
   "generatedBy": "rmmz-plugins src/build-tools/generate-manifest.js - generated, never edit by hand",
   "files": {
-    "abs/J-ABS.js": "eca13891fbadf35a0a5ce625184025efdbf3cc4ee92bf4c83cdabe35b21afae6",
+    "abs/J-ABS.js": "0488791260642734cc3d920f8c7b0fdd40b4b3d3197e2929f3eb32677103a4bb",
     "abs/ext/J-ABS-AllyAI.js": "97354c203a158cc0b89e92d21fc259a045b9b3a9f75bd1dbea258a33e2b8b681",
-    "abs/ext/J-ABS-Boss.js": "66f2b37d4ee123134594f467240008ae8aca595dd9cc70c26ec87988d232d5e2",
+    "abs/ext/J-ABS-Boss.js": "662adfa3eee790a05f57d189f32ee390ee798565266a5e039d5d2a96bf7532cd",
     "abs/ext/J-ABS-Charge.js": "2d7d5bddab9327c8d47194fba3b241fbba0a280b83fb7e1a6c56011e2c62c1ff",
     "abs/ext/J-ABS-DangerIndicator.js": "41daeb31a901d6ad0189cfea80bbbc745bc6e723e7d3532e5c9d3b888ef67416",
-    "abs/ext/J-ABS-Diagonals.js": "50e1c17fe1b3b7537d29d93070340fd57ef38feff2df36ca25f4fe8a19e1e2e2",
+    "abs/ext/J-ABS-Diagonals.js": "9d753d946975bcfbfcb669b49f98231f4089b077b30cc848682a68ce53e38fb2",
     "abs/ext/J-ABS-Dps.js": "c048b35684b96f96e43e793e630e66d21a22f5c2731df301ecda6abc1074c354",
     "abs/ext/J-ABS-Food.js": "226fcdeca56ec71488bb23e28072df45233691f1e9e1160c6984b55fef6f1835",
-    "abs/ext/J-ABS-Formula.js": "f24781f18d3d50778902c14ed7bbde65beb1dcc4269dd45a20e1b5fc72c1741d",
+    "abs/ext/J-ABS-Formula.js": "b3624dd4bd9d598ed489a8385822d2e9096ca0a19ec5d32c9c5ebb5b9fab03b8",
     "abs/ext/J-ABS-Hitstop.js": "8cede2a9bf2bc8da44294e35132460953a13fbe8d3c196e69f2953e4e4829bcd",
     "abs/ext/J-ABS-InputManager.js": "e1703cb992197a4057a5f5075745b05bc7594dcca33e34259522cd3d90386274",
     "abs/ext/J-ABS-Juice.js": "3d30e067beb40536ef5226cb01c07b8bbf110e43c897b11f91708cb186ca2c68",
     "abs/ext/J-ABS-Loadout.js": "0b3fa5ecc1c2d15255b3784ad376458bffdfe1f202c18864e479b5af816371d0",
     "abs/ext/J-ABS-Metrics.js": "b9265c862e3f67e2ad97971a238dcad7eca310d354528e01c69156a62bb25df7",
-    "abs/ext/J-ABS-Poses.js": "b506710b7b3b6e74f2e1991be2e3d03d4cec3ef02006e4cbd6a84f2c86fd48fd",
-    "abs/ext/J-ABS-Shield.js": "f9bab0b2d3422a0d20e83f0051757204c005076b666f0ab81f64742de1cda337",
+    "abs/ext/J-ABS-Poses.js": "e03de543d9c1c62edbd82fc1498da0d42a2ab2c48ef046ec42cdc74618e7c31f",
+    "abs/ext/J-ABS-Shield.js": "df63268afb8caf6dabc1b73efd11a9f33925ebc3e4dd4adbee022563ff65ee1b",
     "abs/ext/J-ABS-Speed.js": "787f9d42b9c452159a3a23158fdb0d8ce3025e2ebd52227804ea6bcce0fcfa50",
     "abs/ext/J-ABS-Star.js": "106b07d36ef24ccbdccff64ce8b1137e22241743237d83df7b1a830de5fb9f0a",
     "abs/ext/J-ABS-Targeting.js": "a17cae29b81b8c05866c133dce3fb0881094350bf61284ec16afa806f11f6144",
@@ -26,7 +26,7 @@
     "abs/ext/J-ABS-Tools.js": "c0660e89d1e37f868ce06e0ee9e3bc5d9f30af1df58c1391c1d9c6436fc53f00",
     "apt/J-Aptitude-Typed.js": "b5d853e34c06a7469ac330e3ee47eed4c70f513225ec9e3c2fb3edc85225dc56",
     "apt/J-Aptitude.js": "f02e3b843bc8f982c45cb8dc1f62a9ff868d10f882e6c8d5445c11124e764c86",
-    "base/J-Base.js": "a6e045237bbcd0b92cf91e3a1f3eec7cafa62e46b6f547125a62046faab329eb",
+    "base/J-Base.js": "2b2abdf31b8db8611d2fc6ef7f756cb216aabf73134f4db8b30c45a4f2af68bf",
     "base/ext/J-Base-Save.js": "d4547c431b0d5c7c1db87100035a74ef40c8819548b55d783c16d86ad0dcae62",
     "ca-mods/J-CA-Mods.js": "53cab17fd03fa1d8f710383f7135a0e8bbf694d8663f484e825ce947fc497996",
     "class/J-Classes.js": "54f43005ba401d069d0d9696137af5837168ee754c3b5d7cc8ecf7a02e5c4b02",
@@ -40,11 +40,11 @@
     "drops/ext/J-Drops-Passive.js": "7b7c122e779933ecb86738ec64baa12a7140e101abc6eb9d67f237d6f4802697",
     "elem/J-Elementalistics.js": "2214d9179055ff49f738ec8eee5ab017d0ed784561e47a0812113efa979a2d70",
     "escribe/J-Escriptions.js": "9f6e1eb08b44e6053fd22a47025bdbd0f544fb64619f26e367b10b4fae1c7687",
-    "extend/J-Extend.js": "1d3f5dde75b05d0b00742c9cc749313fcaf92f80d825a64f06913344eb227d67",
+    "extend/J-Extend.js": "f5f36b32aff417b3de6c404a60573fa5dc45ff2f77d5c5a2227aceb87815bce3",
     "extend/ext/J-Extend-ABS.js": "063c96fe54ded579c8bd28e81e81932f3cf94c34481981dde682c747f773fb1c",
     "extend/ext/J-Extend-SKS.js": "389c4ca5dcf25d4f62f37d38a3f24f0947d22374b5123190d30b9b6333a53f25",
     "hud/J-HUD.js": "0220499c164e2dfd289f605347ec7e054cbc801ca7833993f4765a1c87666ec7",
-    "hud/ext/J-HUD-BossFrame.js": "b422a91585cb2943f985f91893a96e9e55e1b882caede7793ec3bc7fa8bc3274",
+    "hud/ext/J-HUD-BossFrame.js": "f4f5ef74bb67189a301c8f0455657bab2ee927cc51e5e18d44635cf1a9e02934",
     "hud/ext/J-HUD-Dps.js": "38ae5d7aeaeaba4bde353483ef04bf1480bcdc06ee5f26103716099bf48c8a92",
     "hud/ext/J-HUD-Food.js": "8bf5ae8e2f2cb32b09c59a7d6e9e77297b4b4c4678f2887b9e9ccc132224e8af",
     "hud/ext/J-HUD-InputFrame.js": "30baed4d6e334662b4bce8c0bb910c78bf3447df4254b6472ab5df734efaf424",
@@ -74,7 +74,7 @@
     "omni/ext/J-OMNI-Stats.js": "7d662c477589720c1e43b310b40bc6c7f3e3de6ef3099c29c1c084ad805b8c85",
     "passive/J-Passive.js": "8d1fc0c896254f336df48b23a8640bacb47763827cd6839305641938115a2c22",
     "passive/ext/J-Passive-Affix.js": "946ac81bd0fd9fbeedfc8eb9c8c6e95174ca161d864705f025ca5d612bf08cef",
-    "passive/ext/J-Passive-Conditional.js": "4ece8348213f3c65cf483f69df897edfe3856522b1582bbeecf28a6e691dddb4",
+    "passive/ext/J-Passive-Conditional.js": "04c81adad8b731c136e8c27ce0ba6c62569005585117efa142e5c3406f51af23",
     "passive/ext/J-Passive-Difficulty.js": "89ce77176a89177994060186349e0f8b8f594215e09c220d5d29778153cbae64",
     "passive/ext/J-Passive-OTIB.js": "1fbe9f82c33ea75b8cde14a231d90f3b430c2842261f8acbe2a0b99cd896cd94",
     "passive/ext/J-Passive-SKS.js": "60580e2f7662745ed31aa810ba37f11d173d3c033d30795f36fd4103f27efb50",
@@ -92,7 +92,7 @@
     "regions/ext/J-Regions-States.js": "0fc3951c83abb7ef346f59b7e31d8167a26e4f535b7c85d9a566f96477b0ebe3",
     "resources/J-Resources.js": "91d91ecbab2f209ae2f6e016daec2de1443e86e3a85938b365a6801f3c93a364",
     "resources/ext/J-Resources-ABS.js": "fa340c994241638bf7bff52a760248e5671d1e0d9d5d14a3af53d9bb9c6b93e7",
-    "sdp/J-SDP.js": "38e81defccbc1a9d776d8b6e08f467317c2e0afee50cbeaa05231d8ad61097a3",
+    "sdp/J-SDP.js": "8d263d0ace1e05a8bbe54be5e5106d44b9005171428dfbe1b58854b992ecf8fb",
     "sks/J-SkillSlots.js": "bab81ef9ef0cd717ca18355cf18d3d97479cf3fd15b16b83822efd30cad64e55",
     "sks/ext/J-SkillSlots-ABS.js": "56c496777478fd0100cee1f2bf6ddbce8a38d6656ea05dfb0b05582f32678576",
     "time/J-TIME.js": "dc7d21662c250b259a4c0e1c4d5f5dbf19b5446c1bcb2d435d55b8e74f28d985",
@@ -692,6 +692,22 @@
       ],
       "pattern": "<aggroPercent:[ ]?(-?\\d+)>",
       "flags": "gi"
+    },
+    {
+      "label": "J.ABS.RegExp.AiFollowUp",
+      "names": [
+        "aiFollowUp"
+      ],
+      "pattern": "<aiFollowUp:[ ]?(\\[[\\d, ]+])>",
+      "flags": "i"
+    },
+    {
+      "label": "J.ABS.RegExp.AiFollowUpOnly",
+      "names": [
+        "aiFollowUpOnly"
+      ],
+      "pattern": "<aiFollowUpOnly>",
+      "flags": "i"
     },
     {
       "label": "J.ABS.RegExp.AiRoleFollower",
@@ -6234,6 +6250,14 @@
       "flags": "i"
     },
     {
+      "label": "J.SDP.RegExp.SdpBlackout",
+      "names": [
+        "sdpBlackout"
+      ],
+      "pattern": "<sdpBlackout>",
+      "flags": "i"
+    },
+    {
       "label": "J.SDP.RegExp.SdpBonusFormula",
       "names": [
         "sdpBonusFormula"
@@ -6685,6 +6709,12 @@
       {
         "position": 0,
         "table": "JabsActionMapEvents"
+      }
+    ],
+    "aiFollowUp": [
+      {
+        "position": "each",
+        "table": "States"
       }
     ],
     "allowRegions": [

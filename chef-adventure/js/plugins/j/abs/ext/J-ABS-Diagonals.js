@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.3 ABS-DIAG] Enables diagonal movement.
+ * [v1.1.4 ABS-DIAG] Enables diagonal movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -49,7 +49,7 @@ J.ABS.EXT.DIAG = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.DIAG.Metadata = new J_DiagPluginMetadata("J-ABS-Diagonals", "1.1.3");
+J.ABS.EXT.DIAG.Metadata = new J_DiagPluginMetadata("J-ABS-Diagonals", "1.1.4");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -101,6 +101,12 @@ Game_Event.prototype.initDiagMembers = function() {
 	* The initial direction this event is facing.
 	*/
 	this._j._abs._diag._initialDirection = 0;
+	/**
+	* Where this event last turned while seeking, in tiles, or -1 on both axes before its first turn. A seeker turns
+	* at most once per tile it travels, measured from here.
+	*/
+	this._j._abs._diag._seekTurnX = -1;
+	this._j._abs._diag._seekTurnY = -1;
 };
 /**
 * Sets the custom direction being faced on this event's creation.
@@ -117,6 +123,53 @@ Game_Event.prototype.setCustomDirection = function(direction) {
 */
 Game_Event.prototype.getCustomDirection = function() {
 	return this._j._abs._diag._initialDirection;
+};
+/**
+* The x of where this event last turned while seeking, or -1 before its first turn.
+* @returns {number}
+*/
+Game_Event.prototype.getSeekTurnX = function() {
+	return this._j._abs._diag._seekTurnX;
+};
+/**
+* The y of where this event last turned while seeking, or -1 before its first turn.
+* @returns {number}
+*/
+Game_Event.prototype.getSeekTurnY = function() {
+	return this._j._abs._diag._seekTurnY;
+};
+/**
+* Sets the x of where this event last turned while seeking.
+* @param {number} x The x it turned at, in tiles.
+*/
+Game_Event.prototype.setSeekTurnX = function(x) {
+	this._j._abs._diag._seekTurnX = x;
+};
+/**
+* Sets the y of where this event last turned while seeking.
+* @param {number} y The y it turned at, in tiles.
+*/
+Game_Event.prototype.setSeekTurnY = function(y) {
+	this._j._abs._diag._seekTurnY = y;
+};
+/**
+* Records where this event just turned while seeking, both axes at once.
+* @param {number} x The x it turned at, in tiles.
+* @param {number} y The y it turned at, in tiles.
+*/
+Game_Event.prototype.setSeekTurnPosition = function(x, y) {
+	this.setSeekTurnX(x);
+	this.setSeekTurnY(y);
+};
+/**
+* Whether this event has travelled at least a whole tile since it last turned while seeking, or has never turned.<br/>
+* Measured as a straight line, so a diagonal step (about 1.41 tiles) counts.
+* @returns {boolean}
+*/
+Game_Event.prototype.hasTravelledATileSinceSeekTurn = function() {
+	if (this.getSeekTurnX() < 0) return true;
+	const travelled = Math.hypot(this.x - this.getSeekTurnX(), this.y - this.getSeekTurnY());
+	return travelled >= .999999;
 };
 /**
 * Extends {@link #moveStraight}.<br/>
@@ -407,7 +460,7 @@ Game_Event.prototype.seekLastHit = function() {
 };
 /**
 * Pursues the last hit battler on the map.
-* Compared to `homeIntoLastHit`, the rotation is once-per-step instead of instant.
+* Compared to `homeIntoLastHit`, the rotation is at most 45 degrees per tile travelled instead of instant.
 * @param {JABS_Battler} lastHit The battler that was supposedly last hit.
 */
 Game_Event.prototype.seekLastHitBattler = function(lastHit) {
@@ -419,7 +472,7 @@ Game_Event.prototype.seekLastHitBattler = function(lastHit) {
 };
 /**
 * Pursues the last hit battler on the map.
-* Compared to `homeIntoLastHit`, the rotation is once-per-step instead of instant.
+* Compared to `homeIntoLastHit`, the rotation is at most 45 degrees per tile travelled instead of instant.
 * @param {JABS_Battler} target The battler that was supposedly last hit.
 */
 Game_Event.prototype.seekTargetBattler = function(target) {
@@ -431,14 +484,19 @@ Game_Event.prototype.seekTargetBattler = function(target) {
 };
 /**
 * Pursues the provided battler.
-* The rotation for this pursuit is gradual rather than instant like `.homeIntoBattler`.
+* The rotation for this pursuit is gradual rather than instant like `.homeIntoBattler`: at most 45 degrees per tile
+* travelled. Under pixel movement a step is only one frame's worth of travel, a sliver of a tile, and turning on every
+* one would pivot the seeker almost in place instead of curving it toward its prey.
 * @param {JABS_Battler} battler The battler being pursued.
 */
 Game_Event.prototype.seekBattler = function(battler) {
-	const currDir = this.getCustomDirection();
-	const [x, y] = [battler.getX(), battler.getY()];
-	const finalDir = this.findDiagonalDirectionTo(x, y);
-	this.gradualRotateToDirection(currDir, finalDir);
+	if (this.hasTravelledATileSinceSeekTurn()) {
+		const currDir = this.getCustomDirection();
+		const [x, y] = [battler.getX(), battler.getY()];
+		const finalDir = this.findDiagonalDirectionTo(x, y);
+		this.gradualRotateToDirection(currDir, finalDir);
+		this.setSeekTurnPosition(this.x, this.y);
+	}
 	this.moveStraight(this.direction());
 };
 /**

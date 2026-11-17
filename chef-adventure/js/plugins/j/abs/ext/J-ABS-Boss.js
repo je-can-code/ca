@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 ABS-BOSS] Data-driven boss encounters for J-ABS.
+ * [v2.0.0 ABS-BOSS] Data-driven boss encounters for J-ABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -625,14 +625,29 @@ var JabsBossManager = class JabsBossManager {
 		this.#clearExtraBodies();
 		this.#clearBystanders();
 		this.#restoreTone();
+		this.discardEncounter();
+	}
+	/**
+	* Forgets the active encounter without touching anything it left in the world.
+	*
+	* This is for a fight whose game ended underneath it. This manager is static, so it outlives the game it was
+	* keeping score for: a party that wipes mid-fight goes back to the title with the fight still on the books, and
+	* the first enemy to fall in whatever game comes next would be checked against a boss that no longer exists. A
+	* new game and a loaded save each build a world of their own, and the bodies, hazards and tint belonged to the
+	* one that ended. There is nothing of theirs left to take off the map or hand back to the screen, and doing
+	* either would reach into the new world instead. All that is left to undo is this manager's memory of the fight.
+	*/
+	static discardEncounter() {
 		this.#activeEncounter = null;
+		this.#bossDefeated = false;
 		this.#routineCountdowns.clear();
 		this.#routineCadences.clear();
 		this.#firedReactions.clear();
-		this.#participantBodies.clear();
-		this.#bossDefeated = false;
 		this.#lanes = [];
 		this.#forcedCasts.clear();
+		this.#participantBodies.clear();
+		this.#extraBodies = [];
+		this.#toneBeforeFight = [];
 	}
 	/**
 	* Takes every extra body the active encounter spawned off the map, and forgets them all.
@@ -1192,6 +1207,7 @@ var JabsBossManager = class JabsBossManager {
 	* Fires every reaction whose moment has just arrived.
 	*/
 	static #updateReactions() {
+		if (this.#bossDefeated) return;
 		this.#activeEncounter.reactions().filter((reaction) => reaction.trigger() !== JabsBossReaction.Triggers.Start).filter((reaction) => this.#isReactionDue(reaction)).forEach((reaction) => this.#fireReaction(reaction));
 	}
 	/**
@@ -1302,11 +1318,11 @@ var JabsBossManager = class JabsBossManager {
 	* Determines whether every body the active encounter is won by felling has fallen and finished dying.
 	*
 	* J-ABS erases a fallen body only once its death scene has played out, so an erased body is one whose
-	* last words have all been said. Each body is asked directly rather than looked up on the map: a body
-	* the map no longer holds may only have been left behind by a player walking off of it, which is not
-	* the same thing at all as a boss that has fallen. A bystander is never asked at all, since the fight is
-	* not won by felling it, and a participant still waiting to be summoned keeps the fight going until it has
-	* arrived and fallen too.
+	* last words have all been said. Each body is asked directly rather than looked up on the map: a fallen
+	* body's slot is freed once it leaves the map, and whatever is dropped next can move into it, so the map
+	* can no longer say whether the boss fell. The body still can. A bystander is never asked at all, since the
+	* fight is not won by felling it, and a participant still waiting to be summoned keeps the fight going until
+	* it has arrived and fallen too.
 	* @returns {boolean}
 	*/
 	static #isEveryBodyGone() {
@@ -2625,12 +2641,12 @@ var J_BossPluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.2.0";
+	const requiredBaseVersion = "4.4.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.13.0";
+	const requiredJabsVersion = "4.29.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (hasJabsRequirement === false) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -2643,11 +2659,12 @@ J.ABS.EXT.BOSS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.BOSS.Metadata = new J_BossPluginMetadata("J-ABS-Boss", "1.0.1");
+J.ABS.EXT.BOSS.Metadata = new J_BossPluginMetadata("J-ABS-Boss", "2.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.ABS.EXT.BOSS.Aliased = {
+	DataManager: new Map(),
 	Game_Map: new Map(),
 	JABS_Engine: new Map()
 };
@@ -2670,7 +2687,55 @@ J.ABS.EXT.BOSS.AiControl = {
 };
 
 //#endregion
+//#region src/plugins/abs/ext/boss/managers/DataManager.js
+/**
+* Extends {@link #setupNewGame}.<br/>
+* Also forgets any boss fight the last game was in the middle of.
+*
+* The boss manager is static, so a fight outlives the game it was fought in. A party that wipes mid-fight goes back
+* to the title with the fight still running, and a new game started from there would check the first enemy to fall
+* against a boss from the last one.
+*/
+J.ABS.EXT.BOSS.Aliased.DataManager.set("setupNewGame", DataManager.setupNewGame);
+DataManager.setupNewGame = function() {
+	JabsBossManager.discardEncounter();
+	J.ABS.EXT.BOSS.Aliased.DataManager.get("setupNewGame").call(this);
+};
+/**
+* Extends {@link #extractSaveContents}.<br/>
+* Also forgets any boss fight the game being left behind was in the middle of.
+*
+* A loaded save brings back a world of its own, and a fight still running in the game it replaces belongs to
+* neither: its bodies were that game's events, and nothing of them is on the map the save restores.
+* @param {object} contents The save contents being applied.
+*/
+J.ABS.EXT.BOSS.Aliased.DataManager.set("extractSaveContents", DataManager.extractSaveContents);
+DataManager.extractSaveContents = function(contents) {
+	JabsBossManager.discardEncounter();
+	J.ABS.EXT.BOSS.Aliased.DataManager.get("extractSaveContents").call(this, contents);
+};
+
+//#endregion
 //#region src/plugins/abs/ext/boss/objects/Game_Map.js
+/**
+* Extends {@link #setup}.<br/>
+* Also ends whatever boss fight was running on the map being left.
+*
+* A fight cannot follow the party anywhere. Its bodies are the old map's events and stay behind with it, and J-ABS
+* rebuilds its battlers for the new map, so a fight left running would have nobody in it, could never be won, and
+* would trip over the next enemy to fall anywhere at all.
+*
+* It ends after the new map is in place rather than before. By then the old bodies are already off the map, so the
+* ending finds nothing of the old map's to erase, while the screen- the one thing a fight touches that outlives its
+* map- still gets handed back the way the fight found it. A fight the new map starts for itself is never caught by
+* this either: event commands only begin running once the map updates.
+* @param {number} mapId The id of the map being set up.
+*/
+J.ABS.EXT.BOSS.Aliased.Game_Map.set("setup", Game_Map.prototype.setup);
+Game_Map.prototype.setup = function(mapId) {
+	J.ABS.EXT.BOSS.Aliased.Game_Map.get("setup").call(this, mapId);
+	JabsBossManager.endEncounter();
+};
 /**
 * Extends {@link #update}.<br/>
 * Also advances the active boss encounter.

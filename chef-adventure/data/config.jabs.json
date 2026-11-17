@@ -2708,6 +2708,135 @@
           ]
         }
       ]
+    },
+    {
+      "key": "grudj",
+      "map": 444,
+      "defeatSwitch": 198,
+      "participants": [
+        {
+          "key": "grudj",
+          "enemyId": 601,
+          "expect": "Grudj",
+          "x": 29,
+          "y": 13,
+          "template": 621
+        },
+        {
+          "key": "scrambler",
+          "enemyId": 602,
+          "expect": "Scrambler",
+          "x": 29,
+          "y": 23,
+          "template": 622,
+          "bystander": true
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "scramble",
+          "cadence": 30,
+          "steps": [
+            {
+              "verb": "forceSkill",
+              "skill": 2603,
+              "expect": "Scramble",
+              "cast": true,
+              "participant": "scrambler"
+            },
+            {
+              "verb": "wait",
+              "seconds": 20
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 513,
+              "expect": "Zaphazard",
+              "template": 624,
+              "x": 14,
+              "y": 16,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 513,
+              "expect": "Zaphazard",
+              "template": 624,
+              "x": 45,
+              "y": 30,
+              "animation": 101
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "opening",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "state": 2091,
+              "expect": "Bolted Down",
+              "participant": "scrambler"
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Grudj\\C[0]",
+              "lines": [
+                "TODO: his opening line"
+              ]
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2603,
+              "expect": "Scramble",
+              "cast": false,
+              "participant": "scrambler"
+            },
+            {
+              "verb": "wait",
+              "seconds": 11
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Grudj\\C[0]",
+              "lines": [
+                "WHAT, THIS CAN'T BE"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "machine-falls",
+          "on": "fallen",
+          "participants": [
+            "scrambler"
+          ],
+          "steps": [
+            {
+              "verb": "spawn",
+              "enemyId": 602,
+              "expect": "Scrambler",
+              "template": 623,
+              "x": 29,
+              "y": 23
+            },
+            {
+              "verb": "learnSkill",
+              "skill": 2605,
+              "expect": "Black Cross"
+            },
+            {
+              "verb": "log",
+              "lines": [
+                "TODO: his line as the machine dies"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "foodTypes": [

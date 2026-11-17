@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.28.0 ABS] Enables combat to be carried out on the map.
+ * [v4.29.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1331,7 +1331,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "4.2.0";
+	const requiredBaseVersion = "4.4.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -1432,7 +1432,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.28.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.29.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -1702,6 +1702,42 @@ J.ABS.RegExp = {
 	ComboAction: /<combo:[ ]?(\[\d+(?:,[ ]?\d+){0,2}])>/gi,
 	ComboStarter: /<comboStarter>/gi,
 	AiSkillExclusion: /<aiSkillExclusion>/gi,
+	/**
+	* The states a skill follows up on. While its target carries one of them, an enemy AI with the tactical trait casts
+	* this skill before anything else, which is how a boss reads a combo off the field: one battler lays a state,
+	* another cashes it in. Ally AI does not read it.
+	*
+	* <pre>
+	* Structure:
+	*  <aiFollowUp:[STATE_IDS]>
+	*
+	* Example:
+	*  <aiFollowUp:[2090, 4]>
+	*
+	* Translation:
+	*  While its target carries state 2090 or state 4, a tactical enemy casts this first.
+	* </pre>
+	* @type {RegExp}
+	*/
+	AiFollowUp: /<aiFollowUp:[ ]?(\[[\d, ]+])>/i,
+	/**
+	* The declaration that an enemy AI saves a skill for its follow-up: it never comes up in an ordinary decision or as
+	* an interrupt, only when its target carries a state it follows up on, so it is never on cooldown when that moment
+	* arrives. Unlike `<aiSkillExclusion>`, the skill stays in the AI's pool. Ally AI does not read it.
+	*
+	* <pre>
+	* Structure:
+	*  <aiFollowUpOnly>
+	*
+	* Example:
+	*  <aiFollowUpOnly>
+	*
+	* Translation:
+	*  An enemy casts this only as a follow-up.
+	* </pre>
+	* @type {RegExp}
+	*/
+	AiFollowUpOnly: /<aiFollowUpOnly>/i,
 	FreeCombo: /<freeCombo>/gi,
 	NoAutoAssign: /<noAutoAssign>/gi,
 	UpgradeOverSkill: /<upgradeOverSkill:[ ]?(\d+)>/i,
@@ -5302,32 +5338,131 @@ var JABS_AI = class {
 	*/
 	filterElementallyIneffectiveSkills(skillsToUse, user, target) {
 		if (skillsToUse.length <= 1) return skillsToUse;
-		return skillsToUse.filter((skillId) => {
-			const testAction = new Game_Action(user.getBattler());
-			testAction.setSkill(skillId);
-			const rate = testAction.calcElementRate(target.getBattler());
-			return rate >= 1;
-		});
+		return skillsToUse.filter((skillId) => this.elementRateAgainst(skillId, user, target) >= 1);
 	}
 	/**
-	* Narrows the skill list to the single most elementally effective skill against the target.
-	* Returns the original array unchanged if only one skill is present.
+	* Narrows the skill list to the skills most elementally effective against the target: every skill tied at the best
+	* rate, in the order given.<br/>
+	* A skill that strikes the target's weakness is chosen whenever it is on offer, and skills that are equally
+	* effective stay equally likely, the final pick choosing evenly among them.<br/>
+	* A careful enemy's filter runs first and can leave nothing to judge, when its target resists everything on offer;
+	* nothing then comes back.
 	* @param {number[]} skillsToUse The available skills to use.
 	* @param {JABS_Battler} user The battler deciding the action.
 	* @param {JABS_Battler} target The battler being targeted.
 	* @returns {number[]}
 	*/
-	findMostElementallyEffectiveSkill(skillsToUse, user, target) {
-		if (skillsToUse.length <= 1) return skillsToUse;
-		const elementalSkillCollection = [];
-		skillsToUse.forEach((skillId) => {
-			const testAction = new Game_Action(user.getBattler());
-			testAction.setSkill(skillId);
-			const rate = testAction.calcElementRate(target.getBattler());
-			elementalSkillCollection.push([skillId, rate]);
+	findMostElementallyEffectiveSkills(skillsToUse, user, target) {
+		const rates = skillsToUse.map((skillId) => this.elementRateAgainst(skillId, user, target));
+		const bestRate = Math.max(...rates);
+		return skillsToUse.filter((_skillId, index) => rates[index] === bestRate);
+	}
+	/**
+	* How hard a skill strikes the target by element: the engine's own element rate for that skill, as cast by the
+	* user. Above 1 is a weakness, below 1 a resistance.
+	* @param {number} skillId The skill being judged.
+	* @param {JABS_Battler} user The battler who would cast it.
+	* @param {JABS_Battler} target The battler it would strike.
+	* @returns {number}
+	*/
+	elementRateAgainst(skillId, user, target) {
+		const testAction = new Game_Action(user.getBattler());
+		testAction.setSkill(skillId);
+		return testAction.calcElementRate(target.getBattler());
+	}
+	/**
+	* The executor's pick: the skills most effective against this target.<br/>
+	* Core judges effectiveness by element alone; extensions widen it, as J-ABS-Shield does for a shielded target.
+	* @param {number[]} skillsToUse The available skills to use.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {JABS_Battler} target The battler being targeted.
+	* @returns {number[]}
+	*/
+	filterForExecutorSkills(skillsToUse, user, target) {
+		return this.findMostElementallyEffectiveSkills(skillsToUse, user, target);
+	}
+	/**
+	* Drops every skill saved for a follow-up, so it never comes up in an ordinary decision.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {number[]} skillsToUse The available skills to use.
+	* @returns {number[]}
+	*/
+	filterFollowUpOnlySkills(user, skillsToUse) {
+		return skillsToUse.filter((skillId) => user.getSkill(skillId).jabsAiFollowUpOnly === false);
+	}
+	/**
+	* Finds a skill that follows up on a state the target carries right now, saved-for-it or not.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {JABS_Battler} target The battler being targeted.
+	* @param {number[]} usableSkills The skills the user can cast right now.
+	* @returns {number} The skill id, or 0 when nothing follows up on any state the target has.
+	*/
+	decideFollowUp(user, target, usableSkills) {
+		const targetStateIds = target.getBattler().states().map((state) => state.id);
+		const followUpSkillId = usableSkills.find((skillId) => {
+			const { jabsAiFollowUpStateIds } = user.getSkill(skillId);
+			return jabsAiFollowUpStateIds.some((stateId) => targetStateIds.includes(stateId));
 		});
-		elementalSkillCollection.sort((a, b) => b[1] - a[1]);
-		return [elementalSkillCollection[0][0]];
+		return followUpSkillId ?? 0;
+	}
+	/**
+	* Finds the skill that would cut the target's cast, choosing the one with the largest interrupt magnifier, but only
+	* when the cast can actually be cut: an interrupt spent on an immune cast is a wasted turn.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {JABS_Battler} target The battler being targeted.
+	* @param {number[]} usableSkills The skills the user can cast right now.
+	* @returns {number} The skill id, or 0 when there is no cast to cut or nothing to cut it with.
+	*/
+	decideInterrupt(user, target, usableSkills) {
+		if (target.isInterruptible() === false) return 0;
+		let bestSkillId = 0;
+		let bestMagnifier = 0;
+		usableSkills.forEach((skillId) => {
+			const { jabsInterruptMagnifier } = user.getSkill(skillId);
+			if (jabsInterruptMagnifier > bestMagnifier) {
+				bestSkillId = skillId;
+				bestMagnifier = jabsInterruptMagnifier;
+			}
+		});
+		return bestSkillId;
+	}
+	/**
+	* Finds a skill aimed at the opposition that strips a positive state off the target. A skill purging buffs
+	* wholesale comes first, since it strips whatever the target carries; otherwise the target's states are read in the
+	* order it carries them, and the first one some skill can remove is the one stripped, with the skill that removes it
+	* most reliably.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {JABS_Battler} target The battler being targeted.
+	* @param {number[]} usableSkills The skills the user can cast right now.
+	* @returns {number} The skill id, or 0 when the target carries nothing the user can strip.
+	*/
+	decideStrip(user, target, usableSkills) {
+		const positiveStates = target.getBattler().states().filter((state) => state.isNegativeType() === false);
+		if (positiveStates.length === 0) return 0;
+		const strippingSkills = usableSkills.filter((skillId) => this.buildTestAction(user, skillId).isForOpponent());
+		const purgerSkillId = this.findBuffPurger(user, strippingSkills);
+		if (purgerSkillId !== 0) return purgerSkillId;
+		for (const state of positiveStates) {
+			const stripSkillId = this.determineBestSkillForStateCleansing(strippingSkills, state.id, user);
+			if (stripSkillId !== 0) return stripSkillId;
+		}
+		return 0;
+	}
+	/**
+	* Finds a skill that purges buffs wholesale through `<purgeStates>`: one whose polarity is `positive` or `all`.
+	* A purge left at its default polarity strips only negative states, so it is no use against a protection.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {number[]} usableSkills The skills the user can cast right now.
+	* @returns {number} The skill id, or 0 when none of them purges buffs.
+	*/
+	findBuffPurger(user, usableSkills) {
+		const purgerSkillId = usableSkills.find((skillId) => {
+			const purgeParams = user.getSkill(skillId).jabsPurgeStatesParams;
+			if (purgeParams === null) return false;
+			const [polarity] = purgeParams;
+			return polarity === "positive" || polarity === "all";
+		});
+		return purgerSkillId ?? 0;
 	}
 	/**
 	* Decides the best cleansing skill to use on the nearest ally suffering a negative state.
@@ -5339,20 +5474,32 @@ var JABS_AI = class {
 	decideCleansing(user, availableSkills) {
 		const nearbyAllies = user.getAllNearbyAllies();
 		let bestSkillId = 0;
+		const cleansingSkills = availableSkills.filter((skillId) => this.buildTestAction(user, skillId).isForFriend());
 		nearbyAllies.forEach((ally) => {
 			const allyBattler = ally.getBattler();
 			const allyStates = allyBattler.states();
 			if (allyStates.length === 0) return;
 			const cleansableState = allyStates.find((state) => {
 				const isNegative = state.isNegativeType();
-				const canBeCleansed = this.determineBestSkillForStateCleansing(availableSkills, state.id, user);
+				const canBeCleansed = this.determineBestSkillForStateCleansing(cleansingSkills, state.id, user);
 				return isNegative && canBeCleansed;
 			});
 			if (cleansableState) {
-				bestSkillId = this.determineBestSkillForStateCleansing(availableSkills, cleansableState.id, user);
+				bestSkillId = this.determineBestSkillForStateCleansing(cleansingSkills, cleansableState.id, user);
 			}
 		});
 		return bestSkillId;
+	}
+	/**
+	* Builds the action a skill would be cast as, so where it is aimed can be read before the skill is chosen.
+	* @param {JABS_Battler} user The battler who would cast it.
+	* @param {number} skillId The skill to read.
+	* @returns {Game_Action}
+	*/
+	buildTestAction(user, skillId) {
+		const testAction = new Game_Action(user.getBattler());
+		testAction.setSkill(skillId);
+		return testAction;
 	}
 	/**
 	* Decides the best healing skill to use based on ally health status.
@@ -5508,14 +5655,14 @@ var JABS_AI = class {
 		return bestSkillId;
 	}
 	/**
-	* Finds the skill with the highest removal rate for the given state.
+	* Finds the skill with the highest removal rate for the given state, or 0 when none of them removes it.
 	* @param {number[]} availableSkills The skill ids available to choose from.
 	* @param {number} stateIdToBeCleansed The id of the state to be cleansed.
 	* @param {JABS_Battler} healer The battler choosing the skill.
 	* @returns {number}
 	*/
 	determineBestSkillForStateCleansing(availableSkills, stateIdToBeCleansed, healer) {
-		let bestSkillForStateCleansing = null;
+		let bestSkillForStateCleansing = 0;
 		let highestCleanseRate = 0;
 		availableSkills.forEach((skillId) => {
 			const skill = healer.getSkill(skillId);
@@ -5606,12 +5753,14 @@ var JABS_EnemyAI = class extends JABS_AI {
 	* An ai trait that prevents this user from executing skills that are
 	* elementally ineffective against their target.
 	* Consults memories to avoid previously-resisted skills.
+	* Strips a positive state off its target when one of its skills can remove it.
 	*/
 	careful = false;
 	/**
 	* An ai trait that encourages this user to always use the most elementally
-	* effective skill available.
+	* effective skill available, choosing evenly among skills that are equally effective.
 	* Weights memories toward previously-effective skills.
+	* Its pick of the most effective skill is widened by extensions; J-ABS-Shield aims it at a target's shield first.
 	*/
 	executor = false;
 	/**
@@ -5620,8 +5769,11 @@ var JABS_EnemyAI = class extends JABS_AI {
 	*/
 	reckless = false;
 	/**
-	* An ai trait that prefers skills which apply negative states to the target.
+	* An ai trait that prefers skills which apply negative states to the target, unless this user is also an executor,
+	* whose equally effective skills stay equally likely.
 	* Consults memories for previously-exploited status vulnerabilities.
+	* Casts first a skill that follows up on a state its target carries, then a skill that cuts its target's cast
+	* when that cast can be cut.
 	*/
 	tactical = false;
 	/**
@@ -5670,15 +5822,20 @@ var JABS_EnemyAI = class extends JABS_AI {
 	/**
 	* Decides an action based on this battler's AI traits, the target, and available skills.
 	* Coordination (leader/follower) is handled upstream by {@link JABS_AiManager}.
-	* Priority order: support layer → berserker check → attack layer → generic.
+	* Priority order: tactical opening → support layer → berserker check → attack layer → generic.
 	* @param {JABS_Battler} user The battler of the AI deciding a skill.
 	* @param {JABS_Battler} target The target battler to decide an action against.
 	* @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
 	* @returns {number[]} Exactly one skill id, or empty when no valid choice exists.
 	*/
 	decideAction(user, target, availableSkills) {
-		const usableSkills = this.filterUncastableSkills(user, availableSkills);
+		const castableSkills = this.filterUncastableSkills(user, availableSkills);
 		const { careful, executor, reckless, tactical, berserker, cleanser, healer, buffer } = this;
+		if (tactical) {
+			const opening = this.decideTacticalOpening(user, target, castableSkills);
+			if (opening.length) return opening;
+		}
+		const usableSkills = this.filterFollowUpOnlySkills(user, castableSkills);
 		if (reckless && usableSkills.length === 0) {
 			Diagnostics.warn("J-ABS", "a battler with the \"reckless\" trait was found with no skills.", user);
 		}
@@ -5701,6 +5858,23 @@ var JABS_EnemyAI = class extends JABS_AI {
 			return this.decideAttackAction(user, usableSkills);
 		}
 		return this.decideGenericAction(user, usableSkills);
+	}
+	/**
+	* The tactical opening: a skill that follows up on a state the target carries, else one that cuts its cast.<br/>
+	* A combo underway keeps its rhythm, so no opening is taken while one is due.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {JABS_Battler} target The battler being targeted.
+	* @param {number[]} castableSkills The skills the user can cast right now, saved ones included.
+	* @returns {number[]} Exactly one skill id, or empty when the moment offers no opening.
+	*/
+	decideTacticalOpening(user, target, castableSkills) {
+		if (this.shouldFollowWithCombo(user)) return [];
+		const followUp = this.decideFollowUp(user, target, castableSkills);
+		if (followUp) return [followUp];
+		const unsavedSkills = this.filterFollowUpOnlySkills(user, castableSkills);
+		const interrupt = this.decideInterrupt(user, target, unsavedSkills);
+		if (interrupt) return [interrupt];
+		return [];
 	}
 	/**
 	* Wraps a base support helper result (0 means none) as a uniform skill-id list.
@@ -5780,7 +5954,9 @@ var JABS_EnemyAI = class extends JABS_AI {
 	}
 	/**
 	* Decides an attack-oriented action to perform based on active traits.
-	* Applies careful/executor/tactical filters in sequence, then calls memory-influenced selection.
+	* A careful battler first strips a protection off its target when it can; otherwise the careful filter applies, then
+	* the executor's judgment, or the tactical preference for a battler that is no executor, before the final pick. An
+	* executor's equally effective skills reach that pick untouched, so it chooses evenly among them.
 	* @param {JABS_Battler} user The battler to decide the skill for.
 	* @param {number[]} usableSkills The available skills to use.
 	* @returns {number[]}
@@ -5791,14 +5967,17 @@ var JABS_EnemyAI = class extends JABS_AI {
 		}
 		if (!usableSkills.length) return [user.getEnemyBasicAttack()];
 		const target = user.getTarget();
+		if (this.careful) {
+			const strip = this.decideStrip(user, target, usableSkills);
+			if (strip) return [strip];
+		}
 		let filtered = usableSkills;
 		if (this.careful) {
 			filtered = this.filterElementallyIneffectiveSkills(filtered, user, target);
 		}
 		if (this.executor) {
-			filtered = this.findMostElementallyEffectiveSkill(filtered, user, target);
-		}
-		if (this.tactical) {
+			filtered = this.filterForExecutorSkills(filtered, user, target);
+		} else if (this.tactical) {
 			filtered = this.filterForTacticalSkills(filtered, user, target);
 		}
 		return [this.decideFromNoneToManySkills(user, filtered)];
@@ -5886,7 +6065,8 @@ var JABS_EnemyAI = class extends JABS_AI {
 			return [this.followWithCombo(followerBattler)];
 		}
 		const basicAttackSkillId = followerBattler.getEnemyBasicAttack();
-		let skillsToUse = followerBattler.getSkillIdsFromEnemy();
+		const followerSkills = followerBattler.getSkillIdsFromEnemy();
+		let skillsToUse = this.filterFollowUpOnlySkills(followerBattler, followerSkills);
 		if (!skillsToUse.length) return [basicAttackSkillId];
 		const { healer, careful, executor } = this;
 		const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
@@ -12292,6 +12472,21 @@ var JABS_Battler = class JABS_Battler {
 		return this.isCasting() || this.isChanneling();
 	}
 	/**
+	* Whether a landed `<interrupt:MAGNIFIER>` hit would cut this battler's cast or channel right now.<br/>
+	* It has to be casting or channeling, the skill in flight must not carry `<thisCannotBeInterrupted>`, and none of
+	* the battler's own note sources may carry `<cannotBeInterrupted>`. The engine asks this when such a hit lands,
+	* and a tactical AI asks it before spending an interrupt.
+	* @returns {boolean}
+	*/
+	isInterruptible() {
+		if (this.isCastingOrChanneling() === false) return false;
+		const decidedActions = this.getDecidedAction();
+		const skillInFlight = decidedActions ? decidedActions.at(0).getBaseSkill() : null;
+		if (skillInFlight && skillInFlight.jabsThisCannotBeInterrupted) return false;
+		if (this.getBattler().isImmuneToInterrupt()) return false;
+		return true;
+	}
+	/**
 	* Whether or not the currently in-flight cast/channel roots this battler in place, per its own
 	* `<cannotMoveToInterrupt>` tag. Always false when not casting/channeling at all.
 	* @returns {boolean}
@@ -18329,13 +18524,9 @@ var JABS_Engine = class JABS_Engine {
 	* @param {JABS_Battler} target The map battler that was hit.
 	*/
 	checkInterrupt(action, target) {
-		if (!target.isCastingOrChanneling()) return;
 		const magnifier = action.getBaseSkill().jabsInterruptMagnifier;
 		if (!magnifier) return;
-		const decidedActions = target.getDecidedAction();
-		const interruptedSkill = decidedActions ? decidedActions.at(0).getBaseSkill() : null;
-		if (interruptedSkill && interruptedSkill.jabsThisCannotBeInterrupted) return;
-		if (target.getBattler().isImmuneToInterrupt()) return;
+		if (target.isInterruptible() === false) return;
 		target.interrupt(magnifier, false);
 	}
 	canBeKnockedBack(action, target) {
@@ -23429,6 +23620,22 @@ Object.defineProperty(RPG_Skill.prototype, "jabsComboStarter", { get: function()
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsAiSkillExclusion", { get: function() {
 	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.AiSkillExclusion);
+} });
+/**
+* The ids of the states this skill follows up on, from `<aiFollowUp:[STATE_IDS]>`. While a tactical enemy AI's target
+* carries one of them, the AI casts this skill before anything else. Empty when it follows up on nothing.
+* @type {number[]}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsAiFollowUpStateIds", { get: function() {
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.AiFollowUp);
+} });
+/**
+* Whether an enemy AI saves this skill for its follow-up, from `<aiFollowUpOnly>`: it is never chosen in an ordinary
+* decision or as an interrupt, only as a follow-up.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsAiFollowUpOnly", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.AiFollowUpOnly);
 } });
 /**
 * The JABS combo skill id that this skill can lead into if the skill is learned

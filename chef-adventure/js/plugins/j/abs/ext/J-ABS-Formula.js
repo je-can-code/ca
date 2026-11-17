@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.2 ABS-FORMULA] An extension for JABS that allows multiple damage formulas.
+ * [v1.1.3 ABS-FORMULA] An extension for JABS that allows multiple damage formulas.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -54,7 +54,7 @@ globalThis.J ||= {};
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.13.0";
+	const requiredJabsVersion = "4.29.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -64,7 +64,7 @@ J.ABS.EXT.FORMULA = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.FORMULA.Metadata = new JFORMULA_PluginMetadata("J-ABS-Formula", "1.1.2");
+J.ABS.EXT.FORMULA.Metadata = new JFORMULA_PluginMetadata("J-ABS-Formula", "1.1.3");
 /**
 * A collection of all aliased methods for this plugin.
 */

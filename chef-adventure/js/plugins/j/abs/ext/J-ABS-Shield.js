@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.1 ABS-SHIELD] A JABS extension that provides state-based HP shields.
+ * [v1.3.0 ABS-SHIELD] A JABS extension that provides state-based HP shields.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -51,7 +51,7 @@ globalThis.J ||= {};
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.13.0";
+	const requiredJabsVersion = "4.29.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -68,7 +68,7 @@ J.ABS.EXT.SHIELD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.2.1");
+J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -77,6 +77,7 @@ J.ABS.EXT.SHIELD.Aliased = {
 	Game_Action: new Map(),
 	Game_Actor: new Map(),
 	Game_Battler: new Map(),
+	JABS_AI: new Map(),
 	JABS_Engine: new Map(),
 	JABS_State: new Map(),
 	JABS_StateBuilder: new Map(),
@@ -437,6 +438,42 @@ JABS_StateBuilder.prototype.build = function() {
 JABS_StateBuilder.prototype.setShield = function(shield) {
 	this.shield = shield;
 	return this;
+};
+
+//#endregion
+//#region src/plugins/abs/ext/shield/_models/JABS_AI.js
+/**
+* Extends {@link JABS_AI.filterForExecutorSkills}.<br/>
+* An executor facing a shield reaches for what breaks it first. While its target carries an unbroken shield and at
+* least one of its skills bypasses shields or deals bonus damage to them, it chooses among those alone, the most
+* effective of them first; otherwise it chooses as it always has.
+* @param {number[]} skillsToUse The available skills to use.
+* @param {JABS_Battler} user The battler deciding the action.
+* @param {JABS_Battler} target The battler being targeted.
+* @returns {number[]}
+*/
+J.ABS.EXT.SHIELD.Aliased.JABS_AI.set("filterForExecutorSkills", JABS_AI.prototype.filterForExecutorSkills);
+JABS_AI.prototype.filterForExecutorSkills = function(skillsToUse, user, target) {
+	const breakers = this.findShieldBreakers(skillsToUse, user, target);
+	const candidates = breakers.length > 0 ? breakers : skillsToUse;
+	return J.ABS.EXT.SHIELD.Aliased.JABS_AI.get("filterForExecutorSkills").call(this, candidates, user, target);
+};
+/**
+* The skills that would break the target's shield: those bypassing shields or dealing bonus damage to them. None
+* while the target has no unbroken shield up.
+* @param {number[]} skillsToUse The available skills to use.
+* @param {JABS_Battler} user The battler deciding the action.
+* @param {JABS_Battler} target The battler being targeted.
+* @returns {number[]}
+*/
+JABS_AI.prototype.findShieldBreakers = function(skillsToUse, user, target) {
+	const shieldStates = target.getBattler().getShieldStates();
+	if (shieldStates.length === 0) return [];
+	return skillsToUse.filter((skillId) => {
+		const skill = user.getSkill(skillId);
+		if (skill.hasShieldBypass) return true;
+		return skill.shieldBonusFormulas.length > 0;
+	});
 };
 
 //#endregion

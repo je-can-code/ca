@@ -1016,9 +1016,401 @@ Three engine notes, all *read in source*:
   current HP down to match, which a lifted blackout never gives back; and masteries come from somewhere else (not read
   tonight), so a blackout would have to decide about them too.
 
+### Settled in the talk of 2026-11-16
+
+- **The recap above holds** ("That all sounds right").
+- **The machine sits mid-floor, one bar**: "The machine definitely is obvious and front and center. No need to hide
+  your most proud creations!" Brute force takes it in about two cycles, the baton in one zap, and a dead machine never
+  scrambles again. The terrace lost because J-ABS only runs battlers within half a screen beyond the view (RMMZ's
+  `isNearTheScreen`), so on this 60x40 map a terrace machine would pause its wind-up whenever the duo stood below about
+  row 27, a free dodge of every scramble. Mid-floor it is always live.
+- **Interrupts wait for a class pass**: "we can pass over classes later with interrupts." Until then nothing can cut
+  his Meltima.
+- **The SDP blackout is real** (slot 4 answered: A, built now): "most certainly a real blackout. Yes it'll leave your
+  HP/MP chunked but that is part of the pain! Incentivizes you to deal with it." No max HP/MP protection. A new J-SDP
+  tag, `<sdpBlackout>`, darkens every ranked panel through the four bonus methods while storage and menus stay
+  untouched. **Masteries stay lit**: "They aren't on the SDP anymore, they are a part of you." So J-SDP only, no
+  J-Passive change. A code-level plan comes before the build.
+- **His AI picks his moves** (slot 5): "leveraging AI is a good idea here." He gets `executor`, `careful` and
+  `tactical`, each made smarter (shopping list 9 and 10): he strips your buffs, cuts your casts and cracks your
+  shields. The blink routine and the trap clock from my lean are not yet confirmed by him.
+- **Who he is at the start** (2026-11-16): a **Field Mage**, "aka what Rupert was in J&R1": he casts a variety of
+  spells, "like a Red Mage basically", at **move speed 4**, as fast as normal speed, backing away from you and coming
+  in "pretty quick compared to the average enemy". J-ABS's AI already does the distance game (`maintainSafeDistance`:
+  back off when close, close in when far), so speed 4 makes him kite with no engine work.
+- **His Meltima is Black Meltima, element 10 "Typeless"**, and screenwide. Rupert's own Meltima (484) is Heat (4), so
+  a `careful` Grudj would never cast it at Rupert, who resists it: "lmao". It is "Rupert's favorite spell (he
+  mentions it in the beginning of the game!)", turned on him.
+- **The opening** (slot 7, as leaned): his line; the machine scrambles instantly, no wind-up, "he DEFINITELY tries
+  to smack them immediately, and catch them off guard"; a screenwide Black Meltima that takes a third of current HP
+  and so can never kill; "you survive, and he is like 'WHAT, THIS CAN'T BE'"; and the fight starts below full HP
+  "as your blackout fades and you can move again".
+- **The Treis gate is the baton itself** (slot 3, neither A nor B): "it doesn't actually 'reduce' the blackout, it
+  lets you oneshot the machine and you move on with your lives and never get blacked out at all (because no
+  scramble can be casted if the machine is dead)." One encounter, no `grudj-treis`, no paralysis immunity. The
+  machine's row takes tool-overload (element 28) at about x100 with MDF 0, so one zap ends it. The opening's
+  scramble still lands on everyone, since it fires before anyone can act.
+- **His look, installed 2026-11-16** at "yeah, install them", from Majik's J&R1 sprite as the lead (black skin, red
+  eyes): `$chara_grudj` (3_SFActor #6's pokey head dyed black on #0's suit dyed black with crimson trim, the red tie
+  kept; #0's own head is Rupert's, so it was ruled out) and `$chara_grudj-cloak` (3_DF_Actor #4 re-dyed into the
+  mysterious figure's brown and gold, the face a shadow with two red eyes: "In the beginning Jerald and Rupert
+  brushing it off is perfect"). Both are tall 64px sheets like the duo's. The Crossroads (Map014) and The Wanderer
+  (Map198) mysterious figures wear the cloak now; `$chara_grudj` waits for his reveal.
+- **The machine's look, installed 2026-11-16**: "skip the brain, and only do the right computer unit". The reactor
+  rig from MZ's sci-fi tilesets, as his `$o_scrambler-active` (SF_Inside_C, blue screens, a blue-lit tube) and
+  `$o_scrambler-broken` (its cracked, rusty twin from SF_Outside_C, the pink screens and tube taken to a powered-off
+  grey and every light dark: "like the computer is turned off, because its borked"). The broken look is for the
+  machine once it falls. Both are one-character sheets, wired to nothing yet. The active one glows ("like a
+  computer glows"): a cyan halo baked around its screens and tube, pulsing across its three pattern frames, so its
+  event wants Stepping on. His verdict: "thats perfectly what we should be using. the grey is dead on".
+- **The courtyard is dark-ish** at the fight: "dark-ish (not black, but not fully light) so that glowy things show
+  up well".
+
+### The build sheet (2026-11-16, at his "lets move onto the fight"; built at his go, see "Built" below)
+
+Order: the engine work first (each item gets a code-level plan before it is built), then the data, then a hall run
+proving the mechanics (never balance), then the arena. One PR for the whole boss pass after Grudj.
+
+**Engine (rmmz-plugins, shopping list 8-10):** J-SDP `<sdpBlackout>`; J-ABS `careful` strips buffs and `tactical`
+interrupts properly; J-ABS-Shield `executor` cracks shields.
+
+**Facts this sheet rests on (read 2026-11-16):**
+
+- A routine waits, never drops: when it comes due while the boss is casting, its countdown holds at zero until he can
+  act, then it runs and the full cadence restarts (`JabsBossManager.#updateRoutine`). A `forceSkill` with `cast: true`
+  replaces whatever its participant had decided (`#executeForceSkill`), and a forced cast reads `getCastTime()`,
+  which J-ABS-Timing scales by the caster's cast speed. A forced skill on a fallen body is skipped while the rest of
+  the routine plays.
+- A `time` auto-rule fires the moment it first can, then stamps only on a successful dispatch, so a busy bearer
+  delays it and the delay carries into every later firing. Hence the cycle lives in one routine, not in two timers.
+- CA's Paralyzed (state 4) is already "combination for rooted/muted/disabled" (5, 6, 7; Disabled is the disarm), so
+  the scramble's whole "paralysis combo" is one state.
+- The Voltage Baton (skill 254) is element 28 tool-overload, `(b.hp * 0.01) - (b.mdf * 0.1)`: at x100 and MDF 0 one
+  zap takes everything.
+- Rupert's Meltima (484) is Heat, radius 30 circle, `(a.mat*20) - (b.mdf*1)`, and applies Burn (9) and Heat
+  Intolerant (128); Black Meltima drops both.
+- Free ids: enemies from 601, skills from 2603, states from 2089, switches 198 and 199, the hall map 554. Map361
+  ev513 is a ready Zaphazard template.
+
+**Rows:**
+
+- **E601 "Grudj"**, level 150, the Field Mage: Enemy Rank T5 (325) and a sponge on his template (which one is a
+  numbers call, later). `<aiTrait:executor>`, `<aiTrait:careful>`, `<aiTrait:tactical>`. Basic attack with
+  `+Homing` (2007). Move speed 4 on his template; J-ABS's distance-keeping makes him kite.
+- **E602 "Scrambler"**, the machine: tool-overload (28) at x100, MDF 0, one bar sized for about two cycles of focused
+  damage (provisional), no actions of its own.
+
+**Skills (from 2603):**
+
+- **Scramble** (the machine's): screenwide, `<castTime:600>` (the 10-second telegraphed wind-up), applies Paralyzed
+  for about 11 seconds and Scrambled for 15. No damage.
+- **Black Meltima**: Meltima's clone, element 10 Typeless, radius 30, `<castTime:600>`, without the burns.
+- **Black Meltima, the opening**: the same spell with `Math.floor(b.hp / 3)`, no crit, no variance, so it can never
+  kill.
+- **His rainbow**, each a clone: a beam (Aegis Beam 2546) in Heat, a drowning spiral (Geyser Trap 2515) in Liquid,
+  a stunning quake (Quake 2504) in Ground, a void zone (Eclipse Trap 2517) in Void, homing bolts (the `+Homing`
+  basic) in Air, and the zap traps (Zaphazards) for Energy. My lean: the smarter traits get their tools inside these
+  spells (the beam carries `<shieldDamage>`, the homing bolts `<interrupt:N>`, the void zone strips positive states)
+  rather than as extra skills.
+
+**States (from 2089):** Scrambled (`<sdpBlackout>`, 15 seconds, negative); Desperate I, II, III (cast speed faster
+and `<speedBoost:5>`, `10`, `15`; the cast-speed numbers are provisional, -15/-30/-45 to start).
+
+**Switches:** 198 "grudj defeated", 199 "grudj fight started".
+
+**Templates (Map361, appended):** Grudj (`$chara_grudj`, stepping, move speed 4); the machine
+(`$o_scrambler-active`, stepping for the glow, a cyan `<light>` that pulses); the broken machine
+(`$o_scrambler-broken`, invincible, inanimate, no rewards, neutral so nothing targets it); Zaphazards use ev513.
+
+**Encounter `grudj` (map 444, defeat switch 198):**
+
+- Participants: Grudj (the boss) and the machine as a bystander, mid-floor.
+- `start`, the opening: his line (TODO); `forceSkill` Scramble on the machine with `cast: false` (instant); the
+  opening Black Meltima with `cast: true`, so the paralyzed duo watches it wind up; `wait` 10; "WHAT, THIS CAN'T BE"
+  (`dialogue`); `startRoutine` the cycle, so the first regular scramble comes a full cycle later.
+- Routine "scramble" (35 s, dormant until the opening ends, never quickened): Scramble on the machine with
+  `cast: true`, `wait` 10, Black Meltima on Grudj with `cast: true`. Once the machine is dead its step is skipped and
+  Black Meltima keeps its rhythm with nothing paralyzing anyone (my lean, his to confirm).
+- Routine "blink" (about 8 s) and routine "traps" (a pair of Zaphazards about once a minute): my lean, not yet
+  confirmed by him.
+- `health` 75, 50, 25: Desperate I, II, III in turn, `quickenRoutine` on the blink routine, a TODO line each.
+- `fallen` machine: `spawn` the broken machine on its tile, a TODO line.
+
+**His answers to the sheet (2026-11-16 10:06), which change it:**
+
+- **Black Meltima never stops**: "machine goes, but he doesn't stop. He'll still try to slap you with Black Meltima
+  every so often." His timing idea: a 30-second cooldown on it, and Desperate I, II, III as one bundle each: faster
+  cooldowns (`<fastCooldownRate>`), faster casts (`<castSpeedRate>`) and faster feet (`<speedBoost>`). The scramble
+  routine runs every 30 seconds instead of 35.
+- **The blink becomes a skill**: a gap-close with `<gapCloseAny>`, `<gapCloseMode:blink>` and
+  `<gapClosePosition:behind>` (he lands behind whoever it hits), on a 10-second cooldown that the bundle cuts. No
+  blink routine.
+- **The zap traps follow each Black Meltima**, "maybe once every 30 seconds or so": a `spawn` pair at the end of the
+  scramble routine.
+- **The bolts seek, they don't home**, "so they can be dodgable": a `+Seeking` overlay, `+Homing`'s twin on action
+  37 (Map002 ev37 "generic ranged (seeking)", J-ABS-Diagonals' `seekTarget`, which turns 45 degrees a step). The
+  other smart-trait tools stay as leaned.
+- **Open, asked**: once the machine is dead, either (a) the routine keeps Black Meltima and the traps on its
+  30-second beat (no new engine work; desperation shortens the cast, not the gap), or (b) a new J-ABS-Boss
+  `stopRoutine` verb ends that beat in the machine's `fallen` reaction, a `learnSkill` hands Black Meltima to his own
+  AI on its 30-second cooldown, which the bundle cuts, and a dormant traps routine starts. My lean: (a).
+
+**His second round (2026-11-16 10:24), which supersedes the open (a)/(b) above:**
+
+- **Desperation is one reusable stacking state**: "+10% cooldown reduction and -10% cast time and +5 speed boost",
+  "possibly reusable on other bosses". J-Passive already stacks by missing health: `<passiveStateCount:[DESPERATE,
+  lessIsMoreHp, 25]>` is `floor(missing% / 25)` stacks (PassiveStackCountEvaluator), so one at 75%, two at 50%, three
+  at 25%, with no health reactions. A stacked passive is added to the tracker once per stack and `allStates()` feeds
+  every copy into the note sources, so its tags should sum per stack: to prove in the hall.
+- **His own Black Meltima, and an AI that notices**: "I'd want him to also HAVE the spell himself... wish there was
+  a way to make his AI just notice 'oh i see they are scrambled, I should use dark meltima on them'". Engine item:
+  `tactical` learns follow-ups, a skill tag naming the state it exploits, cast first when the target carries it.
+  While the machine lives he saves Black Meltima for scrambled targets; when it falls he learns a twin he throws
+  freely on its 30-second cooldown, which Desperate cuts. No forced casts; the routine runs only the machine:
+  Scramble, `wait` 20 (the wind-up and his cast), a pair of Zaphazards. After the machine falls its step is skipped
+  and the traps keep their 30-second beat.
+- **The gap-close is "smite and blink and execute"**: a wide-range `<direct>` strike on your tile; if it connects,
+  `<gapCloseAny>` + `<gapCloseMode:blink>` + `<gapClosePosition:behind>` put him at your back and
+  `<thisOnGapCloseEnd:[EXECUTE]>` fires the finisher as he lands. Dodge the smite and none of it happens. To prove
+  in the hall.
+- **Seeking needs a pixel-movement fix** (engine item): "seeking needed work with pixel movement so they don't move
+  up to 45 degrees every pixel lmao". Under pixel movement a seeking action should turn at most 45 degrees per tile
+  travelled.
+- **The engine plans** are in `rmmz-plugins/.backlog/unstarted/`: `sdp-blackout.md`, `ai-smarter-traits.md`,
+  `diag-seeking-pixel-movement.md` (his "write the plans for those, then we'll compact, and I'll have you execute").
+  Desperate needs none: J-Passive's drift check re-counts `lessIsMoreHp` stacks as HP changes (the fingerprint holds
+  each stack contribution), cast speed and cooldown rates are read live through `getResultsFromAllNotesByRegex`, which
+  sums every copy of a stacked passive, and `speedBoost` re-sums on every data change.
+- **Size the paralysis in the hall:** nothing forces Black Meltima now. If Grudj is mid-spell when the scramble lands,
+  his follow-up waits for that spell, so a 10-second Meltima can outlast an 11-second paralysis. Measure the worst case
+  (his longest cast) and set the paralysis from it.
+
+**Hall** Map554 through `boss-halls.js`, and **the arena** Map444: dark-ish ambient, the machine mid-floor, his
+entrance from the terrace, the pre-boss scene (the mysterious figure, the cloak off: `$chara_grudj-cloak` to
+`$chara_grudj`), the way back shut and reopened, the post-boss stub, and a static broken machine left on switch 198
+(spawned bodies leave the map the moment he falls).
+  A dim ambient on Map444, and a cyan J-Lighting `<light>` on the machine's event when it is placed.
+- **Desperation in steps** (slot 6, A): at 75%, 50% and 25% he casts faster (Black Meltima included: J-ABS-Boss's
+  forced casts read `getCastTime()`, which J-ABS-Timing scales), blinks more often (`quickenRoutine` on the blink
+  routine), and moves faster through J-ABS-Speed's `<speedBoost>`, "maybe 5/10/15%" (read as the step states'
+  totals, the way Voidella's dial carries totals). **The machine never speeds up**: its scramble keeps its own
+  pace the whole fight.
+
+### Built (2026-11-16, at his "Ready to build Grudj's boss config?", uncommitted)
+
+The engine items landed first (J-SDP `<sdpBlackout>`, the smarter AI traits with `<aiFollowUp>` / `<aiFollowUpOnly>`,
+seeking at most 45 degrees per tile), then the data, by
+`~/.claude/backups/ca-pass3-sprites/grudj/build/build-grudj.js` (v2; tripwired; backups beside it). Validate OK.
+
+**His answers to the first build (13:20), which v2 follows:**
+
+- **Death is allowed.** "if you die because you weren't prepared or are underleveled or anything like that, it is
+  what it is. Lift the ban on death." The opening's separate third-of-current-HP cast and its twin Scrambled are
+  gone: the machine scrambles you with no wind-up, and his AI throws the Black Meltima it saves for a Scrambled
+  target, the same one he uses every cycle.
+- **His basic attack is not the interrupt.** "Seeking Bolt can be an interrupt, just don't make it his basic attack.
+  That seems cheap since that is what he'll do mostly." His basic attack is Attack carried by +Ranged (a ranged
+  action, a longer duration) and +Magical (MAT against MDF), the wisps' way; the bolt is a skill on a cooldown.
+- **The Void Zone strips everything.** "the Void Zone strips ALL buffs. Thats it. It voids your benefits. Even ones
+  like the Pistol's gun-fu." It carries `<purgeStates:[positive, false, 99]>`, and J-ABS's careful trait learned to
+  reach for a skill that purges buffs wholesale before one that names a single state (`JABS_AI.findBuffPurger`).
+  Passives come back from their source, so only applied states are voided.
+- **Not tiered**: "its a boss, its not tiered". His lines stay TODOs; he writes them later.
+
+**His 14:01 (v3): Black Meltima stays the scramble's partner only.** "The reason 'Black Meltima' works as a part of
+the scramble -> meltima combo is because of the paralyze. break the machine, and why would he sit there and spend 10
+seconds trying to cast it?" The twin he learned is gone. When the machine breaks he learns **Black Cross** (working
+name): "a massive laser. 2 second cast time, 3 thickness (very wide), 10 radius (VERY long range). It should be a cross
+beam, too. Cast indicator will make the player sweat 'oh shit that is a very large plus sign i should get out of'",
+and "if it lands, combo into the gap close and execute". J-ABS's `cross` hitbox honors `<thickness>` in both its
+collision and its painted preview, and a cast shows its preview by default.
+
+**What stands:**
+
+- **Rows:** E601 Grudj, lv150: Voidella's caster lines (provisional), Plump on his template; his secondary lines
+  HIT 25 + 2.5, EVA 15 + 1.5, CRI 10 + 1, CEV 4 + 0.4, MEV 15 + 1.5, GRD 5 + 0.5 (a duelist: his spells land, he is
+  hard to pin, spells slide off him; provisional); executor, careful and tactical; Desperate counted off his missing
+  health; Attack + +Ranged + +Magical as his basic attack. E602 Scrambler: tool-overload x112 (the zap's 10% variance
+  needs a little over x100), MDF 0, GRD x0, a quarter of his sponged bar, no actions, Bolted Down (rooted, so it
+  never wanders off, and disarmed, so it never swings back), never engaging.
+- **Skills:** 2603 Scramble (room-wide, can't miss: Paralyzed 11 s, Scrambled 15 s; a 10 s wind-up on the beat, none
+  at the opening), 2604 Black Meltima (saved: `<aiFollowUp:[2089]>` + `<aiFollowUpOnly>`), 2605 Black Cross (learned
+  when the machine dies: `<hitbox:cross>`, radius 10, thickness 3, a 2 s cast, a 20 s cooldown (provisional),
+  `b.mhp * 0.425` with 15% variance, so 36-49% of max HP per his "chunking them for about 35-50% of their max hp",
+  able to crit like anything else, and on a hit the blink behind you and Execute), and his kit: 2606 Searing Beam (Heat, `<shieldDamage:[o * 2]>`), 2607 Drowning Spiral
+  (Liquid), 2608 Stunning Quake (Ground, Stunned), 2609 Void Zone (Void, purges every buff), 2610 Seeking Bolt (Air,
+  action 37, `<interrupt:150>`, 8 s cooldown), 2611 Smite (a strike on your tile after 40 frames; if it lands he
+  blinks behind you) and 2612 Execute (his finisher on landing). Black Meltima is 60% of max HP less MDF, Typeless,
+  magical, on a 20 s cooldown (his 15:04 call: its 10 s cast plus 20 s matches the 30 s beat); every MAT formula is
+  magical.
+- **States:** 2089 Scrambled (`<sdpBlackout>`), 2090 Desperate (per stack: casts and cooldowns 10% faster, feet 5%
+  faster), 2091 Bolted Down.
+- **Switches** 198 "grudj defeated", 199 "grudj fight started". **Templates** Map361 ev621 Grudj, ev622 the machine
+  (a cyan pulsing light), ev623 the wreck (invincible, inanimate, rewardless), ev624 the fight's Zaphazard at lv150.
+- **Encounter `grudj`** on Map444: Grudj at (29,13), the machine a bystander at (29,23). The opening: his line
+  (TODO), the instant scramble, `wait` 11 while his follow-up Black Meltima winds up and lands, "WHAT, THIS CAN'T BE".
+  The `scramble` routine every 30 s, not dormant (a woken routine plays at once, so waking it after the opening would
+  scramble the duo again right away; left running, its first scramble comes thirty seconds of fighting in, dialogue
+  time not counted): Scramble, `wait` 20, Zaphazards at (14,16) and (45,30). The machine falling: its wreck on its
+  tile, Black Cross learned, his line (TODO).
+- **Hall** Map554 "Grudj Hall" (arrival (29,35) facing up, exit (29,38), kit in the way-in corridor) with its lobby
+  door. The lobby dressed each door from the clone-map slot matching the enemy id and ignored a participant's
+  `template`; it now follows the template the way the fight does (Grudj's slot, 601, is a golem's).
+
+**Open:** his lines (the opening, the machine's death, his death scene), his face, every number (all provisional
+until a hall measures them), the paralysis length and executor's ties (both explained under his 15:04 calls below),
+and Lust's 2079 also being called "Scrambled" ("Lust IS being scrambled, just in a different way. We can revisit that
+after this").
+
+### Hall runs (2026-11-16, `dist/playtest/grudj-hall-probe.js`)
+
+A mechanics check, never balance: Jerald alone at 150 with 10 ranks (max HP 6,430 bare, 8,156 ranked), never let
+fall. Run 1 found two bugs; run 2, after the fixes, ran clean (no exception, no probe error).
+
+- **Fixed between the runs.** J-ABS reads a movement lock off applied states only, never passives, so a passive
+  Bolted Down never held the machine: it wandered, and a forced cast on a battler free to move waits for its AI to
+  walk it into position, which this one (never engaging) never does, so no beat's scramble ever landed. Bolted Down
+  is now added by the `start` reaction, the way Earthie's seal is, and the machine has `<jabsConfig:noIdle>`. And CA
+  runs the AI only within 15 tiles of the player (`maxAiUpdateRange` 15): run 1 stood Jerald 17 tiles off and Grudj
+  stood frozen for 80 seconds.
+- **Proven in run 2:**
+  - The opening scramble lands with no wind-up: Jerald's max HP 8,156 → 6,430 with his HP trimmed to it, Paralyzed
+    for exactly 11 s, Scrambled for 15 s; max HP comes back at 15 s and the trimmed HP does not.
+  - His AI throws the saved Black Meltima on a Scrambled target (radius-30 circle painted), and "WHAT, THIS CAN'T BE"
+    comes on cue.
+  - The beat: the bolted machine winds up every 30 s (a radius-99 circle painted for the full 10 s) and the scramble
+    lands; two Zaphazards rise at lv150 on their tiles 20 s after each.
+  - One baton zap kills the machine (1.56M), even mid-wind-up, and that scramble never lands. Its dark wreck stands
+    on its tile (inanimate, invincible, team 2), and Black Cross is learned.
+  - Black Cross (forced, to prove the skill): a cross, range 10, thickness 3, painted for its 2 s wind-up; on the
+    hit he blinks behind Jerald and Execute fires. Smite (forced): the strike lands, he blinks behind, Execute fires.
+  - Searing Beam cracks SHIELD; the Void Zone purges gun-fu.
+  - Desperate: one, two, three stacks at 74%, 49%, 24%; his feet 5/10/15% faster, his beam's wind-up 60 → 54 → 48 →
+    42 frames.
+  - The hall resets clean.
+- **Measured, for him to decide:**
+  - **The paralysis is short.** His follow-up landed 13 s and 14.3 s after its scramble (1.5 to 3.5 s for him to
+    decide and close in, then the 10 s cast), so the 11 s paralysis had always just worn off.
+  - **Every other beat goes unanswered.** A cooldown runs from when a skill fires, so Black Meltima's real cycle is
+    its 10 s cast plus 30 s: 40 s against a 30 s beat. The third scramble (70.9 s) landed with Black Meltima still
+    cooling down until 85.2 s, and Scrambled ran out at 85.9 s with no follow-up.
+  - **Executor narrows his whole kit to one skill.** It keeps only the single most elementally effective skill, so
+    on his own he cast Drowning Spiral (22 times) and Searing Beam (10) and nothing else: never Black Cross, Smite,
+    Stunning Quake or Seeking Bolt.
+- **For the arena:** his AI only runs while the duo is within 15 tiles of him, and the courtyard's way in is 22
+  tiles from his spawn at (29,13), so the scene must put the duo within 15 tiles for the opening follow-up to fire.
+- **Not exercised:** an interrupt (the bot never casts anything with a wind-up). Spawned with 4 stacks of Desperate
+  for its first seconds (J-Passive counts the stacks before his HP is filled, and its recount clears them within six
+  seconds): an engine nit, every `lessIsMoreHp` passive does it at spawn.
+
+### His calls on the hall runs (2026-11-16 15:04)
+
+- **Every other beat:** "Drop it to 20s." Done in the build script; validate OK. **Zero slack, by the mechanics (not
+  yet measured):** the cooldown runs from when it fires, so it is ready 30 s after its cast began, and the cast began
+  some seconds after its scramble; each beat's follow-up then starts later than the last until one falls outside
+  Scrambled's 15 s and is skipped. A 15 s cooldown leaves room for his ~3 s reaction. Desperate's faster casts and
+  cooldowns widen the slack below 75%. Told him once.
+- **Why the follow-up lands late** (he asked whether Grudj takes a second to notice): yes, by design of J-ABS. An
+  enemy decides only when its prepare timer runs out (`JABS_AiManager.aiPhase1` → `isActionReady`), and Grudj has no
+  `<prepare>` tag or attack-speed trait, so he takes CA's `defaultEnemyPrepareTime` of 180 frames after every action.
+  The opening shows it clean: Black Meltima began 3.1 s after the scramble, his first decision after engaging. Beat
+  two's 4.3 s was the old 30 s cooldown instead (ready 2.7 s after the scramble, his next decision 1.6 s later; he
+  cast nothing in between). Add the 10 s cast: 13.5 and 14.3 s against 11 s of paralysis. Levers: the paralysis at
+  15 s, Scrambled's own length (data; on a quick reaction the duo stays frozen about 5 s after the hit); a follow-up
+  opening that skips the rest of the prepare timer (an engine change to the unshipped `<aiFollowUp>`); or
+  `<prepare:60>` (faster at everything, a much harder boss). Awaiting his pick.
+- **Executor, explained:** Jerald's own row takes Heat x3, Air x0.5, Ground x0.5. So Searing Beam (Heat) is honestly
+  his best skill (the 10 Beams); careful, not executor, drops Seeking Bolt and Stunning Quake (x0.5), so no executor
+  option brings them back against Jerald; and while Beam cools down, Spiral, Void Zone and Smite tie at x1, and the
+  stable sort handed the tie to the first in his action list, Spiral (the 22). His basic attack is never in the
+  running: it is the fallback when nothing else is castable. Rupert's row is
+  Heat x0.5 and Poke x1.5, so against him careful drops Beam and everything ties: Seeking Bolt first, then Spiral.
+  Awaiting his pick: keep every skill tied for best (my lean), drop executor, or leave it.
+
+### His 15:47 calls, and a six-beat hall run
+
+- **"`<prepare:60>` I think is the answer. That turns him basically into... another player/protagonist."** Applied in
+  the build script (validate OK). On the cooldown: "see #1", so it stays 20 s.
+- **Executor:** "He SHOULD be using your weakness. When your weakness is on cooldown however, the remaining options
+  if all equal, should be equally chosen from, not just the first one in the list." Built in J-ABS: executor keeps
+  every skill tied at the best rate and the final pick is even among them (hotfix green, 100%, mutation clean).
+- **The run** (`dist/playtest/grudj-beats-probe.js`: the opening and six beats, Grudj held at full health so no
+  Desperate, Jerald solo, 0 errors). Picks over 200 s: Searing Beam 12, Drowning Spiral 32, Void Zone 19, Smite 6
+  (each into Execute), his basic attack 6 (the fallback), Black Meltima on every beat. His reaction from the scramble
+  to the cast:
+  opening 1.1 s, beat one 0.6 s, then 1.9, 3.2 (1.6 s of it between the scramble firing and its states appearing,
+  cause unknown), 3.9, 5.2, 5.4 s. The opening landed just as the paralysis lifted (that cast ran 620 frames, not 600,
+  cause not pinned; the probe closes messages after 90 frames, so a reader's pace was not tested); beat one landed
+  inside it; beats two to five landed 0.4-2.8 s after it. The drift is the cooldown: ready 20 s after firing is 30 s
+  after the cast began, the beat exactly, so each beat starts from wherever his last reaction left it. On paper,
+  Desperate's quicker cooldowns take the drift away below 75%. **Proposed to him once, with these numbers:** a 15 s
+  cooldown (always ready when the scramble lands) and a 12 s paralysis (covers a reaction up to ~1.3 s plus the cast;
+  the opening's `wait 11` before "WHAT, THIS CAN'T BE" is timed to the paralysis and would move with it).
+- **Decisions logged** (`dist/playtest/grudj-decisions-probe.js`, 90 s, 31 decisions, read by `decisions-read.js`):
+  executor handed on real ties (Spiral + Void Zone + Smite 5x, Spiral + Void Zone 5x, Spiral + Smite 4x, Void Zone +
+  Smite 3x), Searing Beam alone whenever it was ready (5x), and the picks matched an even split of what was left
+  (Spiral 13 against 11 expected, Void Zone 8/10, Smite 3/3, Beam 5/5). His basic attack came only as the fallback
+  when nothing was castable (2x, and the run before's 6).
+- **Tactical tilts the even pick:** its filter runs after executor and keeps only skills with an add-state effect.
+  RMMZ's "Normal Attack" add-state (data id 0), which Spiral and Void Zone carry from the Attack template, counts
+  although it adds nothing for a battler with no attack-state traits. So Smite comes up only while both cool down
+  (logged: every tie with Smite in it lost Smite to tactical). Asked him: tactical stays out of executor's ties, or
+  tactical counts only states that land (then Void Zone's 50% Blind wins the ties).
+- **His 18:41 call: "i choose (a)"**, tactical stays out of an executor's ties. Built in J-ABS (hotfix green, 100%,
+  mutation clean on the new lines). Re-logged in the hall (90 s, 35 decisions): tactical never ran for him; picks
+  against an even split: Spiral 12/11.7, Searing Beam 6/6, Void Zone 10/8.2, Smite 3/5.2 (within chance), and Smite
+  now wins ties (from Spiral + Void Zone + Smite, and from Spiral + Smite twice).
+- **His 20:13 calls:** the timing stays (20 s cooldown, 11 s paralysis): "I don't expect the player to rush the
+  phases but I expect desperation to compensate." The blackout check gets its cache: "It's end game final boss so
+  the player is bound to be stacked." The maxed-duo slowdown is looked into after those two.
+
+### The arena (2026-11-17, at his "please clone Grudj's hall into his arena since we've confirmed it tested and working mechanically")
+
+Map444 "The Courtyard" was tiles only. Wired by `~/.claude/backups/ca-pass3-sprites/grudj/build/arena-grudj.js`
+(tripwired, backup beside), event for event the way Voidella's Map426 and Lust's Map443 are, on the room fortress.md
+locked on 2026-10-25. The fight is the hall's, untouched: the same `grudj` encounter, his body at (29,13), the machine
+at (29,23). Validate OK.
+
+- **ev1, the way back** to the entry hall: the gate's whole gap (28,39) `<areaEvent:[4,1]>` `<relativeTransfer>`, to
+  Map411 (18,8) facing down, so a step through lands as far along the hall's 4-wide doors as it was taken. Shut on 199,
+  open again on 198.
+- **ev2, the stand-in:** cloaked (`$chara_grudj-cloak`) behind the terrace statue at (29,4); gone on 199.
+- **ev3, the pre-boss autorun** as the two arrive (row 37, facing up). Watch: they walk up to (29,26), thirteen tiles
+  below his spot and inside J-ABS's 15-tile AI range, while he steps out from behind the statue, comes down the
+  terrace stairs to (29,13) (his route walks through scenery) and drops the cloak; a TODO at each beat of the
+  2026-09-17 sketch. Skip: fade, the two set down at (29,26), him unmasked on (29,13). Then self A, UI back, CE17's
+  big-boss BGM as the stand-in for his own, 199, `start-encounter grudj`, the frame, the menu off.
+- **ev4, the post-boss stub** on 198: end-encounter, CE104, a TODO for the thesis and the spoils.
+- **ev5, the machine as the room's furniture** at (29,23): humming (`$o_scrambler-active`, its cyan pulse light)
+  until 199, gone while its body stands in. Once he falls, p4 on 198 + 200 "grudj machine broken" is the wreck, and p3
+  on 198 is empty, so a machine the duo never touched leaves with the fight. That is his second call (2026-11-17
+  11:16: "Let the machine disappear... it'll probably actually be the end of the game including a credits roll
+  anyway"); his first (07:13) had kept it standing as untargetable furniture. Switch 200 is flipped by the machine's
+  own death: its template (Map361 ev622) carries a page list, which J-ABS plays when the body dies (and never lets the
+  player start), guarded by `$gameMap.mapId() === 444` so a hall test never touches the story.
+- **Proven** (`dist/playtest/grudj-arena-probe.js`, `GRUDJ_PREAMBLE=watch|skip`, the duo at 150): the scene starts on
+  its own, the hand into the fight (the leader at (29,26), 13.0 tiles from him; his body unmasked on his spot, the
+  machine's on its tile; the way back shut, both stand-ins gone; frame up, menu locked, the BGM), the opening
+  (scrambled and paralyzed at once, Black Meltima's cast starting about 1.4 s into the fight, "WHAT, THIS CAN'T BE"),
+  and the hand out (198, the encounter ended, the frame gone, the menu back, the way back's page holding its transfer
+  again, no enemies left). 0 alarms. All thirteen halls regenerated to staging byte-identical to the installed ones
+  afterwards, Map554 included, so the arena's new events stay out of the hall.
+- **Both machine endings proven** (2026-11-17 follow-ups, `GRUDJ_BREAK_MACHINE=1` and unset, logs in
+  `dist/playtest/sweep-2026-11-17/follow-ups/`): zapped with the baton mid-fight, its body goes and 200 turns on, and
+  after his fall ev5 sits on p4 as the wreck; left alone, 200 stays off and ev5 sits on its empty p3, the machine gone
+  with the fight (re-proven after his 11:16 call). Neither ending is a battler. In his hall, breaking the machine
+  leaves 200 off.
+- **Walking out mid-fight ends it** (J-ABS-Boss, his 2026-11-17 11:16: "map change should drop the fight (for now)";
+  `GRUDJ_LEAVE_MIDFIGHT=1`): the duo, sent back to Map4 after the opening, arrives with the fight already over, and the
+  bot's next ten kills there go by cleanly. The boss frame's own flag stays up: J-HUD-Boss keeps it until the story
+  hides it.
+- **Not yet checked:** nobody walked the gate, so row 39's passability and the relative landing on Map411's row 8
+  are unproven; and his walk out from behind the statue, the cloak drop and the machine's light were never filmed or
+  looked at.
+
 ### Open slots
 
-**1. The machine.**
+**1. The machine.** *Settled above: mid-floor, one bar.*
 
 - **Where** (yours): **A**, on the terrace beside his statue, so reaching it means going up the stairs while he
   blinks around the floor below; **B**, mid-floor, so the fight swirls around it; **C**, the far corner from his blink
@@ -1361,7 +1753,11 @@ unblocks:
 | 5 | **A heartbeat sound** for Sloth's pulse (the Subterranean's heartbeat BGS is still missing too) | `audio`, yours | Sloth |
 | 6 | **Two kill-floor tags** (yours, 11-13). `<noSelfKill>` on battlers, equips and states, `<thisNoSelfKill>` on a skill: a skill executed by the battler carrying it can't take that battler's own HP to 0 or less (Sloth 2A). `<noTargetKill>` / `<thisNoTargetKill>`, same homes: it can't take an *opposing* battler's HP to 0 or less, "think False Swipe from pokemon" (friendly fire can still kill). Both clamp where HP drops, after every multiplier. **Built 11-13** (same branch): a skill's damage and its formula packets stop one HP short, after shields absorb their share; "opposing" is J-ABS's team rules (an actor and an enemy count as opposed if the caster has already left the map); DoT ticks aren't a skill's damage, so they aren't held | `engine (small)` | Sloth, and any False Swipe you want |
 | 7 | Optional: `blink` and `jump` also move the body's home tile (a setter in J-ABS, no new field) | `engine (small)` | none since Envy's clones were retired (2026-11-14) |
-| 8 | Later: the real SDP blackout in J-SDP, shared with Trainer Lord's exam after 1.0 | `engine` | Grudj (4A) |
+| 8 | **The real SDP blackout** in J-SDP, decided 2026-11-16: `<sdpBlackout>` on any note source darkens every ranked panel through the four bonus methods (core params, ex/sp-params, max TP, the catalog keys), while ranks, points, unlocks and the menu keep the real rankings. Max HP/MP/TP shrink with it and stay chunked when it lifts ("that is part of the pain!"). Masteries stay lit ("they are a part of you"), so it is J-SDP alone. Shared with Trainer Lord's exam after 1.0. A code-level plan before the build | `engine` | Grudj (4A) |
+| 9 | **Smarter AI traits** in J-ABS, his mapping (2026-11-16): `careful` also strips the target's positive states and buffs (the cleanser's "skill that removes this state" finder, aimed at the target's positives), and `tactical` also reaches for an `<interrupt:N>` skill while the target is casting, never against a cast that can't be interrupted. Only four AI-demo event pages carry these traits today (Maps 204, 205, 207, 208). A guard-break was skipped: "It's not necessary." A code-level plan before the build | `engine` | Grudj, and any enemy wearing the traits |
+| 10 | **`executor` goes after shields**, in J-ABS-Shield (core can't know shields): with the target shielded, it reaches for a `<shieldDamage>` or `<shieldBypass>` skill. A code-level plan before the build | `engine (small)` | Grudj |
+| 11 | **`tactical` follow-ups**, his wish (2026-11-16): a skill tag naming a state it exploits; a tactical AI casts it first when its target carries that state, and can be told to save it for that (Grudj's Black Meltima on Scrambled targets). A code-level plan before the build | `engine` | Grudj, and any boss with a combo |
+| 12 | **Seeking under pixel movement** (his, 2026-11-16): J-ABS-Diagonals' `seekTarget` turns 45 degrees per step, and a pixel step is a pixel, so seeking actions spiral; turn at most 45 degrees per tile travelled. A code-level plan before the build | `engine (small)` | Grudj's seeking bolts, every seeker |
 
 **Nice-to-haves that would each cost a full verb**, none of them a pick: spawn where a participant stands (Lust 3D, his
 goop trail), a "this skill landed / missed" trigger (Lust 1B), a machine that reboots (Grudj 1B).
