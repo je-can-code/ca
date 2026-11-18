@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.9.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v4.10.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -3023,6 +3023,61 @@ var MasteryProseResolver = class MasteryProseResolver {
 };
 
 //#endregion
+//#region src/plugins/sdp/core/managers/SdpBlackoutCache.js
+/**
+* Holds, per actor, whether `<sdpBlackout>` held at its last data change, alongside the notes list it was read from.<br/>
+* Every panel bonus asks on every parameter read, yet the answer can only change when the actor's notes do, and a
+* change to an actor's notes always runs {@link Game_Battler#onBattlerDataChange}. So the reading is taken there,
+* once per change, and every parameter read after it only looks the answer up. That matters most for a stacked
+* actor, whose hundreds of note sources would otherwise be walked dozens of times a frame.<br/>
+* Nothing here is ever filled by a read: {@link record} is the only writer, and it runs from the data-change hook.
+* The readings live in a WeakMap keyed by actor, outside the save: nothing here outlives the session, and an actor
+* nothing references any longer takes its entry with it.
+*/
+var SdpBlackoutCache = class {
+	/**
+	* Each actor's last reading, alongside the notes list it was taken from.
+	* @type {WeakMap<Game_Actor, { notes: RPG_BaseItem[], isBlackedOut: boolean }>}
+	*/
+	static #readingsByActor = new WeakMap();
+	/**
+	* Records whether the actor's panels are switched off, as just read from the given notes.<br/>
+	* Called from the actor's data-change hook, the one moment its notes can have changed.
+	* @param {Game_Actor} actor The actor that was just read.
+	* @param {RPG_BaseItem[]} notes The notes list the reading was taken from.
+	* @param {boolean} isBlackedOut Whether any of those note sources carries the blackout.
+	*/
+	static record(actor, notes, isBlackedOut) {
+		this.#readingsByActor.set(actor, {
+			notes,
+			isBlackedOut
+		});
+	}
+	/**
+	* Whether the actor's last reading was taken from this very notes list, and so still answers for it.<br/>
+	* It is the list's identity that matters: J-Base hands back the same cached list until the actor's data changes,
+	* and a new one after.
+	* @param {Game_Actor} actor The actor being asked about.
+	* @param {RPG_BaseItem[]} notes The notes the actor carries right now.
+	* @returns {boolean}
+	*/
+	static isCurrentFor(actor, notes) {
+		const reading = this.#readingsByActor.get(actor);
+		if (reading === undefined) return false;
+		return reading.notes === notes;
+	}
+	/**
+	* Whether the actor's panels were switched off at its last reading.<br/>
+	* Asked only once {@link isCurrentFor} holds for the notes the actor carries, so a reading always exists here.
+	* @param {Game_Actor} actor The actor being asked about.
+	* @returns {boolean}
+	*/
+	static isBlackedOut(actor) {
+		return this.#readingsByActor.get(actor).isBlackedOut;
+	}
+};
+
+//#endregion
 //#region src/plugins/sdp/core/_metadata/_pluginMetadata.js
 var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	/**
@@ -3429,7 +3484,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.9.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.10.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3479,6 +3534,26 @@ J.SDP.RegExp = {
 	* @type {RegExp}
 	*/
 	NoSdp: /<no: ?sdp>/i,
+	/**
+	* The declaration that switches off every panel an actor has ranked, for as long as the actor carries it.
+	* Ranks, points and unlocks are untouched, so nothing is lost: every bonus a panel grants (core parameters, ex- and
+	* sp-parameters, max TP, and every catalog key other plugins read) simply reads as nothing until the source is gone.
+	* Max HP, MP and TP shrink with the rest, so the engine trims the current values to fit as the source lands, and
+	* lifting it restores the maximums but never what was trimmed. Masteries are learned skills, not panels, and stay.
+	*
+	* <pre>
+	* Structure:
+	*  <sdpBlackout>
+	*
+	* Example:
+	*  <sdpBlackout>
+	*
+	* Translation:
+	*  While this is on the actor, none of their panels grants anything.
+	* </pre>
+	* @type {RegExp}
+	*/
+	SdpBlackout: /<sdpBlackout>/i,
 	SdpRateBuffPlus: /<sdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
 	SdpRateBuffRate: /<sdrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
 	SdpRateGrowthPlus: /<sdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
@@ -3674,6 +3749,53 @@ Game_Actor.prototype.getAllSdpRankings = function() {
 	return this._j._sdp._ranks;
 };
 /**
+* Whether this actor's panels are switched off right now, through `<sdpBlackout>` on any of its own note sources
+* (in practice a state, such as a boss's scramble).<br/>
+* A blacked-out actor keeps every rank, point and unlock; the panels simply grant nothing until the source is gone.
+* Every panel bonus asks this on every parameter read, so it answers from the reading {@link #onBattlerDataChange}
+* took. Between a change and that hook (another plugin's refresh earlier in the same cascade can read a parameter)
+* the reading belongs to the old notes, so the notes are read directly instead; nothing is stored here either way.
+* @returns {boolean}
+*/
+Game_Actor.prototype.isSdpBlackedOut = function() {
+	const notes = this.getAllNotes();
+	if (SdpBlackoutCache.isCurrentFor(this, notes)) return SdpBlackoutCache.isBlackedOut(this);
+	return this.hasSdpBlackoutNote();
+};
+/**
+* Whether any of this actor's note sources carries `<sdpBlackout>`, read straight from its notes.<br/>
+* The scan behind {@link #isSdpBlackedOut}: taken once per data change, and directly only in the brief window
+* before that change's reading is taken.
+* @returns {boolean}
+*/
+Game_Actor.prototype.hasSdpBlackoutNote = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.SDP.RegExp.SdpBlackout) === true;
+};
+/**
+* Extends {@link #onBattlerDataChange}.<br/>
+* Also retakes the panel blackout reading. A change to this actor's data is the only way its notes can change, and
+* J-Base runs this hook for every actor at setup and after a load too, so the reading is never older than the notes.
+*/
+J.SDP.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function() {
+	J.SDP.Aliased.Game_Actor.get("onBattlerDataChange").call(this);
+	const notes = this.getAllNotes();
+	SdpBlackoutCache.record(this, notes, this.hasSdpBlackoutNote());
+};
+/**
+* The rankings whose panels are granting their bonuses right now: every ranking this actor has, or none at all while
+* the panels are blacked out.<br/>
+* Every panel bonus reads from here, while storage, menus and masteries read {@link #getAllSdpRankings}, so a
+* blackout never costs a rank.
+* @returns {PanelRanking[]}
+*/
+Game_Actor.prototype.getContributingSdpRankings = function() {
+	const rankings = this.getAllSdpRankings();
+	if (rankings.length === 0) return rankings;
+	if (this.isSdpBlackedOut() === true) return [];
+	return rankings;
+};
+/**
 * Sum of all panel current ranks for this actor (convenience for menus / reporting).
 * @returns {number}
 */
@@ -3836,7 +3958,7 @@ Game_Actor.prototype.rankUpPanel = function(panelKey) {
 */
 Game_Actor.prototype.getSdpBonusForParameterKey = function(parameterKey, baseParam) {
 	if (!parameterKey) return 0;
-	const panelRankings = this.getAllSdpRankings();
+	const panelRankings = this.getContributingSdpRankings();
 	if (!panelRankings.length) return 0;
 	let val = 0;
 	panelRankings.forEach((panelRanking) => {
@@ -3864,7 +3986,7 @@ Game_Actor.prototype.getSdpBonusForCustomParam = function(paramId, baseParam) {
 */
 Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam) {
 	const parameterKey = ParameterKeys.bparamKey(paramId);
-	const panelRankings = this.getAllSdpRankings();
+	const panelRankings = this.getContributingSdpRankings();
 	if (!panelRankings.length) return 0;
 	if (!parameterKey) return 0;
 	let panelModifications = 0;
@@ -3896,7 +4018,7 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam) {
 */
 Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, idExtra) {
 	const parameterKey = idExtra === 8 ? ParameterKeys.xparamKey(sparamId) : ParameterKeys.sparamKey(sparamId);
-	const panelRankings = this.getAllSdpRankings();
+	const panelRankings = this.getContributingSdpRankings();
 	if (!panelRankings.length) return 0;
 	if (!parameterKey) return 0;
 	let panelModifications = 0;
@@ -3978,7 +4100,7 @@ Game_Actor.prototype.maxTp = function() {
 * @returns {number}
 */
 Game_Actor.prototype.maxTpSdpBonuses = function(baseMaxTp) {
-	const panelRankings = this.getAllSdpRankings();
+	const panelRankings = this.getContributingSdpRankings();
 	if (!panelRankings.length) return 0;
 	let panelModifications = 0;
 	panelRankings.forEach((panelRanking) => {

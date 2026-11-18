@@ -32,6 +32,12 @@ That genocide, ~**440 years ago "on this time loop"**, accidentally saved The El
 **the pact**: *if you save the life of an elemental, that elemental serves the rescuer until the end of their
 days.* It is written into their genetics. They literally cannot refuse. (`SHIPPED` — Earthen Layer dialogue.)
 
+**J&R1 is recovered (2026-11-15).** Robert dug the original off his old computer, and the whole game, every line
+verbatim, is at `/mnt/exdrive/dev/rm2k/jr1-dig/out/jr1-script.txt`. Its audience was about five people, all in
+their circle, and Jeremy is the only one who ever beat it. It doesn't match this section everywhere: Majik was a
+good creator-king taken over by a living virus, his race is the **Babagen**, and Jeremy *refuses* to fuse with the
+Raving Lune. Nothing has been reconciled yet; see Open Threads.
+
 There was also a **time adventure** (*J&R II: Disaster Of Time*) that the two barely remember — fittingly, because
 its source is literally lost to history. Running gag `PROPOSED`: J: "yeah, we went on that adventure through
 time, remember?" R: "...we did?" They are **cross-dimensional travelers**; they did not fly a ship here.
@@ -74,7 +80,8 @@ regulator of energy throughput.
 Chef Adventure has **six magical elements**: heat, liquid, ground, air, energy, void. The four rescued
 elementals cover four: **Earthie** (ground), **Aqualock** (liquid), **Cynder** (heat), **Skye** (air).
 Canon explicitly notes two elements lack coverage (`SHIPPED` — Peaks scene). **Void** is claimed by Envy
-(see Ch5). **Energy remains unclaimed — see Open Threads.**
+(see Ch5). **Energy** belongs to a sixth sibling, **Brighteene** (2026-11-15), whose place in the story is still
+open — see Open Threads.
 
 Timeline: the elementals last united **4,400 years ago**. Skye landed on Erocia long ago (visited the then-
 **lively** Erocian Kingdom; was met with racism; failed to reach the beach and the graves shrine; set an SOS
@@ -283,6 +290,32 @@ side-quest-driven passive grind may raise real-world numbers. Map sizes and enem
 
 **Theme:** learn to play; the vacation gets hijacked. **Sin defeated:** Gluttony.
 
+- **The summons, the new opener** `LOCKED (premise, Jeremy 2026-11-16) / OPEN (staging)`. Before the intro
+  cave, the game opens on the **Seashell Shores**: Jerald paces the beach, annoyed, until Rupert blinks into
+  existence. Drafted by Jeremy:
+  > J: *(paces back and forth, annoyed)*
+  > R: *(blinks into existence)*
+  > J: "jeez took you long enough"
+  > R: "I got here as fast as I could when you called! What is the universe-threatening emergency!?"
+  > J: "I found it Rupert."
+  > R: "found what, Jerald?"
+  > J: "the final ingredient for that FUCKING pudding recipe! It's on this godforsaken planet in some dank cave
+  > called 'The Lair of Erocian Death'!"
+  > R: *(dumbfounded that he was summoned across the galaxy for this)*
+  > J: "come on! There is no time to waste!"
+  > R: "well I guess I needed a vacation anyway…"
+  - **A beat about missing each other gets woven in** (wording `OPEN`). J&R1 ends with the two of them choosing
+    to go home to separate worlds, on Jeremy's "Miss ya bud..." and Robert's "I.... miss you too.. my
+    friend..."; this is them centuries later, still each other's first call.
+  - **How Jerald "called" stays unexplained.** If it ever comes up, it's something ridiculous. Jeremy's example:
+    *"I sliced open a sonic dimensional hole and just told him to come, then band-aided it back up."*
+  - **Then a few walking scenes** through the maps from the Shores up to the intro cave, so the shipped cave
+    opening ("We finally made it!" / "Phew, it's about time." / "I hope this is worth it.") becomes the second
+    half of the same trip, unchanged.
+  - **Staging waits on the Shores** (Shores 1 and 2, Maps 452-453), which get polished before Jeremy picks the
+    spots. Reaching the Shores in Ch4 then means returning to where the game began.
+  - Lineage: it inverts J&R II, where Jeremy found Robert on a beach, and it agrees with the shipped "You think
+    we flew a space ship here?" (cross-dimensional travel, never a ship).
 - **Intro cave (Lair of Erocian Death, Central Erocia).** Two ex-gods spelunk for an exclusive pudding
   ingredient. Tutorial beats: attack, skills, guard, party-cycle. Boss: a big slime (**Hard Syrup**) →
   **Big Pudding** (farmable, lol).
@@ -716,12 +749,20 @@ the duo's only forewarning is Sloth's oblique lore back in Ch4 — and to them, 
 Demon In Hell whose technodisk drop was a happy coincidence. Meeting Lust is where the pieces start to
 assemble: **Rupert begins to question the shape of the plot.** The dread arrives spoken, not shown.
 
+**Forced, then accepted** (Jeremy, 2026-11-13). Every sin wears an altered version of who it was, some further
+gone than others, and the change is the sin taking hold. Lust's was forced on him, but his body accepted it and
+in the end embraced it. Not "yay, I get to be Lust now", but "well, here we go, I guess this is my life now": the
+opposite of the hero who resists an evil transformation. Jeremy's line: "The sin acceptance transforms you." So the
+origin table above still reads **Forced**, and what that force left behind is a void clown turned incubus, dark-skinned
+and red-eyed (`$m_sin-incubus`). An idea, not yet a scene: "Might be worth a cutscene showing the gradual
+transformation from not sin to sin."
+
 ### The Tower — Envy `LOCKED`
 
 The tower room was *built for Sloth* — the chamber where the gent meant to scramble the sister too, before
 she fled. It sat empty, meant-for-someone. **Someone else wanted to be the one it was meant for.**
 
-**The Sin of Envy: the fifth elemental — the void elemental** (name `OPEN`). Exiled by her own kind **for
+**The Sin of Envy: the fifth elemental — the void elemental**, **Voidella** (Jeremy, 2026-11-14). Exiled by her own kind **for
 what she was, not anything she did** — void, coded dark, condemned before agency entered the picture. The
 one origin in the roster that happened *to* someone for simply existing — which is the gent's condition too,
 arrived at from the opposite direction (his race taken from him; hers exiling her). "Void clown" and "void
@@ -730,8 +771,52 @@ gave him **centuries of devotion**, was never deemed good enough... and then the
 bestowed "the gift," it went to the sibling. Not her. *"Why do YOU get the power? I WANTED that power."*
 She festered into the sin naturally. Nothing was done to her. That's the tragedy.
 
+**What she envies** `LOCKED (Jeremy, 2026-11-14)`: all this time she has wanted to receive *"Grudj's gift of
+power (the scrambling effect to maximum intensity)."* She envies Lust his transformation, and Jerald and Rupert
+the junctions he handed them, *"all despite the fact that she has been at Grudj's side for eons."* He never
+scrambled her into a sin, and *"she perceives that as being deprived, being betrayed."*
+
+**She is not a copycat** `LOCKED (Jeremy, 2026-11-14)`: *"I don't want Envy to be a copy cat- she may want what
+you have, but technically she already has it, doesn't she? She has a junction."* (Every elemental is bound by a
+limiter, "precisely like your Node Junction": see *The Elementals*.) *"She just... I guess didn't realize that it
+could be utilized like the duo have utilized it. Grudj told them. Grudj did not tell anyone else- he scrambles them
+directly without SDPs or anything."*
+
+**Why he never scrambled her** `PROPOSED (Jeremy, 2026-11-14: "leaning towards")`: in her dying moment, the gent
+explains that he was preserving her, because he valued who she was and what she contributed in her time, and that
+he is disappointed she unleashed anyway and was promptly defeated. See *The gent's voice after each fall*, below.
+(If it lands, "was never deemed good enough" above is her reading, not his.)
+
+**The four elementals** `OPEN`: *"I wonder if we can tie that to the four elementals getting scrambled?"*
+(Jeremy, 2026-11-14). See *The Elementals*.
+
+**She swiped his remote** `PROPOSED (Jeremy, 2026-11-14)`: *"she probably WANTS to unleash herself, but how? With
+what? Grudj owns the machine- probably an engineer himself since he built it- and presumably has a handy dandy remote
+that makes it target things... do you suppose she got a hold of the remote somehow?"* In her fight she turns it on
+herself: 6/10, then MAX 10/10, then 13/10, then she twists the dial until it breaks. It was his only remote: *"like
+every engineer, they believe they are flawless... so OF COURSE he didn't make a backup. Who needs resiliency?"* So
+once she breaks it, his courtyard machine is left on its repeating cycle (Jeremy, 2026-11-14).
+
+**Never a fighter** (Jeremy, 2026-11-14): *"Voidella was never a fighter- she's the brainy type (a caster like
+Aqualock, except not an airhead)."*
+
+**Her lesser: the Voidal Tendril** (Jeremy, 2026-11-14). The tendrils of her fight are what she leaves behind, and
+they can be planted everywhere: *"when she broke the remote that sent her over the edge, and you killed her, she
+released her voidal overgasm into the world. Boom, explained."*
+
 *(Geometry note `LOCKED`: tower/basement deliberately rhyme with the limiter axis — throughput maxed above,
 zeroed below — the failure spectrum rendered as architecture.)*
+
+### The gent's voice after each fall `PROPOSED (Jeremy, 2026-11-14: "leaning towards")`
+
+The gent says something after the player defeats Lust, and again after the player defeats Envy. For Lust, he
+becomes further enraged at the duo for slaying yet one more of his kin. For Envy, in her dying moment, he tells
+her why he never scrambled her (see *The Tower — Envy*, above). Delivery `OPEN`: *"like via some intercom
+system? Maybe a haunting image? idk"*. *(Constraint: he "has not watched them since" scene one, which the
+courtyard's patch-notes gag rests on, so he knows each of them fell without having watched how.)*
+
+His opening line to her, drafted (Jeremy, 2026-11-14): *"Voidella... my darling. It truly is unfortunate what has
+befallen you..."*
 
 ### The Courtyard — the red-eyed gent `LOCKED`
 
@@ -752,6 +837,11 @@ The final fight of the main story. The shape:
    absurdity is exactly what 400 years of isolation buys you.)
    *(The RL-uncage proposal was **rejected** 2026-07-24: non-elementals carry no suppression to uncage, and
    "Raving Lunatic" is already a class name — no additional story weight on the fusion.)*
+
+   **What the disable takes** `LOCKED (Jeremy, 2026-11-16)`: every panel goes dark, maxed ones included, and the
+   bars it shrinks stay chunked once it lifts (*"that is part of the pain! Incentivizes you to deal with it"*).
+   Masteries stay lit: *"They aren't on the SDP anymore, they are a part of you. A maxed SDP however is still just a
+   unit installed with the maximum resources pushed into it basically."*
 3. **The Treis gate** `LOCKED (ratified + specced)`: her Node Junction research questline (seeded in the
    Bellows, `SHIPPED`) is the optional subplot that defangs the scramble — the paralysis combo **never
    lands**, and the SDP disable drops to **3–5 seconds, or nothing at all**. Drafted gag:
@@ -765,6 +855,12 @@ The final fight of the main story. The shape:
    anything else. "Now I have a tool to defeat the otherwise preposterous-to-defeat machine." The only tech in the
    world is what Grudj brought with him, so the one tool that speaks his language comes from the other stranded
    spacefarer.
+
+   **How it defangs the scramble** `LOCKED (Jeremy, 2026-11-16)`, superseding "never lands" and "3–5 seconds"
+   above: the baton reduces nothing. *"It lets you oneshot the machine and you move on with your lives and never get
+   blacked out at all (because no scramble can be casted if the machine is dead)."* So there is one fight, not a
+   defanged variant; the questline's reward is the zap. The opening's scramble still lands on everyone, since it
+   fires before anyone can act.
    *(Design rhyme: the 15-second forced disable is the player's first taste of what Trainer Lord's postgame
    exam does for a full fight — the escalation ladder stands on its own.)*
 4. **The thesis, out loud**: from his side, righteous vengeance for a genocide. From their side, Tuesday, and
@@ -834,8 +930,18 @@ Where else.
 *(A previous draft floated a "Raving Lunatic tradition" superboss whisper here — retired 2026-07-24: RL is
 already a class name and carries enough weight; and the Room of Sacrifice is the Nimbus gate, not a mystery.)*
 
-**The Tower of Naer** `PROPOSED (Jeremy tempted, 2026-07-24)`: the tower behind the Nare onsen — a post-game
-"fun romp" dungeon, **Ancient Cave-style** (Lufia II lineage: randomized floors, run-based). Source lore, from
+**The Deep Dungeon** `PROPOSED (Jeremy, 2026-11-14)`: a post-game *"'Ancient Cave'-esque (Lufia 2 reference) crawl
+dungeon"* below the Fallen Kingdom's castle, through the jail cell on Map289 "Deep Dungeon Entrance", whose door (a
+"difficulty gate") is not built yet. Bosses appear down there as regular enemies, at any level: *"If they just have
+ungodly amounts of HP from the get-go, fighting a level 6 sin of gluttony becomes something of a challenge."* So a
+boss's enemy row keeps level-scaled stats, and its boss fight adds HP through a passive (Healthy to Healthy++++,
+States 306-310).
+
+**The Tower of Naer** `PROPOSED (Jeremy tempted, 2026-07-24; corrected 2026-11-14)`: the tower behind the Nare
+onsen, a post-game "fun romp" dungeon of **hard-coded floors**, derived from an old game idea of his called "Tower of
+Naer" (where "Nare" came from as a kingdom, and where the King and backstory derive from). *"You can think of that
+more like 'Tower of Druaga'- except less stupid puzzles and an ARPG"*. It is not the Ancient Cave-style one; that is
+the Deep Dungeon, above. Source lore, from
 the hand-written 1995 docs: **King Naer traded his princess, Sophia, for the ultimate power in an act to protect
 his kingdom — that power being a weird multi-world tower that was never explained.** It stays never-explained;
 a multi-world tower fits the Lords/Omnidimensional register without a word of exposition. (Optional whisper,
@@ -884,8 +990,8 @@ post-game stinger, not the main plot. Drafted scene:
 | 1 | **The ending scene** — the *answer* is locked (the meal); the scene needs authoring | `OPEN` |
 | 2 | Ammit's region | `OPEN` — candidate: Desolate Graves ("we'll see") |
 | 3 | Desolate Graves' purpose | **RESOLVED (2026-07-24): the Graveyard Unit** — Four Great Stones + Echoes + Mother-Sigil + the Cerak/Gilbert braid. Ammit candidacy still separate/open |
-| 4 | **The energy/light elemental** — is there one? | `OPEN` — Jeremy's own flagged curiosity; see Part 0 |
-| 5 | Names: Pride, Lust, Sloth, Envy | `OPEN` — low importance, needed eventually |
+| 4 | **The energy/light elemental** — is there one? | **RESOLVED (2026-11-15): yes.** Jeremy: "there is an energy/light/holy sprite coming too." A sixth sibling beside Voidella: **Brighteene** (named 2026-11-15). Her look is settled (floor-length golden hair, a gold glow); her role is still open — Jeremy: "I don't know what I'll use her for yet, but I want to have it available for when I inevitably do." See Part 0 |
+| 5 | Names: Lust, Sloth | `OPEN` — low importance, needed eventually. **Pride RESOLVED (2026-08-31): Gloria**, Leo's master (see Disk 1). **Envy RESOLVED (2026-11-14): Voidella** |
 | 6 | Greed thresholds (X SDPs / Y recipes / Z foods) | `OPEN` — pends end-of-Ch4 data |
 | 7 | Final level ladder (gent ~150 et al.) | `OPEN` — ballparks |
 | 8 | "What Lords would Jerald and Rupert even be?" | flavor musing — the ending quietly answers it |
@@ -896,6 +1002,7 @@ post-game stinger, not the main plot. Drafted scene:
 | 13 | **The Fortress split** — whole sequence | `PROPOSED (2026-08-06)` — see Ch5 → THE SPLIT |
 | 14 | Who falls, who springs (Jerald→Lust / Rupert→Envy, or invert to put Jerald under Envy) | `OPEN` — draft assumes the former; the inversion argument is on file |
 | 15 | Is the freeze ever acknowledged out loud, and by whom? | `OPEN` — guardrail is notice-never-conclude |
+| 16 | **Reconcile Part 0 with the recovered J&R1**: Majik's nature and the Virus, Babagen vs. void clowns, whether there was a genocide, Jeremy the Astroidian and Robert the Darkoon, when and why Jerald fused with RL | `OPEN` — discussion started 2026-11-16; the opener (Ch1, "The summons") was its first decision |
 
 **Resolved 2026-07-24 (first pass):** RL-uncage → **rejected** (no suppression to uncage; RL is a class
 name). Room of Sacrifice → **explained** (the Nimbus gate). Technodisk L/R fragments → **nixed**. Lust

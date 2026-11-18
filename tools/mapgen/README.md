@@ -51,6 +51,7 @@ is the honest answer to whether the dungeon holds together.
 | `terrain.js` | The shape vocabulary (`blob`, `span`, `box`, `ring`) and the map-file writer |
 | `cave.js` | Caves: a carved grid becomes floor, wall faces (two rows, or as many as a palette asks) and ceiling, shaped by the jmz map editor's rules, with the shadows MZ's editor casts beside walls; a void square holds nothing, which MZ treats as solid; and the tidy pass that sands blob noise off a carving |
 | `doors.js` | The doors between drafted maps in Jeremy's area-event format, and the proof that every link keeps the player's heading; shared by the recipes |
+| `oasis.js` | The test oases' look, the brick block floating over the Space parallax, and the labels, two-wide exits and borrowed events the Enemy Oases and the Boss Halls are both built from |
 | `dungeons/*.js` | One recipe per dungeon: sizes, painting, and the link table |
 | `validate.js` | `Game_Map#checkPassage` reproduced, plus a flood fill and a landing-square check |
 | `plan.js` | Text floor plans, for staged maps the atlas cannot see yet |
@@ -124,6 +125,17 @@ under 0x0 folder maps (the Forlorn Basin's "FLOOR: 1" to "FLOOR: 5", the mines' 
 and a side map hangs under the map it branches from. The Subterranean and Fortress recipes give a spec a
 `parent` for that, and the Fortress gives one an `order` when a map drafted early has to sort after maps
 drafted later.
+
+## Boss halls
+
+`dungeons/boss-halls.js` gives every converted boss a test copy of its arena, hung under the "TESTING:
+Boss Halls" lobby with the boss standing in for its door. A hall is the arena tile for tile, with the story's
+events swapped for the test kit, and it starts the same encounter from `config.jabs.json` that the arena
+does, so the fight never needs copying or keeping in step. A win there turns no switch on; the hall's
+watcher sees `JabsBossManager.isBossDefeated()` and resets the room for another go. Giving a boss a hall
+is one entry in its `HALLS` table: the encounter, a new map id, where the arena lands the player, the
+arena's exit event, and squares for the kit that stay off the fight's floor. The kit keeps the same event
+ids in every hall, so the fight always starts at event 4.
 
 ## Adding a dungeon
 

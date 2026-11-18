@@ -144,6 +144,21 @@ const collectSpriteNames = project =>
       .forEach(({ where, name }) => names.push({ where: `${describeRow('Troops', troop.id, troop)} page ${index + 1} ${where}`, name })));
   });
 
+  // a boss fight that changes how one of its bodies looks names that sprite in config.jabs.json, not on a map.
+  const jabsConfig = project.configs.get('jabs');
+  const bosses = jabsConfig ? jabsConfig.bosses : [];
+  bosses.forEach(encounter =>
+  {
+    const routineSteps = encounter.routines.flatMap(routine => routine.steps
+      .map((step, index) => ({ step, where: `routine "${routine.key}" steps[${index}]` })));
+    const reactionSteps = (encounter.reactions ?? []).flatMap(reaction => reaction.steps
+      .map((step, index) => ({ step, where: `reaction "${reaction.key}" steps[${index}]` })));
+
+    [ ...routineSteps, ...reactionSteps ]
+      .filter(({ step }) => step.verb === 'changeImage')
+      .forEach(({ step, where }) => names.push({ where: `config.jabs.json boss "${encounter.key}" ${where} image`, name: step.image ?? '' }));
+  });
+
   // each actor's walking sprite, which the party leader wears on every map.
   tables.Actors.forEach(actor =>
   {

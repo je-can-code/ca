@@ -51,7 +51,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] The tonal pivot: the jokes stop (Map393)
 - [ ] The inert voidal figures on the way down, if they stay
 - [ ] Treasure in the ribs and the dead-end pockets
-- [ ] Absolute Solitude and its neighbours: assign them or retire them
+- [x] Absolute Solitude and its neighbours: already the Vampire King's kit, all four in use (Map284)
 
 ## The Frozen Fortress
 
@@ -98,10 +98,10 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Lust: the approach on proximity beats (Map443)
 - [ ] Lust: Rupert's flashback, the ship, the castle and the crater
 - [ ] Lust: the fight, immune until he reaches, with the avoidable grab (Map443)
-- [ ] Envy: her row and the off-sprite clone charset (Map426)
+- [ ] Envy: her row, her sheet and her phase-4 glitch look (Map426)
 - [ ] Envy: the scene with the chatter stream under it (Map426)
 - [ ] Envy: Jerald's flashbacks, Weird Island and the morph manifestation
-- [ ] Envy: the fight, thirty invincible milling Jeralds and one wrong one (Map426)
+- [ ] Envy: the fight, Grudj's stolen remote cranked through four phases, then his intercom (Map426)
 - [ ] Grudj: his row and sprite, and stepping out from behind the statue (Map444)
 - [ ] Grudj: the reveal and the thesis, said out loud (Map444)
 - [ ] Grudj: the scrambler machine's cycle, ailments and SDP blackout (Map444)
@@ -109,8 +109,8 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Grudj: the arsenal, blinks, beams, spirals, zap traps, quakes and void zones
 - [ ] Grudj: the desperation cooldown reduction
 - [ ] Grudj: the Treis gate, the baton's zap and the paralysis that never lands
-- [ ] Earthie: design the fight, since all four elementals get fought
-- [ ] Earthie: build the fight
+- [x] Earthie: design the fight, since all four elementals get fought
+- [x] Earthie: build the fight
 - [ ] The sin panels drop from the right fights, with their real parameters
 
 ## Holding the story together
@@ -270,7 +270,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Is the HUD redesign in 1.0?
 - [ ] Are spawner enemies in 1.0?
 - [ ] One fork quest per trunk, or one per fork?
-- [ ] Names for Sloth, Lust and Envy
+- [ ] Names for Sloth and Lust
 - [ ] Where the meal happens, and whether Nare gets a map
 - [ ] What fills the drop rows the berries left behind?
 - [ ] Do ingredients need descriptions? 396 items have none

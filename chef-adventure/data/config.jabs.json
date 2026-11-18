@@ -96,12 +96,14 @@
     {
       "key": "gluttonwolf",
       "map": 75,
+      "defeatSwitch": 24,
       "participants": [
         {
           "key": "mayor",
-          "eventId": 4,
           "enemyId": 581,
-          "expect": "Gluttonwolf Mayor"
+          "expect": "Gluttonwolf Mayor",
+          "x": 14,
+          "y": 14
         }
       ],
       "aiControl": "shared",
@@ -115,6 +117,2722 @@
               "skill": 2584,
               "expect": "Devour",
               "cast": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "earthie",
+      "map": 172,
+      "defeatSwitch": 64,
+      "participants": [
+        {
+          "key": "earthie",
+          "enemyId": 551,
+          "expect": "Earthie",
+          "x": 15,
+          "y": 5
+        },
+        {
+          "key": "golemWest",
+          "enemyId": 501,
+          "expect": "Golem",
+          "x": 4,
+          "y": 3,
+          "template": 601
+        },
+        {
+          "key": "golemEast",
+          "enemyId": 501,
+          "expect": "Golem",
+          "x": 26,
+          "y": 3,
+          "template": 601
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "rockfall",
+          "cadence": 5,
+          "steps": [
+            {
+              "verb": "forceSkill",
+              "skill": 2554,
+              "expect": "Rockfall",
+              "cast": true
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "sealed",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "skill": 0,
+              "expect": "Sealed",
+              "cast": true,
+              "participant": "earthie",
+              "state": 2072
+            },
+            {
+              "verb": "changeImage",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "earthie",
+              "image": "$m_elemental-earthie-sealed"
+            }
+          ]
+        },
+        {
+          "key": "west-golem-falls",
+          "on": "fallen",
+          "participants": [
+            "golemWest"
+          ],
+          "steps": [
+            {
+              "verb": "quickenRoutine",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "routine": "rockfall",
+              "seconds": 1
+            }
+          ]
+        },
+        {
+          "key": "east-golem-falls",
+          "on": "fallen",
+          "participants": [
+            "golemEast"
+          ],
+          "steps": [
+            {
+              "verb": "quickenRoutine",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "routine": "rockfall",
+              "seconds": 1
+            }
+          ]
+        },
+        {
+          "key": "seal-breaks",
+          "on": "fallen",
+          "participants": [
+            "golemWest",
+            "golemEast"
+          ],
+          "steps": [
+            {
+              "verb": "removeState",
+              "skill": 0,
+              "expect": "Sealed",
+              "cast": true,
+              "participant": "earthie",
+              "state": 2072
+            },
+            {
+              "verb": "changeImage",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "earthie",
+              "image": "$m_elemental-earthie"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "aqualock-1",
+      "map": 191,
+      "defeatSwitch": 77,
+      "participants": [
+        {
+          "key": "aqualock",
+          "enemyId": 552,
+          "expect": "Aqualock",
+          "x": 6,
+          "y": 31,
+          "template": 602
+        }
+      ],
+      "aiControl": "shared",
+      "routines": []
+    },
+    {
+      "key": "aqualock-2",
+      "map": 191,
+      "defeatSwitch": 78,
+      "participants": [
+        {
+          "key": "aqualock",
+          "enemyId": 552,
+          "expect": "Aqualock",
+          "x": 51,
+          "y": 20,
+          "template": 603
+        }
+      ],
+      "aiControl": "shared",
+      "routines": []
+    },
+    {
+      "key": "aqualock-3",
+      "map": 191,
+      "defeatSwitch": 79,
+      "participants": [
+        {
+          "key": "aqualock",
+          "enemyId": 552,
+          "expect": "Aqualock",
+          "x": 18,
+          "y": 4,
+          "template": 604
+        }
+      ],
+      "aiControl": "shared",
+      "routines": []
+    },
+    {
+      "key": "cynder",
+      "map": 246,
+      "defeatSwitch": 121,
+      "participants": [
+        {
+          "key": "cynder",
+          "enemyId": 553,
+          "expect": "Cynder",
+          "x": 31,
+          "y": 15
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [],
+      "reactions": [
+        {
+          "key": "two-thirds",
+          "on": "health",
+          "below": 66,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{IM JUST GETTING WARMED UP, NOOBS! 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                17,
+                -68,
+                -68,
+                0
+              ],
+              "seconds": 2
+            },
+            {
+              "verb": "animation",
+              "animation": 56
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2552,
+              "expect": "Brand of Cynder",
+              "cast": false
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{BRING IT 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 511,
+              "expect": "Ignihazard",
+              "template": 605,
+              "x": 44,
+              "y": 16
+            }
+          ]
+        },
+        {
+          "key": "one-third",
+          "on": "health",
+          "below": 33,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{THIS IS CHILDS PLAY. 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                34,
+                -85,
+                -85,
+                0
+              ],
+              "seconds": 2
+            },
+            {
+              "verb": "animation",
+              "animation": 56
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2552,
+              "expect": "Brand of Cynder",
+              "cast": false
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{PREPARE YOUR ANUS 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 511,
+              "expect": "Ignihazard",
+              "template": 605,
+              "x": 28,
+              "y": 18
+            }
+          ]
+        },
+        {
+          "key": "last-tenth",
+          "on": "health",
+          "below": 10,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{WAIT WHAT IS HAPPENING TO ME?! 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                51,
+                -102,
+                -102,
+                0
+              ],
+              "seconds": 2
+            },
+            {
+              "verb": "animation",
+              "animation": 56
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2552,
+              "expect": "Brand of Cynder",
+              "cast": false
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Cynder\\C[0]",
+              "lines": [
+                "\\pop[self]\\{\\{I\\..\\..\\.. CANNOT FALL HERE 🔥🔥🔥"
+              ]
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 511,
+              "expect": "Ignihazard",
+              "template": 605,
+              "x": 23,
+              "y": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "wrath",
+      "map": 284,
+      "defeatSwitch": 146,
+      "participants": [
+        {
+          "key": "lucian",
+          "enemyId": 582,
+          "expect": "Vampire King",
+          "x": 22,
+          "y": 15
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "harbingers",
+          "cadence": 15,
+          "dormant": true,
+          "steps": [
+            {
+              "verb": "spawn",
+              "enemyId": 366,
+              "expect": "Doom Harbinger",
+              "x": 20,
+              "y": 15,
+              "animation": 120
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 366,
+              "expect": "Doom Harbinger",
+              "x": 24,
+              "y": 15,
+              "animation": 120
+            }
+          ]
+        },
+        {
+          "key": "waves",
+          "cadence": 15,
+          "dormant": true,
+          "steps": [
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 8,
+              "y": 19,
+              "direction": 6,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 8,
+              "y": 26,
+              "direction": 6,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 8,
+              "y": 33,
+              "direction": 6,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 36,
+              "y": 19,
+              "direction": 4,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 36,
+              "y": 26,
+              "direction": 4,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 36,
+              "y": 33,
+              "direction": 4,
+              "animation": 40
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2588,
+              "expect": "Wave of the Void",
+              "cast": false
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 22,
+              "y": 15,
+              "direction": 2,
+              "animation": 40
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "four-fifths",
+          "on": "health",
+          "below": 80,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 0,
+              "lines": [
+                "\\pop[self]\\C[13]Let the emptiness seep into your souls..."
+              ]
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -51,
+                -136,
+                0,
+                0
+              ],
+              "seconds": 2
+            },
+            {
+              "verb": "animation",
+              "animation": 55
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2587,
+              "expect": "Absolute Solitude",
+              "cast": false
+            }
+          ]
+        },
+        {
+          "key": "three-fifths",
+          "on": "health",
+          "below": 60,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 1,
+              "lines": [
+                "\\pop[self]Do you think you can defeat someone like me?\\|\\.\\.\\^"
+              ]
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_06",
+              "faceIndex": 7,
+              "lines": [
+                "\\pop[self]Prepare yourself for the wings of darkness!\\|\\^"
+              ]
+            },
+            {
+              "verb": "blink",
+              "x": 22,
+              "y": 15,
+              "direction": 2,
+              "animation": 40
+            },
+            {
+              "verb": "animation",
+              "animation": 102
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "learnSkill",
+              "skill": 2362,
+              "expect": "Doom Wing"
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 2,
+              "lines": [
+                "\\pop[self]Have a taste of true darkness,\\. peasants!"
+              ]
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2362,
+              "expect": "Doom Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "startRoutine",
+              "routine": "harbingers"
+            }
+          ]
+        },
+        {
+          "key": "two-fifths",
+          "on": "health",
+          "below": 40,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 1,
+              "lines": [
+                "\\pop[self]No,\\. I won't fall here!"
+              ]
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 1,
+              "lines": [
+                "\\pop[self]You insolent elementals!\\.",
+                "It is YOUR fault this is happening!"
+              ]
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "",
+              "face": "face_je",
+              "faceIndex": 3,
+              "lines": [
+                "\\pop[a1]No credit for us?"
+              ]
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "",
+              "face": "face_rp",
+              "faceIndex": 3,
+              "lines": [
+                "\\pop[a2]Our stats are so much higher..."
+              ]
+            },
+            {
+              "verb": "startRoutine",
+              "routine": "waves"
+            }
+          ]
+        },
+        {
+          "key": "one-fifth",
+          "on": "health",
+          "below": 20,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "Lucian",
+              "face": "KH06-2_faces_MV_07",
+              "faceIndex": 0,
+              "lines": [
+                "\\pop[self]Why won't you just DIE already?!"
+              ]
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2589,
+              "expect": "Power of Wrath",
+              "cast": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "garuda",
+      "map": 320,
+      "defeatSwitch": 159,
+      "participants": [
+        {
+          "key": "garuda",
+          "enemyId": 373,
+          "expect": "Garuda",
+          "x": 25,
+          "y": 24,
+          "template": 606
+        },
+        {
+          "key": "skye",
+          "enemyId": 554,
+          "expect": "Skye",
+          "x": 25,
+          "y": 19,
+          "template": 607,
+          "bystander": true
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [],
+      "reactions": [
+        {
+          "key": "two-thirds",
+          "on": "health",
+          "below": 66,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "participant": "skye",
+              "speaker": "",
+              "face": "elemental-wind",
+              "faceIndex": 6,
+              "lines": [
+                "\\pop[self]\\C[13]Garuda!\\.",
+                "Use your Flappy Wind attack!"
+              ]
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -51,
+                85,
+                0,
+                0
+              ],
+              "seconds": 1
+            },
+            {
+              "verb": "log",
+              "face": "KH06-1_faces_MV_04",
+              "faceIndex": 3,
+              "lines": [
+                "SCREEEEE"
+              ]
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 10,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "face",
+              "participant": "garuda",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2376,
+              "expect": "Ruthless Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 18,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "face",
+              "participant": "garuda",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2376,
+              "expect": "Ruthless Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 26,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "face",
+              "participant": "garuda",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2376,
+              "expect": "Ruthless Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 34,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "face",
+              "participant": "garuda",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2376,
+              "expect": "Ruthless Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 42,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "face",
+              "participant": "garuda",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2376,
+              "expect": "Ruthless Wing",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "participant": "garuda",
+              "x": 25,
+              "y": 24,
+              "direction": 2,
+              "animation": 0
+            }
+          ]
+        },
+        {
+          "key": "one-fifth",
+          "on": "health",
+          "below": 20,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "participant": "skye",
+              "speaker": "",
+              "face": "elemental-wind",
+              "faceIndex": 7,
+              "lines": [
+                "\\pop[self]\\C[13]Garuda!\\.",
+                "Why are you losing?\\.",
+                "Flap harder damn you!"
+              ]
+            },
+            {
+              "verb": "log",
+              "face": "KH06-1_faces_MV_04",
+              "faceIndex": 3,
+              "lines": [
+                "SCREEEEEEEEEEEEEEEEEEEEE"
+              ]
+            },
+            {
+              "verb": "animation",
+              "participant": "garuda",
+              "animation": 92
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2375,
+              "expect": "Wings of Wrath",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2375,
+              "expect": "Wings of Wrath",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "forceSkill",
+              "participant": "garuda",
+              "skill": 2375,
+              "expect": "Wings of Wrath",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "animation",
+              "participant": "garuda",
+              "animation": 54
+            },
+            {
+              "verb": "log",
+              "face": "KH06-1_faces_MV_04",
+              "faceIndex": 3,
+              "lines": [
+                "scr...eee..."
+              ]
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "log",
+              "face": "elemental-earth",
+              "faceIndex": 3,
+              "lines": [
+                "The barrage was powerful, but it appears weak!"
+              ]
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.25
+            },
+            {
+              "verb": "log",
+              "face": "elemental-fire",
+              "faceIndex": 0,
+              "lines": [
+                "Lets pile on it then!"
+              ]
+            },
+            {
+              "verb": "addState",
+              "participant": "garuda",
+              "state": 2073,
+              "expect": "Overexerted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "skye",
+      "map": 320,
+      "defeatSwitch": 166,
+      "participants": [
+        {
+          "key": "skye",
+          "enemyId": 554,
+          "expect": "Skye",
+          "x": 25,
+          "y": 24
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "rising-force",
+          "cadence": 15,
+          "dormant": true,
+          "steps": [
+            {
+              "verb": "animation",
+              "animation": 92
+            },
+            {
+              "verb": "addState",
+              "state": 2074,
+              "expect": "Rising Force"
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "opening",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "tint",
+              "tone": [
+                -51,
+                85,
+                0,
+                0
+              ],
+              "seconds": 0
+            }
+          ]
+        },
+        {
+          "key": "three-quarters",
+          "on": "health",
+          "below": 75,
+          "steps": [
+            {
+              "verb": "animation",
+              "animation": 117
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "",
+              "face": "elemental-wind",
+              "faceIndex": 7,
+              "lines": [
+                "\\pop[self]No!\\. I\\..\\..\\.. have the POOwwweeRRRR!!"
+              ]
+            },
+            {
+              "verb": "startRoutine",
+              "routine": "rising-force"
+            }
+          ]
+        },
+        {
+          "key": "half",
+          "on": "health",
+          "below": 50,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "",
+              "face": "elemental-wind",
+              "faceIndex": 6,
+              "lines": [
+                "\\pop[self]ehehHHEHEHehehHEHHHH!"
+              ]
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.5
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 25,
+              "y": 21,
+              "direction": 2,
+              "animation": 0
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 4
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 8
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 6
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 2
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 4
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 8
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "face",
+              "direction": 6
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2377,
+              "expect": "Rending Chaos",
+              "cast": false
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "addState",
+              "state": 5,
+              "expect": "Rooted"
+            },
+            {
+              "verb": "blink",
+              "x": 25,
+              "y": 25,
+              "direction": 2,
+              "animation": 0
+            }
+          ]
+        },
+        {
+          "key": "one-quarter",
+          "on": "health",
+          "below": 25,
+          "steps": [
+            {
+              "verb": "dialogue",
+              "speaker": "",
+              "face": "elemental-wind",
+              "faceIndex": 5,
+              "lines": [
+                "\\pop[self]The light is\\..\\..\\.. growing dim\\..\\..\\.."
+              ]
+            },
+            {
+              "verb": "addState",
+              "state": 2073,
+              "expect": "Overexerted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "gloria",
+      "map": 380,
+      "defeatSwitch": 190,
+      "participants": [
+        {
+          "key": "gloria",
+          "enemyId": 583,
+          "expect": "Gloria",
+          "x": 24,
+          "y": 5,
+          "template": 583
+        },
+        {
+          "key": "brine",
+          "enemyId": 531,
+          "expect": "Puppet",
+          "x": 23,
+          "y": 13,
+          "template": 608,
+          "summoned": true
+        },
+        {
+          "key": "char",
+          "enemyId": 531,
+          "expect": "Puppet",
+          "x": 26,
+          "y": 13,
+          "template": 609,
+          "summoned": true
+        },
+        {
+          "key": "skewer",
+          "enemyId": 531,
+          "expect": "Puppet",
+          "x": 23,
+          "y": 13,
+          "template": 610,
+          "summoned": true
+        },
+        {
+          "key": "salt",
+          "enemyId": 532,
+          "expect": "Nutcracker",
+          "x": 26,
+          "y": 13,
+          "template": 611,
+          "summoned": true
+        },
+        {
+          "key": "umami",
+          "enemyId": 532,
+          "expect": "Nutcracker",
+          "x": 23,
+          "y": 13,
+          "template": 612,
+          "summoned": true
+        },
+        {
+          "key": "fillet",
+          "enemyId": 533,
+          "expect": "Mannequin",
+          "x": 26,
+          "y": 13,
+          "template": 613,
+          "summoned": true
+        },
+        {
+          "key": "draught",
+          "enemyId": 533,
+          "expect": "Mannequin",
+          "x": 23,
+          "y": 13,
+          "template": 614,
+          "summoned": true
+        },
+        {
+          "key": "merit",
+          "enemyId": 534,
+          "expect": "Homunculus",
+          "x": 26,
+          "y": 13,
+          "template": 615,
+          "summoned": true
+        },
+        {
+          "key": "impact",
+          "enemyId": 534,
+          "expect": "Homunculus",
+          "x": 23,
+          "y": 13,
+          "template": 616,
+          "summoned": true
+        },
+        {
+          "key": "halo",
+          "enemyId": 535,
+          "expect": "Pandora",
+          "x": 26,
+          "y": 13,
+          "template": 617,
+          "summoned": true
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [],
+      "reactions": [
+        {
+          "key": "on-her-throne",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "skill": 0,
+              "expect": "Sealed",
+              "cast": true,
+              "participant": "gloria",
+              "state": 2072
+            },
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "brine",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "brine-falls",
+          "on": "fallen",
+          "participants": [
+            "brine"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "char",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "char-falls",
+          "on": "fallen",
+          "participants": [
+            "char"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "skewer",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "skewer-falls",
+          "on": "fallen",
+          "participants": [
+            "skewer"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "salt",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "salt-falls",
+          "on": "fallen",
+          "participants": [
+            "salt"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "umami",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "umami-falls",
+          "on": "fallen",
+          "participants": [
+            "umami"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "fillet",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "fillet-falls",
+          "on": "fallen",
+          "participants": [
+            "fillet"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "draught",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "draught-falls",
+          "on": "fallen",
+          "participants": [
+            "draught"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "merit",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "merit-falls",
+          "on": "fallen",
+          "participants": [
+            "merit"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "impact",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "impact-falls",
+          "on": "fallen",
+          "participants": [
+            "impact"
+          ],
+          "steps": [
+            {
+              "verb": "summon",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "halo",
+              "animation": 154
+            }
+          ]
+        },
+        {
+          "key": "halo-falls",
+          "on": "fallen",
+          "participants": [
+            "halo"
+          ],
+          "steps": [
+            {
+              "verb": "jump",
+              "skill": 0,
+              "expect": "",
+              "cast": true,
+              "participant": "gloria",
+              "x": 24,
+              "y": 13
+            },
+            {
+              "verb": "removeState",
+              "skill": 0,
+              "expect": "Sealed",
+              "cast": true,
+              "participant": "gloria",
+              "state": 2072
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "sloth",
+      "map": 409,
+      "defeatSwitch": 192,
+      "participants": [
+        {
+          "key": "sloth",
+          "enemyId": 585,
+          "expect": "Sloth",
+          "x": 15,
+          "y": 22
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "heartbeat",
+          "cadence": 4,
+          "dormant": true,
+          "steps": [
+            {
+              "verb": "forceSkill",
+              "skill": 2590,
+              "expect": "Heartbeat",
+              "cast": true
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "the-vow",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "state": 2072,
+              "expect": "Sealed",
+              "participant": "sloth"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 20,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 25,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 14,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 30,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 21,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 23,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 20,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 25,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 14,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 30,
+              "animation": 154
+            },
+            {
+              "verb": "animation",
+              "animation": 86,
+              "participant": "sloth"
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack1-pulse",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack1",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 9
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 21,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 23,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 20,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 25,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 14,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 30,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 21,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 23,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 20,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 25,
+              "animation": 154
+            },
+            {
+              "verb": "animation",
+              "animation": 86,
+              "participant": "sloth"
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack2-pulse",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack2",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 9
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 14,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 30,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 21,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 23,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 20,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 17,
+              "y": 25,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 14,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 28,
+              "y": 30,
+              "animation": 154
+            },
+            {
+              "verb": "wait",
+              "seconds": 10
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 21,
+              "animation": 154
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 595,
+              "expect": "Slothful Votary",
+              "template": 595,
+              "x": 46,
+              "y": 23,
+              "animation": 154
+            },
+            {
+              "verb": "animation",
+              "animation": 86,
+              "participant": "sloth"
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack3-pulse",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 1
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack3",
+              "participant": "sloth"
+            },
+            {
+              "verb": "wait",
+              "seconds": 9
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                68,
+                -51,
+                34,
+                0
+              ],
+              "seconds": 2
+            },
+            {
+              "verb": "animation",
+              "animation": 56,
+              "participant": "sloth"
+            },
+            {
+              "verb": "removeState",
+              "state": 2072,
+              "expect": "Sealed",
+              "participant": "sloth"
+            },
+            {
+              "verb": "addState",
+              "state": 2075,
+              "expect": "Stilled",
+              "participant": "sloth"
+            },
+            {
+              "verb": "changeImage",
+              "image": "$sloth-statue-crack3-pulse",
+              "participant": "sloth"
+            },
+            {
+              "verb": "startRoutine",
+              "routine": "heartbeat"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "lust",
+      "map": 443,
+      "defeatSwitch": 194,
+      "participants": [
+        {
+          "key": "lust",
+          "enemyId": 587,
+          "expect": "Lust",
+          "x": 40,
+          "y": 33,
+          "template": 587
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "reach",
+          "cadence": 10,
+          "steps": [
+            {
+              "verb": "removeState",
+              "state": 2079,
+              "expect": "Scrambled",
+              "participant": "lust"
+            },
+            {
+              "verb": "addState",
+              "state": 2075,
+              "expect": "Stilled",
+              "participant": "lust"
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2593,
+              "expect": "Desire",
+              "cast": true,
+              "participant": "lust"
+            },
+            {
+              "verb": "removeState",
+              "state": 2075,
+              "expect": "Stilled",
+              "participant": "lust"
+            },
+            {
+              "verb": "addState",
+              "state": 2079,
+              "expect": "Scrambled",
+              "participant": "lust"
+            },
+            {
+              "verb": "wait",
+              "seconds": 1.5
+            },
+            {
+              "verb": "removeState",
+              "state": 2079,
+              "expect": "Scrambled",
+              "participant": "lust"
+            },
+            {
+              "verb": "addState",
+              "state": 2081,
+              "expect": "Overreached",
+              "participant": "lust"
+            },
+            {
+              "verb": "animation",
+              "animation": 40,
+              "participant": "lust"
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                68,
+                68,
+                68,
+                0
+              ],
+              "seconds": 0.1
+            },
+            {
+              "verb": "wait",
+              "seconds": 0.2
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "seconds": 0.3
+            },
+            {
+              "verb": "wait",
+              "seconds": 2.8
+            },
+            {
+              "verb": "removeState",
+              "state": 2081,
+              "expect": "Overreached",
+              "participant": "lust"
+            },
+            {
+              "verb": "addState",
+              "state": 2079,
+              "expect": "Scrambled",
+              "participant": "lust"
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "scrambled",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "state": 2079,
+              "expect": "Scrambled",
+              "participant": "lust"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 597,
+              "expect": "Goop Vent",
+              "template": 597,
+              "x": 22,
+              "y": 16,
+              "animation": 146
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 597,
+              "expect": "Goop Vent",
+              "template": 597,
+              "x": 58,
+              "y": 16,
+              "animation": 146
+            }
+          ]
+        },
+        {
+          "key": "two-thirds",
+          "on": "health",
+          "below": 66,
+          "steps": [
+            {
+              "verb": "quickenRoutine",
+              "routine": "reach",
+              "seconds": 2
+            },
+            {
+              "verb": "addState",
+              "state": 2082,
+              "expect": "Fraying",
+              "participant": "lust"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 597,
+              "expect": "Goop Vent",
+              "template": 597,
+              "x": 20,
+              "y": 32,
+              "animation": 146
+            }
+          ]
+        },
+        {
+          "key": "one-third",
+          "on": "health",
+          "below": 33,
+          "steps": [
+            {
+              "verb": "quickenRoutine",
+              "routine": "reach",
+              "seconds": 2
+            },
+            {
+              "verb": "addState",
+              "state": 2082,
+              "expect": "Fraying",
+              "participant": "lust"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 597,
+              "expect": "Goop Vent",
+              "template": 597,
+              "x": 60,
+              "y": 32,
+              "animation": 146
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "envy",
+      "map": 426,
+      "defeatSwitch": 196,
+      "participants": [
+        {
+          "key": "voidella",
+          "enemyId": 584,
+          "expect": "Voidella",
+          "x": 19,
+          "y": 9,
+          "template": 584
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [],
+      "reactions": [
+        {
+          "key": "six-of-ten",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "state": 2083,
+              "expect": "6/10",
+              "participant": "voidella"
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -17,
+                -34,
+                17,
+                0
+              ],
+              "seconds": 1
+            },
+            {
+              "verb": "log",
+              "face": "elemental-void",
+              "faceIndex": 0,
+              "lines": [
+                "TODO: her line at 6/10"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "max",
+          "on": "health",
+          "below": 80,
+          "steps": [
+            {
+              "verb": "removeState",
+              "state": 2083,
+              "expect": "6/10",
+              "participant": "voidella"
+            },
+            {
+              "verb": "addState",
+              "state": 2084,
+              "expect": "MAX",
+              "participant": "voidella"
+            },
+            {
+              "verb": "learnSkill",
+              "skill": 2598,
+              "expect": "Void Burst",
+              "participant": "voidella"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 9,
+              "y": 18,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 19,
+              "y": 18,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 29,
+              "y": 18,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 9,
+              "y": 30,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 19,
+              "y": 30,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 618,
+              "x": 29,
+              "y": 30,
+              "animation": 101
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -34,
+                -51,
+                34,
+                34
+              ],
+              "seconds": 1
+            },
+            {
+              "verb": "log",
+              "face": "elemental-void",
+              "faceIndex": 0,
+              "lines": [
+                "TODO: her line at MAX"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "thirteen",
+          "on": "health",
+          "below": 50,
+          "steps": [
+            {
+              "verb": "removeState",
+              "state": 2084,
+              "expect": "MAX",
+              "participant": "voidella"
+            },
+            {
+              "verb": "addState",
+              "state": 2085,
+              "expect": "13/10",
+              "participant": "voidella"
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -51,
+                -68,
+                51,
+                68
+              ],
+              "seconds": 1
+            },
+            {
+              "verb": "log",
+              "face": "elemental-void",
+              "faceIndex": 0,
+              "lines": [
+                "TODO: her line at 13/10"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "broken",
+          "on": "health",
+          "below": 25,
+          "steps": [
+            {
+              "verb": "removeState",
+              "state": 2085,
+              "expect": "13/10",
+              "participant": "voidella"
+            },
+            {
+              "verb": "addState",
+              "state": 2086,
+              "expect": "BROKEN",
+              "participant": "voidella"
+            },
+            {
+              "verb": "changeImage",
+              "participant": "voidella",
+              "image": "$m_elemental-voidella-broken"
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 619,
+              "x": 0,
+              "y": 8,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 619,
+              "x": 0,
+              "y": 14,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 619,
+              "x": 0,
+              "y": 26,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 620,
+              "x": 39,
+              "y": 20,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 620,
+              "x": 39,
+              "y": 32,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 594,
+              "expect": "Voidal Tendril",
+              "template": 620,
+              "x": 39,
+              "y": 38,
+              "animation": 101
+            },
+            {
+              "verb": "tint",
+              "tone": [
+                -34,
+                -51,
+                34,
+                0
+              ],
+              "seconds": 1
+            },
+            {
+              "verb": "log",
+              "face": "elemental-void",
+              "faceIndex": 0,
+              "lines": [
+                "TODO: her line at BROKEN"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "grudj",
+      "map": 444,
+      "defeatSwitch": 198,
+      "participants": [
+        {
+          "key": "grudj",
+          "enemyId": 601,
+          "expect": "Grudj",
+          "x": 29,
+          "y": 13,
+          "template": 621
+        },
+        {
+          "key": "scrambler",
+          "enemyId": 602,
+          "expect": "Scrambler",
+          "x": 29,
+          "y": 23,
+          "template": 622,
+          "bystander": true
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "scramble",
+          "cadence": 30,
+          "steps": [
+            {
+              "verb": "forceSkill",
+              "skill": 2603,
+              "expect": "Scramble",
+              "cast": true,
+              "participant": "scrambler"
+            },
+            {
+              "verb": "wait",
+              "seconds": 20
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 513,
+              "expect": "Zaphazard",
+              "template": 624,
+              "x": 14,
+              "y": 16,
+              "animation": 101
+            },
+            {
+              "verb": "spawn",
+              "enemyId": 513,
+              "expect": "Zaphazard",
+              "template": 624,
+              "x": 45,
+              "y": 30,
+              "animation": 101
+            }
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "key": "opening",
+          "on": "start",
+          "steps": [
+            {
+              "verb": "addState",
+              "state": 2091,
+              "expect": "Bolted Down",
+              "participant": "scrambler"
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Grudj\\C[0]",
+              "lines": [
+                "TODO: his opening line"
+              ]
+            },
+            {
+              "verb": "forceSkill",
+              "skill": 2603,
+              "expect": "Scramble",
+              "cast": false,
+              "participant": "scrambler"
+            },
+            {
+              "verb": "wait",
+              "seconds": 11
+            },
+            {
+              "verb": "dialogue",
+              "speaker": "\\C[10]Grudj\\C[0]",
+              "lines": [
+                "WHAT, THIS CAN'T BE"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "machine-falls",
+          "on": "fallen",
+          "participants": [
+            "scrambler"
+          ],
+          "steps": [
+            {
+              "verb": "spawn",
+              "enemyId": 602,
+              "expect": "Scrambler",
+              "template": 623,
+              "x": 29,
+              "y": 23
+            },
+            {
+              "verb": "learnSkill",
+              "skill": 2605,
+              "expect": "Black Cross"
+            },
+            {
+              "verb": "log",
+              "lines": [
+                "TODO: his line as the machine dies"
+              ]
             }
           ]
         }

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.7 ABS-POSES] Enable action poses for JABS.
+ * [v1.0.8 ABS-POSES] Enable action poses for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -84,7 +84,7 @@ J.ABS.EXT.POSES.EXT ||= {};
 * The metadata associated with this plugin.
 
 */
-J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.7");
+J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.8");
 /**
 
 * A collection of all aliased methods for this plugin.
@@ -354,7 +354,7 @@ JABS_Battler.prototype.tryStartPose = function(skill) {
 	this.captureBaseSpriteInfo();
 	this.setPoseDuration(skill.jabsPoseDuration);
 	const newCharacterSprite = `${baseSpriteName}${skill.jabsPoseSuffix}`;
-	const spritePath = `img/characters/${Utils.encodeURI(newCharacterSprite)}.png`;
+	const spritePath = `img/characters/${newCharacterSprite}.png`;
 	const spriteExists = J.ABS.EXT.POSES.Helpers.gameAssetExists(spritePath);
 	if (spriteExists) {
 		ImageManager.loadCharacter(newCharacterSprite);

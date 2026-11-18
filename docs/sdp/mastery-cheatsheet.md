@@ -328,8 +328,8 @@ Five subgroup slots (Kaiju sacked — Sin owns the last **two** enemy decades). 
 |---|---:|---:|---|
 | `SIN_1` | 1581 | 581 | Gluttony |
 | `SIN_2` | 1582 | 582 | Wrath |
-| `SIN_3` | 1583 | 583 | Envy |
-| `SIN_4` | 1584 | 584 | Pride |
+| `SIN_3` | 1583 | 583 | Pride (Gloria) |
+| `SIN_4` | 1584 | 584 | Envy |
 | `SIN_5` | 1585 | 585 | Sloth |
 | `SIN_6` | 1586 | 586 | Greed |
 | `SIN_7` | 1587 | 587 | Lust |

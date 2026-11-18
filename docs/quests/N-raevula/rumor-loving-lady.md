@@ -52,3 +52,10 @@ deep entrance is, and why nobody strings lights down there anymore.
 #### After effects of "Whispers From Below"
 - The Subterranean's whisper-network breadcrumb is planted (door, never contents).
 - Whisper density in town rises after Nimbus is cleared (escalation doctrine).
+
+## Fork quests
+
+Amy is Jerald's fork pointer. Once per trunk, she passes on what someone has been calling Jerald and who said
+it, and that person turns out to need exactly that. Decided 2026-11-06: "Amy points Jerald to someone, one person
+per trunk." Not in `config.quest.json` yet, and when it fires is still open. The design lives in
+[fork quests](../fork-quests.md).

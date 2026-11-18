@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.28.0 ABS] Enables combat to be carried out on the map.
+ * [v4.29.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1331,7 +1331,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "4.2.0";
+	const requiredBaseVersion = "4.4.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -1432,7 +1432,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.28.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.29.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -1702,6 +1702,42 @@ J.ABS.RegExp = {
 	ComboAction: /<combo:[ ]?(\[\d+(?:,[ ]?\d+){0,2}])>/gi,
 	ComboStarter: /<comboStarter>/gi,
 	AiSkillExclusion: /<aiSkillExclusion>/gi,
+	/**
+	* The states a skill follows up on. While its target carries one of them, an enemy AI with the tactical trait casts
+	* this skill before anything else, which is how a boss reads a combo off the field: one battler lays a state,
+	* another cashes it in. Ally AI does not read it.
+	*
+	* <pre>
+	* Structure:
+	*  <aiFollowUp:[STATE_IDS]>
+	*
+	* Example:
+	*  <aiFollowUp:[2090, 4]>
+	*
+	* Translation:
+	*  While its target carries state 2090 or state 4, a tactical enemy casts this first.
+	* </pre>
+	* @type {RegExp}
+	*/
+	AiFollowUp: /<aiFollowUp:[ ]?(\[[\d, ]+])>/i,
+	/**
+	* The declaration that an enemy AI saves a skill for its follow-up: it never comes up in an ordinary decision or as
+	* an interrupt, only when its target carries a state it follows up on, so it is never on cooldown when that moment
+	* arrives. Unlike `<aiSkillExclusion>`, the skill stays in the AI's pool. Ally AI does not read it.
+	*
+	* <pre>
+	* Structure:
+	*  <aiFollowUpOnly>
+	*
+	* Example:
+	*  <aiFollowUpOnly>
+	*
+	* Translation:
+	*  An enemy casts this only as a follow-up.
+	* </pre>
+	* @type {RegExp}
+	*/
+	AiFollowUpOnly: /<aiFollowUpOnly>/i,
 	FreeCombo: /<freeCombo>/gi,
 	NoAutoAssign: /<noAutoAssign>/gi,
 	UpgradeOverSkill: /<upgradeOverSkill:[ ]?(\d+)>/i,
@@ -1950,6 +1986,11 @@ J.ABS.RegExp = {
 	ImmuneToStates: /<immuneToStates>/gi,
 	ImmuneToAll: /<immuneToAll>/gi,
 	CannotBeInterrupted: /<cannotBeInterrupted>/i,
+	NoDamage: /<noDamage>/i,
+	NoSelfKill: /<noSelfKill>/i,
+	ThisNoSelfKill: /<thisNoSelfKill>/i,
+	NoTargetKill: /<noTargetKill>/i,
+	ThisNoTargetKill: /<thisNoTargetKill>/i,
 	ReapplyType: /<stackType:[ ]?(refresh|extend|stack)>/gi,
 	ReapplyRefreshDiminish: /<stateRefreshDiminish:[ ]?(-?\d+)>/gi,
 	ReapplyRefreshReset: /<stateRefreshReset:[ ]?(\d+)>/gi,
@@ -5297,32 +5338,131 @@ var JABS_AI = class {
 	*/
 	filterElementallyIneffectiveSkills(skillsToUse, user, target) {
 		if (skillsToUse.length <= 1) return skillsToUse;
-		return skillsToUse.filter((skillId) => {
-			const testAction = new Game_Action(user.getBattler());
-			testAction.setSkill(skillId);
-			const rate = testAction.calcElementRate(target.getBattler());
-			return rate >= 1;
-		});
+		return skillsToUse.filter((skillId) => this.elementRateAgainst(skillId, user, target) >= 1);
 	}
 	/**
-	* Narrows the skill list to the single most elementally effective skill against the target.
-	* Returns the original array unchanged if only one skill is present.
+	* Narrows the skill list to the skills most elementally effective against the target: every skill tied at the best
+	* rate, in the order given.<br/>
+	* A skill that strikes the target's weakness is chosen whenever it is on offer, and skills that are equally
+	* effective stay equally likely, the final pick choosing evenly among them.<br/>
+	* A careful enemy's filter runs first and can leave nothing to judge, when its target resists everything on offer;
+	* nothing then comes back.
 	* @param {number[]} skillsToUse The available skills to use.
 	* @param {JABS_Battler} user The battler deciding the action.
 	* @param {JABS_Battler} target The battler being targeted.
 	* @returns {number[]}
 	*/
-	findMostElementallyEffectiveSkill(skillsToUse, user, target) {
-		if (skillsToUse.length <= 1) return skillsToUse;
-		const elementalSkillCollection = [];
-		skillsToUse.forEach((skillId) => {
-			const testAction = new Game_Action(user.getBattler());
-			testAction.setSkill(skillId);
-			const rate = testAction.calcElementRate(target.getBattler());
-			elementalSkillCollection.push([skillId, rate]);
+	findMostElementallyEffectiveSkills(skillsToUse, user, target) {
+		const rates = skillsToUse.map((skillId) => this.elementRateAgainst(skillId, user, target));
+		const bestRate = Math.max(...rates);
+		return skillsToUse.filter((_skillId, index) => rates[index] === bestRate);
+	}
+	/**
+	* How hard a skill strikes the target by element: the engine's own element rate for that skill, as cast by the
+	* user. Above 1 is a weakness, below 1 a resistance.
+	* @param {number} skillId The skill being judged.
+	* @param {JABS_Battler} user The battler who would cast it.
+	* @param {JABS_Battler} target The battler it would strike.
+	* @returns {number}
+	*/
+	elementRateAgainst(skillId, user, target) {
+		const testAction = new Game_Action(user.getBattler());
+		testAction.setSkill(skillId);
+		return testAction.calcElementRate(target.getBattler());
+	}
+	/**
+	* The executor's pick: the skills most effective against this target.<br/>
+	* Core judges effectiveness by element alone; extensions widen it, as J-ABS-Shield does for a shielded target.
+	* @param {number[]} skillsToUse The available skills to use.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {JABS_Battler} target The battler being targeted.
+	* @returns {number[]}
+	*/
+	filterForExecutorSkills(skillsToUse, user, target) {
+		return this.findMostElementallyEffectiveSkills(skillsToUse, user, target);
+	}
+	/**
+	* Drops every skill saved for a follow-up, so it never comes up in an ordinary decision.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {number[]} skillsToUse The available skills to use.
+	* @returns {number[]}
+	*/
+	filterFollowUpOnlySkills(user, skillsToUse) {
+		return skillsToUse.filter((skillId) => user.getSkill(skillId).jabsAiFollowUpOnly === false);
+	}
+	/**
+	* Finds a skill that follows up on a state the target carries right now, saved-for-it or not.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {JABS_Battler} target The battler being targeted.
+	* @param {number[]} usableSkills The skills the user can cast right now.
+	* @returns {number} The skill id, or 0 when nothing follows up on any state the target has.
+	*/
+	decideFollowUp(user, target, usableSkills) {
+		const targetStateIds = target.getBattler().states().map((state) => state.id);
+		const followUpSkillId = usableSkills.find((skillId) => {
+			const { jabsAiFollowUpStateIds } = user.getSkill(skillId);
+			return jabsAiFollowUpStateIds.some((stateId) => targetStateIds.includes(stateId));
 		});
-		elementalSkillCollection.sort((a, b) => b[1] - a[1]);
-		return [elementalSkillCollection[0][0]];
+		return followUpSkillId ?? 0;
+	}
+	/**
+	* Finds the skill that would cut the target's cast, choosing the one with the largest interrupt magnifier, but only
+	* when the cast can actually be cut: an interrupt spent on an immune cast is a wasted turn.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {JABS_Battler} target The battler being targeted.
+	* @param {number[]} usableSkills The skills the user can cast right now.
+	* @returns {number} The skill id, or 0 when there is no cast to cut or nothing to cut it with.
+	*/
+	decideInterrupt(user, target, usableSkills) {
+		if (target.isInterruptible() === false) return 0;
+		let bestSkillId = 0;
+		let bestMagnifier = 0;
+		usableSkills.forEach((skillId) => {
+			const { jabsInterruptMagnifier } = user.getSkill(skillId);
+			if (jabsInterruptMagnifier > bestMagnifier) {
+				bestSkillId = skillId;
+				bestMagnifier = jabsInterruptMagnifier;
+			}
+		});
+		return bestSkillId;
+	}
+	/**
+	* Finds a skill aimed at the opposition that strips a positive state off the target. A skill purging buffs
+	* wholesale comes first, since it strips whatever the target carries; otherwise the target's states are read in the
+	* order it carries them, and the first one some skill can remove is the one stripped, with the skill that removes it
+	* most reliably.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {JABS_Battler} target The battler being targeted.
+	* @param {number[]} usableSkills The skills the user can cast right now.
+	* @returns {number} The skill id, or 0 when the target carries nothing the user can strip.
+	*/
+	decideStrip(user, target, usableSkills) {
+		const positiveStates = target.getBattler().states().filter((state) => state.isNegativeType() === false);
+		if (positiveStates.length === 0) return 0;
+		const strippingSkills = usableSkills.filter((skillId) => this.buildTestAction(user, skillId).isForOpponent());
+		const purgerSkillId = this.findBuffPurger(user, strippingSkills);
+		if (purgerSkillId !== 0) return purgerSkillId;
+		for (const state of positiveStates) {
+			const stripSkillId = this.determineBestSkillForStateCleansing(strippingSkills, state.id, user);
+			if (stripSkillId !== 0) return stripSkillId;
+		}
+		return 0;
+	}
+	/**
+	* Finds a skill that purges buffs wholesale through `<purgeStates>`: one whose polarity is `positive` or `all`.
+	* A purge left at its default polarity strips only negative states, so it is no use against a protection.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {number[]} usableSkills The skills the user can cast right now.
+	* @returns {number} The skill id, or 0 when none of them purges buffs.
+	*/
+	findBuffPurger(user, usableSkills) {
+		const purgerSkillId = usableSkills.find((skillId) => {
+			const purgeParams = user.getSkill(skillId).jabsPurgeStatesParams;
+			if (purgeParams === null) return false;
+			const [polarity] = purgeParams;
+			return polarity === "positive" || polarity === "all";
+		});
+		return purgerSkillId ?? 0;
 	}
 	/**
 	* Decides the best cleansing skill to use on the nearest ally suffering a negative state.
@@ -5334,20 +5474,32 @@ var JABS_AI = class {
 	decideCleansing(user, availableSkills) {
 		const nearbyAllies = user.getAllNearbyAllies();
 		let bestSkillId = 0;
+		const cleansingSkills = availableSkills.filter((skillId) => this.buildTestAction(user, skillId).isForFriend());
 		nearbyAllies.forEach((ally) => {
 			const allyBattler = ally.getBattler();
 			const allyStates = allyBattler.states();
 			if (allyStates.length === 0) return;
 			const cleansableState = allyStates.find((state) => {
 				const isNegative = state.isNegativeType();
-				const canBeCleansed = this.determineBestSkillForStateCleansing(availableSkills, state.id, user);
+				const canBeCleansed = this.determineBestSkillForStateCleansing(cleansingSkills, state.id, user);
 				return isNegative && canBeCleansed;
 			});
 			if (cleansableState) {
-				bestSkillId = this.determineBestSkillForStateCleansing(availableSkills, cleansableState.id, user);
+				bestSkillId = this.determineBestSkillForStateCleansing(cleansingSkills, cleansableState.id, user);
 			}
 		});
 		return bestSkillId;
+	}
+	/**
+	* Builds the action a skill would be cast as, so where it is aimed can be read before the skill is chosen.
+	* @param {JABS_Battler} user The battler who would cast it.
+	* @param {number} skillId The skill to read.
+	* @returns {Game_Action}
+	*/
+	buildTestAction(user, skillId) {
+		const testAction = new Game_Action(user.getBattler());
+		testAction.setSkill(skillId);
+		return testAction;
 	}
 	/**
 	* Decides the best healing skill to use based on ally health status.
@@ -5503,14 +5655,14 @@ var JABS_AI = class {
 		return bestSkillId;
 	}
 	/**
-	* Finds the skill with the highest removal rate for the given state.
+	* Finds the skill with the highest removal rate for the given state, or 0 when none of them removes it.
 	* @param {number[]} availableSkills The skill ids available to choose from.
 	* @param {number} stateIdToBeCleansed The id of the state to be cleansed.
 	* @param {JABS_Battler} healer The battler choosing the skill.
 	* @returns {number}
 	*/
 	determineBestSkillForStateCleansing(availableSkills, stateIdToBeCleansed, healer) {
-		let bestSkillForStateCleansing = null;
+		let bestSkillForStateCleansing = 0;
 		let highestCleanseRate = 0;
 		availableSkills.forEach((skillId) => {
 			const skill = healer.getSkill(skillId);
@@ -5601,12 +5753,14 @@ var JABS_EnemyAI = class extends JABS_AI {
 	* An ai trait that prevents this user from executing skills that are
 	* elementally ineffective against their target.
 	* Consults memories to avoid previously-resisted skills.
+	* Strips a positive state off its target when one of its skills can remove it.
 	*/
 	careful = false;
 	/**
 	* An ai trait that encourages this user to always use the most elementally
-	* effective skill available.
+	* effective skill available, choosing evenly among skills that are equally effective.
 	* Weights memories toward previously-effective skills.
+	* Its pick of the most effective skill is widened by extensions; J-ABS-Shield aims it at a target's shield first.
 	*/
 	executor = false;
 	/**
@@ -5615,8 +5769,11 @@ var JABS_EnemyAI = class extends JABS_AI {
 	*/
 	reckless = false;
 	/**
-	* An ai trait that prefers skills which apply negative states to the target.
+	* An ai trait that prefers skills which apply negative states to the target, unless this user is also an executor,
+	* whose equally effective skills stay equally likely.
 	* Consults memories for previously-exploited status vulnerabilities.
+	* Casts first a skill that follows up on a state its target carries, then a skill that cuts its target's cast
+	* when that cast can be cut.
 	*/
 	tactical = false;
 	/**
@@ -5665,15 +5822,20 @@ var JABS_EnemyAI = class extends JABS_AI {
 	/**
 	* Decides an action based on this battler's AI traits, the target, and available skills.
 	* Coordination (leader/follower) is handled upstream by {@link JABS_AiManager}.
-	* Priority order: support layer → berserker check → attack layer → generic.
+	* Priority order: tactical opening → support layer → berserker check → attack layer → generic.
 	* @param {JABS_Battler} user The battler of the AI deciding a skill.
 	* @param {JABS_Battler} target The target battler to decide an action against.
 	* @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
 	* @returns {number[]} Exactly one skill id, or empty when no valid choice exists.
 	*/
 	decideAction(user, target, availableSkills) {
-		const usableSkills = this.filterUncastableSkills(user, availableSkills);
+		const castableSkills = this.filterUncastableSkills(user, availableSkills);
 		const { careful, executor, reckless, tactical, berserker, cleanser, healer, buffer } = this;
+		if (tactical) {
+			const opening = this.decideTacticalOpening(user, target, castableSkills);
+			if (opening.length) return opening;
+		}
+		const usableSkills = this.filterFollowUpOnlySkills(user, castableSkills);
 		if (reckless && usableSkills.length === 0) {
 			Diagnostics.warn("J-ABS", "a battler with the \"reckless\" trait was found with no skills.", user);
 		}
@@ -5696,6 +5858,23 @@ var JABS_EnemyAI = class extends JABS_AI {
 			return this.decideAttackAction(user, usableSkills);
 		}
 		return this.decideGenericAction(user, usableSkills);
+	}
+	/**
+	* The tactical opening: a skill that follows up on a state the target carries, else one that cuts its cast.<br/>
+	* A combo underway keeps its rhythm, so no opening is taken while one is due.
+	* @param {JABS_Battler} user The battler deciding the action.
+	* @param {JABS_Battler} target The battler being targeted.
+	* @param {number[]} castableSkills The skills the user can cast right now, saved ones included.
+	* @returns {number[]} Exactly one skill id, or empty when the moment offers no opening.
+	*/
+	decideTacticalOpening(user, target, castableSkills) {
+		if (this.shouldFollowWithCombo(user)) return [];
+		const followUp = this.decideFollowUp(user, target, castableSkills);
+		if (followUp) return [followUp];
+		const unsavedSkills = this.filterFollowUpOnlySkills(user, castableSkills);
+		const interrupt = this.decideInterrupt(user, target, unsavedSkills);
+		if (interrupt) return [interrupt];
+		return [];
 	}
 	/**
 	* Wraps a base support helper result (0 means none) as a uniform skill-id list.
@@ -5775,7 +5954,9 @@ var JABS_EnemyAI = class extends JABS_AI {
 	}
 	/**
 	* Decides an attack-oriented action to perform based on active traits.
-	* Applies careful/executor/tactical filters in sequence, then calls memory-influenced selection.
+	* A careful battler first strips a protection off its target when it can; otherwise the careful filter applies, then
+	* the executor's judgment, or the tactical preference for a battler that is no executor, before the final pick. An
+	* executor's equally effective skills reach that pick untouched, so it chooses evenly among them.
 	* @param {JABS_Battler} user The battler to decide the skill for.
 	* @param {number[]} usableSkills The available skills to use.
 	* @returns {number[]}
@@ -5786,14 +5967,17 @@ var JABS_EnemyAI = class extends JABS_AI {
 		}
 		if (!usableSkills.length) return [user.getEnemyBasicAttack()];
 		const target = user.getTarget();
+		if (this.careful) {
+			const strip = this.decideStrip(user, target, usableSkills);
+			if (strip) return [strip];
+		}
 		let filtered = usableSkills;
 		if (this.careful) {
 			filtered = this.filterElementallyIneffectiveSkills(filtered, user, target);
 		}
 		if (this.executor) {
-			filtered = this.findMostElementallyEffectiveSkill(filtered, user, target);
-		}
-		if (this.tactical) {
+			filtered = this.filterForExecutorSkills(filtered, user, target);
+		} else if (this.tactical) {
 			filtered = this.filterForTacticalSkills(filtered, user, target);
 		}
 		return [this.decideFromNoneToManySkills(user, filtered)];
@@ -5881,7 +6065,8 @@ var JABS_EnemyAI = class extends JABS_AI {
 			return [this.followWithCombo(followerBattler)];
 		}
 		const basicAttackSkillId = followerBattler.getEnemyBasicAttack();
-		let skillsToUse = followerBattler.getSkillIdsFromEnemy();
+		const followerSkills = followerBattler.getSkillIdsFromEnemy();
+		let skillsToUse = this.filterFollowUpOnlySkills(followerBattler, followerSkills);
 		if (!skillsToUse.length) return [basicAttackSkillId];
 		const { healer, careful, executor } = this;
 		const modifiedSightRadius = leaderBattler.getSightRadius() + followerBattler.getSightRadius();
@@ -11540,7 +11725,7 @@ var JABS_Battler = class JABS_Battler {
 	* @returns {number[]} The skill ids available to this enemy.
 	*/
 	getSkillIdsFromEnemy() {
-		const battlerActions = this.getBattler().enemy().actions;
+		const battlerActions = this.getBattler().enemyActions();
 		const filtering = (action) => {
 			const skill = this.getBattler().skill(action.skillId);
 			const keep = this.aiSkillFilter(skill);
@@ -12285,6 +12470,21 @@ var JABS_Battler = class JABS_Battler {
 	*/
 	isCastingOrChanneling() {
 		return this.isCasting() || this.isChanneling();
+	}
+	/**
+	* Whether a landed `<interrupt:MAGNIFIER>` hit would cut this battler's cast or channel right now.<br/>
+	* It has to be casting or channeling, the skill in flight must not carry `<thisCannotBeInterrupted>`, and none of
+	* the battler's own note sources may carry `<cannotBeInterrupted>`. The engine asks this when such a hit lands,
+	* and a tactical AI asks it before spending an interrupt.
+	* @returns {boolean}
+	*/
+	isInterruptible() {
+		if (this.isCastingOrChanneling() === false) return false;
+		const decidedActions = this.getDecidedAction();
+		const skillInFlight = decidedActions ? decidedActions.at(0).getBaseSkill() : null;
+		if (skillInFlight && skillInFlight.jabsThisCannotBeInterrupted) return false;
+		if (this.getBattler().isImmuneToInterrupt()) return false;
+		return true;
 	}
 	/**
 	* Whether or not the currently in-flight cast/channel roots this battler in place, per its own
@@ -13321,13 +13521,16 @@ var JABS_Battler = class JABS_Battler {
 		const scopeEverything = gameAction.isForEveryone();
 		const scopeAllAllies = scopeAlly && scopeMany;
 		const scopeAllOpponents = scopeOpponent && scopeMany;
-		const targetIsSelf = user.getUuid() === target.getUuid() || action.getAction().isForUser();
+		const targetIsSelf = user.getUuid() === target.getUuid();
 		const actionIsSameTeam = JABS_TeamRules.isFriendly(user.getTeam(), this.getTeam());
 		const targetIsOpponent = JABS_TeamRules.isOpposed(user.getTeam(), this.getTeam());
 		if (scopeSingle && alreadyHitOne) {
 			return false;
 		}
-		if (targetIsSelf && (scopeSelf || scopeAlly || scopeAllAllies || scopeEverything)) {
+		if (scopeSelf) {
+			return targetIsSelf;
+		}
+		if (targetIsSelf && (scopeAlly || scopeAllAllies || scopeEverything)) {
 			return true;
 		}
 		if (actionIsSameTeam && (scopeAlly || scopeAllAllies || scopeEverything) && !(action.isDirectAction() && target.isInanimate())) {
@@ -14131,6 +14334,7 @@ var JABS_Battler = class JABS_Battler {
 		if (battler.hp < battler.mhp) {
 			const { hrg, rec } = battler;
 			const naturalHp = this.calculatedRegen(hrg, isReduced) * rec;
+			if (this.isIgnoredRegenHarm(naturalHp)) return;
 			battler.gainHp(naturalHp);
 		}
 	}
@@ -14142,8 +14346,20 @@ var JABS_Battler = class JABS_Battler {
 		if (battler.mp < battler.mmp) {
 			const { mrg, rec } = battler;
 			const naturalMp = this.calculatedRegen(mrg, isReduced) * rec;
+			if (this.isIgnoredRegenHarm(naturalMp)) return;
 			battler.gainMp(naturalMp);
 		}
+	}
+	/**
+	* Whether or not a natural regeneration tick is harm that this battler ignores.<br/>
+	* A regeneration rate below zero drains HP or MP instead of restoring it, and a battler that takes no
+	* damage shrugs that drain off. TP regeneration never asks, because TP isn't damage.
+	* @param {number} amount The regeneration about to be applied.
+	* @returns {boolean}
+	*/
+	isIgnoredRegenHarm(amount) {
+		if (amount >= 0) return false;
+		return this.getBattler().isImmuneToDamage();
 	}
 	/**
 	* Processes the natural TRG for this battler.
@@ -14190,7 +14406,7 @@ var JABS_Battler = class JABS_Battler {
 	* @param {JABS_State} jabsState The state tracker that owns the slip.
 	*/
 	processSlipEffect(slipAmount, index, jabsState) {
-		if (this.canProcessSlipEffect(slipAmount) === false) return;
+		if (this.canProcessSlipEffect(slipAmount, index) === false) return;
 		const modifiedSlipAmount = this.calculateModifiedSlipAmount(slipAmount, jabsState);
 		this.applySlipEffect(modifiedSlipAmount, index);
 		if (modifiedSlipAmount < 0) {
@@ -14201,13 +14417,30 @@ var JABS_Battler = class JABS_Battler {
 		this.onSlipRegenTick(displayAmount, index, jabsState.stateId);
 	}
 	/**
-	* Determines whether the slip can be processed.
+	* Determines whether the slip can be processed.<br/>
+	* A battler that takes no damage shrugs off a harmful tick to its HP or MP whole: nothing lands,
+	* nothing pops up, and nothing is recorded as the last thing that hit it.
 	* @param {number} slipAmount The amount to slip.
+	* @param {0|1|2} index The type of resource this slip represents.
 	* @returns {boolean}
 	*/
-	canProcessSlipEffect(slipAmount) {
+	canProcessSlipEffect(slipAmount, index) {
 		if (slipAmount === 0) return false;
+		if (this.isIgnoredSlipHarm(slipAmount, index)) return false;
 		return true;
+	}
+	/**
+	* Whether or not a slip tick is harm that this battler ignores.<br/>
+	* A negative tick to HP or MP is damage over time, which a battler that takes no damage shrugs off.
+	* A tick that drains TP still lands, because TP isn't damage.
+	* @param {number} slipAmount The amount to slip, negative when it harms.
+	* @param {0|1|2} index The type of resource this slip represents: HP, MP or TP.
+	* @returns {boolean}
+	*/
+	isIgnoredSlipHarm(slipAmount, index) {
+		if (slipAmount > 0) return false;
+		if (index === 2) return false;
+		return this.getBattler().isImmuneToDamage();
 	}
 	/**
 	* Calculate the slip amount against any additional modifiers.
@@ -18291,13 +18524,9 @@ var JABS_Engine = class JABS_Engine {
 	* @param {JABS_Battler} target The map battler that was hit.
 	*/
 	checkInterrupt(action, target) {
-		if (!target.isCastingOrChanneling()) return;
 		const magnifier = action.getBaseSkill().jabsInterruptMagnifier;
 		if (!magnifier) return;
-		const decidedActions = target.getDecidedAction();
-		const interruptedSkill = decidedActions ? decidedActions.at(0).getBaseSkill() : null;
-		if (interruptedSkill && interruptedSkill.jabsThisCannotBeInterrupted) return;
-		if (target.getBattler().isImmuneToInterrupt()) return;
+		if (target.isInterruptible() === false) return;
 		target.interrupt(magnifier, false);
 	}
 	canBeKnockedBack(action, target) {
@@ -18891,6 +19120,9 @@ var JABS_Engine = class JABS_Engine {
 	getCollisionTargets(jabsAction) {
 		const gameAction = jabsAction.getAction();
 		const casterJabsBattler = jabsAction.getCaster();
+		if (gameAction.isForUser()) {
+			return [casterJabsBattler];
+		}
 		const allyTarget = casterJabsBattler.getAllyTarget();
 		if (allyTarget && gameAction.isForOne()) {
 			if (allyTarget.canActionConnect() && allyTarget.isWithinScope(jabsAction, allyTarget, false)) {
@@ -18959,11 +19191,6 @@ var JABS_Engine = class JABS_Engine {
 						targetsHit.push(battler);
 						hitOne = true;
 					}
-					return;
-				}
-				if (gameAction.isForUser()) {
-					targetsHit.push(battler);
-					hitOne = true;
 					return;
 				}
 				const maxDistance = jabsAction.getProximity();
@@ -21561,8 +21788,7 @@ var JABS_SkillSlotManager = class {
 		const gcdSlot = new JABS_SkillSlot(J.ABS.Globals.GlobalCooldownKey, 0);
 		gcdSlot.getCooldown().enableBase();
 		this.slots().push(gcdSlot);
-		const battlerData = enemy.databaseData();
-		const skillIds = battlerData.actions.filter((action) => this.filterActionSkills(enemy, action)).map((action) => action.skillId);
+		const skillIds = enemy.enemyActions().filter((action) => this.filterActionSkills(enemy, action)).map((action) => action.skillId);
 		const basicAttackSkillId = enemy.basicAttackSkillId();
 		if (basicAttackSkillId) {
 			skillIds.push(basicAttackSkillId);
@@ -23396,6 +23622,22 @@ Object.defineProperty(RPG_Skill.prototype, "jabsAiSkillExclusion", { get: functi
 	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.AiSkillExclusion);
 } });
 /**
+* The ids of the states this skill follows up on, from `<aiFollowUp:[STATE_IDS]>`. While a tactical enemy AI's target
+* carries one of them, the AI casts this skill before anything else. Empty when it follows up on nothing.
+* @type {number[]}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsAiFollowUpStateIds", { get: function() {
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.AiFollowUp);
+} });
+/**
+* Whether an enemy AI saves this skill for its follow-up, from `<aiFollowUpOnly>`: it is never chosen in an ordinary
+* decision or as an interrupt, only as a follow-up.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsAiFollowUpOnly", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.AiFollowUpOnly);
+} });
+/**
 * The JABS combo skill id that this skill can lead into if the skill is learned
 * by the caster.
 * @type {number|null}
@@ -24817,11 +25059,114 @@ Game_Action.prototype.executeJabsAction = function(target) {
 		if (result.glancing) {
 			value = this.applyGlancingDamageReduction(value);
 		}
+		value = this.applyDamageImmunity(target, value);
 		this.executeDamage(target, value);
 	}
 	this.item().effects.forEach((effect) => this.applyItemEffect(target, effect));
 	this.applyItemUserEffect(target);
 	this.applyGlobal();
+};
+/**
+* Holds back all of a hit's damage when its target takes no damage, via `<noDamage>`.<br/>
+* This runs on the final number, after every multiplier and the glancing cut, and before shields or
+* drains ever see it. So a shield loses nothing to a hit that couldn't hurt, a drain takes nothing,
+* and none of the target's on-damage reactions fire. A negative value is a heal and always lands.
+* @param {Game_Battler} target The target of this action.
+* @param {number} value The damage this action would deal.
+* @returns {number}
+*/
+Game_Action.prototype.applyDamageImmunity = function(target, value) {
+	if (value <= 0) return value;
+	if (target.isImmuneToDamage()) return 0;
+	return value;
+};
+/**
+* Extends {@link #executeHpDamage}.<br/>
+* Holds a blow barred from killing its target one HP short of doing so. This sits beneath shields,
+* so a shield absorbs its share first and only what gets past it is held back.
+*/
+J.ABS.Aliased.Game_Action.set("executeHpDamage", Game_Action.prototype.executeHpDamage);
+Game_Action.prototype.executeHpDamage = function(target, value) {
+	const heldValue = this.applyKillFloor(target, value);
+	J.ABS.Aliased.Game_Action.get("executeHpDamage").call(this, target, heldValue);
+};
+/**
+* Holds HP damage one point short of killing its target, when this action is barred from killing
+* that target ({@link #isBarredFromKilling}).<br/>
+* HP can sit at a fraction, because regeneration and level scaling don't round, so the most a held
+* blow can take is the whole HP above one, and never less than nothing.
+* @param {Game_Battler} target The target of this action.
+* @param {number} value The HP damage this action would deal.
+* @returns {number}
+*/
+Game_Action.prototype.applyKillFloor = function(target, value) {
+	if (value <= 0) return value;
+	if (this.isBarredFromKilling(target) === false) return value;
+	const mostItCanTake = Math.max(0, Math.floor(target.hp) - 1);
+	return Math.min(value, mostItCanTake);
+};
+/**
+* Whether or not a kill floor bars this action from killing the given target.<br/>
+* `<noSelfKill>` covers the caster hitting itself, and `<noTargetKill>` covers the caster hitting an
+* opponent. Both read the caster's own note sources, and their `this` forms read the skill's own
+* note. An ally caught by friendly fire is covered by neither.
+* @param {Game_Battler} target The target of this action.
+* @returns {boolean}
+*/
+Game_Action.prototype.isBarredFromKilling = function(target) {
+	const subject = this.subject();
+	const skill = this.item();
+	if (subject === target) return subject.hasNoSelfKill(skill);
+	if (subject.hasNoTargetKill(skill) === false) return false;
+	return this.isAgainstOpponent(target);
+};
+/**
+* Whether or not the given target stands on a team opposed to this action's caster.<br/>
+* Teams belong to the battlers on the map. A caster that left the map before its action landed, such
+* as one felled with a projectile still in flight, leaves only the database's copy of its row behind
+* as this action's subject, which has no team to read. Then an actor and an enemy count as opponents,
+* which is how the two sides stand unless an event says otherwise.
+* @param {Game_Battler} target The target of this action.
+* @returns {boolean}
+*/
+Game_Action.prototype.isAgainstOpponent = function(target) {
+	const subject = this.subject();
+	const caster = JABS_AiManager.getBattlerByUuid(subject.getUuid());
+	if (!caster) return subject.isActor() !== target.isActor();
+	const victim = JABS_AiManager.getBattlerByUuid(target.getUuid());
+	return caster.isOpposingTeam(victim.getTeam());
+};
+/**
+* Extends {@link #itemEffectRecoverHp}.<br/>
+* A Recover HP effect written below zero is harm, which a target that takes no damage ignores.
+*/
+J.ABS.Aliased.Game_Action.set("itemEffectRecoverHp", Game_Action.prototype.itemEffectRecoverHp);
+Game_Action.prototype.itemEffectRecoverHp = function(target, effect) {
+	if (this.isIgnoredRecoverHarm(target, target.mhp, effect)) return;
+	J.ABS.Aliased.Game_Action.get("itemEffectRecoverHp").call(this, target, effect);
+};
+/**
+* Extends {@link #itemEffectRecoverMp}.<br/>
+* A Recover MP effect written below zero is harm, which a target that takes no damage ignores.
+*/
+J.ABS.Aliased.Game_Action.set("itemEffectRecoverMp", Game_Action.prototype.itemEffectRecoverMp);
+Game_Action.prototype.itemEffectRecoverMp = function(target, effect) {
+	if (this.isIgnoredRecoverHarm(target, target.mmp, effect)) return;
+	J.ABS.Aliased.Game_Action.get("itemEffectRecoverMp").call(this, target, effect);
+};
+/**
+* Whether or not a recover effect is harm that its target ignores.<br/>
+* Recover HP and Recover MP each take a rate of the target's maximum plus a flat amount, and either
+* may be written below zero, which turns the effect into damage.
+* @param {Game_Battler} target The target of this action.
+* @param {number} maximum The target's maximum of the resource being recovered.
+* @param {RPG_UsableEffect} effect The recover effect being applied.
+* @returns {boolean}
+*/
+Game_Action.prototype.isIgnoredRecoverHarm = function(target, maximum, effect) {
+	const recovered = maximum * effect.value1 + effect.value2;
+	if (recovered >= 0) return false;
+	return target.isImmuneToDamage();
 };
 /**
 * Calculates whether or not this action is evaded by the target.
@@ -25105,7 +25450,10 @@ Game_Action.prototype.handleApplyState = function(target, stateId, chance, useAt
 };
 /**
 * Calculates the fully-modified d100 chance of applying the given state to the target, shared
-* by both {@link #shouldApplyState} and {@link #resolveApplyStateProcCount}.
+* by both {@link #shouldApplyState} and {@link #resolveApplyStateProcCount}.<br/>
+* A certain hit sets aside the target's resistances and the two battlers' luck alike, the way RMMZ's
+* own state effects do, so the state it carries lands at its authored chance. Only the attacker's
+* own state rate still shapes it.
 * @param {Game_Battler} target The battler being afflicted with the state.
 * @param {number} stateId The id of the state being applied.
 * @param {number} baseChance The decimal base chance of applying the state.
@@ -25120,8 +25468,8 @@ Game_Action.prototype.calculateStateApplicationD100 = function(target, stateId, 
 	if (this.shouldTargetApplyResistances()) {
 		applicationModifier *= target.stateRate(stateId);
 		applicationModifier *= target.stateTypeResistRate(stateId);
+		applicationModifier *= this.lukEffectRate(target);
 	}
-	applicationModifier *= this.lukEffectRate(target);
 	const calculatedChance = baseChance * applicationModifier;
 	return Math.round(calculatedChance * 100);
 };
@@ -26615,6 +26963,15 @@ Game_Actor.prototype.getBonusHitsSources = function() {
 	];
 };
 /**
+* Extends {@link #executeFloorDamage}.<br/>
+* An actor that takes no damage walks damage floors unharmed, so the floor neither hurts nor flashes.
+*/
+J.ABS.Aliased.Game_Actor.set("executeFloorDamage", Game_Actor.prototype.executeFloorDamage);
+Game_Actor.prototype.executeFloorDamage = function() {
+	if (this.isImmuneToDamage()) return;
+	J.ABS.Aliased.Game_Actor.get("executeFloorDamage").call(this);
+};
+/**
 * Replaces the map damage with JABS' version of the map damage.
 */
 J.ABS.Aliased.Game_Actor.set("performMapDamage", Game_Actor.prototype.performMapDamage);
@@ -27511,6 +27868,54 @@ Game_Battler.prototype.isStateAddable = function(stateId) {
 		if (this.isImmuneToStateByType(state)) return false;
 	}
 	return J.ABS.Aliased.Game_Battler.get("isStateAddable").call(this, stateId);
+};
+/**
+* Whether or not this battler takes no damage at all, from any of its own note sources via
+* `<noDamage>`.<br/>
+* No harm lowers its HP or MP while this holds: hits and drains, formula packets, damage over time,
+* regeneration run below zero, damage floors and recover effects written below zero all land as
+* nothing. Healing still lands, and so does what the battler pays or a designer sets on purpose:
+* skill costs, event commands and the death state are all left alone.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isImmuneToDamage = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.NoDamage) === true;
+};
+/**
+* Whether or not the given skill, cast by this battler, is barred from taking this battler's own HP
+* to zero. `<noSelfKill>` on any of this battler's own note sources bars every skill it casts, and
+* `<thisNoSelfKill>` on a skill's own note bars that skill alone.
+* @param {RPG_UsableItem} skill The skill being executed.
+* @returns {boolean}
+*/
+Game_Battler.prototype.hasNoSelfKill = function(skill) {
+	return this.hasBattlerOrSkillTag(skill, J.ABS.RegExp.NoSelfKill, J.ABS.RegExp.ThisNoSelfKill);
+};
+/**
+* Whether or not the given skill, cast by this battler, is barred from taking an opponent's HP to
+* zero. `<noTargetKill>` on any of this battler's own note sources bars every skill it casts, and
+* `<thisNoTargetKill>` on a skill's own note bars that skill alone.
+* @param {RPG_UsableItem} skill The skill being executed.
+* @returns {boolean}
+*/
+Game_Battler.prototype.hasNoTargetKill = function(skill) {
+	return this.hasBattlerOrSkillTag(skill, J.ABS.RegExp.NoTargetKill, J.ABS.RegExp.ThisNoTargetKill);
+};
+/**
+* Whether or not a tag is present either battler-wide, on any of this battler's own note sources,
+* or on the executing skill's own note.<br/>
+* Both kill floors read their tags this way and differ only in which pair they read. A skill this
+* battler merely knows is one of its note sources, so the battler-wide tag can be granted by a
+* passive skill, while the skill-scoped tag only ever counts on the skill being cast.
+* @param {RPG_UsableItem} skill The skill being executed.
+* @param {RegExp} battlerWideStructure The tag that covers every skill this battler casts.
+* @param {RegExp} thisSkillStructure The tag that covers only the skill carrying it.
+* @returns {boolean}
+*/
+Game_Battler.prototype.hasBattlerOrSkillTag = function(skill, battlerWideStructure, thisSkillStructure) {
+	const battlerWide = RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), battlerWideStructure);
+	if (battlerWide === true) return true;
+	return RPGManager.checkForBooleanFromNoteByRegex(skill, thisSkillStructure) === true;
 };
 /**
 * Handles logic surrounding state application in regards to JABS.
@@ -28963,6 +29368,12 @@ Game_Enemy.prototype.onBattlerDataChange = function() {
 Game_Enemy.prototype.onLearnNewSkill = function(skillId) {
 	this.onBattlerDataChange();
 };
+/**
+* Extends {@link #learnSkill}.<br/>
+* Also rebuilds this enemy's skill slots when the skill is new to it, so its AI can reach for the skill straight away.
+* @param {number} skillId The skill id to learn.
+* @returns {boolean}
+*/
 J.ABS.Aliased.Game_Enemy.set("learnSkill", Game_Enemy.prototype.learnSkill);
 Game_Enemy.prototype.learnSkill = function(skillId) {
 	const learnedSkill = J.ABS.Aliased.Game_Enemy.get("learnSkill").call(this, skillId);
@@ -28970,6 +29381,7 @@ Game_Enemy.prototype.learnSkill = function(skillId) {
 		this.onLearnNewSkill(skillId);
 		this.initAbsSkills();
 	}
+	return learnedSkill;
 };
 /**
 * Gets the enemy's basic attack skill id.
@@ -33227,6 +33639,7 @@ Spriteset_Map.prototype.removeActionSprite = function(actionEvent) {
 				this.tilemap().removeChild(sprite);
 			}
 			if (!sprite.destroyed) {
+				this.endEffectsOn(sprite);
 				sprite.destroy();
 			}
 			matches.push(sprite);
@@ -33240,6 +33653,7 @@ Spriteset_Map.prototype.removeActionSprite = function(actionEvent) {
 				this.tilemap().removeChild(sprite);
 			}
 			if (sprite && !sprite.destroyed) {
+				this.endEffectsOn(sprite);
 				sprite.destroy();
 			}
 		}
@@ -33278,6 +33692,29 @@ Spriteset_Map.prototype.purgeActionSpritesByUuid = function(uuid) {
 		this.destroyCastPreviewSprite(previewSprite);
 		delete previewDict[previewKey];
 	}
+};
+/**
+* Ends every balloon and animation still playing on a character sprite that is about to be destroyed.<br/>
+* Called by every path here that destroys a character sprite: expired actions and collected loot alike.
+*
+* The engine never destroys a character's sprite while the map is up, so its balloons and animations hold on to
+* their target until they finish, reading its position every frame. J-ABS does destroy them, and a destroyed sprite
+* has no position left to read: whatever is still playing on it throws on the very next frame. An ordinary projectile
+* never carries either, but a summon is an action that is also a battler. It gets alerted, engaged and struck like
+* any other, so its time can run out with a "!" over its head or a hit still flashing on it.
+*
+* Ending them, rather than holding the sprite back until they finish, is deliberate. The character they belong to is
+* leaving the map this frame, and a balloon or a flash hanging over a spot nobody occupies would only read as a
+* ghost. Nor does it cut a killing blow short as a rule: defeat only erases a summon, and its sprite stays until its
+* time runs out, so the animation that felled it plays on unless the kill came in that time's last moments.
+* @param {Sprite_Character} sprite The character sprite about to be destroyed.
+*/
+Spriteset_Map.prototype.endEffectsOn = function(sprite) {
+	const character = sprite.character();
+	const balloons = this.balloonSprites().filter((balloon) => balloon.targetObject === character);
+	balloons.forEach(this.removeBalloon, this);
+	const animations = this.animationSprites().filter((animation) => animation.targetObjects.includes(character));
+	animations.forEach(this.removeAnimation, this);
 };
 /**
 * Processes incoming requests to add/remove generated battler sprites.
@@ -33368,6 +33805,7 @@ Spriteset_Map.prototype.removeLootSprite = function(lootEvent) {
 		}
 		this.characterSprites().splice(spriteIndex, 1);
 		if (!sprite.destroyed) {
+			this.endEffectsOn(sprite);
 			sprite.destroy();
 		}
 	}
@@ -33449,15 +33887,17 @@ Spriteset_Map.prototype.collectActiveCastPreviewItems = function() {
 	/** @type {{ key:string, action:JABS_Action }[]} */
 	const items = [];
 	$gameMap.events().filter((ev) => ev.isJabsBattler()).forEach((ev) => {
+		if (ev.isErased()) return;
 		const jabsBattler = ev.getJabsBattler();
 		if (!jabsBattler) return;
 		if (jabsBattler.isPlayer()) return;
 		if (!jabsBattler.isCastingOrChanneling()) return;
+		const caster = jabsBattler.getBattler();
+		if (caster.isDead()) return;
 		const decided = jabsBattler.getDecidedAction();
 		if (!decided || !decided.length) return;
 		const [action] = decided;
-		const battlerCore = jabsBattler.getBattler();
-		const ref = battlerCore.databaseData();
+		const ref = caster.databaseData();
 		if (RPGManager.checkForBooleanFromNoteByRegex(ref, J.ABS.RegExp.NoCastPreviewsBattler)) return;
 		const skill = action.getBaseSkill();
 		if (RPGManager.checkForBooleanFromNoteByRegex(skill, J.ABS.RegExp.NoCastPreviewSkill)) return;

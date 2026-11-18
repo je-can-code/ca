@@ -14031,7 +14031,7 @@
       "panelParameters": [
         {
           "parameterKey": "mhp",
-          "perRank": 10,
+          "perRank": 15,
           "isFlat": true,
           "isCore": false
         },
@@ -14091,7 +14091,7 @@
       "panelParameters": [
         {
           "parameterKey": "mhp",
-          "perRank": 15,
+          "perRank": 10,
           "isFlat": true,
           "isCore": false
         },

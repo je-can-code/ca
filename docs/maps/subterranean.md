@@ -164,7 +164,7 @@ well: the map editor's A4 ceiling 8 + wall 16 over `Map331`'s teal floor, A2 gro
 "about as wide as they are in the previous (not-cavern) maps", three tiles, "but the walls will be
 further and there will be chasms on each side": the chasm is A2 decoration 30 (impassable on every
 shape), laid over the teal floor the way a decoration sits. **This is also where the heartbeat starts
-to be audible.** No heartbeat sound is in `audio/bgs` yet, so the draft carries no BGS.
+to be audible** (`SHIPPED 2026-11-13`, see [Sound](#sound-locked-2026-09-11)).
 
 **Every passage is five wide** (Jeremy, 2026-10-23): "Having enemies on a 3-tile wide path means you just
 run at them and swing until dead lmao. 4-6 gives room for sidestepping/dodging/manuevering." Layer 3
@@ -260,10 +260,29 @@ he pictured the Subterranean as a lava-centric, demon-filled place, before the s
 Sloth's and "suddenly that wasn't appropriate anymore." Proposing it drew: "How in the WORLD did you look at my
 available music and pluck Laguna's battle theme from FF8 to be the entire dungeon's music."
 
-`PROPOSED` — the heartbeat **stops** when the player reaches her. She is the one thing down there
+`SHIPPED (2026-11-13)` — the heartbeat **stops** when the player reaches her. She is the one thing down there
 with no will to act and the beat is the only part of her still moving; silence after a descent's
 worth of rising pulse is the strongest beat available and it is free. In phase two, when she opts
-back in, it spikes.
+back in, it comes back as her pulse.
+
+**The heartbeat, built 2026-11-13** `SHIPPED`. The sound is `Heartbeat2_mvt`, a 60 BPM lub-dub from the MV Trinity
+Resource Pack DLC (all three of its heartbeats now sit in `audio/se`, and this one in `audio/bgs` too). It loops as each
+map's BGS from layer 3 down, climbing as the theme falls. Jeremy's lever on top (2026-11-13: "we can actually turn the
+BGS/ME and so on to use a lower pitch and slow the speed of the beat down (and deepen the thump). And speed it up. By
+using pitch!"): it also slows and deepens with depth, her heart winding down toward stillness.
+
+| Layer | Maps | Theme volume | Heartbeat volume | Heartbeat pitch |
+|---|---|---|---|---|
+| 1-2 | `Map331`, `Map385`-`Map392` | 90, 75 | none | none |
+| 3 | `Map393`-`Map395` | 60 | 40 | 100 (60 BPM) |
+| 4 | `Map400`-`Map402` | 45 | 55 | 90 |
+| 5 | `Map404`-`Map406` | 30 | 70 | 80 |
+| 6, the Prelude | `Map408` | 15 | 85 | 70 (about 42 BPM) |
+| 6, the Arena | `Map409` | none | none: the beat stops at her door | none |
+
+Her pulse brings it back: `Heartbeat1_mvt`, one deep thump, opens the Heartbeat skill's animation (155), so every pulse
+is a beat. Proven in-engine the same day (`dist/playtest/heartbeat-walk-probe.js`): each map's live BGS reads its volume
+and a playback rate of 1.0, 0.9, 0.8 and 0.7 down the layers, and the arena plays nothing at all.
 
 ---
 
@@ -337,10 +356,11 @@ itself: the player finds them **inert** on the way down, standing, not attacking
 across several maps, and nothing ever happens. Not acting is the entire sin. Then the fight begins
 and all of them move at once.
 
-**`Skills[2587]` "Absolute Solitude"** — 180-frame cast, radius 99, *"a foul fog melts the field with
-the despair of absolute solitude. Scales rapidly"* — exists and is referenced by **no enemy and no
-class**. It sits next to `2585` Soul Siphon, `2586` Unholy Smite and `2588` Wave of the Void in what
-reads as an unassigned void set.
+**The void skills beside her slot are taken** (checked 2026-11-10). `2585` Soul Siphon, `2586` Unholy
+Smite, `2587` Absolute Solitude and `2588` Wave of the Void are the Vampire King's kit, carried over from
+his event-based fight: the first two are in his moveset and his votary's, and his encounter forces
+Absolute Solitude at four fifths of his health and Wave of the Void from each platform. Sloth's minions need a
+kit of their own.
 
 ---
 
@@ -375,5 +395,6 @@ reads as an unassigned void set.
       Lonewolf `422-425`, an orb-construct tier, plus Sloth herself.
 - [ ] Darkness pass: torches, bioluminescent props, the drifting critters. The per-layer `<ambient:[N]>` tags went in
       with the draft, at the table's 75/80/85/90/100/100 (70 on `Map331`).
-- [ ] Heartbeat BGS as an `.ogg`, and per-map volume keyed to depth.
-- [ ] Assign or deliberately retire `Skills[2587]` and its neighbours.
+- [x] Heartbeat BGS as an `.ogg`, and per-map volume keyed to depth (2026-11-13: Trinity's Heartbeat2 from layer 3,
+  volume and pitch by layer; see Sound).
+- [x] `Skills[2587]` and its neighbours: already the Vampire King's kit, all four in use (see the voidal question).

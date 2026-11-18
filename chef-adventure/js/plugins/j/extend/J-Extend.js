@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.9.0 EXTEND] Extends the capabilities of skills/actions.
+ * [v1.9.1 EXTEND] Extends the capabilities of skills/actions.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -78,7 +78,7 @@ J.EXTEND = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.9.0");
+J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.9.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1519,8 +1519,9 @@ Game_Actor.prototype.forgetSkill = function(skillId) {
 */
 J.EXTEND.Aliased.Game_Enemy.set("learnSkill", Game_Enemy.prototype.learnSkill);
 Game_Enemy.prototype.learnSkill = function(skillId) {
-	J.EXTEND.Aliased.Game_Enemy.get("learnSkill").call(this, skillId);
+	const learnedSkill = J.EXTEND.Aliased.Game_Enemy.get("learnSkill").call(this, skillId);
 	OverlayManager.invalidate(this);
+	return learnedSkill;
 };
 
 //#endregion

@@ -36,3 +36,9 @@ because somebody should.
 #### After effects of "The Patrol Route"
 - A couple of night-only town secrets get pointed out (small loot/flavor).
 - If the succession chain concludes, whoever governs formally recognizes his post. He'd never have asked.
+
+## Fork quests
+
+Cecil gives Jerald's Fucking Oni fork quest. He's the one calling Jerald a fucking Oni, because he needs one:
+Raving Lunatic is the Cave Bats down the hole on his street, and Painbringer is a Treant that won't die. Approved
+as a draft 2026-11-06, not in `config.quest.json` yet. The scenes live in [fork quests](../fork-quests.md).

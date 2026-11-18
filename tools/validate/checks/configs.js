@@ -237,7 +237,315 @@ const resolveExpected = (project, findings, where, table, id, expect) =>
 };
 
 /**
- * JABS boss encounters: the map, each participant's enemy and event, and each routine's skills.
+ * Where a boss encounter's body comes from: the J-ABS enemy clone map, in the slot matching its enemy
+ * id, or in the template slot the participant names instead. The encounter spawns it from there when
+ * the fight starts, so an empty slot is a boss that never arrives, and a slot holding some other enemy
+ * stops the fight from starting.
+ * @param {object} project The loaded project.
+ * @param {number} slotId The clone map event the participant spawns from.
+ * @param {number} enemyId The enemy the participant names, which the spawned body has to turn out to be.
+ * @returns {string} Why the body cannot be spawned; empty when it can.
+ */
+const findSpawnProblem = (project, slotId, enemyId) =>
+{
+  const { enemyMapId, maps } = project;
+
+  if (enemyMapId === 0) return 'spawns from the enemy clone map, but J-ABS names no enemyMapId in js/plugins.js';
+
+  const cloneMap = maps.get(enemyMapId);
+  if (!cloneMap) return `spawns from the enemy clone map (Map #${enemyMapId}), which does not exist`;
+
+  const template = slotId > 0 ? cloneMap.events[slotId] : null;
+  if (!template) return `spawns from event #${slotId} of the enemy clone map (Map #${enemyMapId}), which holds no such event`;
+
+  // the body J-ABS builds from the template is whichever enemy its first page names.
+  const named = findTemplateEnemyId(template);
+  if (named !== enemyId) return `spawns from event #${slotId} of the enemy clone map (Map #${enemyMapId}), which is enemy #${named}, not #${enemyId}`;
+
+  return '';
+};
+
+/**
+ * The enemy a clone map template turns into: the `<enemyId:N>` on its first page's comments.
+ * @param {object} template The clone map event.
+ * @returns {number} The enemy id it names, or 0 when it names none.
+ */
+const findTemplateEnemyId = template =>
+{
+  const [ page ] = template.pages;
+  const comments = page.list.filter(command => command.code === 108 || command.code === 408);
+  const tagged = comments.map(command => /<enemyId: ?(\d+)>/i.exec(command.parameters[0])).find(match => match);
+
+  return tagged ? Number(tagged[1]) : 0;
+};
+
+/**
+ * The verbs J-ABS-Boss implements. A step naming any other verb throws the moment the fight performs it.
+ * @type {string[]}
+ */
+const BOSS_VERBS = [
+  'forceSkill', 'addState', 'removeState', 'changeImage', 'quickenRoutine', 'spawn', 'tint', 'animation', 'dialogue',
+  'blink', 'wait', 'learnSkill', 'startRoutine', 'face', 'log', 'summon', 'jump',
+];
+
+/**
+ * The facings a blink may leave its participant with: 0 keeps the one it had, the rest are down, left, right and up.
+ * @type {number[]}
+ */
+const BLINK_DIRECTIONS = [ 0, 2, 4, 6, 8 ];
+
+/**
+ * The facings a turn may face its participant: down, left, right and up. No 0, since keeping a facing is no turn.
+ * @type {number[]}
+ */
+const FACE_DIRECTIONS = [ 2, 4, 6, 8 ];
+
+/**
+ * The moments of a fight a J-ABS-Boss reaction can answer.
+ * @type {string[]}
+ */
+const BOSS_TRIGGERS = [ 'start', 'fallen', 'health' ];
+
+/**
+ * Where a tile sits relative to the arena a boss fight was placed for.
+ * @param {object|undefined} arena The arena map, when it exists.
+ * @param {number} mapId The arena's map id, for the report.
+ * @param {number} x The tile's column.
+ * @param {number} y The tile's row.
+ * @returns {string} Why the tile is off the arena; empty when it is on it, or when there is no arena to measure.
+ */
+const findTileProblem = (arena, mapId, x, y) =>
+{
+  // a missing arena has already been reported against the encounter's map.
+  if (!arena) return '';
+
+  if (x >= 0 && y >= 0 && x < arena.width && y < arena.height) return '';
+
+  return `appears at (${x}, ${y}), outside Map #${mapId} (${arena.width}x${arena.height})`;
+};
+
+/**
+ * Whether a screen tone is one the engine can settle on: red, green and blue from -255 to 255, then gray
+ * from 0 to 255. J-ABS-Boss refuses a tone that is not four channels; a channel out of range is clamped by
+ * nothing and makes a color nobody chose.
+ * @param {unknown} tone The tone a tint step names.
+ * @returns {boolean}
+ */
+const isScreenTone = tone =>
+{
+  if (!Array.isArray(tone) || tone.length !== 4) return false;
+
+  const [ red, green, blue, gray ] = tone;
+  const isChannel = value => Number.isFinite(value) && value >= -255 && value <= 255;
+
+  return isChannel(red) && isChannel(green) && isChannel(blue) && isChannel(gray) && gray >= 0;
+};
+
+/**
+ * One step of a boss routine or reaction, judged by what its verb reads: the participant it acts on, and
+ * the skill, state, routine, enemy, tone, animation or line it names. A changed look is left to the sprite
+ * check, which knows the files.
+ * @param {object} project The loaded project.
+ * @param {Findings} findings Where failures go.
+ * @param {object} encounter The encounter owning the step.
+ * @param {object} step The step.
+ * @param {string} where Where the step lives, for the report.
+ */
+const checkBossStep = (project, findings, encounter, step, where) =>
+{
+  if (!BOSS_VERBS.includes(step.verb))
+  {
+    findings.add(`${where} does "${step.verb}", which J-ABS-Boss does not implement, so the fight throws when it gets there`);
+
+    return;
+  }
+
+  // a step naming nobody acts on the boss, who always exists.
+  const participant = step.participant ?? '';
+  if (participant !== '' && !encounter.participants.some(body => body.key === participant))
+  {
+    findings.add(`${where} acts on participant "${participant}", but the encounter has nobody by that name`);
+  }
+
+  if (step.verb === 'forceSkill') resolveExpected(project, findings, `${where} skill`, 'Skills', step.skill, step.expect ?? '');
+
+  if (step.verb === 'addState' || step.verb === 'removeState')
+  {
+    resolveExpected(project, findings, `${where} state`, 'States', step.state ?? 0, step.expect ?? '');
+  }
+
+  if (step.verb === 'quickenRoutine' && !encounter.routines.some(routine => routine.key === step.routine))
+  {
+    findings.add(`${where} speeds up routine "${step.routine}", but the encounter has no routine by that name`);
+  }
+
+  if (step.verb === 'spawn') checkBossSpawn(project, findings, encounter, step, where);
+
+  if (step.verb === 'tint' && !isScreenTone(step.tone))
+  {
+    findings.add(`${where} tints the screen to ${JSON.stringify(step.tone ?? null)}, which is not red, green and blue from -255 to 255 and gray from 0 to 255`);
+  }
+
+  if (step.verb === 'animation')
+  {
+    resolveExpected(project, findings, `${where} animation`, 'Animations', step.animation ?? 0, step.expect ?? '');
+  }
+
+  // an empty line still opens a window and holds the fight until it is dismissed, and the plugin refuses it.
+  if (step.verb === 'dialogue' && (step.lines ?? []).length === 0)
+  {
+    findings.add(`${where} has a participant say nothing at all, so the fight refuses to start`);
+  }
+
+  if (step.verb === 'blink') checkBossBlink(project, findings, encounter, step, where);
+
+  if (step.verb === 'learnSkill') resolveExpected(project, findings, `${where} skill`, 'Skills', step.skill ?? 0, step.expect ?? '');
+
+  if (step.verb === 'startRoutine' && !encounter.routines.some(routine => routine.key === step.routine))
+  {
+    findings.add(`${where} starts routine "${step.routine}", but the encounter has no routine by that name`);
+  }
+
+  // a turn has to face one of the four ways; the plugin reads anything else, 0 included, as no turn and refuses it.
+  if (step.verb === 'face' && !FACE_DIRECTIONS.includes(step.direction ?? 0))
+  {
+    findings.add(`${where} turns to face ${step.direction ?? 0}, which is not down (2), left (4), right (6) or up (8), so the fight refuses to start`);
+  }
+
+  // an empty entry in the dialogue log is a blank row that means nothing, and the plugin refuses it.
+  if (step.verb === 'log' && (step.lines ?? []).length === 0)
+  {
+    findings.add(`${where} writes nothing at all to the dialogue log, so the fight refuses to start`);
+  }
+
+  // a spawn can arrive in a flash; one that names an animation needs the animation to exist.
+  if (step.verb === 'spawn' && (step.animation ?? 0) > 0)
+  {
+    findings.resolve(project, `${where} animation`, 'Animations', step.animation);
+  }
+
+  if (step.verb === 'summon') checkBossSummon(project, findings, encounter, step, where);
+
+  // a jump lands on the tile it names, which has to be somewhere on the arena.
+  if (step.verb === 'jump')
+  {
+    const tileProblem = findTileProblem(project.maps.get(encounter.map), encounter.map, step.x ?? 0, step.y ?? 0);
+    if (tileProblem !== '') findings.add(`${where} ${tileProblem}`);
+  }
+};
+
+/**
+ * A summon step: it has to name a body held back to be summoned, and the flash it arrives in has to exist. Naming
+ * nobody would mean the boss, and the boss is there from the start; a body there from the start needs no
+ * summoning, and the plugin refuses both. A name the fight does not have is reported with every other step's.
+ * @param {object} project The loaded project.
+ * @param {Findings} findings Where failures go.
+ * @param {object} encounter The encounter owning the step.
+ * @param {object} step The summon step.
+ * @param {string} where Where the step lives, for the report.
+ */
+const checkBossSummon = (project, findings, encounter, step, where) =>
+{
+  const key = step.participant ?? '';
+  if (key === '') findings.add(`${where} summons nobody, so the fight refuses to start: a summon names the body it brings in`);
+
+  const body = encounter.participants.find(participant => participant.key === key);
+  if (body && body.summoned !== true)
+  {
+    findings.add(`${where} summons participant "${key}", who is there from the start, so the fight refuses to start`);
+  }
+
+  if ((step.animation ?? 0) > 0) findings.resolve(project, `${where} animation`, 'Animations', step.animation);
+};
+
+/**
+ * A blink step: the tile it lands on has to be on the arena, the way it leaves its participant facing has to be one a
+ * character can face, and the flare it names has to exist.
+ * @param {object} project The loaded project.
+ * @param {Findings} findings Where failures go.
+ * @param {object} encounter The encounter owning the step.
+ * @param {object} step The blink step.
+ * @param {string} where Where the step lives, for the report.
+ */
+const checkBossBlink = (project, findings, encounter, step, where) =>
+{
+  const tileProblem = findTileProblem(project.maps.get(encounter.map), encounter.map, step.x ?? 0, step.y ?? 0);
+  if (tileProblem !== '') findings.add(`${where} ${tileProblem}`);
+
+  const direction = step.direction ?? 0;
+  if (!BLINK_DIRECTIONS.includes(direction))
+  {
+    findings.add(`${where} blinks to face ${direction}, which is not down (2), left (4), right (6) or up (8), so the fight refuses to start`);
+  }
+
+  if ((step.animation ?? 0) > 0) findings.resolve(project, `${where} animation`, 'Animations', step.animation);
+};
+
+/**
+ * A spawn step, checked the way a participant is: the enemy it names, the clone map slot its body is copied
+ * from, and the tile it appears on.
+ * @param {object} project The loaded project.
+ * @param {Findings} findings Where failures go.
+ * @param {object} encounter The encounter owning the step.
+ * @param {object} step The spawn step.
+ * @param {string} where Where the step lives, for the report.
+ */
+const checkBossSpawn = (project, findings, encounter, step, where) =>
+{
+  const enemyId = step.enemyId ?? 0;
+  resolveExpected(project, findings, `${where} enemyId`, 'Enemies', enemyId, step.expect ?? '');
+
+  // copied from its enemy's own slot, unless it names a template of its own, exactly like a participant.
+  const template = step.template ?? 0;
+  const slotId = template === 0 ? enemyId : template;
+  const spawnProblem = findSpawnProblem(project, slotId, enemyId);
+  if (spawnProblem !== '') findings.add(`${where} ${spawnProblem}`);
+
+  const tileProblem = findTileProblem(project.maps.get(encounter.map), encounter.map, step.x ?? 0, step.y ?? 0);
+  if (tileProblem !== '') findings.add(`${where} ${tileProblem}`);
+};
+
+/**
+ * One reaction of a boss encounter: a moment a fight actually has, the bodies a fallen reaction waits on,
+ * and each of its steps.
+ * @param {object} project The loaded project.
+ * @param {Findings} findings Where failures go.
+ * @param {object} encounter The encounter owning the reaction.
+ * @param {object} reaction The reaction.
+ * @param {string} where Where the reaction lives, for the report.
+ */
+const checkBossReaction = (project, findings, encounter, reaction, where) =>
+{
+  if (!BOSS_TRIGGERS.includes(reaction.on))
+  {
+    findings.add(`${where} answers "${reaction.on}", which is not a moment a fight has, so the fight refuses to start`);
+  }
+
+  // a reaction to bodies falling has to wait on somebody real, or it fires at once or never.
+  const waitsOn = reaction.participants ?? [];
+  if (reaction.on === 'fallen' && waitsOn.length === 0)
+  {
+    findings.add(`${where} waits on nobody falling, so the fight refuses to start`);
+  }
+
+  // a health reaction at a hundred is met before the fight begins, and at zero never: the boss has fallen by then.
+  const below = reaction.below ?? 0;
+  if (reaction.on === 'health' && !(below > 0 && below < 100))
+  {
+    findings.add(`${where} waits for health at or below ${below}%, which is no turning point a fight has, so the fight refuses to start`);
+  }
+
+  waitsOn
+    .filter(key => !encounter.participants.some(body => body.key === key))
+    .forEach(key => findings.add(`${where} waits on participant "${key}", but the encounter has nobody by that name`));
+
+  reaction.steps.forEach((step, index) => checkBossStep(project, findings, encounter, step, `${where} steps[${index}]`));
+};
+
+/**
+ * JABS boss encounters: the map, the switch turned on when the fight is won, each participant's enemy,
+ * the clone map slot it spawns from and the tile it appears on, and each step of every routine and
+ * reaction.
  * @param {object} project The loaded project.
  * @param {object} jabs The parsed `config.jabs.json`.
  * @param {Findings} findings Where failures go.
@@ -251,22 +559,107 @@ const checkBosses = (project, jabs, findings) =>
 
     findings.resolve(project, `${where} map`, 'Maps', encounter.map);
 
+    // the switch the story waits on once the boss falls. RPG Maker ignores a switch it does not have, so a
+    // bad one is a boss that dies while the story waits forever; zero, or no switch at all, turns none on.
+    findings.resolve(project, `${where} defeatSwitch`, 'Switches', encounter.defeatSwitch ?? 0, { allowZero: true });
+
+    // a fight with no bodies counts as won on its first frame, since every one of its bodies has fallen.
+    if (encounter.participants.length === 0) findings.add(`${where} has no participants, so it is won the moment it starts`);
+
+    // the first body is the boss, which a bystander cannot be: the fight is never won by felling a bystander.
+    const [ boss ] = encounter.participants;
+    if (boss && boss.bystander === true)
+    {
+      findings.add(`${where} lists bystander "${boss.key}" first, where its boss belongs, so the fight refuses to start`);
+    }
+
+    // nor can the boss be held back to be summoned: it is framed, and every routine waits on it, from the first frame.
+    if (boss && boss.summoned === true)
+    {
+      findings.add(`${where} lists summoned participant "${boss.key}" first, where its boss belongs, so the fight refuses to start`);
+    }
+
     encounter.participants.forEach(participant =>
     {
       const participantWhere = `${where} participant "${participant.key}"`;
 
       resolveExpected(project, findings, `${participantWhere} enemyId`, 'Enemies', participant.enemyId, participant.expect);
 
-      // the participant's body is an event on the encounter's map, found by id at runtime.
-      if (bossMap && !bossMap.events[participant.eventId])
-      {
-        findings.add(`${participantWhere} eventId names event #${participant.eventId}, which Map #${encounter.map} does not hold`);
-      }
+      // the participant's body is spawned from the clone map when the fight starts, not found on any map:
+      // from its enemy's own slot, unless it names a template of its own.
+      const template = participant.template ?? 0;
+      const slotId = template === 0 ? participant.enemyId : template;
+      const spawnProblem = findSpawnProblem(project, slotId, participant.enemyId);
+      if (spawnProblem !== '') findings.add(`${participantWhere} ${spawnProblem}`);
+
+      // the tile it appears on has to be somewhere on the arena it was placed for.
+      const tileProblem = findTileProblem(bossMap, encounter.map, participant.x, participant.y);
+      if (tileProblem !== '') findings.add(`${participantWhere} ${tileProblem}`);
     });
 
     encounter.routines.forEach(routine => routine.steps.forEach((step, index) =>
-      resolveExpected(project, findings, `${where} routine "${routine.key}" steps[${index}] skill`, 'Skills', step.skill, step.expect)));
+      checkBossStep(project, findings, encounter, step, `${where} routine "${routine.key}" steps[${index}]`)));
+
+    (encounter.reactions ?? []).forEach(reaction =>
+      checkBossReaction(project, findings, encounter, reaction, `${where} reaction "${reaction.key}"`));
+
+    // a dormant routine runs only once something starts it, so one that nothing starts never runs at all.
+    const started = findStartedRoutines(encounter);
+    encounter.routines
+      .filter(routine => routine.dormant === true && !started.has(routine.key))
+      .forEach(routine => findings.add(`${where} routine "${routine.key}" is dormant, but no step ever starts it, so it never runs`));
+
+    checkBossSummons(findings, encounter, where);
   });
+};
+
+/**
+ * The summons of a boss encounter: a routine runs over and over, so it may never summon, and every body held back
+ * to be summoned has to be summoned by exactly one reaction's step. Never, and the fight waits on it forever; twice,
+ * and its first body is left standing with nothing in the fight watching it. The plugin refuses all three.
+ * @param {Findings} findings Where failures go.
+ * @param {object} encounter The encounter.
+ * @param {string} where Where the encounter lives, for the report.
+ */
+const checkBossSummons = (findings, encounter, where) =>
+{
+  encounter.routines.forEach(routine => routine.steps.forEach((step, index) =>
+  {
+    if (step.verb !== 'summon') return;
+
+    findings.add(`${where} routine "${routine.key}" steps[${index}] summons a participant, but a routine runs over and over, so the fight refuses to start`);
+  }));
+
+  const summoned = (encounter.reactions ?? [])
+    .flatMap(reaction => reaction.steps)
+    .filter(step => step.verb === 'summon')
+    .map(step => step.participant ?? '');
+
+  encounter.participants
+    .filter(participant => participant.summoned === true)
+    .forEach(participant =>
+    {
+      const summons = summoned.filter(key => key === participant.key).length;
+      const participantWhere = `${where} participant "${participant.key}"`;
+
+      if (summons === 0) findings.add(`${participantWhere} waits to be summoned, but no reaction ever summons it, so the fight refuses to start`);
+      if (summons > 1) findings.add(`${participantWhere} is summoned by ${summons} steps, but a body arrives only once, so the fight refuses to start`);
+    });
+};
+
+/**
+ * Every routine some step of an encounter starts, by name.
+ * @param {object} encounter The encounter.
+ * @returns {Set<string>}
+ */
+const findStartedRoutines = encounter =>
+{
+  const steps = [
+    ...encounter.routines.flatMap(routine => routine.steps),
+    ...(encounter.reactions ?? []).flatMap(reaction => reaction.steps),
+  ];
+
+  return new Set(steps.filter(step => step.verb === 'startRoutine').map(step => step.routine));
 };
 
 /**

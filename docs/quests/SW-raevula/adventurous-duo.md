@@ -40,3 +40,10 @@ Two demigods spend an afternoon secretly bodyguarding a picnic. Nothing goes wro
 - Reward: the **Promise Ring** (accessory — minor paired bonus when both equipped-slot conditions met, or a
   small party-wide morale buff; scope to taste).
 - Their idle dialogue advances to planning the NEXT adventure. Level 60 this time. Kayla can't wait.
+
+## Fork quests
+
+Silver and Kayla give Jerald's Medick fork quest: Orbiter (Silver's training day at Bearcat Congregation, where
+Jerald punts every bearcat before Silver lands a hit) and Malpractician (a Rot Rat bite, cured with a rat).
+Approved as a draft 2026-11-06, not in `config.quest.json` yet. Orbiter shares its premise with Training Montage
+above, and whether they become one scene is open. The scenes live in [fork quests](../fork-quests.md).
