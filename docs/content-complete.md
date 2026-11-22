@@ -265,20 +265,23 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Icons for the folk quests, their category and the ch5 tag
 - [ ] Clear out the Recipe Journal leftovers (CE31, CE161-163)
 - [ ] J&R's lines that say they wiped out Majik's whole species (Map172, Map284, Map320)
+- [ ] The HUD redesign (in 1.0.0, Jeremy 2026-11-22; what it covers is still being decided)
+- [x] Every character sheet a `$` single (in 1.0.0, Jeremy 2026-11-22: "everything", objects and unused sheets too). Cut the same day: 155 sheets into 1,060 singles, every event repointed; the two unused off-grid sheets (`m_bats-sm`, `m_slimeMedium`) deleted at his word
+- [ ] Onboarding: the P1 and P2 beats (in 1.0.0, Jeremy 2026-11-22: "I can't have an incomplete tutorial"; which beats make it is still being decided)
 
 ## Calls to make
 
-- [ ] Is the style picker, and the family prep line behind it, in 1.0?
-- [ ] Is the HUD redesign in 1.0?
-- [ ] Are spawner enemies in 1.0?
+- [x] Is the style picker, and the family prep line behind it, in 1.0? (No: parked for 1.1.0, Jeremy 2026-11-22)
+- [x] Is the HUD redesign in 1.0?
+- [x] Are spawner enemies in 1.0?
 - [ ] One fork quest per trunk, or one per fork?
 - [x] Names for Sloth and Lust
 - [ ] Where the meal happens, and whether Nare gets a map
 - [ ] What fills the drop rows the berries left behind?
 - [ ] Do ingredients need descriptions? 396 items have none
-- [ ] Jerald and Rupert's new sprites from the character generator: in 1.0?
-- [ ] Every character sheet a `$` single: in 1.0?
-- [ ] Are the onboarding backlog's P1 and P2 beats in 1.0?
+- [x] Jerald and Rupert's new sprites from the character generator: in 1.0?
+- [x] Every character sheet a `$` single: in 1.0?
+- [x] Are the onboarding backlog's P1 and P2 beats in 1.0?
 
 ## After the line
 
