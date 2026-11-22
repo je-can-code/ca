@@ -247,8 +247,10 @@ Verified against [story-canon.md](./story-canon.md):
 - **The thesis in embryo.** Two ex-gods mug a no-name guard for fun and murder two workmen over a nap, with no
   combat, as comedy. *"Everyone is the protagonist of their own story"* was already operating fifteen years
   before it was written down as CA's theme.
-- **Void clowns are not from here.** The species name, naming grammar, and history are `INVENTED` for CA. The
-  only inherited facts are a black-skinned, red-eyed clown named **Majik**.
+- **Void clowns are not from here, and are retired.** The name and history were `INVENTED` for CA before J&R1
+  turned up; J&R1 makes Majik a **Babagen**, one of a peaceful people of jester-like aliens (2026-11-22), and the
+  naming grammar carries on as theirs. From this game, the only inherited fact is a black-skinned, red-eyed clown
+  named **Majik**.
 
 ## Standing design intent
 

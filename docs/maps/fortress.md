@@ -430,7 +430,7 @@ Lust is scrambled to zero: not himself by any stretch, the first and only intent
 scramble-to-sin on a junction, done to a sibling of the species, for whatever "ultimate power" Grudj
 can speak to. He cannot talk. He lurches. Rupert does the rest.
 
-> Rupert: wait, is that one of the void clown species? I could've sworn I obliterated them with
+> Rupert: wait, is that one of those clown things? I could've sworn I obliterated them with
 > Meltima back on that ship...
 > *(flashback)*
 > Past Rupert: HOW DARE YOU TRY TO TAKE OVER MY PLANET EARTH! YOU WILL SUFFER!
@@ -458,8 +458,8 @@ Notes on the draft:
 
 - **The flashback.** The only time the player ever sees the predecessor game's finale: the ship, the
   castle it crashed into (Jeremy's remembered image, now drafted as in-fiction), the island, and the
-  crater of void where it stood. The species is called void clowns and the last thing Rupert left of
-  their world was a crater of void. Not a claim about intent; a rhyme now on the page.
+  crater of void where it stood. The species is the Babagen, a peaceful people of jesters, though Rupert
+  only ever knew them as clowns.
 - **The thesis in one mouth, unheard by its owner.** Rupert remembers vaporizing the species fondly
   ("yeah I definitely remember beating that boss") and is appalled, thirty seconds later, that
   somebody did something cruel to one of them. He sees, and does not connect. The ex-hero's blind

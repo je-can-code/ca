@@ -376,7 +376,7 @@ His answers on the picks below, after re-running them against the morning rules:
 - **His look**: Jeremy said, "It's lust. Wanna find a luxurious elf dude or something?" A lineup of six went out.
   He picked CA's own unused incubus (`$m_incubus`), recolored: "Use option 1, but recolor with dark skin and red
   eyes as you described. Incubus through and through. The sin acceptance transforms you." Dark skin and red eyes
-  are Majik's, the one look canon gives a void clown ("black-skinned, red-eyed", `prequel-jr2.md`). Three shades
+  are Majik's, the one look canon gives a Babagen ("black-skinned, red-eyed", `prequel-jr2.md`). Three shades
   went out; the build uses the void black, installed as `$m_sin-incubus`. What "acceptance" means for a sin that
   was forced is in `story-canon.md` under the Basement: forced, then accepted with resignation.
 - **The feint is not built.** *Read tonight*: no step stops or swaps a routine, and a second routine started at 33%
