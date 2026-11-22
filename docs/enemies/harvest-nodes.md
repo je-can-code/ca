@@ -9,7 +9,7 @@
 > | **Sprites** | all 36 cut, named per node, live in `img/characters/` |
 > | **Grass** | fully placed and affixed — 420 placements |
 > | **Woods and ores** | placed, and **336 event pages repointed** at their own sprites |
-> | **Crops** | **authored but not placed** — this is the remaining work |
+> | **Crops** | **placed or stamped, 2026-11-21** — see [Placement status](#placement-status) |
 >
 > **Related:** [`drop-sources.md`](drop-sources.md) covers the other half — what *creatures* drop, and
 > the 46 monster material blocks. [`../maps/progression-bands.md`](../maps/progression-bands.md) is the
@@ -40,10 +40,14 @@ When authoring a node's drop table, decide which kind of family it is first. **T
 `*Bean Vine`, `*Salad Patch` and `*Spice Patch`** — flat rates across every rung. Everything else ladders at
 **50 / 30 / 15 / 5**.
 
-**A node's database level is where the player first meets it.** `*Mushroom Cluster` is level 7 because the Pearl
-Salt Mines is the earliest place it appears, even though it also grows in the Earthen Layer and the
+**A node's database level is where the player first meets it.** `*Mushroom Cluster` is level 11 because the
+Forest of Dreams is the earliest place it appears, even though it also grows in the Earthen Layer and the
 Subterranean. Later biomes carry a `<level:N>` tag on the map event instead, which overrides the
 database — so one node row serves every band it appears in.
+
+**No mushrooms in the Pearl Salt Mines** (2026-11-21). Salt stops rot, which is why the wooden beams in real
+salt mines still stand after centuries, so a salt mine is the one place a mushroom cannot grow. The row's
+level moved from 7 to 11 with it.
 
 ---
 
@@ -175,8 +179,9 @@ The grass half is **built**. 420 placements carry their biome's affix or are del
 The **Fallen Kingdom courtyard** was not in the plan below — grass went in because the courtyard has
 bare dirt, and it reads dreary, which is why it draws Void and yields nutmeg rather than a herb.
 
-The **Earthen Layer's sixteen** are deliberately left bare and untagged: that cave is `*Mushroom Cluster`
-territory, and its old `*Puff (Earthen)` events are awaiting conversion rather than an affix.
+The **Earthen Layer's sixteen** were never really grass: they were its old vine puffs, pointed at the grass row.
+On 2026-11-21 all sixteen became `*Mushroom Cluster`s, each carrying its own map's level. The "what's a
+puff?" tutorial event in Enter the Earthen is slated for removal.
 
 ## The sprites
 
@@ -218,8 +223,8 @@ unbuilt.
 | Crossroads | 2-25 | `Grass of Clay`, `*Grain Stalks`, `*Salad Patch` |
 | Raevula + Heartbeat | 3-8 | `Grass of Clay`, `*Carrot Plant`, `*Onion Plant`, `*Tomato Vine`, `*Berry Bush` |
 | Academy | 3-12 | — sampler map |
-| Pearlsalt Ground | 6-9 | `*Vein (Iron)`, `*Mushroom Cluster` |
-| Pearlsalt Basement | 6-40 | `*Vein (Silver)`, `*Vein (Bleu)`, `*Mushroom Cluster` |
+| Pearlsalt Ground | 6-9 | `*Vein (Iron)` |
+| Pearlsalt Basement | 6-40 | `*Vein (Silver)`, `*Vein (Bleu)` |
 | Forest of Dreams | 10-12 | `Grass of Clay`, `*Mushroom Cluster`, `*Carrot Plant`, `*Nut Tree`, `*Faerie Flower` |
 | Forlorn Basin v1 | 11-19 | `*Vein (Iron)`, `*Mushroom Cluster` |
 | Outer Cliffs | 20-25 | `Grass of Mist`, `*Nut Tree`, `*Gourd Vine` |
@@ -340,9 +345,28 @@ sprites; before that, every oak in the game shared one generic tree and every or
 | `*Druse (Bleu)` | 10 | 1 | `$o_ore-bleu` |
 | `*Outcrop (Sandwraith)` | 18 | 5 | `$o_ore-sandwraith` |
 
-**Not placed anywhere yet:** all 22 crop nodes, plus `*Snag (Grimwood)`, `*Shrub (Subwood)`,
-`*Tree (Heartwood)`, `*Branching (Digiwood)`, `*Geode (Engle)`, `*Cluster (Deepe)` and
-`*Lode (Ultanium)`. Use the biome distribution above as the checklist.
+**Every node stands somewhere as of 2026-11-21**, in one of two ways.
+
+- **Seven crops grow only on finished maps**, and each got a small patch beside the grass already
+  there: potato and bean on the Negative Peaks, pepper in Volcanis Grotto, bean and sprout on Lakeside
+  Road, sprout on Highwater Way, gourd on the Outer Cliffs, and sugar cane and citrus on the Erocia
+  Isthmus. A patch outside a node's first biome carries that map's level as `<level:N>`.
+- **The other thirteen are stamps.** Each sits at the end of the roster stamp row on every map of its
+  new-area homes, copied from `_FullEnemyMap`, and waits to be pasted out when those maps are populated.
+  A stamp whose database level sits below the area's carries the area's level as `<level:N>`, the same
+  one its creature stamps carry. That includes subwood, deepe, digiwood and ultanium, whose rows sit at 60.
+
+**Their earlier homes followed the same day, placed by habitat.** A patch outside a node's first biome
+carries that map's level.
+
+| Node | Where | Why there |
+|---|---|---|
+| `*Mushroom Cluster` | Choosing the Dark, Gluttinous Secret, Nature Looms, Cliff Jumping, Dreamy Expanse W, Marshy Secret; Forlorn Basin passages 2, 5, 8, 9 and 11; the Earthen Layer's sixteen | at the foot of the trees, against the damp cave walls, never standing in the water |
+| `*Nut Tree` | Choosing the Light, Inner Fork, Reconnection, Rounded Bend; Terraced Cliffside | the sunny edge of the wood line, spaced apart |
+| `*Faerie Flower` | Heart of the Dream, Peaceful Respite, Blue Delight, Blue View; Courtyard Fountain | open glades, and the castle garden gone wild |
+| `*Orchard Tree` | Courtyard East | two old planting rows with one tree gone, because an abandoned orchard keeps its grid |
+| `*Melon Vine` | Northern Way, Southern Way | sunny ground on the bank above the water |
+| `*Spice Patch` | Wriggling Caverns, Direct Heat | by the char grass and well back from the lava; in Wriggling Caverns, near the light at the cave mouth |
 
 ### Where the placed materials sit against their tier band
 
@@ -392,8 +416,8 @@ too (Maps 363-368). The remaining four all sit at tier 5 and above, and their pr
 
 **The gap is placement, not maps.** The back half of the level ladder has drafted maps since the
 fourth enemy pass, carrying enemy stamps across the Frozen Fortress, the Subterranean, Nimbus and the
-rest of the planned bands in [`../maps/progression-bands.md`](../maps/progression-bands.md). These four
-nodes simply have not been put on them yet.
+rest of the planned bands in [`../maps/progression-bands.md`](../maps/progression-bands.md). Since
+2026-11-21 all four stand in the stamp rows of those homes, waiting for the maps to be populated.
 
 **Five stale enemy ids surfaced during that sweep and were corrected**, all of them events left
 pointing at ids that used to hold something else before the database was reorganised: four Academy

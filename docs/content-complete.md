@@ -227,8 +227,8 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [x] Pass 5: Humanoid skills, traits and tricks
 - [x] Pass 5: Construct skills, traits and tricks
 - [x] Pass 5: Deity skills, traits and tricks
-- [ ] `<no:exp>`, `<no:gold>`, `<no:ap>` and `<no:sdp>` on the breakables
-- [ ] The Monsterpedia draws the character sprite
+- [x] `<no:exp>`, `<no:gold>`, `<no:ap>` and `<no:sdp>` on the breakables
+- [x] The Monsterpedia draws the character sprite
 
 ## Optional areas
 

@@ -6308,7 +6308,7 @@
   {
     "id": 71,
     "name": "*Mushroom Cluster",
-    "note": "\u003clevel:7\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,301,50]\u003e\n\u003cdrops:[i,302,30]\u003e\n\u003cdrops:[i,303,15]\u003e\n\u003cdrops:[i,304,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
+    "note": "\u003clevel:11\u003e\n\u003cknockbackResist:100\u003e\n\u003cimmuneToStates\u003e\n\u003cmhpBuffPlus:[(1.2 * (a.level ** 2.2))]\u003e\n\u003cdefBuffPlus:[(a.level * 1.25)]\u003e\n\u003cmdfBuffPlus:[(a.level * 0.25)]\u003e\n\u003cno-rng-passives\u003e\n\u003crespawn:[next-time, 600]\u003e\n\u003cdrops:[i,301,50]\u003e\n\u003cdrops:[i,302,30]\u003e\n\u003cdrops:[i,303,15]\u003e\n\u003cdrops:[i,304,5]\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cnoRewardPoints\u003e\n\u003cmonsterType:destructible\u003e",
     "battlerName": "",
     "traits": [
       {
