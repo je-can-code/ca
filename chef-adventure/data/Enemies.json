@@ -53992,5 +53992,92 @@
       1,
       1
     ]
+  },
+  {
+    "id": 603,
+    "name": "@Parry Dummy",
+    "note": "\u003ctargetFrameText:Swings slow. Parry it!\u003e\n\u003chrgBuffPlus:[65535]\u003e\n\u003cmaxTp:100\u003e\n\u003chideFromMonsterpedia\u003e\n\u003cjabsConfig:noIdle\u003e",
+    "battlerName": "ghosty",
+    "traits": [
+      {
+        "code": 35,
+        "dataId": 2101,
+        "value": 1
+      },
+      {
+        "code": 31,
+        "dataId": 9,
+        "value": 0
+      },
+      {
+        "code": 33,
+        "dataId": 0,
+        "value": 60
+      },
+      {
+        "code": 22,
+        "dataId": 0,
+        "value": 0.1
+      },
+      {
+        "code": 22,
+        "dataId": 2,
+        "value": 0.04
+      },
+      {
+        "code": 23,
+        "dataId": 1,
+        "value": 1.05
+      },
+      {
+        "code": 11,
+        "dataId": 11,
+        "value": 2
+      },
+      {
+        "code": 31,
+        "dataId": 11,
+        "value": 0
+      }
+    ],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2101
+      }
+    ],
+    "battlerHue": 0,
+    "dropItems": [
+      {
+        "dataId": 1,
+        "denominator": 1,
+        "kind": 0
+      },
+      {
+        "dataId": 1,
+        "denominator": 1,
+        "kind": 0
+      },
+      {
+        "dataId": 1,
+        "denominator": 1,
+        "kind": 0
+      }
+    ],
+    "exp": 0,
+    "gold": 0,
+    "params": [
+      65535,
+      8192,
+      1,
+      10,
+      10,
+      10,
+      10,
+      10
+    ]
   }
 ]

@@ -46,11 +46,17 @@
 
 | ID | Beat | Notes |
 |----|------|-------|
-| T-10 | Hub facility quest | Short “lap Raevula” with checkboxes: inn, shrine, smith, flux facility, merchant |
-| T-11 | Refinement intro | Viktor or Viskra: refine one piece before Ch3 gear check |
-| T-12 | Weapon family blurb | CMS equip or first weapon equip: one line per family role |
-| T-13 | Danger / level read | Enable Danger Indicator for Ch1–3 **or** quest text: “if TTK > 60s, leave and level” |
+| T-10 | Hub facility quest **covered** | Jeremy, 2026-11-22: "I think we're covered." `main-001` takes you to the inn, and `main-003`'s tutorial lap walks the smith, the pub, Viskra's forge and both Lords |
+| T-11 | ~~Refinement intro~~ **dropped** | Refinement stays optional and off the main scenario (Jeremy, 2026-11-22): "The game is not a crafting game, its a cooking game. Refinement is optional, and IF you unlock it, then it encourages you to use it (but no requirement)." Viktor teaches it after 24 unique blueprints, and his lesson announces it |
+| T-12 | Weapon family blurb **covered** | The academy already does it (Jeremy, 2026-11-22: "the beginner's tutorial (that is required) should explain this"): its weapon floor (`Map080`) has six teachers, one per family, and a graded test after |
+| T-13 | ~~Danger / level read~~ **dropped** | Jeremy, 2026-11-22: "live and learn (or die and learn)" |
 | T-14 | Save tutorial in intro cave | Per walk doc TODO |
+
+**T-14 is built (2026-11-22).** The save talk moved from Riverside Stroll (`Map016` ev42, deleted) to Cave 7
+(`Map010` ev11): a parallel watcher plays it once "as soon as you draw near", the moment the player steps into the
+chamber around the save platform before the first boss (the rope drops them at the bottom of the map, and the only
+way north runs through it). Jerald now names the cave's Ghosties and Ignihazards, and Rupert points at "one" save
+point rather than "another".
 
 ---
 
@@ -58,10 +64,10 @@
 
 | ID | Beat | Notes |
 |----|------|-------|
-| T-20 | Training rift ping | After first +10 level death, Questopedia hint to `train-000` |
-| T-21 | Parry payoff showcase | Optional trap room reward for perfect parry (state/card) |
-| T-22 | Omnipedia nudge | After first named enemy panel drop, open Monsterpedia once |
-| T-23 | Flux facility | After first difficulty complaint, point to spatial flux engine |
+| T-20 | ~~Training rift ping~~ **dropped** | Jeremy, 2026-11-22: "you gameover when you die" |
+| T-21 | Parry payoff showcase **built** | 2026-11-22, on the academy's Third Floor (`Map089`), beside the book nook: a "Parry Practice" book (ev11 label, ev12 reading) like the others there, a harmless mannequin (ev13, Enemies 603 `@Parry Dummy`: the Aggro Dummy with ATK 1, hidden from the Monsterpedia), and a watcher (ev14) that stores JABS's precise-parry count (variable 75) in variable 31 on arrival and pays two Node Dust, once, the first time it climbs |
+| T-22 | ~~Omnipedia nudge~~ **built as lines** | No nudge; instead "a few extra lines describing it when its unlocked via tutorial" (Jeremy, 2026-11-22). The Trainer Lord's handoff on the academy's Bottom Floor (`Map092` ev4, which turns on sw103 and so the Monsterpedia) now says what it records: defeat teaches name, family and stats, drops appear as they fall, and each element shows how it lands once it has hit |
+| T-23 | ~~Flux facility~~ **dropped** | Wrong premise (Jeremy, 2026-11-22): the difficulty engine "isn't an answer to 'the game is too hard', its an answer to 'i want more and better loot' and 'i want a challenge'" |
 
 ---
 

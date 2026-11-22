@@ -254,7 +254,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] `main-005`'s first objective sits off the road (Map116)
 - [ ] The elemental cutscenes point their bubbles at the events that show them
 - [x] Onboarding: the armor path on the main rail, T-04 and T-05
-- [ ] The save tutorial moves into the intro cave
+- [x] The save tutorial moves into the intro cave
 - [ ] A couple of side quests for the people in the pub
 - [ ] The deadly guard's warning should say something silly (Map276)
 - [ ] Two known one-way doors: Raevula's north exit, and Kadepths to the Extended Tunnel
@@ -267,7 +267,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] J&R's lines that say they wiped out Majik's whole species (Map172, Map284, Map320)
 - [ ] The HUD redesign (in 1.0.0, Jeremy 2026-11-22; what it covers is still being decided)
 - [x] Every character sheet a `$` single (in 1.0.0, Jeremy 2026-11-22: "everything", objects and unused sheets too). Cut the same day: 155 sheets into 1,060 singles, every event repointed; the two unused off-grid sheets (`m_bats-sm`, `m_slimeMedium`) deleted at his word
-- [ ] Onboarding: the P1 and P2 beats (in 1.0.0, Jeremy 2026-11-22: "I can't have an incomplete tutorial"; which beats make it is still being decided)
+- [x] Onboarding: the P1 and P2 beats (in 1.0.0, Jeremy 2026-11-22: "I can't have an incomplete tutorial"). Settled the same day: the save talk, the Monsterpedia lines and the parry corner built; the lap and the weapon blurbs already covered; the rest dropped (see `tutorials/onboarding-backlog.md`)
 
 ## Calls to make
 
