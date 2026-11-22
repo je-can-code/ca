@@ -155,7 +155,9 @@ including two whole decades pointing at another subgroup's panels (`undead-armor
 `reptile-lamia` at `SNK_3`).
 
 The reward ladders resample at the same positions: `sdpPoints` **3, 9, 15, 21, 30** and `sdpPlus` K
-**1, 1.44, 1.89, 2.33, 3**, with the anomaly paying the top rung.
+**1, 1.44, 1.89, 2.33, 3**, with the anomaly paying the top rung. That held until 2026-11-21, when the
+anomaly traded down to the bottom rung for a node item ladder; see
+[`flow.md`](./flow.md#how-panels-are-organized).
 
 **Existing saves break, and that was accepted.** `MonsterpediaObservations`, `StatistopediaRecords`
 and `TrackedOmniObjective` all key by `enemyId`.
