@@ -37437,12 +37437,6 @@
           "categories": []
         },
         {
-          "id": 29,
-          "type": "i",
-          "count": 1,
-          "categories": []
-        },
-        {
           "id": 0,
           "type": "i",
           "count": 2,
@@ -37491,12 +37485,6 @@
       "ingredients": [
         {
           "id": 162,
-          "type": "i",
-          "count": 2,
-          "categories": []
-        },
-        {
-          "id": 29,
           "type": "i",
           "count": 2,
           "categories": []
@@ -37555,12 +37543,6 @@
           "categories": []
         },
         {
-          "id": 29,
-          "type": "i",
-          "count": 3,
-          "categories": []
-        },
-        {
           "id": 0,
           "type": "i",
           "count": 2,
@@ -37611,12 +37593,6 @@
           "id": 164,
           "type": "i",
           "count": 2,
-          "categories": []
-        },
-        {
-          "id": 29,
-          "type": "i",
-          "count": 4,
           "categories": []
         },
         {
