@@ -178,7 +178,7 @@ matching the elemental lords Earthie, Aqualock, Cynder and Skye.
 Deleted: `Radiant Flan`, `Umbral Molasses`, `Crystalline Candy`, `Majestic Meringue`.
 
 Only Flan was placed in the world — 37 events across Forlorn Basin passages 9, 10, 11 and 13, the
-second basin visit. Those became **Wet Mousse** on the `m_slimes` index 0 sprite it already wears
+second basin visit. Those became **Wet Mousse** on the `$m_slimes-0` sprite (`m_slimes` slot 0 before the sheets were cut into singles on 2026-11-22) it already wears
 around Raevulaen Heartbeat, with an event-level `<level:30>` matching its neighbours (Spitting Frog 31,
 Kappa Shaman 32, Aqualock 30).
 

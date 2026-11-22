@@ -136,6 +136,11 @@ Points of no return come in two kinds and both are detectable: a transfer whose 
 authored, and a `Set Movement Route` on the player carrying a `Jump` step. Neither needs a
 hand-maintained note — do not create one.
 
+**Every character sheet is a `$` single** (Jeremy, 2026-11-22). The old eight-character sheets were cut
+slot by slot into `$<sheet>-<slot>`, and object sheets into `!$<sheet>-<slot>`: `People2` slot 3 is now
+`$People2-3`, `!Flame` slot 0 is `!$Flame-0`. An event always wears index 0 of a single. Never add an
+eight-character sheet; cut it the same way first.
+
 ### Enemy AI tags
 
 Map event pages can carry the same AI trait and role tags as the enemy database rows, and **the map

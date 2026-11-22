@@ -81,7 +81,7 @@ by up to 2.5×, and every "pulses to fall" count below moves with it: out-classi
   animation 155 ("undying pulse"). States 2075 Stilled (rooted, disabled), 2076 Lethargic (speed -35% for 4s), 2077 Still
   Devotion (after 2 seconds standing still, stacks 2078 Hardened: +10% DEF and MDF per stack, up to 5, all gone on a
   step). Switch 192 "sloth defeated". Clone templates Map361 ev585 (her sheet, Stepping on, Earthie's death scene in
-  her purple) and ev595 (`m_winter-spirits` index 2).
+  her purple) and ev595 (`$m_winter-spirits-2`, once `m_winter-spirits` index 2).
 - **The fight**, encounter `sloth` (map 409): Sealed on at the start; fifteen waves 10 seconds apart, the pairs rotating
   from her feet (17,20)+(17,25) to the rims (28,14)+(28,30) to the path behind you (46,21)+(46,23), each arriving in
   "respawn" (154); at waves 5, 10 and 15 "Earth One 1" (86) on her and a one-second flicker into that crack's glowing
@@ -333,7 +333,7 @@ time their own sounds), so the beat that went silent when you reached her comes 
 - `data`: her row (element rates, the pulse), the Stilled state, the votary row and its Prime fight template, the
   encounter, her hall.
 - `art`: her statue is built, all eight sheets with the cracks (see Already yours). The votary sprite is chosen
-  (`m_winter-spirits` index 2) and can ship as it stands, my take, since its void face already matches hers.
+  (`$m_winter-spirits-2`) and can ship as it stands, my take, since its void face already matches hers.
 - `audio`: a heartbeat sound for the pulse (the Subterranean's heartbeat BGS is still missing too).
 - *Read in source* (11-13): a skill scoped to Everyone reaches its own caster, her allies and her opponents
   (`JABS_Battler.isWithinScope`), so one pulse can land on her, the votaries and the duo, as designed.
@@ -459,7 +459,7 @@ Map443, by `/tmp/claude-1000/lust/data/arena.js` (RAM), modeled on Sloth's Map40
 - **The encounter's participant now spawns at (40, 33),** where the approach leaves him; the hall's fight starts there
   too.
 - **The post-boss stub** (ev4), on switch 194: ends the encounter, cleans up, and leaves a TODO for the post-amble.
-- **The elevator** (ev5) stands in the back wall's recess at (39, 2) as a placeholder `!SF_Door1`, dead until he falls.
+- **The elevator** (ev5) stands in the back wall's recess at (39, 2) as a placeholder `!$SF_Door1-0`, dead until he falls.
   Then it holds a TODO for the lane's exit, "How the two exits line up": the ride up to the entry hall, and the
   Rupert-first or Jerald-first scenes.
 - **Proven both ways** (`dist/playtest/lust-arena-probe.js`, `LUST_PREAMBLE=watch|skip`). The scene starts on its own,
@@ -828,13 +828,13 @@ backup folder). Mechanics only:
     - **The look:** night-sky hair full of stars, porcelain-lilac skin, amethyst eyes, a wreath of void orbs whose
       centre orb is missing (only its empty diamond setting is left), an eclipse halo behind her head (dark disc,
       violet rim, corona, spark). No fins: "She is void, not dirty water."
-    - **Bases:** the sprite is Katakura's water spirit (`kh-elementals` #1), fins snipped from all 12 frames, recoloured
+    - **Bases:** the sprite is Katakura's water spirit (`kh-elementals` #1, now `$kh-elementals-1`), fins snipped from all 12 frames, recoloured
       void, a halo ring found per frame so it rides her bob, forehead gem emptied. The face is MV's RTP moon lady
       (`RPG Maker MV/NewData/img/faces/Nature.png` cell 6, not otherwise in CA), circlet filled out, wreath laid on
       its line. Tools and sources: `~/.claude/backups/ca-pass3-sprites/voidella/`.
     - **The chibi edition is kept** at his earlier ask, as `$m_elemental-voidella-chibi.png`,
       `$elemental-void-chibi.png` and `faces/elemental-void-chibi.png` (front view in every cell).
-  - **His open idea: every elemental less "fat naked children", more human-shaped.** Katakura's four (`kh-elementals`)
+  - **His open idea: every elemental less "fat naked children", more human-shaped.** Katakura's four (`kh-elementals`, now cut into `$kh-elementals-<slot>`)
     are the candidate set; their sprites already dress the Emotion ladder (561), which he's fine with (monsters never
     show faces). Faces used on his Oasis maps are free to reuse.
   - **A light/holy elemental is coming too** (story-canon open item 4); she needs the same treatment. Base idea: CA's
@@ -1748,7 +1748,7 @@ unblocks:
 |---|---|---|---|
 | 1 | **Measure the duo at each band**: damage per second and max HP for each lead around 110, 130 and 150, plus Rupert's cast times. One probe per band, the way `boss-matchup-probe.js` was run. **Read 11-13 as a floor, your framing: "we're only testing that the mechanics fire, not for balance"** (SDPs, classes, passives and refinement are anyone's guess). `dist/playtest/band-probe.js`: Raving Lunatic Jerald and Lavos Rupert, crafted gear of the band's tier in what each class wears for free (RL: Glaive and Mail, no offhand type at all; Lavos: Rod, Relic, Cloth, so no Tome), no SDPs, no accessory. **Lv110, tier 5:** Jerald MHP 7,967, MDF 354; Rupert MHP 3,278, MDF 379. **Lv130, tier 6:** Jerald 9,687 / 439; Rupert 3,848 / 579. Sloth's pulse fires at both bands, never swallowed by MDF: 885 on Jerald and 719 on Rupert at 110, so Rupert drops on pulse 5 and Jerald on pulse 10 (the 1% of her bar does most of Jerald's). Anything a real build adds only stretches that. Floor stats also read EVA 249% (Jerald) and MEV 126% (Rupert), so a votary's basic attack may never land; check its HIT when the votary is built (done 11-14: it rides Enemy Rank T5) | measurement | all six (every Numbers block hangs off it) |
 | 2 | **The immunity leak**: `<noDamage>` (yours, 11-13), on any note source: 0 damage of any type from any source, DoTs included (they still apply), healing still works. **Built 11-13** (rmmz-plugins `boss-pass`, uncommitted): hits, drains, formula packets, DoT ticks, regen run below zero, damage floors and below-zero Recover effects all land as nothing; skill costs, TP, event commands and the death state are left alone | `engine (small)` | Sloth, Lust, Envy, and Earthie's shipped seal |
-| 3 | **Sprites**: Sloth is done (her statue built 11-13, her votary chosen: `m_winter-spirits` index 2); Lust; Envy's sheet and her phase-4 glitch look; Grudj and his machine | `art`, yours | Sloth, Lust, Envy, Grudj |
+| 3 | **Sprites**: Sloth is done (her statue built 11-13, her votary chosen: `$m_winter-spirits-2`); Lust; Envy's sheet and her phase-4 glitch look; Grudj and his machine | `art`, yours | Sloth, Lust, Envy, Grudj |
 | 4 | **`<interrupt:N>` on some player skills**, Rupert's Meltima (484) at least. Nothing in the game can interrupt a cast today | class kits, yours | Grudj, and any later boss that casts |
 | 5 | **A heartbeat sound** for Sloth's pulse (the Subterranean's heartbeat BGS is still missing too) | `audio`, yours | Sloth |
 | 6 | **Two kill-floor tags** (yours, 11-13). `<noSelfKill>` on battlers, equips and states, `<thisNoSelfKill>` on a skill: a skill executed by the battler carrying it can't take that battler's own HP to 0 or less (Sloth 2A). `<noTargetKill>` / `<thisNoTargetKill>`, same homes: it can't take an *opposing* battler's HP to 0 or less, "think False Swipe from pokemon" (friendly fire can still kill). Both clamp where HP drops, after every multiplier. **Built 11-13** (same branch): a skill's damage and its formula packets stop one HP short, after shields absorb their share; "opposing" is J-ABS's team rules (an actor and an enemy count as opposed if the caster has already left the map); DoT ticks aren't a skill's damage, so they aren't held | `engine (small)` | Sloth, and any False Swipe you want |
