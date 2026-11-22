@@ -80,6 +80,10 @@ This section of the cave is purely exploratory. Going down the rope should be au
 navigate back up towards the front of the map where the bubbles were. Interacting with the bubbles brings you to the
 next map- your first boss!
 
+On the way back up, the chamber with the save platform is where the player is introduced to the concept of saving:
+as soon as you draw near, `Jerald` and `Rupert` have their (skippable) talk about it, with the save platform right
+there and the first boss just ahead.
+
 #### Room 8: The Erocian Slime Boss
 This is the player's first boss battle, as indicated by the "boss gauge" showing up at the top. The `Erocian Slime` is
 is basically just a normal enemy that has a bit more health than the other enemies. After chopping or burning it up,
@@ -119,9 +123,8 @@ first humanoid that isn't in your party: `???`, where the player can learn about
 >   to acquire it later.
 
 #### Map 2: Riverside Stroll
-Aptly named for its massive body of water that the player will travel beside while navigating the map. Here the player
-will be introduced to the concept of saving (as in, explained that it should happen, despite the fact that a save point
-did appear in the intro cave after defeating the boss).
+Aptly named for its massive body of water that the player will travel beside while navigating the map. There is a save
+platform here too, though the talk about saving now happens back in the intro cave (Room 7).
 
 Additionally, there is an entrance to the `Pearl Salt Mines` (aka "the mines") here, but the enemies are likely to be
 much stronger than the player at this point, and it is strongly recommended to NOT enter here. Even if you could enter
@@ -129,8 +132,6 @@ here, without the `Snakerope`, there is little to explore... but there are enemi
 
 Lastly, there is a cracked wall susceptible to bombing here, but without `Bombs` and a `Snakerope`, there is still not
 really much that the player can do here.
-
-> TODO: move the save tutorial over to the intro cave.
 
 #### Map 3: Up and Down
 This map is mostly just more of the same. The only goal is to reach the other end of the map. Do be careful of the
