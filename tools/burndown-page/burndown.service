@@ -1,0 +1,30 @@
+# The Chef Adventure burndown, always on: it starts with the computer, runs as you, and needs nobody logged
+# in. It answers at http://j-desktop.local:1220 from any device at home.
+#
+# This assumes Bun at ~/.bun/bin/bun and the repo at /mnt/exdrive/dev/gaming/ca. Change the path below if
+# either moves. Then, from the repo:
+#
+#   cp tools/burndown-page/burndown.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now burndown
+#
+# Lingering is already on for this account, since the recipes service needed it, so this starts at boot
+# before anyone logs in. Install it by copying, not linking: the repo sits on a drive that can mount after
+# the service manager starts, and a link into it would leave the service quietly never starting. For the
+# same reason it never stops retrying. Until the drive is there and the port is free, it tries again every
+# five seconds.
+#
+# The page and the counter are both read fresh on every visit, so changing either needs no restart. Only a
+# change to server.js does: systemctl --user restart burndown
+
+[Unit]
+Description=Chef Adventure burndown page
+StartLimitIntervalSec=0
+
+[Service]
+ExecStart=%h/.bun/bin/bun /mnt/exdrive/dev/gaming/ca/tools/burndown-page/server.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

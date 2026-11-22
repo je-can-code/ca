@@ -14,11 +14,16 @@
  *
  * Usage:
  *   bun tools/burndown.js          # print the count
+ *   bun tools/burndown.js --json   # print the page's data instead, writing nothing
  *   bun tools/burndown.js --write  # also record today in the history and write the page's data
  *
  * With `--write`, today's rows replace any earlier run from the same day in
  * `docs/content-complete-history.json`, and `dist/burndown/` gets `items.json`, `history.json`,
  * `areas.json` and `supply.json`, which are the four files the burndown page reads.
+ *
+ * `--json` is what the live page in `tools/burndown-page/` runs on every visit. It prints those same four
+ * datasets as one object, with today's count standing in the history as though it had been recorded, so
+ * the page always ends its line at today without a visit ever adding a row to the record.
  */
 
 const ROOT = `${import.meta.dir}/..`;
@@ -899,11 +904,15 @@ const writeRows = (path, rows) =>
 };
 
 /**
- * Records today in the history, replacing any earlier run from the same day.
+ * The recorded history with today's count in it, replacing any earlier run from the same day.
+ *
+ * Nothing is written here. `--write` saves what this returns, and `--json` only shows it, which is how the
+ * live page can end its line at today on every visit while the record still grows one deliberate run at
+ * a time.
  * @param {Array<{ lane: string, total: number, left: number }>} lanes Today's count.
  * @returns {Promise<object[]>}
  */
-const recordHistory = async lanes =>
+const historyWithToday = async lanes =>
 {
   const file = Bun.file(HISTORY_PATH);
   const earlier = await file.exists()
@@ -911,13 +920,10 @@ const recordHistory = async lanes =>
     : [];
 
   const date = today();
-  const rows = [
+  return [
     ...earlier.filter(row => row.date !== date),
     ...lanes.map(({ lane, total, left }) => ({ date, lane, total, left })),
   ];
-
-  await writeRows(HISTORY_PATH, rows);
-  return rows;
 };
 
 /**
@@ -958,12 +964,21 @@ const measured = new Map([
 const checklist = parseChecklist(await Bun.file(CHECKLIST_PATH).text());
 const items = buildItems(checklist, measured);
 const lanes = countLanes(items);
+const history = await historyWithToday(lanes);
 
-printCount(lanes, areas, supply);
+// the live page reads standard output as its data, so the human count stays out of the way.
+if (process.argv.includes('--json'))
+{
+  console.log(JSON.stringify({ items, history, areas, supply: [ supply ] }));
+}
+else
+{
+  printCount(lanes, areas, supply);
+}
 
 if (process.argv.includes('--write'))
 {
-  const history = await recordHistory(lanes);
+  await writeRows(HISTORY_PATH, history);
   await writeRows(`${OUT_DIR}/items.json`, items);
   await writeRows(`${OUT_DIR}/history.json`, history);
   await writeRows(`${OUT_DIR}/areas.json`, areas);
