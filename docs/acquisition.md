@@ -155,7 +155,9 @@ Each line's dish is picked for it and is in `config.crafting.json`. **CE197 `nam
 one `unlock-recipes` for all 36; The New Way calls it.
 
 **Glyphs cannot be made yet.** Nothing calls CE190 or CE191, so no glyph formula is ever taught, and
-the Graver they need has no source. Every ⭐⭐ waits on both.
+every ⭐⭐ waits on that. The Graver they need comes from Leo since 2026-11-21: he hands it over when he
+opens the journal trade (Map034 ev3, the page that turns on `start journal hunt`). His "I've got new
+pages" answer is still a placeholder, and building that trade is what will call the formula events.
 
 ### What is still open
 

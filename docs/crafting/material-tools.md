@@ -26,6 +26,11 @@ the metal tool, so a recipe's tools can be checked against its own ingredients.
 | **wirestrippers** | circuitry | batteries, voltaic components, anything with a current in it |
 | **alembic** | catalysts | essences, cores, powders — and soft organics like tongue, which are brewed rather than cut |
 
+**Where each tool comes from** (`2026-11-22`). Viskra's first forge lesson (`side-001`, Map032 ev1) hands
+over the cross-pein and adze, and the party swipes the alembic off her bench with the wirestrippers tangled
+up in it. Millie gives the shears when you find her in the forest (Map076 ev5), and Leo gives the graver
+when he opens the journal trade (Map034 ev3).
+
 **Cooking names one tool per recipe; crafting names one per material it consumes.** That asymmetry is
 deliberate. A cooking tool answers *how the dish is made* and there is only ever one answer. A crafting
 tool answers *what the thing is made of*, and a spear is honestly two things.
