@@ -27,7 +27,9 @@ Already authored: six pages, six locations (the 4a–8a bird, the lakeside view,
 the toothpick ledge, and the low-tide cove, added 2026-10-26). Each page traded for formulae, and the sixth completes
 the journal with the Philosopher's Stone. This doc anchors the existing quest to his arc: every page
 is in the master's handwriting, and Leo's commentary while decoding them quietly builds the portrait of the woman
-who left him behind.
+who left him behind. **Built 2026-11-22**: the duo read each page aloud and Leo reacts, six beats from her handwriting
+to "Perfection is the only acceptable failure", and the formulas per page are in
+[`alchemy-pages.md`](../../unlockables/alchemy-pages.md#the-exchange-as-built-2026-11-22).
 
 ### 2) The Note in the Attic: `leo-001`
 The player has read it (Map035). Leo hasn't — not in years, not since it stopped hurting enough to avoid. Sit
@@ -44,7 +46,8 @@ shadow was over him. It works. **"Leo's Original"** enters the game: a top-tier 
 made, because the master never could — pride doesn't experiment; it performs.
 
 #### After effects of "The Student"
-- "Leo's Original" formulae unlock (top-tier alchemy).
+- "Leo's Original" formulae unlock (top-tier alchemy). **Tier 6 gems are Leo's Original** (Jeremy, 2026-11-22: "the
+  6th tier will be a bit more amazing than just 'one more step on the ladder'"), so the journal's ladder stops at V.
 - His dialogue drops the self-deprecation. Not all of it. The right amount.
 - The side character line pays off: the game makes him, on screen, the protagonist of his own story. Thesis,
   delivered by ukelele guy.

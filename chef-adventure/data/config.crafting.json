@@ -34859,6 +34859,85 @@
       "tier": 0
     },
     {
+      "key": "a-philosophers-stone",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 111,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 113,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 61,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 63,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 65,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 67,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 69,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 71,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
       "key": "a-runes-cut-glyph",
       "name": "",
       "iconIndex": -1,
@@ -39180,7 +39259,7 @@
         {
           "id": 301,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39254,7 +39333,7 @@
         {
           "id": 302,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39328,7 +39407,7 @@
         {
           "id": 303,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39402,7 +39481,7 @@
         {
           "id": 304,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39476,7 +39555,7 @@
         {
           "id": 306,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39550,7 +39629,7 @@
         {
           "id": 307,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39624,7 +39703,7 @@
         {
           "id": 308,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39698,7 +39777,7 @@
         {
           "id": 309,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39772,7 +39851,7 @@
         {
           "id": 311,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39846,7 +39925,7 @@
         {
           "id": 312,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39920,7 +39999,7 @@
         {
           "id": 313,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -39994,7 +40073,7 @@
         {
           "id": 314,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40068,7 +40147,7 @@
         {
           "id": 316,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40142,7 +40221,7 @@
         {
           "id": 317,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40216,7 +40295,7 @@
         {
           "id": 318,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40290,7 +40369,7 @@
         {
           "id": 319,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40364,7 +40443,7 @@
         {
           "id": 321,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40438,7 +40517,7 @@
         {
           "id": 322,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40512,7 +40591,7 @@
         {
           "id": 323,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40586,7 +40665,7 @@
         {
           "id": 324,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40660,7 +40739,7 @@
         {
           "id": 326,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40734,7 +40813,7 @@
         {
           "id": 327,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40808,7 +40887,7 @@
         {
           "id": 328,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40882,7 +40961,7 @@
         {
           "id": 329,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -40956,7 +41035,7 @@
         {
           "id": 331,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41030,7 +41109,7 @@
         {
           "id": 332,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41104,7 +41183,7 @@
         {
           "id": 333,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41178,7 +41257,7 @@
         {
           "id": 334,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41252,7 +41331,7 @@
         {
           "id": 336,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41326,7 +41405,7 @@
         {
           "id": 337,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41400,7 +41479,7 @@
         {
           "id": 338,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41474,7 +41553,7 @@
         {
           "id": 339,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41548,7 +41627,7 @@
         {
           "id": 341,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41622,7 +41701,7 @@
         {
           "id": 342,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41696,7 +41775,7 @@
         {
           "id": 343,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41770,7 +41849,7 @@
         {
           "id": 344,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41844,7 +41923,7 @@
         {
           "id": 346,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41918,7 +41997,7 @@
         {
           "id": 347,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -41992,7 +42071,7 @@
         {
           "id": 348,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42066,7 +42145,7 @@
         {
           "id": 349,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42140,7 +42219,7 @@
         {
           "id": 351,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42214,7 +42293,7 @@
         {
           "id": 352,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42288,7 +42367,7 @@
         {
           "id": 353,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42362,7 +42441,7 @@
         {
           "id": 354,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42436,7 +42515,7 @@
         {
           "id": 356,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42510,7 +42589,7 @@
         {
           "id": 357,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42584,7 +42663,7 @@
         {
           "id": 358,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42658,7 +42737,7 @@
         {
           "id": 359,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42732,7 +42811,7 @@
         {
           "id": 361,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42806,7 +42885,7 @@
         {
           "id": 362,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42880,7 +42959,7 @@
         {
           "id": 363,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -42954,7 +43033,7 @@
         {
           "id": 364,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43028,7 +43107,7 @@
         {
           "id": 366,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43102,7 +43181,7 @@
         {
           "id": 367,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43176,7 +43255,7 @@
         {
           "id": 368,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43250,7 +43329,7 @@
         {
           "id": 369,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43324,7 +43403,7 @@
         {
           "id": 371,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43398,7 +43477,7 @@
         {
           "id": 372,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43472,7 +43551,7 @@
         {
           "id": 373,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43546,7 +43625,7 @@
         {
           "id": 374,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43620,7 +43699,7 @@
         {
           "id": 376,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43694,7 +43773,7 @@
         {
           "id": 377,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43768,7 +43847,7 @@
         {
           "id": 378,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43842,7 +43921,7 @@
         {
           "id": 379,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43916,7 +43995,7 @@
         {
           "id": 381,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -43990,7 +44069,7 @@
         {
           "id": 382,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44064,7 +44143,7 @@
         {
           "id": 383,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44138,7 +44217,7 @@
         {
           "id": 384,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44212,7 +44291,7 @@
         {
           "id": 386,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44286,7 +44365,7 @@
         {
           "id": 387,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44360,7 +44439,7 @@
         {
           "id": 388,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44434,7 +44513,7 @@
         {
           "id": 389,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44508,7 +44587,7 @@
         {
           "id": 391,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44582,7 +44661,7 @@
         {
           "id": 392,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44656,7 +44735,7 @@
         {
           "id": 393,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44730,7 +44809,7 @@
         {
           "id": 394,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44804,7 +44883,7 @@
         {
           "id": 396,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44878,7 +44957,7 @@
         {
           "id": 397,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -44952,7 +45031,7 @@
         {
           "id": 398,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45026,7 +45105,7 @@
         {
           "id": 399,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45100,7 +45179,7 @@
         {
           "id": 401,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45174,7 +45253,7 @@
         {
           "id": 402,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45248,7 +45327,7 @@
         {
           "id": 403,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45322,7 +45401,7 @@
         {
           "id": 404,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45396,7 +45475,7 @@
         {
           "id": 406,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45470,7 +45549,7 @@
         {
           "id": 407,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45544,7 +45623,7 @@
         {
           "id": 408,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45618,7 +45697,7 @@
         {
           "id": 409,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45692,7 +45771,7 @@
         {
           "id": 411,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45766,7 +45845,7 @@
         {
           "id": 412,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45840,7 +45919,7 @@
         {
           "id": 413,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45914,7 +45993,7 @@
         {
           "id": 414,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -45988,7 +46067,7 @@
         {
           "id": 416,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46062,7 +46141,7 @@
         {
           "id": 417,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46136,7 +46215,7 @@
         {
           "id": 418,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46210,7 +46289,7 @@
         {
           "id": 419,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46284,7 +46363,7 @@
         {
           "id": 421,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46358,7 +46437,7 @@
         {
           "id": 422,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46432,7 +46511,7 @@
         {
           "id": 423,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46506,7 +46585,7 @@
         {
           "id": 424,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46580,7 +46659,7 @@
         {
           "id": 426,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46654,7 +46733,7 @@
         {
           "id": 427,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46728,7 +46807,7 @@
         {
           "id": 428,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46802,7 +46881,7 @@
         {
           "id": 429,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46876,7 +46955,7 @@
         {
           "id": 431,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -46950,7 +47029,7 @@
         {
           "id": 432,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47024,7 +47103,7 @@
         {
           "id": 433,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47098,7 +47177,7 @@
         {
           "id": 434,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47172,7 +47251,7 @@
         {
           "id": 436,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47246,7 +47325,7 @@
         {
           "id": 437,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47320,7 +47399,7 @@
         {
           "id": 438,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47394,7 +47473,7 @@
         {
           "id": 439,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47468,7 +47547,7 @@
         {
           "id": 441,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47542,7 +47621,7 @@
         {
           "id": 442,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47616,7 +47695,7 @@
         {
           "id": 443,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47690,7 +47769,7 @@
         {
           "id": 444,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47764,7 +47843,7 @@
         {
           "id": 446,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47838,7 +47917,7 @@
         {
           "id": 447,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47912,7 +47991,7 @@
         {
           "id": 448,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -47986,7 +48065,7 @@
         {
           "id": 449,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48060,7 +48139,7 @@
         {
           "id": 451,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48134,7 +48213,7 @@
         {
           "id": 452,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48208,7 +48287,7 @@
         {
           "id": 453,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48282,7 +48361,7 @@
         {
           "id": 454,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48356,7 +48435,7 @@
         {
           "id": 456,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48430,7 +48509,7 @@
         {
           "id": 457,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48504,7 +48583,7 @@
         {
           "id": 458,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48578,7 +48657,7 @@
         {
           "id": 459,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48652,7 +48731,7 @@
         {
           "id": 461,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48726,7 +48805,7 @@
         {
           "id": 462,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48800,7 +48879,7 @@
         {
           "id": 463,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48874,7 +48953,7 @@
         {
           "id": 464,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -48948,7 +49027,7 @@
         {
           "id": 466,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49022,7 +49101,7 @@
         {
           "id": 467,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49096,7 +49175,7 @@
         {
           "id": 468,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49170,7 +49249,7 @@
         {
           "id": 469,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49244,7 +49323,7 @@
         {
           "id": 476,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49318,7 +49397,7 @@
         {
           "id": 477,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49392,7 +49471,7 @@
         {
           "id": 478,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49466,7 +49545,7 @@
         {
           "id": 479,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49540,7 +49619,7 @@
         {
           "id": 481,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49614,7 +49693,7 @@
         {
           "id": 482,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49688,7 +49767,7 @@
         {
           "id": 483,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49762,7 +49841,7 @@
         {
           "id": 484,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49836,7 +49915,7 @@
         {
           "id": 486,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49910,7 +49989,7 @@
         {
           "id": 487,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -49984,7 +50063,7 @@
         {
           "id": 488,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50058,7 +50137,7 @@
         {
           "id": 489,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50132,7 +50211,7 @@
         {
           "id": 491,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50206,7 +50285,7 @@
         {
           "id": 492,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50280,7 +50359,7 @@
         {
           "id": 493,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50354,7 +50433,7 @@
         {
           "id": 494,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50428,7 +50507,7 @@
         {
           "id": 496,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50502,7 +50581,7 @@
         {
           "id": 497,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50576,7 +50655,7 @@
         {
           "id": 498,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50650,7 +50729,7 @@
         {
           "id": 499,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50724,7 +50803,7 @@
         {
           "id": 501,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50798,7 +50877,7 @@
         {
           "id": 502,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50872,7 +50951,7 @@
         {
           "id": 503,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -50946,7 +51025,7 @@
         {
           "id": 504,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51020,7 +51099,7 @@
         {
           "id": 506,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51094,7 +51173,7 @@
         {
           "id": 507,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51168,7 +51247,7 @@
         {
           "id": 508,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51242,7 +51321,7 @@
         {
           "id": 509,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51316,7 +51395,7 @@
         {
           "id": 511,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51390,7 +51469,7 @@
         {
           "id": 512,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51464,7 +51543,7 @@
         {
           "id": 513,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51538,7 +51617,7 @@
         {
           "id": 514,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51612,7 +51691,7 @@
         {
           "id": 516,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51686,7 +51765,7 @@
         {
           "id": 517,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51760,7 +51839,7 @@
         {
           "id": 518,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51834,7 +51913,7 @@
         {
           "id": 519,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51908,7 +51987,7 @@
         {
           "id": 521,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -51982,7 +52061,7 @@
         {
           "id": 522,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -52056,7 +52135,7 @@
         {
           "id": 523,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -52130,7 +52209,7 @@
         {
           "id": 524,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -52204,7 +52283,7 @@
         {
           "id": 526,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -52278,7 +52357,7 @@
         {
           "id": 527,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -52352,7 +52431,7 @@
         {
           "id": 528,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -52426,7 +52505,7 @@
         {
           "id": 529,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -52500,7 +52579,7 @@
         {
           "id": 531,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -52574,7 +52653,7 @@
         {
           "id": 532,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -52648,7 +52727,7 @@
         {
           "id": 533,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
@@ -52722,12 +52801,2824 @@
         {
           "id": 534,
           "type": "a",
-          "count": 2,
+          "count": 4,
           "categories": []
         }
       ],
       "cost": [],
       "tier": 4
+    },
+    {
+      "key": "mat-ore-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 30,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 32,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-ore-up-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 32,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 34,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-ore-up-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 34,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 36,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 3
+    },
+    {
+      "key": "mat-ore-up-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 36,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 38,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 4
+    },
+    {
+      "key": "mat-ore-up-5",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 38,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 40,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 5
+    },
+    {
+      "key": "mat-ore-up-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 40,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 42,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 6
+    },
+    {
+      "key": "mat-ore-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 32,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 30,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-ore-down-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 34,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 32,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-ore-down-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 36,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 34,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 3
+    },
+    {
+      "key": "mat-ore-down-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 38,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 36,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 4
+    },
+    {
+      "key": "mat-ore-down-5",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 40,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 38,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 5
+    },
+    {
+      "key": "mat-ore-down-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 42,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 40,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 6
+    },
+    {
+      "key": "mat-wood-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 45,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 47,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-wood-up-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 47,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 49,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-wood-up-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 49,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 51,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 3
+    },
+    {
+      "key": "mat-wood-up-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 51,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 53,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 4
+    },
+    {
+      "key": "mat-wood-up-5",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 53,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 55,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 5
+    },
+    {
+      "key": "mat-wood-up-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 55,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 57,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 6
+    },
+    {
+      "key": "mat-wood-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 47,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 45,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-wood-down-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 49,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 47,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-wood-down-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 51,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 49,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 3
+    },
+    {
+      "key": "mat-wood-down-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 53,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 51,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 4
+    },
+    {
+      "key": "mat-wood-down-5",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 55,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 53,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 5
+    },
+    {
+      "key": "mat-wood-down-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 57,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 55,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 6
+    },
+    {
+      "key": "mat-thread-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 81,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-thread-up-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 83,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 85,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-thread-up-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 85,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 87,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 3
+    },
+    {
+      "key": "mat-thread-up-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 87,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 89,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 4
+    },
+    {
+      "key": "mat-thread-up-5",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 89,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 91,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 5
+    },
+    {
+      "key": "mat-thread-up-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 91,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 93,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 6
+    },
+    {
+      "key": "mat-thread-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 83,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 81,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-thread-down-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 85,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 83,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-thread-down-3",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 87,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 85,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 3
+    },
+    {
+      "key": "mat-thread-down-4",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 89,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 87,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 4
+    },
+    {
+      "key": "mat-thread-down-5",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 91,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 89,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 5
+    },
+    {
+      "key": "mat-thread-down-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 93,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 91,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 6
+    },
+    {
+      "key": "mat-ruby-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 60,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 61,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-ruby-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 61,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 60,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-emerald-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 62,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 63,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-emerald-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 63,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 62,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-topaz-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 64,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 65,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-topaz-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 65,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 64,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-sapphire-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 66,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 67,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-sapphire-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 67,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 66,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-crystal-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 68,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 69,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-crystal-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 69,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 68,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-diamond-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 70,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 71,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-diamond-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 71,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 70,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-rouge-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 11,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 12,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-rouge-up-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 12,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 13,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-rouge-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 12,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 11,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-rouge-down-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 13,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 12,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-bleu-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 14,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 15,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-bleu-up-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 15,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 16,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-bleu-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 15,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 14,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-bleu-down-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 16,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 15,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-verte-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 17,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 18,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-verte-up-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 18,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 19,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-verte-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 18,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 17,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-verte-down-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 19,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 18,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-jaune-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 20,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 21,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-jaune-up-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 21,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 22,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-jaune-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 21,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 20,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-jaune-down-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 22,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 21,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-blanche-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 23,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 24,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-blanche-up-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 24,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 25,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-blanche-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 24,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 23,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-blanche-down-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 25,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 24,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-noire-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 26,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 27,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-noire-up-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 27,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 28,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-noire-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 27,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 26,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-noire-down-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 28,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 27,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-diode-up-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 72,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 73,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-diode-up-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-mastery"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 73,
+          "type": "i",
+          "count": 5,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
+    },
+    {
+      "key": "mat-diode-down-1",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 73,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 72,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 1
+    },
+    {
+      "key": "mat-diode-down-2",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": true,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "material-breakdown"
+      ],
+      "tools": [
+        {
+          "id": 116,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 74,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 73,
+          "type": "i",
+          "count": 4,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 2
     }
   ],
   "categories": [

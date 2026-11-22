@@ -80,6 +80,31 @@ as a joke.
 
 ---
 
+## Transmutation `DECIDED 2026-11-22`
+
+**Five of a tier make one of the next, and one of a tier breaks into four of the one below** (Jeremy's formula).
+Going up is **Material Mastery**, going down is **Material Breakdown**, both on the Alembic, and **holding the
+Philosopher's Stone** (the sixth journal page's recipe, see
+[`../unlockables/alchemy-pages.md`](../unlockables/alchemy-pages.md)) is what opens both at an alchemy station.
+
+The round trip always loses one (five up into one, then back down into four), so there is no loop to farm, and
+Breakdown's own description stays true: it returns less than it cost.
+
+| Ladder | Tiers | Recipes |
+|---|---|---|
+| 46 monster-part families | 5 each | 368, written before the formula; Breakdown went from 1 -> 2 to 1 -> 4 |
+| Ores, Iron to Ultanium | 7 | 12 |
+| Woods, Oak to Digiwood | 7 | 12 |
+| Threads, Bare to Nanowire | 7 | 12 |
+| The six stones, base to star (Ruby to Star Ruby, and so on) | 2 each | 12 |
+| The six essences, Raw to Essence to Pure | 3 each | 24 |
+| Diodes | 3 | 4 |
+
+**Left out on purpose:** processed goods (ingots, paper, fabric and matrices), because each is already made from
+its raw ladder, and node items, because Geode is the one thing worth farming the named anomalies for.
+
+---
+
 ## Open
 
 - **What tool does equipment-as-fodder require?** 256 ingredient uses are finished equipment consumed to

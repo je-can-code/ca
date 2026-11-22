@@ -154,10 +154,11 @@ heavy plate; Gemini is twins and should want two of something.
 Each line's dish is picked for it and is in `config.crafting.json`. **CE197 `named weapons`** runs the
 one `unlock-recipes` for all 36; The New Way calls it.
 
-**Glyphs cannot be made yet.** Nothing calls CE190 or CE191, so no glyph formula is ever taught, and
-every ⭐⭐ waits on that. The Graver they need comes from Leo since 2026-11-21: he hands it over when he
-opens the journal trade (Map034 ev3, the page that turns on `start journal hunt`). His "I've got new
-pages" answer is still a placeholder, and building that trade is what will call the formula events.
+**Glyphs come from Leo's journal pages** (built 2026-11-22). The second page turned in teaches Cut, Poke
+and Blunt, the third Heat, Liquid, Air and Ground, and the fourth Energy and Void; the table is in
+[`unlockables/alchemy-pages.md`](unlockables/alchemy-pages.md#the-exchange-as-built-2026-11-22). The Graver
+they need comes from Leo since 2026-11-21: he hands it over when he opens the journal trade (Map034 ev3, the
+page that turns on `start journal hunt`). So every ⭐⭐ waits on its glyph's page as well as on Viktor.
 
 ### What is still open
 
