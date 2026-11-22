@@ -22,6 +22,10 @@
 > **Status update, 2026-08-31:** the **armor** chain is decided too — see
 > [The armor chain](#the-armor-chain-decided-2026-08-31). It is a different mechanism on purpose, and it
 > lands on the same rung-10 invariant the weapons already use.
+>
+> **Status update, 2026-11-21:** the teachers are decided. **Viktor** teaches the weapon ⭐⭐ and ⭐⭐⭐,
+> **Millie** all three armor rungs at once, both as tier-7 recipes that no shelf sells, unlocked by
+> `unlock-recipes` at the teacher's beat.
 
 ---
 
@@ -59,6 +63,16 @@ This holds for all eighteen. Two consequences worth stating plainly:
 So ⭐⭐⭐ placement and blueprint acquisition are **two separate decisions** and both must land for a
 legendary to be reachable. Neither is decided yet.
 
+## Every starred recipe demands a dish `DECIDED 2026-11-21`
+
+**Every ⭐, ⭐⭐ and ⭐⭐⭐ recipe, weapon or armor, takes one dish.** Jeremy, on learning the first draft
+fed only the weapons: "do all starred recipes demand food? They should. THEY SHOULD."
+
+The dish's cooking tier follows the band the rung's other materials come from: a rung-2 bill takes a
+tier-2 dish, rung 4 a tier-3, rung 6 a tier-4. So a weapon ⭐⭐ eats tier 3 and its ⭐⭐⭐ tier 4, and an
+armor ⭐, ⭐⭐ and ⭐⭐⭐ eat tiers 2, 3 and 4. Tier 4 holds 24 dishes against 27 slots, so three of them
+are shared between a weapon and an armor; every other pairing is unique.
+
 ---
 
 ## The weapon chain `DECIDED 2026-08-27`
@@ -68,12 +82,16 @@ legendary to be reachable. Neither is decided yet.
 | Rung | How | Unlocked by |
 |---|---|---|
 | **⭐ n1** | Found in the world, hand-placed | — |
-| **⭐⭐ n2** | Forged, **consuming the ⭐** | Viktor's second quest teaches the enhancement |
-| **⭐⭐⭐ n3** | Forged, **consuming the ⭐⭐** | Maxing Viktor's social link opens the n3 recipes |
+| **⭐⭐ n2** | Forged, **consuming the ⭐** | **Viktor teaches it** — The New Way (`viktor-004`) |
+| **⭐⭐⭐ n3** | Forged, **consuming the ⭐⭐** | **Viktor teaches it** — the same beat, both rungs at once |
 | **legendary** | Forged from the t6 craftable, **⭐⭐⭐ as tool** | The rite, taught by the ghost of a dead master smith in the **Desolate Graves**, reachable only once the Viktor/Viskra line is maxed |
 
-Recipes still cost scraps and materials at every rung. What the unlocks buy is the *right* to forge,
-not the forging itself — the same shape the study shop already uses.
+**Taught, never bought** (`DECIDED 2026-11-21`). The ⭐⭐ and ⭐⭐⭐ recipes sit at **tier 7**, which no
+profession's price table reaches, so no study shelf ever lists them; the only way in is the
+`unlock-recipes` Viktor's beat runs, the same command Smithing init (CE32) uses for the starters. A
+priced rung would not work: the study shelf filters by category and never by progress, so a tier-4
+⭐⭐ would sit on Viskra's shelf from the moment her shop opens, before Viktor has invented anything.
+The legendaries already carry tier 7 for the same reason. Materials still pay for every forging.
 
 ### Why the line consumes itself
 
@@ -95,7 +113,8 @@ reaches the myth weapon, and that one is permanent. A player is never punished f
 `./unlockables/recipe-journals.md` already states the unlock doctrine, and states it as holding per
 discipline: **found < taught < inherited. Loot < lessons < love.** Smithing's rungs are written there
 as **scraps → Viktor → (an inherited tier)**. This chain is that doctrine applied to weapons rather
-than a new idea: scraps buy n2, Viktor teaches n3, and the legendary comes from the inherited tier.
+than a new idea: scraps buy the craftable ladder off Viskra's shelf, Viktor teaches n2 and n3, and the
+legendary comes from the inherited tier.
 
 **The inherited tier is the ghost, not Viktor.** Viktor is already the *taught* rung, so having him
 also hand over the legendary would collapse two tiers into one person. Knowledge from someone who is
@@ -124,6 +143,20 @@ item from every family" ×18 would give the most distinctive objects in the game
 recipe. Ichor is the blood of gods and should want alchemy; Seismos shakes the ground and should want
 heavy plate; Gemini is twins and should want two of something.
 
+### The bills as written `2026-11-21`
+
+`w-<subgroup>-08` and `-09`, tier 7, each carrying its line's own tools and category:
+
+- **⭐⭐** = the ⭐ (consumed) + the line's whole rung-4 bill + a tier-3 dish + the glyph for its damage
+  type: Cut, Poke or Blunt, and Void for the Tome, which is typeless and whose one element is Void.
+- **⭐⭐⭐** = the ⭐⭐ (consumed) + the line's whole rung-6 bill + a tier-4 dish.
+
+Each line's dish is picked for it and is in `config.crafting.json`. **CE197 `named weapons`** runs the
+one `unlock-recipes` for all 36; The New Way calls it.
+
+**Glyphs cannot be made yet.** Nothing calls CE190 or CE191, so no glyph formula is ever taught, and
+the Graver they need has no source. Every ⭐⭐ waits on both.
+
 ### What is still open
 
 - **The five unplaced ⭐ weapons** — `"Blaster"` (Boomstick), `"Crescent Blossom"` (Glaive),
@@ -132,7 +165,8 @@ heavy plate; Gemini is twins and should want two of something.
   `got-named-arm` 218) are already reserved and waiting. Their homes were decided on 2026-10-25 and the
   chests were placed on 2026-10-26 (see
   [Where the named pieces are placed](#where-the-named-pieces-are-placed-decided-2026-10-25)).
-- **The exact material bills** at each rung.
+- **Whether Blueprint Scraps join the ⭐⭐ and ⭐⭐⭐ forging bills**, now that no shelf charges for the
+  recipes themselves.
 
 ### Where the materials come from
 
@@ -168,6 +202,11 @@ picked up because somebody already paid its price long ago, while every rung of 
 being *able* to build it is the entire gift Millie gives. She teaches once and gets out of the way —
 she is not a relationship the player escalates through, and the chain deliberately does not route back
 to her at each rung.
+
+**Millie teaches all three named rungs at once** (`DECIDED 2026-11-21`): ⭐, ⭐⭐ and ⭐⭐⭐ for all nine
+lines in one `unlock-recipes`, by the same tier-7 route as Viktor's weapon rungs, so the pattern shelf
+never lists them. From then on the materials are the only gate: whoever holds a salvage and the band's
+materials can build any rung of any line.
 
 ### The salvage
 
@@ -223,13 +262,22 @@ outputs **Omni-Badge**, consumes **1x Pristine Artefact** (the t6 craftable), an
 The database has been demanding a named armor that had no way to exist since before this chain was
 designed. Rungs 7-9 were the only hole, and this fills it.
 
+### The bills as written `2026-11-21`
+
+`a-<slot>-<weight>-7`, `-8` and `-9`, tier 7, each carrying its line's own tools and category:
+
+- **⭐** = one salvage + the line's whole rung-2 bill + a tier-2 dish.
+- **⭐⭐** = the ⭐ (consumed) + one salvage + the rung-4 bill + a tier-3 dish.
+- **⭐⭐⭐** = the ⭐⭐ (consumed) + one salvage + the rung-6 bill + a tier-4 dish.
+
+**CE198 `named armor`** runs the one `unlock-recipes` for all 27; Millie's scene calls it.
+
 ### What is still open for armor
 
-- **The 27 recipes.** `config.crafting.json` carries rungs 1-6 and 10 for all nine lines; 7-9 are
-  absent entirely.
 - **The 27 salvage placements** are done: placed 2026-10-26, each on a skeleton the player searches (see
   [Where the named pieces are placed](#where-the-named-pieces-are-placed-decided-2026-10-25)).
-- **The exact material bills** at each rung.
+- **The beat where Millie teaches them.** Her one scene today is the forest cabin (`Map076` event 5),
+  which runs Survival init (CE33); nothing later is written for her yet.
 - **Survival's inherited tier.** `./unlockables/recipe-journals.md` holds the doctrine — *found <
   taught < inherited* — and cooking, alchemy and smithing each have all three. Survival has pattern
   scraps and Millie, and nothing above her.
