@@ -24,6 +24,17 @@
 | T-04 | **Armor path on main rail** | Move `Survival init` (CE 33) to **main** beat—e.g. Millie during `main-004` forest step, not optional wander | `survive-*` categories (CE 27) |
 | T-05 | **Craft one armor piece** | Soft block kingdom route (`main-004`+) until one of off/body/feet crafted | Materials from Millie or shop |
 
+**Where P0 stands, 2026-11-22.**
+
+- **T-01 is met.** `main-003` makes the forge lesson a required step (its objective 4 is `side-001` itself).
+- **T-02 is built.** `side-001` ends on "Craft any weapon off the bottom shelf and show Viskra". Her ingot turn-in
+  (`Map032` ev1 page 6) asks for it, and her page 8 runs CE106 `refresh crafted wpns`, which totals every weapon
+  recipe ever crafted into variable 9, then completes the quest once that reads 1 or more. `main-003` waits on
+  `side-001` whole, and the facility door (`Map020` ev3) waits on `main-003`'s forge step, so nothing past the lesson
+  opens until a weapon has been made. Plenty of starter recipes need only the tools she has handed over by then (a
+  Claymore is two Iron Ingots).
+- **T-04 and T-05 are still open.**
+
 ---
 
 ## P1 — Clarity without force

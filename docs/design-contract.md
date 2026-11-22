@@ -100,7 +100,7 @@ Intro loop complete through **`main-008`** (fourth elemental recruited). Chapter
 | Content | Unlock source (per CommonEvents comments) | Tier today |
 |---------|-------------------------------------------|------------|
 | Cooking recipes | Inn / `main-002` | **A** |
-| Smith weapon recipes | `side-001` (Viktor at pub) | **C** → should be **B** |
+| Smith weapon recipes | `side-001` (Viktor at pub) | **B** since 2026-11-22: a required `main-003` step that ends on crafting a weapon |
 | Armor/survival recipes | Millie / forest | **C** → should be **B** |
 | Refinement | Smith (switch menu) | **C** |
 | Alchemy gems | Rescue Leo | **B/C** |

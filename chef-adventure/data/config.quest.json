@@ -2946,6 +2946,44 @@
           },
           "hiddenByDefault": true,
           "isOptional": false
+        },
+        {
+          "id": 4,
+          "type": "Indiscriminate",
+          "description": "Craft any weapon off the bottom shelf and show Viskra.",
+          "logs": {
+            "inactive": "",
+            "active": "Blueprints are just paper until somebody uses them. Make anything off the bottom shelf and show Viskra.",
+            "completed": "One weapon, made by hand. Viskra called it wonderful, and she meant every word.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Craft any weapon at the forge, then talk to Viskra."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
         }
       ],
       "iconIndex": 0
