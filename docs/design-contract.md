@@ -101,7 +101,7 @@ Intro loop complete through **`main-008`** (fourth elemental recruited). Chapter
 |---------|-------------------------------------------|------------|
 | Cooking recipes | Inn / `main-002` | **A** |
 | Smith weapon recipes | `side-001` (Viktor at pub) | **B** since 2026-11-22: a required `main-003` step that ends on crafting a weapon |
-| Armor/survival recipes | Millie / forest | **C** → should be **B** |
+| Armor/survival recipes | Millie / forest | **B** since 2026-11-22: the basin waits until Millie has seen a crafted armor piece |
 | Refinement | Smith (switch menu) | **C** |
 | Alchemy gems | Rescue Leo | **B/C** |
 

@@ -3034,6 +3034,44 @@
           },
           "hiddenByDefault": true,
           "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "Craft any armor piece at Millie's station and show her.",
+          "logs": {
+            "inactive": "",
+            "active": "Millie would love to feel the energy of your first creation. Anything from her patterns will do.",
+            "completed": "She called it lovely, and felt the care in it. She feels a lot of things.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Craft any armor piece at the station by her window, then talk to Millie."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
         }
       ],
       "iconIndex": 0

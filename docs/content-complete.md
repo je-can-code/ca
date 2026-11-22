@@ -253,7 +253,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Passage 8: its rope posts, once the Basin mouth is picked (Map102)
 - [ ] `main-005`'s first objective sits off the road (Map116)
 - [ ] The elemental cutscenes point their bubbles at the events that show them
-- [ ] Onboarding: the armor path on the main rail, T-04 and T-05
+- [x] Onboarding: the armor path on the main rail, T-04 and T-05
 - [ ] The save tutorial moves into the intro cave
 - [ ] A couple of side quests for the people in the pub
 - [ ] The deadly guard's warning should say something silly (Map276)

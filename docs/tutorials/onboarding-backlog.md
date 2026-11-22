@@ -33,7 +33,12 @@
   `side-001` whole, and the facility door (`Map020` ev3) waits on `main-003`'s forge step, so nothing past the lesson
   opens until a weapon has been made. Plenty of starter recipes need only the tools she has handed over by then (a
   Claymore is two Iron Ingots).
-- **T-04 and T-05 are still open.**
+- **T-04 and T-05 are built.** `side-002` ends on "Craft any armor piece at Millie's station and show her". Her
+  lesson (`Map076` ev5 page 2) asks for it and opens `side-002` itself when the rumor-loving lady never did, and her
+  page 4 runs CE113 `refresh crafted armor` (CE106's sibling, over every `survive-*` category) into variable 9. Once
+  she has seen a piece she thanks the duo for the mayor if he has fallen (sw24) and tells them about Leo if the inn
+  kid has sent them looking (`main-004` objective 1). The basin entrance on Triway Way (`Map085` ev6) waits on
+  `side-002`, so armor is learned and made on the main road before the basin, whichever order the forest is met in.
 
 ---
 
