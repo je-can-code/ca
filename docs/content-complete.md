@@ -169,8 +169,8 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 
 ## Side quests and unlocks
 
-- [ ] `side-009`: the unlock beat at Leo
-- [ ] `side-009`: Leo's exchange, formulas for each page and the finale on the sixth
+- [x] `side-009`: the unlock beat at Leo
+- [x] `side-009`: Leo's exchange, formulas for each page and the finale on the sixth
 - [ ] `treis-004`: write the Voltage Baton quest and add it to the quest list
 - [ ] Learning with Treis: its event is still a TODO (CE111)
 - [ ] Fork unlock quest: Fucking Oni's forks
@@ -184,9 +184,9 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Transcendant and Omniscient: a couple of preposterous skills, the reward for the endless grind
 - [ ] The hunt board rebuilt around one named enemy for every group
 - [ ] Legendary recipe unlocks placed in the world
-- [ ] Survival's study shelf has no way in (CE28)
+- [x] Survival's study shelf has no way in (CE28)
 - [ ] Survival's inherited tier, above Millie
-- [ ] Alchemy's "material mastery OK" gate: nothing ever sets switch 128 (CE24)
+- [x] Alchemy's "material mastery OK" gate: nothing ever sets switch 128 (CE24)
 - [ ] The named two-hander's chest wants a recipe (Map321)
 - [ ] Flux Drive homes: Lemon
 - [ ] Flux Drive homes: Viridian
@@ -264,6 +264,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Yelena's line about a utensil merchant who never existed
 - [ ] Icons for the folk quests, their category and the ch5 tag
 - [ ] Clear out the Recipe Journal leftovers (CE31, CE161-163)
+- [ ] J&R's lines that say they wiped out Majik's whole species (Map172, Map284, Map320)
 
 ## Calls to make
 
@@ -271,7 +272,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Is the HUD redesign in 1.0?
 - [ ] Are spawner enemies in 1.0?
 - [ ] One fork quest per trunk, or one per fork?
-- [ ] Names for Sloth and Lust
+- [x] Names for Sloth and Lust
 - [ ] Where the meal happens, and whether Nare gets a map
 - [ ] What fills the drop rows the berries left behind?
 - [ ] Do ingredients need descriptions? 396 items have none
