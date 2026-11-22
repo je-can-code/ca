@@ -161,6 +161,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] `satoru-002`: his outcome
 - [ ] `silverkayla-003`: the destination and the Promise Ring
 - [ ] `leo-002`: Leo's Original formulas
+- [ ] `leo`: the new quest before "The Student", finding out what happened to his master, finished by killing Pride
 - [ ] `alice-002`: the Acolyte's Favor
 - [ ] `iris-001`: the Monsterpedia showing drop rates and node chances (plugin work)
 - [ ] `iris-003`: the black market's stock
