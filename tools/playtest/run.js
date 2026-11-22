@@ -212,7 +212,10 @@ const startDisplay = async display =>
 {
   const { width, height } = DISPLAY_SIZE;
   const screen = `${width}x${height}x24`;
-  const xvfb = spawn('Xvfb', [ `:${display}`, '-screen', '0', screen, '-nolisten', 'tcp' ], { stdio: 'ignore' });
+  // -terminate has the display shut itself down once its last client, the game, lets go of it: the last line of
+  // defence for a run stopped so hard that nothing in this script gets to run.
+  const xvfbArgs = [ `:${display}`, '-screen', '0', screen, '-nolisten', 'tcp', '-terminate' ];
+  const xvfb = spawn('Xvfb', xvfbArgs, { stdio: 'ignore' });
 
   // the socket appearing is the display saying it is ready.
   for (let attempt = 0; attempt < 50; attempt += 1)
@@ -335,6 +338,42 @@ const printEnding = (runDirectory, ending) =>
 };
 
 /**
+ * Takes down everything a run started when the run itself is stopped from outside: `timeout`, Ctrl-C, or a parent
+ * going away. A signal ends this process without running a single `finally`, so without this the hidden display,
+ * the game and the recording outlive the run, and a display left behind holds its number until someone kills it by
+ * hand. Only a SIGKILL gets past this, and then the display still goes once the game does, through `-terminate`.
+ * @param {ChildProcess[]} children Every process this run starts, in the order it starts them; filled in as it goes.
+ */
+const closeOnStop = children =>
+{
+  // the newest goes first, so the display is the last thing to go. The signal goes straight to each pid: a
+  // ChildProcess's own kill() is not delivered once this process has started exiting.
+  const takeDown = () => [ ...children ].reverse()
+    .forEach(child =>
+    {
+      try
+      {
+        process.kill(child.pid, 'SIGTERM');
+      }
+      catch
+      {
+        // it had already gone, which is all that was being asked of it.
+      }
+    });
+
+  // any exit runs this, a crash that skipped the finally in main included.
+  process.on('exit', takeDown);
+
+  // a stopped run takes everything down first, then exits the way the signal asked.
+  [ [ 'SIGINT', 130 ], [ 'SIGTERM', 143 ], [ 'SIGHUP', 129 ] ]
+    .forEach(([ signal, code ]) => process.on(signal, () =>
+    {
+      takeDown();
+      process.exit(code);
+    }));
+};
+
+/**
  * Plays one run from start to finish, and always takes everything it started back down.
  */
 const main = async () =>
@@ -352,10 +391,17 @@ const main = async () =>
   // the profile goes every run, so that nothing one run did leaks into the next.
   rmSync(join(WORK_ROOT, 'profile'), { recursive: true, force: true });
 
+  // from here on, however the run is stopped, nothing it started is left running.
+  const children = [];
+  closeOnStop(children);
+
   const display = findFreeDisplay();
   const xvfb = await startDisplay(display);
+  children.push(xvfb);
   const recording = film ? startFilm(display, runDirectory) : null;
+  if (recording) children.push(recording);
   const game = startGame(display);
+  children.push(game);
 
   let ending = 'unknown';
   try
