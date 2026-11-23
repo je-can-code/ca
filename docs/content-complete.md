@@ -274,11 +274,11 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [x] Is the style picker, and the family prep line behind it, in 1.0? (No: parked for 1.1.0, Jeremy 2026-11-22)
 - [x] Is the HUD redesign in 1.0?
 - [x] Are spawner enemies in 1.0?
-- [ ] One fork quest per trunk, or one per fork?
+- [x] One fork quest per trunk, or one per fork? (Per trunk, Jeremy 2026-11-22: six quests plus the two pointers, one objective per fork; see `quests/fork-quests.md`)
 - [x] Names for Sloth and Lust
-- [ ] Where the meal happens, and whether Nare gets a map
-- [ ] What fills the drop rows the berries left behind?
-- [ ] Do ingredients need descriptions? 396 items have none
+- [x] Where the meal happens, and whether Nare gets a map (Nare, Jeremy 2026-11-22: he builds the map himself, custom at first for the scenes after the last boss; the tower stays post-game)
+- [x] What fills the drop rows the berries left behind? (Nothing, Jeremy 2026-11-22: "Goodbye berries." Every drop comes from `<drops>` tags now)
+- [x] Do ingredients need descriptions? 396 items have none (Yes, Jeremy 2026-11-22. Filled the same day: the 250 rows of `food/recipes.md`, eleven trimmed to fit the help box's two lines, and the 145 raw ingredients, 60 of them his own lines from before the redesign (the old armor rows in git, and `food/backup-items.yaml`), carried over as written. He tempers every description in the database later, in one pass. Soular Energy, which nothing referenced, was deleted at his word: "delete it.")
 - [x] Jerald and Rupert's new sprites from the character generator: in 1.0?
 - [x] Every character sheet a `$` single: in 1.0?
 - [x] Are the onboarding backlog's P1 and P2 beats in 1.0?

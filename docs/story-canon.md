@@ -98,7 +98,7 @@ magic; jragyn = dragon). And per the Maker's framing: it may not be his real nam
 gave himself**, a manifestation of a sin-like self-creation. He may have forgotten his true name. The
 un-happener un-happened his own identity and branded himself with the wound instead: Majik was named for his
 power; Grudj named himself for his grievance. (Contrast, quietly: Jerald and Rupert kept their names and each
-other. Naer traded his person for a tower; Grudj traded his name for a grudge. The whole cosmology's
+other. Nare traded his person for a tower; Grudj traded his name for a grudge. The whole cosmology's
 identity-economy in one villain.)
 
 **The last free Babagen**, survivor of the genocide, and no villain by nature: his people were peaceful jesters,
@@ -706,7 +706,7 @@ to these two when the player moves between them,* and a child stared at it for f
   the math and goes quiet. Same event, two reactions, entirely in character — the player watches the
   strategist arrive somewhere the bruiser cheerfully did not.
 - **Guardrail `PROPOSED (principle)`: let them NOTICE, never let them CONCLUDE.** House style is a cosmology
-  that refuses to explain itself — the Tower of Naer is never explained, the sigils are never explained, the
+  that refuses to explain itself — the Tower of Nare is never explained, the sigils are never explained, the
   Echoes get no journal entry. This lands as an unresolved shiver or not at all. Precedent for pointing at the
   player through the characters without spelling it out: Trainer Lord's Greed extraction — *"something has
   grown from within you"* — where the party's hoarding is the player's hoarding, said aloud, explained never.
@@ -878,11 +878,12 @@ The final fight of the main story. The shape:
 continent.** The refusal the entire game is built on, honored to the last frame. The final scene is
 the meal. (Scene authoring: `OPEN`. The answer: not.) Then the credits — *"Maker: Jeremy E."*
 
-**Venue candidate** `PROPOSED (Jeremy leaning, 2026-07-24)`: **Nare** — the off-screen relaxation town already
+**Venue** `LOCKED (2026-11-22)`: **Nare** — the off-screen relaxation town already
 seeded in shipped dialogue three times over (the rich man from out of town; the naren lady knight; **Satoru,
 who literally traveled from Nare through the Kingdom** — the road exists, the route is walkable) — authored as
 a **small onsen area run by one person, with a tower in the background.** The vacation ends at the hot springs.
-Where else.
+Where else. **The map is Jeremy's to make:** *"That WILL be a map I'll make, it'll be custom for the 'you beat
+the last boss' sequence of scenes at first."*
 
 ---
 
@@ -941,17 +942,18 @@ ungodly amounts of HP from the get-go, fighting a level 6 sin of gluttony become
 boss's enemy row keeps level-scaled stats, and its boss fight adds HP through a passive (Healthy to Healthy++++,
 States 306-310).
 
-**The Tower of Naer** `PROPOSED (Jeremy tempted, 2026-07-24; corrected 2026-11-14)`: the tower behind the Nare
+**The Tower of Nare** `PROPOSED (Jeremy tempted, 2026-07-24; corrected 2026-11-14)`: the tower behind the Nare
 onsen, a post-game "fun romp" dungeon of **hard-coded floors**, derived from an old game idea of his called "Tower of
 Naer" (where "Nare" came from as a kingdom, and where the King and backstory derive from). *"You can think of that
 more like 'Tower of Druaga'- except less stupid puzzles and an ARPG"*. It is not the Ancient Cave-style one; that is
 the Deep Dungeon, above. Source lore, from
-the hand-written 1995 docs: **King Naer traded his princess, Sophia, for the ultimate power in an act to protect
+the hand-written 1995 docs: **King Nare traded his princess, Sophia, for the ultimate power in an act to protect
 his kingdom — that power being a weird multi-world tower that was never explained.** It stays never-explained;
 a multi-world tower fits the Lords/Omnidimensional register without a word of exposition. (Optional whisper,
 unassigned: whatever became of Sophia — the onsen IS run by one person...) Strictly **post-1.0 stretch** — the
 2026 finish line does not hinge on it. Candidate flavor tie: the inherited regression power as the tower's
-per-run reset mechanism.
+per-run reset mechanism. **How you get there** `OPEN (2026-11-22)`: when the tower is built, probably a new inn
+at its base; where that inn is reached from, Jeremy decides later ("its post-game").
 
 **The onsen keeper's identity** `PROPOSED (Jeremy musing, 2026-07-24)`: the two floated options may be one
 answer wearing two names — **Sophia as the mask, Madeleine as the soul.** The traded princess of the 1995 lore
@@ -960,7 +962,7 @@ foothold would speak every world's tongue — a polyglot. Design principle if sh
 only transactionless NPC in the game** — everyone else in Erocia wanted something from the duo; she asks for
 nothing and offers rest. That's what makes the ending land.
 
-**The King of the Tower** `LOCKED (2026-07-24 — "the crown fits. Perfectly. 👑")`: the tower's final floor holds **King Naer himself** — an
+**The King of the Tower** `LOCKED (2026-07-24 — "the crown fits. Perfectly. 👑")`: the tower's final floor holds **King Nare himself** — an
 armored king/knight, vast halls, countless maid-constructs, and **too lordly to bother**. He traded his person
 for ultimate power, got a multi-world tower of mostly-empty floors, and has sat at the top of it ever since,
 using it for nothing. Boss design: maidstaff waves first; then a king who fights in dismissive, devastating,
@@ -972,10 +974,11 @@ different failures. *(For me: this is Joe's own self-described game persona, bui
 probably never play. The good years are already in the DNA — SO3/DDS/Disgaea couch canon → proficiency and the
 slots system. The King is the elegy; the mechanics are the memorial.)*
 
-**Naming footnote:** "Tower of Naer" → the town is "Nare" because Naer collides with a certain drugstore
-hair-removal cream (a fact discovered with appropriate horror). Free lore beat, optional: the town at the
-tower's foot *changed its spelling* — one vowel of disavowal, so as to no longer bear the king's name. The
-rename the real world forced becomes the town's quiet opinion of its lord.
+**Naming footnote** `LOCKED (2026-11-22)`: one spelling, **Nare**, for the town, the tower and the king. The 1995
+docs and JR2 spell it "Naer", which collides with a certain drugstore hair-removal cream (a fact discovered with
+appropriate horror). Jeremy, 2026-11-22: "I tried to make it Asian sounding instead of like a hair removal product
+😂. Use the common one." Every shipped line already says Nare. The old optional lore beat, where the town changed
+one vowel to disavow its king, goes with the split.
 
 **The fox, resolved** `LOCKED (2026-07-24)`: it was **Trainer Lord's pet** all along — canonized in a
 post-game stinger, not the main plot. Drafted scene:
@@ -999,7 +1002,7 @@ post-game stinger, not the main plot. Drafted scene:
 | 6 | Greed thresholds (X SDPs / Y recipes / Z foods) | `OPEN` — pends end-of-Ch4 data |
 | 7 | Final level ladder (gent ~150 et al.) | `OPEN` — ballparks |
 | 8 | "What Lords would Jerald and Rupert even be?" | flavor musing — the ending quietly answers it |
-| 9 | **Nare** (onsen epilogue venue) + **Tower of Naer** (post-game Ancient-Cave romp) | `PROPOSED` — Jeremy leaning/tempted; tower is post-1.0 stretch |
+| 9 | **Nare** (onsen epilogue venue) + **Tower of Nare** (post-game romp of hard-coded floors) | **Venue `LOCKED (2026-11-22)`: Nare**, a map Jeremy makes himself, first for the scenes after the last boss. Tower `PROPOSED`, post-game; probably reached from a new inn at its base |
 | 10 | ~~The gent's NAME~~ **RESOLVED: Grudj** | `LOCKED (2026-07-24)` — self-given, a brand of his own wound; his true name may be forgotten, even by him |
 | 11 | Alex's (v4 protagonist) placement in Raevula | `OPEN` |
 | 12 | Silver & Kayla = the v3 duo? | `PROPOSED` — see The Erasures |

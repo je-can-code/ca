@@ -63,7 +63,7 @@ The four "why nots" fall out of the rule:
   taking looks like for him.
 - **Why not Raevula?** He erased it four times and it kept coming back, so he hid. A town has tenants,
   and tenants are exactly the uninvited adventurers he has spent twenty years un-happening.
-- **Why not strive for more?** "More" is everyone else's arc. Naer traded his person for a tower; Envy
+- **Why not strive for more?** "More" is everyone else's arc. Nare traded his person for a tower; Envy
   wanted the power. Grudj is the one being in the cosmology who wanted less, exactly one thing, and the
   castle is precisely as much building as that want requires. Ambition would have made him a Lord. A
   grudge made him a squatter in a frozen house.

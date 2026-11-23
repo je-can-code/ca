@@ -192,7 +192,7 @@ A running gag about clocks, in a game called *Disaster Of Time*, where the villa
 | **Jeremy** | Protagonist. Ex-god. Sleeps in caves. Kills people who wake him. | `RECOVERED` (actor data) |
 | **Robert** | Protagonist. Recruited on the beach. Willing to concuss a friend for a plan. | `RECOVERED` (actor data) |
 | **Sabre** | Antagonist. Named for the sword. Holds a castle, commands minions, holds at least one chrono artifact, hunted across three timelines, and is on nemesis terms with Jeremy by the frame story's present. | `REMEMBERED`; castle `RECOVERED` |
-| **Naer** | Was "debating whether to conquer the four elemental goddesses, or gather and manipulate the crystal pair." Never seen on screen in surviving material. | `RECOVERED` (mention only) |
+| **Naer** (CA spells it Nare) | Was "debating whether to conquer the four elemental goddesses, or gather and manipulate the crystal pair." Never seen on screen in surviving material. | `RECOVERED` (mention only) |
 | **Melissa** | Forest elf/nymph guide, third party member. Originally **Jeremy's love interest** in the childhood roleplay — lovey-dovey, but deadly serious about the sanctity of her forest. See [origins-the-roleplay.md](./origins-the-roleplay.md). Role beyond guiding: `LOST` | `REMEMBERED` |
 | **The orc** | First boss. Drops the Sparkling Gem. | `REMEMBERED` |
 | **Angela** | Robert's love interest from the childhood roleplay — no-nonsense, genuinely strong. **Possibly** the unbuilt fourth recruit; unconfirmed. | `SPECULATION` |
@@ -237,9 +237,10 @@ Verified against [story-canon.md](./story-canon.md):
   a post-1.0 patch).
 - **The four elemental goddesses.** The `RECOVERED` monologue puts Naer's dilemma as *conquer the four
   elementals* **or** *take the artifacts*. CA's foundation is four rescued elementals and the pact; canon also
-  has King Naer trading his princess Sophia "for the ultimate power" without ever saying what that power was.
-- **Whose castle?** Sabre's castle is the frame story's setting. Canon's postgame has the **Tower of Naer**.
-  Whether Sabre's castle later becomes Naer's is an open thought of Jeremy's, not a decision.
+  has King Nare (CA's spelling of the name) trading his princess Sophia "for the ultimate power" without ever
+  saying what that power was.
+- **Whose castle?** Sabre's castle is the frame story's setting. Canon's postgame has the **Tower of Nare**.
+  Whether Sabre's castle later becomes the king's is an open thought of Jeremy's, not a decision.
 - **"I came to this planet"** corroborates canon's *"cross-dimensional travelers; they did not fly a ship here."*
 - **"just after we were seperated"** — Jerald and Rupert were split up after J&R1. CA canon has no such beat.
 - **"You never know how useful they can be"** is, verbatim in 2011, the joke Grudj's grievance is built on:
@@ -299,7 +300,7 @@ does the player never learn who that was?
 Unanswered as of writing. Recorded so they are not lost a second time.
 
 1. **What happens when the Chronocryst and Chronogeist are brought together?** Something awful was intended.
-2. **Is JR2's Naer the same as CA's King Naer?** Did he have a kingdom, a tower, or a princess in JR2?
+2. **Is JR2's Naer the same as CA's King Nare?** Did he have a kingdom, a tower, or a princess in JR2?
 3. **Who held which artifact?** Sabre uses the Chronocryst. Did he also hold the Chronogeist, or did Naer?
 4. **Who is Sabre,** and how did the nemesis relationship escalate from "killed my nap" to "great nemesis"?
 5. **Why were Jeremy and Robert separated** after J&R1, and why was Jeremy sleeping in a mine?

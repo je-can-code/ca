@@ -1,7 +1,7 @@
 # Fork Quests
 
-Status as of 2026-11-07: **design in progress. Nothing is built: no quest data, no events, no dialogue in
-the game.** Jerald's half is sketched and approved. Rupert's half has a direction and two proposed scenes,
+Status as of 2026-11-22: **design in progress. Nothing is built: no quest data, no events, no dialogue in
+the game.** One quest per trunk is decided. Jerald's half is sketched and approved. Rupert's half has a direction and two proposed scenes,
 and five of his forks have nothing yet.
 
 Labels used below: **Decided** is Jeremy's call. **Direction** is his idea, not pinned down yet.
@@ -22,9 +22,13 @@ clearly enough that skipping one is a decision.
 **Decided (2026-11-06):** a pointer quest each for Jerald and Rupert, sending the player to whoever unlocks
 the forks. Jerald's pointer is Amy: "Amy points Jerald to someone, one person per trunk."
 
-**Working count:** six giver quests, one per trunk, plus the two pointers. Each fork still gets its own
-scene, so a giver's quest has one objective per fork. The `content-complete.md` line "One fork quest per
-trunk, or one per fork?" is still unticked.
+**Decided (2026-11-22): one quest per trunk,** six in all, plus the two pointers. Each fork still gets its own
+scene, so a trunk's quest has one objective per fork. In Jeremy's words: "One quest unlocks two different
+people perceiving Jerald as either a Raving Lunatic or a Painbringer." The forks don't have to land in order:
+J-OMNI-Quests has no plugin command for a single objective, but a script call,
+`QuestManager.quest(key).flagObjectiveAsCompleted(id)`, completes any objective by its id. The quest only completes
+once every objective is completed or missed, and an unfinished objective stays listed in the Questopedia unless it is
+marked hidden, so a skipped fork keeps showing.
 
 **Decided, Jerald's half (2026-11-06, "That is logical."):** Amy passes on a rumor about what someone has
 been calling Jerald. Whoever started it was looking for exactly that kind of person, so the rumor turns into
@@ -40,6 +44,16 @@ something happens, and he declares the name himself. In Jeremy's words:
 
 The class docs already agree: Lavos is "Self-proclaimed", The Architect and The Debilitator are
 "Self-assigned", all of them "Completely unironic." Rupert tells you what he is.
+
+**Direction (2026-11-22):** Rupert "will just declare himself stuff based on ... whatever he is doing," and
+Jerald answers each one. Jeremy's sketch:
+
+> R: "I'm an Architect of the Universe!"
+> J: "Yeah basically."
+> R: "I'm the bringer of doom, LAVOS!!!"
+> J: "You do make it rain fire sometimes."
+> R: "I shall Methodically Dismantle your soul."
+> J: "Are you threatening me?"
 
 ## How a fork unlocks
 
@@ -278,7 +292,7 @@ capstone lines in `content-complete.md`).
 2. **Rupert's pointer.**
 3. **When Jerald's pointer fires.** Not on mastery (see the AP math above). One candidate, proposed: Amy's own
    doc already has her flagging the duo down once `main-003` sets the town buzzing.
-4. **Per trunk or per fork:** settle the `content-complete.md` line.
+4. ~~**Per trunk or per fork**~~ **settled 2026-11-22: per trunk** (see The shape).
 5. **Try-Hard is a 1v1, so Rupert has to sit out,** and no shipped event ever removes a party member.
 6. **Contemptuous needs Vanderslop rich and outside the inn, and `richpoor-007` ends both.** A player who got
    that far in his chain first needs a fallback.
@@ -307,8 +321,8 @@ capstone lines in `content-complete.md`).
 
 ## Docs that will need to agree once this settles
 
-- `docs/content-complete.md`: the six fork quest lines, the three capstone lines, and the per trunk or per
-  fork question.
+- `docs/content-complete.md`: the six fork quest lines and the three capstone lines. (Its per trunk or per
+  fork question is ticked: per trunk.)
 - `docs/story-canon.md`, chapter 4's phase intent, if fork unlocks land earlier (item 12).
 - `docs/classes/main.md`, `quests/main.md` and the four giver docs (Amy, Cecil, Peter, Silver and Kayla) only
   point here. Keep the detail in this doc so there's one copy to update.
