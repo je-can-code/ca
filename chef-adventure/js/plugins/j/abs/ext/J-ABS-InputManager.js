@@ -123,6 +123,45 @@ var JABS_Button = class {
 	*/
 	static CombatSkill4 = "CombatSkill4";
 	/**
+	* The "ally charge" order, a flick of the right stick up by default.
+	* Sends the party's allies charging in, whatever their stance would have them wait for.
+	* @type {string}
+	*/
+	static AllyCharge = "AllyCharge";
+	/**
+	* The "ally pull back" order, a flick of the right stick down by default.
+	* Drops the party's allies out of the fight and keeps them out of it for a while.
+	* @type {string}
+	*/
+	static AllyPullBack = "AllyPullBack";
+	/**
+	* The "stance: safer" order, a flick of the right stick left by default.
+	* Steps the party's stance one rung toward hanging back behind the leader.
+	* @type {string}
+	*/
+	static AllyStanceSafer = "AllyStanceSafer";
+	/**
+	* The "stance: bolder" order, a flick of the right stick right by default.
+	* Steps the party's stance one rung toward leading the charge ahead of the leader.
+	* @type {string}
+	*/
+	static AllyStanceBolder = "AllyStanceBolder";
+	/**
+	* Whether the ally orders have anyone to carry them out.
+	*
+	* The ally order inputs only give orders- charge in, pull back, step the stance- and the allies who
+	* follow them are J-ABS-AllyAI's to direct. This plugin works without that one, and when it is absent
+	* there is nobody listening, so the inputs are ignored and their remap rows are left out rather than
+	* offering the player buttons that do nothing.
+	*
+	* One answer serves both the controller and the remap screen, so the two can never disagree about
+	* whether the orders exist. True when J-ABS-AllyAI is installed to carry the orders out.
+	* @returns {boolean}
+	*/
+	static isAllyCommandAvailable() {
+		return J.ABS.EXT.ALLYAI !== undefined;
+	}
+	/**
 	* Gets the logical buttons that combine to produce each combat skill input.
 	*
 	* Combat skills are not independently bindable- each one is the {@link JABS_Button.SkillTrigger}
@@ -167,7 +206,11 @@ var JABS_Button = class {
 			this.Strafe,
 			this.Rotate,
 			this.Menu,
-			this.Select
+			this.Select,
+			this.AllyCharge,
+			this.AllyPullBack,
+			this.AllyStanceSafer,
+			this.AllyStanceBolder
 		];
 		const filtering = (buttonInput) => okInputs.includes(buttonInput);
 		return this.allButtons().filter(filtering);
@@ -193,7 +236,11 @@ var JABS_Button = class {
 			this.CombatSkill3,
 			this.CombatSkill4,
 			this.Menu,
-			this.Select
+			this.Select,
+			this.AllyCharge,
+			this.AllyPullBack,
+			this.AllyStanceSafer,
+			this.AllyStanceBolder
 		];
 	}
 };
@@ -266,6 +313,10 @@ var JABS_StandardController = class extends JABS_BaseController {
 		this.inputMapping.set(JABS_Button.CombatSkill2, [J.ABS.EXT.INPUT.Symbols.CombatSkill2]);
 		this.inputMapping.set(JABS_Button.CombatSkill3, [J.ABS.EXT.INPUT.Symbols.CombatSkill3]);
 		this.inputMapping.set(JABS_Button.CombatSkill4, [J.ABS.EXT.INPUT.Symbols.CombatSkill4]);
+		this.inputMapping.set(JABS_Button.AllyCharge, [J.ABS.EXT.INPUT.Symbols.RStickUp]);
+		this.inputMapping.set(JABS_Button.AllyPullBack, [J.ABS.EXT.INPUT.Symbols.RStickDown]);
+		this.inputMapping.set(JABS_Button.AllyStanceSafer, [J.ABS.EXT.INPUT.Symbols.RStickLeft]);
+		this.inputMapping.set(JABS_Button.AllyStanceBolder, [J.ABS.EXT.INPUT.Symbols.RStickRight]);
 	}
 	/**
 	* Builds a plain-object of the default mappings without mutating this controller.
@@ -290,6 +341,10 @@ var JABS_StandardController = class extends JABS_BaseController {
 		defaults[JABS_Button.CombatSkill2] = [J.ABS.EXT.INPUT.Symbols.CombatSkill2];
 		defaults[JABS_Button.CombatSkill3] = [J.ABS.EXT.INPUT.Symbols.CombatSkill3];
 		defaults[JABS_Button.CombatSkill4] = [J.ABS.EXT.INPUT.Symbols.CombatSkill4];
+		defaults[JABS_Button.AllyCharge] = [J.ABS.EXT.INPUT.Symbols.RStickUp];
+		defaults[JABS_Button.AllyPullBack] = [J.ABS.EXT.INPUT.Symbols.RStickDown];
+		defaults[JABS_Button.AllyStanceSafer] = [J.ABS.EXT.INPUT.Symbols.RStickLeft];
+		defaults[JABS_Button.AllyStanceBolder] = [J.ABS.EXT.INPUT.Symbols.RStickRight];
 		return defaults;
 	}
 	/**
@@ -396,6 +451,7 @@ var JABS_StandardController = class extends JABS_BaseController {
 		this.updateCombatAction2();
 		this.updateCombatAction3();
 		this.updateCombatAction4();
+		this.updateAllyOrders();
 		this.updateGuardCommand();
 		this.updateStrafeCommand();
 		this.updateRotateCommand();
@@ -735,6 +791,29 @@ var JABS_StandardController = class extends JABS_BaseController {
 		return false;
 	}
 	/**
+	* Monitors and takes action based on player input regarding the orders given to allies.
+	* These are flicks of the right stick by default: up to charge, down to pull back, and left and right to
+	* step the party's stance safer or bolder.
+	*
+	* The orders are only listened for while there are allies to obey them, which takes J-ABS-AllyAI. Each
+	* order is its own button, so a flick that somehow triggered two of them on one frame carries out both.
+	*/
+	updateAllyOrders() {
+		if (!JABS_Button.isAllyCommandAvailable()) return;
+		if (this.isActionTriggered(JABS_Button.AllyCharge)) {
+			JABS_InputAdapter.performAllyCharge();
+		}
+		if (this.isActionTriggered(JABS_Button.AllyPullBack)) {
+			JABS_InputAdapter.performAllyPullBack();
+		}
+		if (this.isActionTriggered(JABS_Button.AllyStanceSafer)) {
+			JABS_InputAdapter.performAllyStanceSafer();
+		}
+		if (this.isActionTriggered(JABS_Button.AllyStanceBolder)) {
+			JABS_InputAdapter.performAllyStanceBolder();
+		}
+	}
+	/**
 	* Monitors and takes action based on player input regarding the strafe action.
 	* This is `L2` on the gamepad by default.
 	*/
@@ -864,6 +943,10 @@ var JabsInputSymbols = class {
 	static DPadDown = "dpad-down";
 	static DPadLeft = "dpad-left";
 	static DPadRight = "dpad-right";
+	static RStickUp = "rstick-up";
+	static RStickDown = "rstick-down";
+	static RStickLeft = "rstick-left";
+	static RStickRight = "rstick-right";
 	static CombatSkill1 = "combat-skill-1";
 	static CombatSkill2 = "combat-skill-2";
 	static CombatSkill3 = "combat-skill-3";
@@ -925,6 +1008,10 @@ J.ABS.EXT.INPUT.Symbols.DPadUp = JabsInputSymbols.DPadUp;
 J.ABS.EXT.INPUT.Symbols.DPadDown = JabsInputSymbols.DPadDown;
 J.ABS.EXT.INPUT.Symbols.DPadLeft = JabsInputSymbols.DPadLeft;
 J.ABS.EXT.INPUT.Symbols.DPadRight = JabsInputSymbols.DPadRight;
+J.ABS.EXT.INPUT.Symbols.RStickUp = JabsInputSymbols.RStickUp;
+J.ABS.EXT.INPUT.Symbols.RStickDown = JabsInputSymbols.RStickDown;
+J.ABS.EXT.INPUT.Symbols.RStickLeft = JabsInputSymbols.RStickLeft;
+J.ABS.EXT.INPUT.Symbols.RStickRight = JabsInputSymbols.RStickRight;
 J.ABS.EXT.INPUT.Symbols.CombatSkill1 = JabsInputSymbols.CombatSkill1;
 J.ABS.EXT.INPUT.Symbols.CombatSkill2 = JabsInputSymbols.CombatSkill2;
 J.ABS.EXT.INPUT.Symbols.CombatSkill3 = JabsInputSymbols.CombatSkill3;
@@ -1510,6 +1597,10 @@ Input.ensureRemapBootstrapped = function() {
 	d[JABS_Button.CombatSkill2] = [JabsInputSymbols.CombatSkill2];
 	d[JABS_Button.CombatSkill3] = [JabsInputSymbols.CombatSkill3];
 	d[JABS_Button.CombatSkill4] = [JabsInputSymbols.CombatSkill4];
+	d[JABS_Button.AllyCharge] = [JabsInputSymbols.RStickUp];
+	d[JABS_Button.AllyPullBack] = [JabsInputSymbols.RStickDown];
+	d[JABS_Button.AllyStanceSafer] = [JabsInputSymbols.RStickLeft];
+	d[JABS_Button.AllyStanceBolder] = [JabsInputSymbols.RStickRight];
 	Input.seedDefaultBindings("JABS", d);
 	Input.getAllBindings("JABS");
 	Input.registerSymbolLabel(JabsInputSymbols.L3, "L3");
@@ -1521,12 +1612,20 @@ Input.ensureRemapBootstrapped = function() {
 	Input.registerSymbolLabel(JabsInputSymbols.DPadDown, "D-Pad Down");
 	Input.registerSymbolLabel(JabsInputSymbols.DPadLeft, "D-Pad Left");
 	Input.registerSymbolLabel(JabsInputSymbols.DPadRight, "D-Pad Right");
+	Input.registerSymbolLabel(JabsInputSymbols.RStickUp, "R-Stick Up");
+	Input.registerSymbolLabel(JabsInputSymbols.RStickDown, "R-Stick Down");
+	Input.registerSymbolLabel(JabsInputSymbols.RStickLeft, "R-Stick Left");
+	Input.registerSymbolLabel(JabsInputSymbols.RStickRight, "R-Stick Right");
 	Input.registerRemapCaptureSymbol(JabsInputSymbols.L3);
 	Input.registerRemapCaptureSymbol(JabsInputSymbols.R3);
 	Input.registerRemapCaptureSymbol(JabsInputSymbols.DPadUp);
 	Input.registerRemapCaptureSymbol(JabsInputSymbols.DPadDown);
 	Input.registerRemapCaptureSymbol(JabsInputSymbols.DPadLeft);
 	Input.registerRemapCaptureSymbol(JabsInputSymbols.DPadRight);
+	Input.registerRemapCaptureSymbol(JabsInputSymbols.RStickUp);
+	Input.registerRemapCaptureSymbol(JabsInputSymbols.RStickDown);
+	Input.registerRemapCaptureSymbol(JabsInputSymbols.RStickLeft);
+	Input.registerRemapCaptureSymbol(JabsInputSymbols.RStickRight);
 	Input.bootstrapAllKeyboardKeysForCapture();
 	Input._jRegistries.bootstrapped = true;
 };
@@ -1655,6 +1754,15 @@ Input._keycodeLabelFor = function(code, fallback) {
 */
 Input._axisThreshold = .5;
 /**
+* How far the right stick must be pushed for the push to count as a flick, from 0 to 1.
+*
+* Firmer than the left stick's threshold on purpose. The left stick walks, so a light touch should move
+* the player; a right stick flick gives an order, and a thumb resting on the stick must not give one by
+* accident.
+* @type {number}
+*/
+Input._flickThreshold = .7;
+/**
 * Sets the analog stick threshold.
 * @param {number} v The new threshold (0.05–0.90 recommended).
 */
@@ -1690,6 +1798,7 @@ Input._updateGamepadState = function(gamepad) {
 	if (!gamepad.axes || gamepad.axes.length < 2) {
 		return;
 	}
+	Input._normalizeRightStickFlicks(gamepad, s, padState);
 	const s0 = Input._snapshotMergedDirections(s);
 	const flags = Input._resolveAxesFlags(gamepad);
 	Input._applyAxesToPerPad(padState, flags);
@@ -1740,6 +1849,44 @@ Input._normalizeDpadFromButtons = function(gamepad, s, padState) {
 	padState["dpad-down"] = dpd;
 	padState["dpad-left"] = dpl;
 	padState["dpad-right"] = dpr;
+};
+/**
+* Turns the right stick into four buttons, one per direction it can be flicked, and writes them into both
+* the merged current state and the per-pad snapshot, the same way the D-pad's buttons are written.
+*
+* Nothing in the game reads the right stick as a stick: the player walks with the left one. That leaves its
+* four directions free to be buttons, which the remap screen can bind like any other.
+* @param {Gamepad} gamepad The polled gamepad.
+* @param {object} s The merged current state bag.
+* @param {object} padState The per-pad snapshot for this device.
+*/
+Input._normalizeRightStickFlicks = function(gamepad, s, padState) {
+	const flicks = Input._resolveRightStickFlicks(gamepad);
+	Object.keys(flicks).forEach((symbol) => {
+		s[symbol] = flicks[symbol];
+		padState[symbol] = flicks[symbol];
+	});
+};
+/**
+* Works out which direction the right stick is flicked this frame.
+*
+* Only the axis pushed harder counts, so a flick that drifts off the straight line gives exactly one order
+* rather than two. A pad reporting fewer than four axes has no right stick, and is never flicked.
+* @param {Gamepad} gamepad The polled gamepad.
+* @returns {Object<string, boolean>} Whether each right stick direction is flicked, by its symbol.
+*/
+Input._resolveRightStickFlicks = function(gamepad) {
+	const hasRightStick = gamepad.axes.length > 3;
+	const rightX = hasRightStick ? gamepad.axes[2] : 0;
+	const rightY = hasRightStick ? gamepad.axes[3] : 0;
+	const isHorizontal = Math.abs(rightX) >= Math.abs(rightY);
+	const threshold = Input._flickThreshold;
+	const flicks = {};
+	flicks[JabsInputSymbols.RStickUp] = !isHorizontal && rightY <= -threshold;
+	flicks[JabsInputSymbols.RStickDown] = !isHorizontal && rightY >= threshold;
+	flicks[JabsInputSymbols.RStickLeft] = isHorizontal && rightX <= -threshold;
+	flicks[JabsInputSymbols.RStickRight] = isHorizontal && rightX >= threshold;
+	return flicks;
 };
 /**
 * Captures the current merged cardinal directions into a plain object.
@@ -1847,6 +1994,22 @@ Input._rebuildMergedDirections = function(s, kbdApprox, axesNow) {
 	s.right = kbdApprox.right === true || axesNow.right === true;
 };
 /**
+* Copies a single namespace's binding map, so the copy can be changed without touching the original.
+* Every value is copied as an array of its own; anything that is not an array is copied as unbound.
+* @param {Object<string, string[]>} map The binding map to copy.
+* @returns {Object<string, string[]>}
+*/
+Input._cloneBindingMap = function(map) {
+	const clone = Object.create(null);
+	const keys = Object.keys(map);
+	for (let k = 0; k < keys.length; k++) {
+		const key = keys[k];
+		const arr = map[key];
+		clone[key] = Array.isArray(arr) ? arr.slice(0) : [];
+	}
+	return clone;
+};
+/**
 * Exports a deep-cloned snapshot of all live namespace bindings for save.
 * Shape: { [ns: string]: { [key: string]: string[] } }
 * @returns {Object<string, Object<string, string[]>>}
@@ -1858,20 +2021,22 @@ Input.exportAllBindingsForSave = function() {
 	for (let i = 0; i < namespaces.length; i++) {
 		const ns = namespaces[i];
 		const map = b[ns] || Object.create(null);
-		const clone = Object.create(null);
-		const keys = Object.keys(map);
-		for (let k = 0; k < keys.length; k++) {
-			const key = keys[k];
-			const arr = map[key];
-			clone[key] = Array.isArray(arr) ? arr.slice(0) : [];
-		}
-		out[ns] = clone;
+		out[ns] = Input._cloneBindingMap(map);
 	}
 	return out;
 };
 /**
 * Imports all namespace bindings from a saved snapshot into the live registry.
 * Any namespaces absent from the snapshot retain their current (bootstrapped) values.
+*
+* Within a namespace, the saved keys are laid over the live ones rather than replacing the whole
+* namespace. The live bindings are the bootstrapped defaults by the time this runs, and a snapshot is
+* only ever as new as the build that wrote it- so an action added to a namespace after the player's
+* snapshot was taken is simply absent from it. Replacing the namespace wholesale would erase that
+* action's default and leave it bound to nothing, with no way for the player to tell why. Laying the
+* snapshot over the defaults keeps every choice the player actually made, a deliberate unbind
+* included, while anything they never had the chance to choose arrives at its default. It is the same
+* principle the save system follows when it seeds defaults before decoding (see docs/save-system.md).
 * @param {Object<string, Object<string, string[]>>} saved The snapshot to import.
 */
 Input.importAllBindingsFromSave = function(saved) {
@@ -1880,14 +2045,9 @@ Input.importAllBindingsFromSave = function(saved) {
 	for (let i = 0; i < namespaces.length; i++) {
 		const ns = namespaces[i];
 		const map = saved[ns] || Object.create(null);
-		const clone = Object.create(null);
-		const keys = Object.keys(map);
-		for (let k = 0; k < keys.length; k++) {
-			const key = keys[k];
-			const arr = map[key];
-			clone[key] = Array.isArray(arr) ? arr.slice(0) : [];
-		}
-		b[ns] = clone;
+		const live = Input._cloneBindingMap(b[ns] || Object.create(null));
+		const chosen = Input._cloneBindingMap(map);
+		b[ns] = Object.assign(live, chosen);
 	}
 };
 
@@ -2034,13 +2194,27 @@ Game_System.prototype.setInputBindingsSnapshot = function(snapshot) {
 };
 /**
 * Applies a stored mapping (if present) to the given controller.
+*
+* The stored mapping is laid over the controller's own defaults rather than handed over alone, because
+* applying a mapping replaces everything the controller had. A stored mapping is only ever as new as the
+* build that wrote it, so a button added to the controller after the player's configuration was saved is
+* simply absent from it- and on its own, that absence would leave the new button bound to nothing, with
+* no way for the player to tell why. Starting from the defaults keeps every choice the player actually
+* made, a deliberate unbind included, while anything they never had the chance to choose arrives at its
+* default. It is the same principle the save system follows when it seeds defaults before decoding
+* (see docs/save-system.md).
 * @param {string} controllerKey The key used to look up the mapping.
 * @param {JABS_StandardController} controller The input controller to apply to.
 */
 Game_System.prototype.applyJabsInputConfigToController = function(controllerKey, controller) {
 	const mapping = this.getJabsInputConfig(controllerKey);
 	if (!mapping) return;
-	controller.setAllInputs(mapping);
+	const defaults = controller.buildDefaultMapping();
+	const merged = {
+		...defaults,
+		...mapping
+	};
+	controller.setAllInputs(merged);
 };
 /**
 * Captures current mappings from all known controllers into system storage.
@@ -2506,7 +2680,8 @@ var Window_JabsRemapCommand = class extends Window_Command {
 var JABS_REMAP_HEADER_HELP = {
 	"Primary Actions": "Primary actions used moment-to-moment: mainhand/offhand attacks and tools.\n" + "These are your core mapped buttons for direct, immediate use.",
 	"Secondary Actions": "Secondary and modifier inputs: Skill Trigger, Rotate, Strafe, Dodge.\n" + "Hold or tap to modify movement or enable combat skill slots.",
-	"Functional Actions": "Functional shortcuts unrelated to attacks: open the JABS menu, cycle party leader.\n" + "Useful for management between encounters or to swap leaders on the fly."
+	"Functional Actions": "Functional shortcuts unrelated to attacks: open the JABS menu, cycle party leader.\n" + "Useful for management between encounters or to swap leaders on the fly.",
+	"Ally Commands": "Orders for your allies, given mid-fight: send them charging in, call them back,\n" + "or step their stance safer or bolder without opening a menu."
 };
 /**
 * Cached labels + help text for logical JABS buttons (built once; keys use {@link JABS_Button}).
@@ -2528,6 +2703,10 @@ function jabsRemapActionLookupMaps() {
 	labels[JABS_Button.Guard] = "Guard";
 	labels[JABS_Button.Menu] = "Menu";
 	labels[JABS_Button.Select] = "Party Cycle";
+	labels[JABS_Button.AllyCharge] = "Ally Charge";
+	labels[JABS_Button.AllyPullBack] = "Ally Pull Back";
+	labels[JABS_Button.AllyStanceSafer] = "Stance: Safer";
+	labels[JABS_Button.AllyStanceBolder] = "Stance: Bolder";
 	const compositions = JABS_Button.combatSkillCompositions();
 	Object.keys(compositions).forEach((combatSkillButton) => {
 		labels[combatSkillButton] = compositions[combatSkillButton].map((component) => labels[component]).join(" + ");
@@ -2548,6 +2727,10 @@ function jabsRemapActionLookupMaps() {
 	help[JABS_Button.CombatSkill2] = "Trigger Combat Skill 2.\nUsed with the Skill Trigger modifier.";
 	help[JABS_Button.CombatSkill3] = "Trigger Combat Skill 3.\nUsed with the Skill Trigger modifier.";
 	help[JABS_Button.CombatSkill4] = "Trigger Combat Skill 4.\nUsed with the Skill Trigger modifier.";
+	help[JABS_Button.AllyCharge] = "Send your allies charging in.\nThey go after whatever you are fighting.";
+	help[JABS_Button.AllyPullBack] = "Call your allies back out of the fight.\nThey stay out of it for a few seconds.";
+	help[JABS_Button.AllyStanceSafer] = "Step your allies' stance one rung safer.\nToward hanging back behind you.";
+	help[JABS_Button.AllyStanceBolder] = "Step your allies' stance one rung bolder.\nToward leading the charge ahead of you.";
 	jabsRemapActionLookupMaps._cached = {
 		labels,
 		help
@@ -2697,7 +2880,7 @@ var Window_JabsRemapActions = class extends Window_Command {
 	* @returns {{ title: string, buttons: string[] }[]}
 	*/
 	_builtinSectionSpecs() {
-		return [
+		const specs = [
 			{
 				title: "Primary Actions",
 				buttons: [
@@ -2720,6 +2903,18 @@ var Window_JabsRemapActions = class extends Window_Command {
 				buttons: [JABS_Button.Menu, JABS_Button.Select]
 			}
 		];
+		if (JABS_Button.isAllyCommandAvailable()) {
+			specs.push({
+				title: "Ally Commands",
+				buttons: [
+					JABS_Button.AllyCharge,
+					JABS_Button.AllyPullBack,
+					JABS_Button.AllyStanceSafer,
+					JABS_Button.AllyStanceBolder
+				]
+			});
+		}
+		return specs;
 	}
 	/**
 	* Appends built-in header + action rows between pre/post extension hooks.
