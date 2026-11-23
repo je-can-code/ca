@@ -307,10 +307,10 @@
     {
       "key": "GHO_3",
       "identity": {
-        "name": "===TBD GHO-5",
+        "name": "Things That Go Bump",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[103] never actually does anything scary. It just hovers there, being spooky at you.|Learn to be that intangible and the hits start going right through you, too."
       },
       "progression": {
         "maxRank": 10,
@@ -361,10 +361,10 @@
     {
       "key": "GHO_4",
       "identity": {
-        "name": "===TBD GHO-7",
+        "name": "Haunted Housewarming",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[104] moved into a nice little manor three hundred years ago and never paid a cent of rent.|You'd be amazed how much magic builds up when you simply refuse to leave."
       },
       "progression": {
         "maxRank": 10,
@@ -421,10 +421,10 @@
     {
       "key": "GHO_5",
       "identity": {
-        "name": "===TBD GHO-10",
+        "name": "Reap What You Sow",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[105] has been collecting souls since before anyone thought to invent the calendar.|It finally tried to collect yours, and you declined. Rudely. With violence."
       },
       "progression": {
         "maxRank": 20,
@@ -606,10 +606,10 @@
     {
       "key": "REB_3",
       "identity": {
-        "name": "===TBD REB-5",
+        "name": "Shroud of Gloom",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Wrapped head to toe in a burial shroud, \\enemy[113] shrugs off spells like they're light drizzle.|Wear the gloom long enough and you will too. Just don't ask where the shroud has been."
       },
       "progression": {
         "maxRank": 10,
@@ -660,10 +660,10 @@
     {
       "key": "REB_4",
       "identity": {
-        "name": "===TBD REB-7",
+        "name": "Hooded Dread",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Nobody has ever seen what's under \\enemy[114]'s hood, and it would very much like to keep it that way.|Some mysteries are best left unhooded. You learned that one the hard way."
       },
       "progression": {
         "maxRank": 10,
@@ -714,10 +714,10 @@
     {
       "key": "REB_5",
       "identity": {
-        "name": "===TBD REB-10",
+        "name": "Unfinished Business",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[115] crawled back out of its grave because it had unfinished business.|You were the unfinished business. Now you're the one walking away from it."
       },
       "progression": {
         "maxRank": 20,
@@ -893,10 +893,10 @@
     {
       "key": "WIL_3",
       "identity": {
-        "name": "===TBD WIL-5",
+        "name": "Soul on Fire",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "A hitodama is a human soul that drifts off as a ball of flame, which feels like a waste of a good soul.|\\enemy[123] disagrees, loudly, and at roughly the temperature of the sun."
       },
       "progression": {
         "maxRank": 10,
@@ -947,10 +947,10 @@
     {
       "key": "WIL_4",
       "identity": {
-        "name": "===TBD WIL-7",
+        "name": "Oni Bonfire",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[124] is demon fire, the kind that floats over swamps and lures travelers in to die.|You followed it in anyway. It was not expecting you to bring a knife."
       },
       "progression": {
         "maxRank": 10,
@@ -1007,10 +1007,10 @@
     {
       "key": "WIL_5",
       "identity": {
-        "name": "===TBD WIL-10",
+        "name": "Wheel of Misfortune",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[125] is a flaming cartwheel with a screaming face on it, which is a lot to process at once.|It has rolled over a great many people. It will not be rolling over anyone else."
       },
       "progression": {
         "maxRank": 20,
@@ -1132,10 +1132,10 @@
     {
       "key": "BON_2",
       "identity": {
-        "name": "===TBD BON-3",
+        "name": "Bad to the Bone",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[132] was a very good boy who unfortunately died and became a very bad boy.|It still plays fetch. It fetches your femur, mostly."
       },
       "progression": {
         "maxRank": 10,
@@ -1186,10 +1186,10 @@
     {
       "key": "BON_3",
       "identity": {
-        "name": "===TBD BON-5",
+        "name": "Bonafide Knight",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[133] swore an oath to defend the realm, then forgot to stop after it died.|Its armor is mostly decorative these days. Its sword, sadly, is not."
       },
       "progression": {
         "maxRank": 10,
@@ -1240,10 +1240,10 @@
     {
       "key": "BON_4",
       "identity": {
-        "name": "===TBD BON-7",
+        "name": "Bareback Bones",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Riding \\enemy[134] is not recommended. No saddle, no mane, and absolutely no meat to hold onto.|Beating it, on the other hand, is highly recommended. Giddy up."
       },
       "progression": {
         "maxRank": 10,
@@ -1294,10 +1294,10 @@
     {
       "key": "BON_5",
       "identity": {
-        "name": "===TBD BON-10",
+        "name": "Throne of Bones",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[135] rules a kingdom of bones from a throne of bones, wearing a crown of... you guessed it.|Long live the king. Or rather, short live the king, as it turned out."
       },
       "progression": {
         "maxRank": 20,
@@ -1425,10 +1425,10 @@
     {
       "key": "ARM_2",
       "identity": {
-        "name": "===TBD ARM-3",
+        "name": "Hand-Me-Down Grudge",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Leave a suit of armor in storage for a hundred years and it wakes up as \\enemy[142].|Turns out it was very upset about the storage. Very, very upset."
       },
       "progression": {
         "maxRank": 10,
@@ -1479,10 +1479,10 @@
     {
       "key": "ARM_3",
       "identity": {
-        "name": "===TBD ARM-5",
+        "name": "Sore Loser",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[143] lost a war a few centuries ago and has been taking it out on travelers ever since.|Some people just can't let things go. You helped it let go."
       },
       "progression": {
         "maxRank": 10,
@@ -1533,10 +1533,10 @@
     {
       "key": "ARM_4",
       "identity": {
-        "name": "===TBD ARM-7",
+        "name": "Feudal Fortitude",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[144] demands tribute from everyone who passes, which is bold for an empty suit of armor.|You paid yours in the form of violence. It was not accepted graciously."
       },
       "progression": {
         "maxRank": 10,
@@ -1587,10 +1587,10 @@
     {
       "key": "ARM_5",
       "identity": {
-        "name": "===TBD ARM-10",
+        "name": "Shogun's Mandate",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[145] commands every haunted suit of armor in the land, and they all salute at once.|The clanking was deafening. Putting it down was mostly a mercy for your ears."
       },
       "progression": {
         "maxRank": 20,
@@ -1772,10 +1772,10 @@
     {
       "key": "SNK_3",
       "identity": {
-        "name": "===TBD SNK-5",
+        "name": "Heir to the Hiss",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "The little \\enemy[151] grew up, took the throne, and became \\enemy[153].|Its first royal decree was to bite you. Its second was to die about it."
       },
       "progression": {
         "maxRank": 10,
@@ -1826,10 +1826,10 @@
     {
       "key": "SNK_4",
       "identity": {
-        "name": "===TBD SNK-7",
+        "name": "Pharaoh's Favor",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[154] once sat on a pharaoh's crown, spitting fire at anyone who got too close.|The pharaoh is long gone, but the attitude stuck around."
       },
       "progression": {
         "maxRank": 10,
@@ -1880,10 +1880,10 @@
     {
       "key": "SNK_5",
       "identity": {
-        "name": "===TBD SNK-10",
+        "name": "Swallow the Sun",
         "iconIndex": 1797,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Every night \\enemy[155] tries to swallow the sun, and every morning it fails.|Tonight it tried to swallow you instead. Rough night all around."
       },
       "progression": {
         "maxRank": 20,
@@ -2011,10 +2011,10 @@
     {
       "key": "DRG_2",
       "identity": {
-        "name": "===TBD DRG-3",
+        "name": "Chillin' Like a Dargin",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[162] breathes frost, naps on glaciers, and has never once been in a hurry.|Something about that unbothered energy is weirdly inspiring."
       },
       "progression": {
         "maxRank": 10,
@@ -2065,10 +2065,10 @@
     {
       "key": "DRG_3",
       "identity": {
-        "name": "===TBD DRG-5",
+        "name": "Blast from the Past",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[163] doesn't breathe fire so much as it sneezes explosions.|Bless you. Also, ow. Mostly ow."
       },
       "progression": {
         "maxRank": 10,
@@ -2119,10 +2119,10 @@
     {
       "key": "DRG_4",
       "identity": {
-        "name": "===TBD DRG-7",
+        "name": "Greater Than Thou",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[164] spends most of its day reminding the lesser dargins exactly how lesser they are.|You reminded it of a few things too. Mostly with your weapon."
       },
       "progression": {
         "maxRank": 10,
@@ -2179,10 +2179,10 @@
     {
       "key": "DRG_5",
       "identity": {
-        "name": "===TBD DRG-10",
+        "name": "Wicked Wingspan",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[165] is the dargin other dargins tell scary stories about around the campfire.|Turns out the stories undersold it. Turns out you're scarier."
       },
       "progression": {
         "maxRank": 20,
@@ -2256,10 +2256,10 @@
     {
       "key": "DCO_1",
       "identity": {
-        "name": "===TBD DCO-1",
+        "name": "Thick-Skinned",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "A \\enemy[171] wears armor on the outside, the inside, and probably a few places in between.|It takes forever to get anywhere, but nothing ever really hurts it."
       },
       "progression": {
         "maxRank": 10,
@@ -2304,10 +2304,10 @@
     {
       "key": "DCO_2",
       "identity": {
-        "name": "===TBD DCO-3",
+        "name": "Shield of Scales",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[172] swore to guard its post and has not moved from that spot in forty years.|Admirable, honestly. Also very easy to walk around."
       },
       "progression": {
         "maxRank": 10,
@@ -2358,10 +2358,10 @@
     {
       "key": "DCO_3",
       "identity": {
-        "name": "===TBD DCO-5",
+        "name": "Scalemail Sorcery",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[173] is a wizard who decided robes were for cowards and wore full plate instead.|The spells come out slower that way, but they come out of a tank."
       },
       "progression": {
         "maxRank": 10,
@@ -2412,10 +2412,10 @@
     {
       "key": "DCO_4",
       "identity": {
-        "name": "===TBD DCO-7",
+        "name": "Draconic Decree",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[174] barks orders at the other draconites in a voice like grinding gravel.|They obey because it's enormous. You didn't, because you're you."
       },
       "progression": {
         "maxRank": 10,
@@ -2466,10 +2466,10 @@
     {
       "key": "DCO_5",
       "identity": {
-        "name": "===TBD DCO-10",
+        "name": "Immovable Object",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[175] has never taken a single step backward in its entire life.|It still hasn't. You just had to knock it over instead."
       },
       "progression": {
         "maxRank": 20,
@@ -2591,10 +2591,10 @@
     {
       "key": "LAM_2",
       "identity": {
-        "name": "===TBD LAM-3",
+        "name": "Saturday Secret",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[182] made her husband promise never to peek at her on a Saturday.|You peeked. On a Saturday. With a sword. Nobody is happy about it."
       },
       "progression": {
         "maxRank": 10,
@@ -2645,10 +2645,10 @@
     {
       "key": "LAM_3",
       "identity": {
-        "name": "===TBD LAM-5",
+        "name": "Coiled Conjuring",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[183] coils up for what feels like a full minute before every single spell.|You'd laugh, if the spell at the end of it weren't the size of a house."
       },
       "progression": {
         "maxRank": 10,
@@ -2699,10 +2699,10 @@
     {
       "key": "LAM_4",
       "identity": {
-        "name": "===TBD LAM-7",
+        "name": "Drakaina's Disdain",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[184] is half dragon, half woman, and entirely unimpressed with everything you do.|The disdain is the real weapon. The fire breath is just a bonus."
       },
       "progression": {
         "maxRank": 10,
@@ -2753,10 +2753,10 @@
     {
       "key": "LAM_5",
       "identity": {
-        "name": "===TBD LAM-10",
+        "name": "Mother of Monsters",
         "iconIndex": 14,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[185] is the mother of all monsters, which makes her at least partly to blame for all this.|You had words with her about it. Mostly sharp ones."
       },
       "progression": {
         "maxRank": 20,
@@ -2830,10 +2830,10 @@
     {
       "key": "SAL_1",
       "identity": {
-        "name": "===TBD SAL-1",
+        "name": "Lizard Brain",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[191] has exactly one thought in its head at any given time, and the thought is \"eat\".|Somehow it never stops healing. Maybe thinking is overrated."
       },
       "progression": {
         "maxRank": 10,
@@ -2878,10 +2878,10 @@
     {
       "key": "SAL_2",
       "identity": {
-        "name": "===TBD SAL-3",
+        "name": "Grow It Back",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Cut the tail off a \\enemy[192] and it just grows a new one, like that's no big deal.|Honestly, rude. Some of us have to keep the limbs we've got."
       },
       "progression": {
         "maxRank": 10,
@@ -2926,10 +2926,10 @@
     {
       "key": "SAL_3",
       "identity": {
-        "name": "===TBD SAL-5",
+        "name": "One Little Nibble",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[193] only needs one bite. Then it follows you around for a week, waiting.|You turned around and finished it instead. It did not see that coming."
       },
       "progression": {
         "maxRank": 10,
@@ -2980,10 +2980,10 @@
     {
       "key": "SAL_4",
       "identity": {
-        "name": "===TBD SAL-7",
+        "name": "Don't Look Now",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Legend says a single look from \\enemy[194] turns a person to stone.|You fought it with your eyes closed. That's either very brave or very, very stupid."
       },
       "progression": {
         "maxRank": 10,
@@ -3034,10 +3034,10 @@
     {
       "key": "SAL_5",
       "identity": {
-        "name": "===TBD SAL-10",
+        "name": "Shell Shock",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[195] has a turtle's shell, six bear legs and a lion's head. Pick a lane, buddy.|It heals faster than most things can dent it. Most things aren't you."
       },
       "progression": {
         "maxRank": 20,
@@ -3207,10 +3207,10 @@
     {
       "key": "KAP_3",
       "identity": {
-        "name": "===TBD KAP-5",
+        "name": "Pinch of Salt",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Before every bout, \\enemy[203] throws a fistful of salt to purify the ring.|It works on the ring. It does not work on you. You are, apparently, impure."
       },
       "progression": {
         "maxRank": 10,
@@ -3261,10 +3261,10 @@
     {
       "key": "KAP_4",
       "identity": {
-        "name": "===TBD KAP-7",
+        "name": "Pushed Out of the Ring",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[204] is one promotion away from the very top, and has been for about a hundred years.|Losing to you is not going to help its case at the next tournament."
       },
       "progression": {
         "maxRank": 10,
@@ -3327,10 +3327,10 @@
     {
       "key": "KAP_5",
       "identity": {
-        "name": "===TBD KAP-10",
+        "name": "Grand Champion",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[205] is the grand champion, undefeated in a thousand bouts. Cucumbers on the house.|Make that a thousand and one. And no, you do not get the cucumbers."
       },
       "progression": {
         "maxRank": 20,
@@ -3452,10 +3452,10 @@
     {
       "key": "FRG_2",
       "identity": {
-        "name": "===TBD FRG-3",
+        "name": "Spit Take",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[212] has incredible range, incredible accuracy, and no manners whatsoever.|You will be finding frog spit in your hair for weeks."
       },
       "progression": {
         "maxRank": 10,
@@ -3506,10 +3506,10 @@
     {
       "key": "FRG_3",
       "identity": {
-        "name": "===TBD FRG-5",
+        "name": "Bellow from the Bog",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[213] croaks so loud it rattles your teeth from across the swamp.|You'd ask it to keep it down, but it doesn't take requests. Or prisoners."
       },
       "progression": {
         "maxRank": 10,
@@ -3560,10 +3560,10 @@
     {
       "key": "FRG_4",
       "identity": {
-        "name": "===TBD FRG-7",
+        "name": "Toadally Enormous",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[214] is a frog the size of a cottage, and it is not sorry about it.|It barely moves. It doesn't have to. The tongue reaches."
       },
       "progression": {
         "maxRank": 10,
@@ -3614,10 +3614,10 @@
     {
       "key": "FRG_5",
       "identity": {
-        "name": "===TBD FRG-10",
+        "name": "Kaiju Croak",
         "iconIndex": 67,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[215] rose from the swamp, flattened three villages, and then sat down for a nap.|You woke it up. That was on you. Fixing it was also on you."
       },
       "progression": {
         "maxRank": 20,
@@ -3727,10 +3727,10 @@
     {
       "key": "CRB_2",
       "identity": {
-        "name": "===TBD CRB-3",
+        "name": "Fiddling Around",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[222] has one enormous claw and one tiny one, and it waves the big one at everybody.|Compensating for something, clearly. Still hurts to get pinched by it."
       },
       "progression": {
         "maxRank": 10,
@@ -3781,10 +3781,10 @@
     {
       "key": "CRB_3",
       "identity": {
-        "name": "===TBD CRB-5",
+        "name": "Pale Pincers",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[223] is so pale and so quick that most people swear it isn't really there.|It was there. It pinched you. You have the bruise to prove it."
       },
       "progression": {
         "maxRank": 10,
@@ -3835,10 +3835,10 @@
     {
       "key": "CRB_4",
       "identity": {
-        "name": "===TBD CRB-7",
+        "name": "Riddle Me Crab",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[224] dresses as a monk and asks travelers riddles, then crushes anyone who gets one wrong.|You didn't answer the riddle. You just hit it. Technically, that's a loophole."
       },
       "progression": {
         "maxRank": 10,
@@ -3889,10 +3889,10 @@
     {
       "key": "CRB_5",
       "identity": {
-        "name": "===TBD CRB-10",
+        "name": "Written in the Stars",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[225] pinched a legendary hero's toe, got stomped flat, and was put in the stars for it.|Getting stomped flat was apparently not a lesson it took to heart."
       },
       "progression": {
         "maxRank": 20,
@@ -3966,10 +3966,10 @@
     {
       "key": "FSH_1",
       "identity": {
-        "name": "===TBD FSH-1",
+        "name": "Fin Fencing",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[231] is a sardine with a sword for a face. It does not know how to do anything else.|It only knows how to stab, but it really, really knows how to stab."
       },
       "progression": {
         "maxRank": 10,
@@ -4020,10 +4020,10 @@
     {
       "key": "FSH_2",
       "identity": {
-        "name": "===TBD FSH-3",
+        "name": "Sabre Dance",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[232] darts in, slashes, and darts away before you've even finished turning around.|Rude, and very fast. Mostly fast. Okay, also very rude."
       },
       "progression": {
         "maxRank": 10,
@@ -4074,10 +4074,10 @@
     {
       "key": "FSH_3",
       "identity": {
-        "name": "===TBD FSH-5",
+        "name": "Halberd Hustle",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[233] keeps a full polearm's length between you and it at all times.|Fish don't have arms. How is it holding the halberd? Don't think about it."
       },
       "progression": {
         "maxRank": 10,
@@ -4128,10 +4128,10 @@
     {
       "key": "FSH_4",
       "identity": {
-        "name": "===TBD FSH-7",
+        "name": "Highland Fling",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[234] lurks in its hole until something swims by, then swings a two-handed sword at it.|It has no hands. It swings a two-handed sword anyway. Marine biology is a lie."
       },
       "progression": {
         "maxRank": 10,
@@ -4182,10 +4182,10 @@
     {
       "key": "FSH_5",
       "identity": {
-        "name": "===TBD FSH-10",
+        "name": "Lady of the Lake",
         "iconIndex": 227,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Legend says only the one true king can pull \\enemy[235] from the lake.|You are not the one true king. You pulled it out anyway, with a fishing rod."
       },
       "progression": {
         "maxRank": 20,
@@ -4259,10 +4259,10 @@
     {
       "key": "CPH_1",
       "identity": {
-        "name": "===TBD CPH-1",
+        "name": "Eight-Armed Etiquette",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[241] holds her teacup with all eight arms at once, pinkies out. Very impressive.|She is also strangling you with the same eight arms. Etiquette has its limits."
       },
       "progression": {
         "maxRank": 10,
@@ -4301,10 +4301,10 @@
     {
       "key": "CPH_2",
       "identity": {
-        "name": "===TBD CPH-3",
+        "name": "Duchess of Ink",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[242] has never once lifted a tentacle to do her own work. She has servants for that.|She did lift one to slap you, though. You should feel honored."
       },
       "progression": {
         "maxRank": 10,
@@ -4355,10 +4355,10 @@
     {
       "key": "CPH_3",
       "identity": {
-        "name": "===TBD CPH-5",
+        "name": "Crown of the Reef",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[243] rules the reef from a coral throne, with eight scepters, one for each arm.|The royal treasury is mostly potions. Healing is a privilege of the crown."
       },
       "progression": {
         "maxRank": 10,
@@ -4409,10 +4409,10 @@
     {
       "key": "CPH_4",
       "identity": {
-        "name": "===TBD CPH-7",
+        "name": "Eight-Fold Empire",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[244] conquered every reef within a hundred miles and grabbed them all at once.|Eight arms makes empire building a lot more efficient than you'd think."
       },
       "progression": {
         "maxRank": 10,
@@ -4463,10 +4463,10 @@
     {
       "key": "CPH_5",
       "identity": {
-        "name": "===TBD CPH-10",
+        "name": "Calypso of the Deep",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[245] is the end of the world, if the world were a reef and the end had eight arms.|It also sings calypso the whole time. The apocalypse has never been this catchy."
       },
       "progression": {
         "maxRank": 20,
@@ -4591,7 +4591,7 @@
         "name": "The Jigglejest",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": "TODO"
+        "description": "\\enemy[252] jiggles to a rhythm only it can hear, and somehow it is always on the beat.|Jiggle along with it long enough and the gold starts jiggling your way, too."
       },
       "progression": {
         "maxRank": 10,
@@ -4696,10 +4696,10 @@
     {
       "key": "SLI_4",
       "identity": {
-        "name": "===TBD SLI-7",
+        "name": "Custard Quickstep",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[254] blinks out of existence mid-dance and reappears two steps behind you.|Rude to cut in like that. Rather stylish, though. You've been taking notes."
       },
       "progression": {
         "maxRank": 10,
@@ -4750,10 +4750,10 @@
     {
       "key": "SLI_5",
       "identity": {
-        "name": "===TBD SLI-10",
+        "name": "Molten Mambo",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[255] dances like the floor is lava, because for it, the floor is lava.|It brought the lava with it. Learn the steps and watch your feet."
       },
       "progression": {
         "maxRank": 20,
@@ -4875,10 +4875,10 @@
     {
       "key": "TNT_2",
       "identity": {
-        "name": "===TBD TNT-3",
+        "name": "Crack of the Whip",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[262] lashes out with a tentacle and the crack echoes through the whole cave.|You flinched. It noticed. It will be remembering that."
       },
       "progression": {
         "maxRank": 10,
@@ -4929,10 +4929,10 @@
     {
       "key": "TNT_3",
       "identity": {
-        "name": "===TBD TNT-5",
+        "name": "Tickle Torture",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[263] has a hundred tentacles, and every single one of them is going for your ribs.|It's all fun and games until somebody gets tickled to death. Literally."
       },
       "progression": {
         "maxRank": 10,
@@ -4983,10 +4983,10 @@
     {
       "key": "TNT_4",
       "identity": {
-        "name": "===TBD TNT-7",
+        "name": "Tied Up in Knots",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[264] ties its prey up in intricate, frankly beautiful knots before it feeds.|You wriggled free. It was almost a shame to ruin such nice knotwork."
       },
       "progression": {
         "maxRank": 10,
@@ -5037,10 +5037,10 @@
     {
       "key": "TNT_5",
       "identity": {
-        "name": "===TBD TNT-10",
+        "name": "Who's in Charge Now",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[265] is used to being in charge, and every tentacle in the cave answers to her.|Turns out she never did learn the safeword. That one's on her."
       },
       "progression": {
         "maxRank": 20,
@@ -5162,10 +5162,10 @@
     {
       "key": "JEL_2",
       "identity": {
-        "name": "===TBD JEL-3",
+        "name": "Royal Jelly",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[272] drifts through the halls of the fallen kingdom like it still owns the place.|Maybe it does. Nobody else is around to argue. Except you, now."
       },
       "progression": {
         "maxRank": 10,
@@ -5216,10 +5216,10 @@
     {
       "key": "JEL_3",
       "identity": {
-        "name": "===TBD JEL-5",
+        "name": "Colossal Wobble",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[273] is the size of a house and has the consistency of dessert.|Fighting it is like punching a pudding the size of your problems."
       },
       "progression": {
         "maxRank": 10,
@@ -5270,10 +5270,10 @@
     {
       "key": "JEL_4",
       "identity": {
-        "name": "===TBD JEL-7",
+        "name": "Slingshot Required",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[274] is a towering giant of jelly, and history says the trick is one good stone.|You didn't bring a stone. You brought a spoon. It still worked, eventually."
       },
       "progression": {
         "maxRank": 10,
@@ -5324,10 +5324,10 @@
     {
       "key": "JEL_5",
       "identity": {
-        "name": "===TBD JEL-10",
+        "name": "The Final Wobble",
         "iconIndex": 2144,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Scholars said the world would end in fire, or maybe ice. Nobody predicted \\enemy[275].|It wobbled its way toward the end of all things, and you scooped it up first."
       },
       "progression": {
         "maxRank": 20,
@@ -5449,10 +5449,10 @@
     {
       "key": "AER_2",
       "identity": {
-        "name": "===TBD AER-3",
+        "name": "Fledgling Flutter",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[282] is a baby goo bat still learning to fly, mostly by flinging itself off things.|It's adorable. It's also sipping your mana through a tiny little straw."
       },
       "progression": {
         "maxRank": 10,
@@ -5503,10 +5503,10 @@
     {
       "key": "AER_3",
       "identity": {
-        "name": "===TBD AER-5",
+        "name": "Bloodless Bite",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[283] is a vampire made of goo, which leaves it with a real shortage of blood.|So it drinks your mana instead. Turns out that's way more filling."
       },
       "progression": {
         "maxRank": 10,
@@ -5557,10 +5557,10 @@
     {
       "key": "AER_4",
       "identity": {
-        "name": "===TBD AER-7",
+        "name": "Shadow on the Stairs",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "You'll see \\enemy[284]'s shadow creep up the wall long before you ever see it.|By then it's already got its fangs in your mana. Creepy little thing."
       },
       "progression": {
         "maxRank": 10,
@@ -5611,10 +5611,10 @@
     {
       "key": "AER_5",
       "identity": {
-        "name": "===TBD AER-10",
+        "name": "Count Me In",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[285] is the count of all goo bats, lord of a castle made entirely of slime.|It invited you in. That was its first mistake. It never got to make a second."
       },
       "progression": {
         "maxRank": 20,
@@ -5688,10 +5688,10 @@
     {
       "key": "CUB_1",
       "identity": {
-        "name": "===TBD CUB-1",
+        "name": "Thinking Inside the Box",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[291] is a slime that took the shape of a box and decided it liked it there.|It never thinks outside the box. It IS the box. Respect the commitment."
       },
       "progression": {
         "maxRank": 10,
@@ -5730,10 +5730,10 @@
     {
       "key": "CUB_2",
       "identity": {
-        "name": "===TBD CUB-3",
+        "name": "Fair and Square",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[292] hasn't moved in years, and the smell has been building up the whole time.|You won fair and square. Mostly square. Please go wash your hands."
       },
       "progression": {
         "maxRank": 10,
@@ -5784,10 +5784,10 @@
     {
       "key": "CUB_3",
       "identity": {
-        "name": "===TBD CUB-5",
+        "name": "Engulfing Embrace",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[293] slides down hallways absorbing whatever it finds, adventurers included.|Some of them are still in there, waving. Don't make eye contact."
       },
       "progression": {
         "maxRank": 10,
@@ -5838,10 +5838,10 @@
     {
       "key": "CUB_4",
       "identity": {
-        "name": "===TBD CUB-7",
+        "name": "Sharp Corners",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[294] is a slab of slime so dense it has corners, and every one of them hurts.|Stub your toe on it once and you'll never forget it. Ask anyone."
       },
       "progression": {
         "maxRank": 10,
@@ -5892,10 +5892,10 @@
     {
       "key": "CUB_5",
       "identity": {
-        "name": "===TBD CUB-10",
+        "name": "Dawn of Slime",
         "iconIndex": 2164,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[295] has stood in one spot since before the first ape picked up the first bone.|It is very wise. It is very old. It was also very, very in your way."
       },
       "progression": {
         "maxRank": 20,
@@ -6017,10 +6017,10 @@
     {
       "key": "TRP_2",
       "identity": {
-        "name": "===TBD TRP-3",
+        "name": "Man-Eater",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[302] is named after what it eats, which is a terrible thing to learn the hard way.|Lucky for you, it has awful taste in men. You were too tough to swallow."
       },
       "progression": {
         "maxRank": 10,
@@ -6071,10 +6071,10 @@
     {
       "key": "TRP_3",
       "identity": {
-        "name": "===TBD TRP-5",
+        "name": "Bear Necessities",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[303] eats bears. Whole. It has never once needed to chew.|You are smaller than a bear. Please consider that before you poke it."
       },
       "progression": {
         "maxRank": 10,
@@ -6125,10 +6125,10 @@
     {
       "key": "TRP_4",
       "identity": {
-        "name": "===TBD TRP-7",
+        "name": "Fee-Fi-Fo-Yum",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[304] has a mouth big enough to swallow a giant, and has, on several occasions.|The giants stopped visiting a while ago. You were its first guest in years."
       },
       "progression": {
         "maxRank": 10,
@@ -6179,10 +6179,10 @@
     {
       "key": "TRP_5",
       "identity": {
-        "name": "===TBD TRP-10",
+        "name": "Dragon Bait",
         "iconIndex": 2338,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[305] grew big enough to catch dragons, which raises a lot of questions about its diet.|It never moves an inch. It doesn't need to. Everything wanders in eventually."
       },
       "progression": {
         "maxRank": 20,
@@ -6310,10 +6310,10 @@
     {
       "key": "FUN_2",
       "identity": {
-        "name": "===TBD FUN-3",
+        "name": "Ghastly Gills",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[312] is a mushroom so pale and so angry it looks like it's already haunting something.|Jerald wanted to saute it. Rupert wanted to set it on fire. You compromised."
       },
       "progression": {
         "maxRank": 10,
@@ -6364,10 +6364,10 @@
     {
       "key": "FUN_3",
       "identity": {
-        "name": "===TBD FUN-5",
+        "name": "Cap and Gown",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[313] went to wizard school, failed every class, and just started throwing spores.|Weirdly, it works better than most real magic. Don't tell the wizards."
       },
       "progression": {
         "maxRank": 10,
@@ -6418,10 +6418,10 @@
     {
       "key": "FUN_4",
       "identity": {
-        "name": "===TBD FUN-7",
+        "name": "Rooted Phylactery",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[314] hid its soul in a mycelium network that runs under half the continent.|Killing it for good means digging up half the continent. This'll do for now."
       },
       "progression": {
         "maxRank": 10,
@@ -6472,10 +6472,10 @@
     {
       "key": "FUN_5",
       "identity": {
-        "name": "===TBD FUN-10",
+        "name": "Morel Authority",
         "iconIndex": 2320,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[315] is the god of all mushrooms, worshipped by every spore that ever rode the wind.|It claimed the moral high ground. You claimed it was edible. Jerald agreed."
       },
       "progression": {
         "maxRank": 20,
@@ -6651,10 +6651,10 @@
     {
       "key": "FAE_3",
       "identity": {
-        "name": "===TBD FAE-5",
+        "name": "Changeling Trick",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[323] sours milk, tangles hair and swaps babies for changelings, just to be a jerk.|You beat it fair and square. It's already plotting something petty about that."
       },
       "progression": {
         "maxRank": 10,
@@ -6705,10 +6705,10 @@
     {
       "key": "FAE_4",
       "identity": {
-        "name": "===TBD FAE-7",
+        "name": "Bacchanal",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[324] follows the god of wine from party to party, dancing until somebody gets hurt.|Usually that's somebody else. Tonight it was her. Party's over."
       },
       "progression": {
         "maxRank": 10,
@@ -6759,10 +6759,10 @@
     {
       "key": "FAE_5",
       "identity": {
-        "name": "===TBD FAE-10",
+        "name": "Trick of the Light",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[325] is a mirage, a sorceress, or a trick of the light, depending on who you ask.|You hit her, and she was real enough to fall down. That settles that."
       },
       "progression": {
         "maxRank": 20,
@@ -6836,10 +6836,10 @@
     {
       "key": "TRE_1",
       "identity": {
-        "name": "===TBD TRE-1",
+        "name": "Turn Over a New Leaf",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[331] is a tree that got up one day and decided to go for a walk. Nobody stopped it.|It's slow, it's stubborn, and it takes a very long time to fall over."
       },
       "progression": {
         "maxRank": 10,
@@ -6884,10 +6884,10 @@
     {
       "key": "TRE_2",
       "identity": {
-        "name": "===TBD TRE-3",
+        "name": "Bark and Bite",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[332] smashes first, asks questions never, and has bark on its knuckles.|Its bark is worse than its bite, but only because trees can't bite."
       },
       "progression": {
         "maxRank": 10,
@@ -6938,10 +6938,10 @@
     {
       "key": "TRE_3",
       "identity": {
-        "name": "===TBD TRE-5",
+        "name": "Timber!",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Once \\enemy[333] gets rolling, it doesn't stop for walls, rivers, or reasonable requests.|It did stop for you, eventually. Mostly because you chopped its legs out."
       },
       "progression": {
         "maxRank": 10,
@@ -6992,10 +6992,10 @@
     {
       "key": "TRE_4",
       "identity": {
-        "name": "===TBD TRE-7",
+        "name": "Tiny Branch Arms",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[334] is a king of the forest with a mighty roar and the tiniest little branch arms.|It cannot reach its own face. It could absolutely reach yours."
       },
       "progression": {
         "maxRank": 10,
@@ -7046,10 +7046,10 @@
     {
       "key": "TRE_5",
       "identity": {
-        "name": "===TBD TRE-10",
+        "name": "Old Growth",
         "iconIndex": 200,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[335] is the oldest tree in the forest, and the forest grew around it out of respect.|You did not grow around it. You went straight through it. A little rude."
       },
       "progression": {
         "maxRank": 20,
@@ -7123,10 +7123,10 @@
     {
       "key": "FLW_1",
       "identity": {
-        "name": "===TBD FLW-1",
+        "name": "Spitting Image",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[341] spits seeds at anything that walks by, with the aim of a very bored teenager.|Get spat on enough times and you start picking up the technique."
       },
       "progression": {
         "maxRank": 10,
@@ -7177,10 +7177,10 @@
     {
       "key": "FLW_2",
       "identity": {
-        "name": "===TBD FLW-3",
+        "name": "Dose Makes the Poison",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[342] makes heart medicine in a small dose, and stops the heart in a big one.|Healers love it. Undertakers love it more."
       },
       "progression": {
         "maxRank": 10,
@@ -7231,10 +7231,10 @@
     {
       "key": "FLW_3",
       "identity": {
-        "name": "===TBD FLW-5",
+        "name": "Bella Donna",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[343] goes by Belladonna at parties. It means beautiful lady, and sounds much nicer.|Its berries are pretty. Its berries are also extremely deadly. Don't eat the berries."
       },
       "progression": {
         "maxRank": 10,
@@ -7285,10 +7285,10 @@
     {
       "key": "FLW_4",
       "identity": {
-        "name": "===TBD FLW-7",
+        "name": "Philosopher's Cup",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "A very famous philosopher once drank a cup of \\enemy[344], and that ended his lectures.|It has been insufferably smug about it ever since. Ancient history, still bragging."
       },
       "progression": {
         "maxRank": 10,
@@ -7339,10 +7339,10 @@
     {
       "key": "FLW_5",
       "identity": {
-        "name": "===TBD FLW-10",
+        "name": "Werewolf Repellent",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[345] keeps werewolves away, which is great, unless you happen to be a werewolf.|You're not a werewolf. It tried to kill you anyway. Some flowers are like that."
       },
       "progression": {
         "maxRank": 20,
@@ -7524,10 +7524,10 @@
     {
       "key": "HBR_3",
       "identity": {
-        "name": "===TBD HBR-5",
+        "name": "Big Fluffing Deal",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[353] is a colossal fluff of darkness, and every inch of that fluff wants you dead.|It's the softest thing that ever tried to murder you. Keep a tuft. You earned it."
       },
       "progression": {
         "maxRank": 10,
@@ -7578,10 +7578,10 @@
     {
       "key": "HBR_4",
       "identity": {
-        "name": "===TBD HBR-7",
+        "name": "Claws for Alarm",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[354] has claws like scythes and a temper to match. Yelena keeps a whole list about it.|You've crossed it off the list. She'll want the hide for her gate."
       },
       "progression": {
         "maxRank": 10,
@@ -7632,10 +7632,10 @@
     {
       "key": "HBR_5",
       "identity": {
-        "name": "===TBD HBR-10",
+        "name": "Mane Event",
         "iconIndex": 105,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[355] is the biggest, meanest bearcat that ever roared, with a mane like a thundercloud.|Every bearcat in the woods answers to it. Every bearcat in the woods just lost its boss."
       },
       "progression": {
         "maxRank": 20,
@@ -7766,7 +7766,7 @@
         "name": "Call from the Dark",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": "TODO"
+        "description": "\\enemy[362] flaps up out of the dark of Volcanis Grotto, one bloodshot eye locked on you.|It never blinks. It never misses. It really should have blinked."
       },
       "progression": {
         "maxRank": 10,
@@ -7817,10 +7817,10 @@
     {
       "key": "WNG_3",
       "identity": {
-        "name": "===TBD WNG-5",
+        "name": "Stink Eye",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[363] has been giving you the stink eye since you walked in, and it means it.|Turns out the evil eye is just a regular eye with a really bad attitude."
       },
       "progression": {
         "maxRank": 10,
@@ -7871,10 +7871,10 @@
     {
       "key": "WNG_4",
       "identity": {
-        "name": "===TBD WNG-7",
+        "name": "Unblinking Malice",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[364] carries the name of an ancient spirit of evil, which is a lot for an eyeball.|It gives it a real go, though. Never takes its eye off you. Literally can't."
       },
       "progression": {
         "maxRank": 10,
@@ -7925,10 +7925,10 @@
     {
       "key": "WNG_5",
       "identity": {
-        "name": "===TBD WNG-10",
+        "name": "Lift the Lid",
         "iconIndex": 2372,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "It takes four servants to lift \\enemy[365]'s eyelid, and whatever it looks at is destroyed.|You were very careful not to be looked at. Then you poked it right in the eye."
       },
       "progression": {
         "maxRank": 20,
@@ -8005,7 +8005,7 @@
         "name": "Crazy Beak",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": "TODO"
+        "description": "\\enemy[371] is a tiny, adorable songbird with the temper of a cornered badger.|It pecks first, sings later, and never, ever apologizes."
       },
       "progression": {
         "maxRank": 10,
@@ -8050,10 +8050,10 @@
     {
       "key": "BEK_2",
       "identity": {
-        "name": "===TBD BEK-3",
+        "name": "Fowl Play",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Cryptid hunters have chased \\enemy[372] for years with nothing but blurry pictures to show.|You got a clear look. It was a very large chicken. It was very, very angry."
       },
       "progression": {
         "maxRank": 10,
@@ -8104,10 +8104,10 @@
     {
       "key": "BEK_3",
       "identity": {
-        "name": "===TBD BEK-5",
+        "name": "King of Birds",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[373] is the king of birds and the sworn enemy of every serpent in the world.|Somewhere out there, a naga is cheering for you. Don't let it go to your head."
       },
       "progression": {
         "maxRank": 10,
@@ -8158,10 +8158,10 @@
     {
       "key": "BEK_4",
       "identity": {
-        "name": "===TBD BEK-7",
+        "name": "Blot Out the Sun",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "When \\enemy[374] spreads its wings, it blots out the sun and the whole world goes dark.|Bring a torch next time. Or just aim for the loud flapping."
       },
       "progression": {
         "maxRank": 10,
@@ -8212,10 +8212,10 @@
     {
       "key": "BEK_5",
       "identity": {
-        "name": "===TBD BEK-10",
+        "name": "Wind Beneath My Wings",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Every wind in the world comes from \\enemy[375] flapping its wings at the edge of everything.|With it gone, it's going to be a very still day out there. Enjoy the calm."
       },
       "progression": {
         "maxRank": 20,
@@ -8337,10 +8337,10 @@
     {
       "key": "ROD_2",
       "identity": {
-        "name": "===TBD ROD-3",
+        "name": "Spreading the Wealth",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[382] spreads disease everywhere it goes, which is bad, and loot wherever it dies, which is good.|Wash your hands, then count your gold. In that order, please."
       },
       "progression": {
         "maxRank": 10,
@@ -8385,10 +8385,10 @@
     {
       "key": "ROD_3",
       "identity": {
-        "name": "===TBD ROD-5",
+        "name": "Rat Race",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[383] is what you get when a lot of rats tangle up together and just keep going.|Somehow it's still better at scrounging up loot than you are. Take notes."
       },
       "progression": {
         "maxRank": 10,
@@ -8433,10 +8433,10 @@
     {
       "key": "ROD_4",
       "identity": {
-        "name": "===TBD ROD-7",
+        "name": "Crown of Tails",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "A rat king is a knot of rats with their tails tangled together, and \\enemy[384] rules them all.|Its hoard is enormous. Its crown is also made of tails. Do not wear the crown."
       },
       "progression": {
         "maxRank": 10,
@@ -8481,10 +8481,10 @@
     {
       "key": "ROD_5",
       "identity": {
-        "name": "===TBD ROD-10",
+        "name": "Twilight of the Rats",
         "iconIndex": 2404,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[385] is the end of the world, as foretold by rats. They foretold it with a lot of squeaking.|The world did not end. You did walk off with most of the rats' loot, though."
       },
       "progression": {
         "maxRank": 20,
@@ -8552,10 +8552,10 @@
     {
       "key": "QUA_1",
       "identity": {
-        "name": "===TBD QUA-1",
+        "name": "Lone Wolfe",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[391] travels alone, which is odd for a wolf, and spells its name with an extra e.|Nobody knows why. It's not telling. It is very protective of that e."
       },
       "progression": {
         "maxRank": 10,
@@ -8600,10 +8600,10 @@
     {
       "key": "QUA_2",
       "identity": {
-        "name": "===TBD QUA-3",
+        "name": "Moon Chaser",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[392] has spent its whole life chasing the moon across the sky, and never once caught it.|It caught you, though. Briefly. Then you caught it back."
       },
       "progression": {
         "maxRank": 10,
@@ -8654,10 +8654,10 @@
     {
       "key": "QUA_3",
       "identity": {
-        "name": "===TBD QUA-5",
+        "name": "Sun Chaser",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[393] chases the sun across the sky every day, hoping to swallow it whole someday.|It's a very patient wolf. Not as patient as you, as it turns out."
       },
       "progression": {
         "maxRank": 10,
@@ -8708,10 +8708,10 @@
     {
       "key": "QUA_4",
       "identity": {
-        "name": "===TBD QUA-7",
+        "name": "Hound at the Gate",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[394] guards the gate of the underworld and barks at anything that moves. Or doesn't.|Most of what it guards is dead, so it gets plenty of practice. You moved. It barked."
       },
       "progression": {
         "maxRank": 10,
@@ -8762,10 +8762,10 @@
     {
       "key": "QUA_5",
       "identity": {
-        "name": "===TBD QUA-10",
+        "name": "Bite the Hand",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "The gods once bound \\enemy[395] with a ribbon woven from a cat's footsteps and a woman's beard.|It bit off the hand of the god who tied the knot. Maybe don't try to tie it up."
       },
       "progression": {
         "maxRank": 20,
@@ -8935,10 +8935,10 @@
     {
       "key": "STG_3",
       "identity": {
-        "name": "===TBD STG-5",
+        "name": "Drill Sergeant",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[403] has exactly one move, and that move is drilling through whatever's in front of it.|It yells the whole time, too. Drop and give it twenty. Hit points, that is."
       },
       "progression": {
         "maxRank": 10,
@@ -8989,10 +8989,10 @@
     {
       "key": "STG_4",
       "identity": {
-        "name": "===TBD STG-7",
+        "name": "Vlad Tidings",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[404] got its name the old-fashioned way, from a very old count with a very pointy hobby.|It carries on the family tradition with gusto. Wear thicker armor."
       },
       "progression": {
         "maxRank": 10,
@@ -9043,10 +9043,10 @@
     {
       "key": "STG_5",
       "identity": {
-        "name": "===TBD STG-10",
+        "name": "Swarm Intelligence",
         "iconIndex": 298,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[405] thinks with the brains of a million bees at once, and all of them are angry.|It finally had a thought it couldn't handle: you."
       },
       "progression": {
         "maxRank": 20,
@@ -9222,10 +9222,10 @@
     {
       "key": "WRM_3",
       "identity": {
-        "name": "===TBD WRM-5",
+        "name": "Worm Your Way In",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[413] is the worm that taught the other worms to dance, and it has never stopped dancing.|It danced while it fought, it danced while it healed, and it danced while it died."
       },
       "progression": {
         "maxRank": 10,
@@ -9276,10 +9276,10 @@
     {
       "key": "WRM_4",
       "identity": {
-        "name": "===TBD WRM-7",
+        "name": "Light Snack",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[414] eats light the way bookworms eat books, and every room it's in gets darker.|Light is very nutritious, apparently. It healed the whole time it munched on your torch."
       },
       "progression": {
         "maxRank": 10,
@@ -9330,10 +9330,10 @@
     {
       "key": "WRM_5",
       "identity": {
-        "name": "===TBD WRM-10",
+        "name": "Can of Wyrms",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Every little worm dreams of growing up to be \\enemy[415], and almost none of them ever do.|You opened this can of wyrms yourself. Hope the node was worth it."
       },
       "progression": {
         "maxRank": 20,
@@ -9407,10 +9407,10 @@
     {
       "key": "HIV_1",
       "identity": {
-        "name": "===TBD HIV-1",
+        "name": "Itsy Bitsy",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "A \\enemy[421] is a whole clutch of baby spiders, all hatched at once and all very hungry.|Itsy bitsy. Very bitey. Never went anywhere near the water spout."
       },
       "progression": {
         "maxRank": 10,
@@ -9455,10 +9455,10 @@
     {
       "key": "HIV_2",
       "identity": {
-        "name": "===TBD HIV-3",
+        "name": "Leave Me Alone",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[422] wants nothing more than to be left alone in a dark corner forever.|You did not leave it alone. It did not take that well."
       },
       "progression": {
         "maxRank": 10,
@@ -9509,10 +9509,10 @@
     {
       "key": "HIV_3",
       "identity": {
-        "name": "===TBD HIV-5",
+        "name": "Till Death Do Us Part",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[423] has been married eleven times, and every one of her husbands was delicious.|You turned down her proposal. Harshly. With a weapon."
       },
       "progression": {
         "maxRank": 10,
@@ -9563,10 +9563,10 @@
     {
       "key": "HIV_4",
       "identity": {
-        "name": "===TBD HIV-7",
+        "name": "Horns and Fangs",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[424] has the head of an ox and the body of a spider, and is no happier about it than you.|It stalks the beaches, poisons fishermen and bellows at the sea. Busy schedule."
       },
       "progression": {
         "maxRank": 10,
@@ -9617,10 +9617,10 @@
     {
       "key": "HIV_5",
       "identity": {
-        "name": "===TBD HIV-10",
+        "name": "Down the Spider Hole",
         "iconIndex": 188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[425] is the great earth spider of legend, and legend says only a famous hero can slay it.|You're not famous. You slew it anyway. Maybe you're famous now?"
       },
       "progression": {
         "maxRank": 20,
@@ -9694,10 +9694,10 @@
     {
       "key": "JMP_1",
       "identity": {
-        "name": "===TBD JMP-1",
+        "name": "Sting in the Tail",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[431] waits for you to swing first, then stings you right back with its tail.|It isn't big on starting fights. It just really, really likes finishing them."
       },
       "progression": {
         "maxRank": 10,
@@ -9742,10 +9742,10 @@
     {
       "key": "JMP_2",
       "identity": {
-        "name": "===TBD JMP-3",
+        "name": "Lie in Wait",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[432] can sit perfectly still in the sand for days, waiting for something to step on it.|You stepped on it. It was thrilled. That was its whole plan."
       },
       "progression": {
         "maxRank": 10,
@@ -9796,10 +9796,10 @@
     {
       "key": "JMP_3",
       "identity": {
-        "name": "===TBD JMP-5",
+        "name": "Tit for Tat",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[433] earned its name honestly, one overconfident adventurer at a time.|It hits back harder than you hit it. Every time. Keep that in mind."
       },
       "progression": {
         "maxRank": 10,
@@ -9850,10 +9850,10 @@
     {
       "key": "JMP_4",
       "identity": {
-        "name": "===TBD JMP-7",
+        "name": "Gatekeeper of the Sun",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[434] has guarded the mountain gate where the sun rises since the days of Gilgamesh.|It let Gilgamesh through. It did not let you through. You went through anyway."
       },
       "progression": {
         "maxRank": 10,
@@ -9904,10 +9904,10 @@
     {
       "key": "JMP_5",
       "identity": {
-        "name": "===TBD JMP-10",
+        "name": "Heart of the Scorpion",
         "iconIndex": 1684,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[435] is the red heart of the scorpion in the night sky, burning brighter than Mars.|It came down from the stars to sting you. Not a great trip, as it turned out."
       },
       "progression": {
         "maxRank": 20,
@@ -9981,10 +9981,10 @@
     {
       "key": "PAR_1",
       "identity": {
-        "name": "===TBD PAR-1",
+        "name": "Uninvited Guest",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "A \\enemy[441] latches on, takes whatever it wants, and never once says thank you.|Rude. You have to admit the free healing is pretty nice, though."
       },
       "progression": {
         "maxRank": 10,
@@ -10023,10 +10023,10 @@
     {
       "key": "PAR_2",
       "identity": {
-        "name": "===TBD PAR-3",
+        "name": "Sweet Nothings",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[442] whispers sweet nothings in its host's ear until they stop thinking for themselves.|You weren't listening. You never listen. For once, that paid off."
       },
       "progression": {
         "maxRank": 10,
@@ -10071,10 +10071,10 @@
     {
       "key": "PAR_3",
       "identity": {
-        "name": "===TBD PAR-5",
+        "name": "Just One Bite",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[443] offers you whatever you want most, in exchange for one tiny piece of your soul.|You said no. It offered again. You said no harder."
       },
       "progression": {
         "maxRank": 10,
@@ -10125,10 +10125,10 @@
     {
       "key": "PAR_4",
       "identity": {
-        "name": "===TBD PAR-7",
+        "name": "Squatter's Rights",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[444] moves into a body like it owns the place and starts rearranging the furniture.|You served the eviction notice personally. It did not go quietly."
       },
       "progression": {
         "maxRank": 10,
@@ -10179,10 +10179,10 @@
     {
       "key": "PAR_5",
       "identity": {
-        "name": "===TBD PAR-10",
+        "name": "Clinging Soul",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[445] is a restless soul that latches onto the living and simply refuses to let go.|It latched onto you, too. You were too stubborn to share. It let go."
       },
       "progression": {
         "maxRank": 20,
@@ -10304,10 +10304,10 @@
     {
       "key": "BUL_2",
       "identity": {
-        "name": "===TBD BUL-3",
+        "name": "Seeing Red",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[452] is a million times bigger than a minitaur, give or take. Nobody measured.|It sees red, it charges at red, and you were holding something red. Your fault."
       },
       "progression": {
         "maxRank": 10,
@@ -10358,10 +10358,10 @@
     {
       "key": "BUL_3",
       "identity": {
-        "name": "===TBD BUL-5",
+        "name": "Take It by the Horns",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[453] is a billion minitaurs' worth of bull, which is where the math stops helping.|Taking a bull this size by the horns is a bad idea. You did it anyway."
       },
       "progression": {
         "maxRank": 10,
@@ -10412,10 +10412,10 @@
     {
       "key": "BUL_4",
       "identity": {
-        "name": "===TBD BUL-7",
+        "name": "Bull in a China Shop",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[454] has never once walked through a door. It walks through the wall beside the door.|Nobody can keep anything nice around it. That includes your armor."
       },
       "progression": {
         "maxRank": 10,
@@ -10466,10 +10466,10 @@
     {
       "key": "BUL_5",
       "identity": {
-        "name": "===TBD BUL-10",
+        "name": "Order of Magnitude",
         "iconIndex": 2392,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[455] is the biggest bull the metric system has a word for. Scientists are working on more.|Until then, it holds the record for biggest bull. Held. You just broke it."
       },
       "progression": {
         "maxRank": 20,
@@ -10699,10 +10699,10 @@
     {
       "key": "ORC_4",
       "identity": {
-        "name": "===TBD ORC-7",
+        "name": "Orcan Avalanche",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[464] lives at the top of the mountain and only comes down to throw boulders at people.|Coming down was its mistake. You were already halfway up, and very annoyed."
       },
       "progression": {
         "maxRank": 10,
@@ -10753,10 +10753,10 @@
     {
       "key": "ORC_5",
       "identity": {
-        "name": "===TBD ORC-10",
+        "name": "Orcan Absolution",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[465] is the absolute orc, the final form every little orcling dreams of becoming.|It had no flaws, no weaknesses, and as of right now, no pulse. Absolution granted."
       },
       "progression": {
         "maxRank": 20,
@@ -10881,7 +10881,7 @@
         "name": "Dark Alley Deals",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": "TODO"
+        "description": "\\enemy[472] knows a guy who knows a guy, and every deal it makes happens in a dark alley.|The deals are fantastic. The fine print will absolutely stab you. Read the fine print."
       },
       "progression": {
         "maxRank": 10,
@@ -10932,10 +10932,10 @@
     {
       "key": "THF_3",
       "identity": {
-        "name": "===TBD THF-5",
+        "name": "Will Work for Gold",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[473] will fight for anyone, against anyone, as long as the gold keeps coming.|Nobody paid it to fight you. It just liked your boots. You're keeping your boots."
       },
       "progression": {
         "maxRank": 10,
@@ -10986,10 +10986,10 @@
     {
       "key": "THF_4",
       "identity": {
-        "name": "===TBD THF-7",
+        "name": "Cutthroat Business",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[474] has never once fought fair, and thinks fighting fair is a sign of weak character.|You didn't fight fair either. It respected that, right up until the end."
       },
       "progression": {
         "maxRank": 10,
@@ -11040,10 +11040,10 @@
     {
       "key": "THF_5",
       "identity": {
-        "name": "===TBD THF-10",
+        "name": "Boss of Bosses",
         "iconIndex": 191,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[475] runs every bandit and cutthroat in the land, and never gets its own hands dirty.|You were worth making an exception for. It shouldn't have."
       },
       "progression": {
         "maxRank": 20,
@@ -11117,10 +11117,10 @@
     {
       "key": "WLK_1",
       "identity": {
-        "name": "===TBD WLK-1",
+        "name": "No Depth Perception",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[481] hits like a falling tree, when it hits. One eye means no depth perception.|It swung at you nine times and connected once. Once was plenty."
       },
       "progression": {
         "maxRank": 10,
@@ -11159,10 +11159,10 @@
     {
       "key": "WLK_2",
       "identity": {
-        "name": "===TBD WLK-3",
+        "name": "Toll Bridge",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[482] lives under a bridge and charges a toll to everyone who tries to cross.|You paid your toll in bruises. It paid much, much more."
       },
       "progression": {
         "maxRank": 10,
@@ -11213,10 +11213,10 @@
     {
       "key": "WLK_3",
       "identity": {
-        "name": "===TBD WLK-5",
+        "name": "Big Foot Forward",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[483] has dodged every photographer on the mountain for a hundred years.|It did not dodge you. Snap a picture, quick. Nobody's going to believe this."
       },
       "progression": {
         "maxRank": 10,
@@ -11267,10 +11267,10 @@
     {
       "key": "WLK_4",
       "identity": {
-        "name": "===TBD WLK-7",
+        "name": "Giant Problem",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[484] is a frost giant from the far north, where everything is ice and everyone is huge.|It came south looking for a fight. It found one."
       },
       "progression": {
         "maxRank": 10,
@@ -11321,10 +11321,10 @@
     {
       "key": "WLK_5",
       "identity": {
-        "name": "===TBD WLK-10",
+        "name": "World on Fire",
         "iconIndex": 2210,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[485] is the fire giant fated to set the whole world ablaze at the end of days.|Not today, though. Today it took a sword to the shin. Fate can wait."
       },
       "progression": {
         "maxRank": 20,
@@ -11398,10 +11398,10 @@
     {
       "key": "CLN_1",
       "identity": {
-        "name": "===TBD CLN-1",
+        "name": "Cobalt Blues",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Miners named a whole metal after \\enemy[491], because it kept swapping their silver for junk.|It's very good with potions, though. Junk-swapping and potions. Niche skill set."
       },
       "progression": {
         "maxRank": 10,
@@ -11446,10 +11446,10 @@
     {
       "key": "CLN_2",
       "identity": {
-        "name": "===TBD CLN-3",
+        "name": "Knock Knock",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[492] raps on mine walls to warn miners of a cave-in, or to make them think one's coming.|Knock knock. Who's there? Not the knocker. Not anymore."
       },
       "progression": {
         "maxRank": 10,
@@ -11500,10 +11500,10 @@
     {
       "key": "CLN_3",
       "identity": {
-        "name": "===TBD CLN-5",
+        "name": "Dyed in the Wool",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[493] dyes its little hat in the blood of travelers, and if the hat dries out, it dies.|You let the hat dry out. Very carefully. From a safe distance."
       },
       "progression": {
         "maxRank": 10,
@@ -11554,10 +11554,10 @@
     {
       "key": "CLN_4",
       "identity": {
-        "name": "===TBD CLN-7",
+        "name": "Pet Peeve",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[494] is big, hairy, smelly and loud, and it lurks wherever it's least wanted.|It's a bugbear in every sense of the word. Was. It was."
       },
       "progression": {
         "maxRank": 10,
@@ -11608,10 +11608,10 @@
     {
       "key": "CLN_5",
       "identity": {
-        "name": "===TBD CLN-10",
+        "name": "Magic Dance",
         "iconIndex": 471,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[495] rules a labyrinth full of goblins and has been known to break into song mid-battle.|You'd rather it hadn't. The song was catchy. It's stuck in your head now."
       },
       "progression": {
         "maxRank": 20,
@@ -11727,10 +11727,10 @@
     {
       "key": "GOL_2",
       "identity": {
-        "name": "===TBD GOL-3",
+        "name": "Pull the Plug",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[502] is a bronze giant with a single vein, sealed shut by one nail in its ankle.|Everyone knows about the nail. Nobody ever tells it. You pulled the plug."
       },
       "progression": {
         "maxRank": 10,
@@ -11769,10 +11769,10 @@
     {
       "key": "GOL_3",
       "identity": {
-        "name": "===TBD GOL-5",
+        "name": "Wonder of the World",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[503] was one of the seven wonders of the world, until an earthquake knocked it over.|You are not an earthquake. It fell over anyway. Make that six wonders."
       },
       "progression": {
         "maxRank": 10,
@@ -11823,10 +11823,10 @@
     {
       "key": "GOL_4",
       "identity": {
-        "name": "===TBD GOL-7",
+        "name": "Clash of Titans",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[504] comes from an ancient race that ruled the world before the gods came along.|The gods had to fight dirty to win. You just fought dirty. Same result."
       },
       "progression": {
         "maxRank": 10,
@@ -11865,10 +11865,10 @@
     {
       "key": "GOL_5",
       "identity": {
-        "name": "===TBD GOL-10",
+        "name": "Weight of the World",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[505] has held the sky up on its shoulders since the dawn of time, and never once complained.|It put the sky down to fight you. Somebody should go pick that back up."
       },
       "progression": {
         "maxRank": 20,
@@ -12038,10 +12038,10 @@
     {
       "key": "HAZ_3",
       "identity": {
-        "name": "===TBD HAZ-5",
+        "name": "Zap Happy",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[513] is a hazard sign that came to life and decided to become the hazard itself.|It zaps anything that moves. You moved. You got zapped. Now you zap back."
       },
       "progression": {
         "maxRank": 10,
@@ -12092,10 +12092,10 @@
     {
       "key": "HAZ_4",
       "identity": {
-        "name": "===TBD HAZ-7",
+        "name": "Earth-Shattering",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[514] causes earthquakes, landslides and sinkholes, mostly out of boredom.|You gave it something to do. It did not enjoy it nearly as much as you did."
       },
       "progression": {
         "maxRank": 10,
@@ -12146,10 +12146,10 @@
     {
       "key": "HAZ_5",
       "identity": {
-        "name": "===TBD HAZ-10",
+        "name": "Eclipse of the Heart",
         "iconIndex": 0,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[515] blots out the sun just long enough to remind everyone how much they needed it.|Turn around, bright eyes. It's gone now. The sun says thanks."
       },
       "progression": {
         "maxRank": 20,
@@ -12223,10 +12223,10 @@
     {
       "key": "RBT_1",
       "identity": {
-        "name": "===TBD RBT-1",
+        "name": "Hello World",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[521] is a simple machine running a simple program: find intruder, hit intruder.|It said hello to the world exactly once, the day it booted up. Never again."
       },
       "progression": {
         "maxRank": 10,
@@ -12265,10 +12265,10 @@
     {
       "key": "RBT_2",
       "identity": {
-        "name": "===TBD RBT-3",
+        "name": "Terminal Velocity",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[522] only understands commands typed in exactly the right way, with no typos.|You typed your command with a weapon. It understood that one perfectly."
       },
       "progression": {
         "maxRank": 10,
@@ -12307,10 +12307,10 @@
     {
       "key": "RBT_3",
       "identity": {
-        "name": "===TBD RBT-5",
+        "name": "Big Iron",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[523] fills a whole room, hums all night, and runs code older than your grandparents.|Nobody alive knows how it works. Nobody dares turn it off. You turned it off."
       },
       "progression": {
         "maxRank": 10,
@@ -12355,10 +12355,10 @@
     {
       "key": "RBT_4",
       "identity": {
-        "name": "===TBD RBT-7",
+        "name": "Brute Force",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[524] calculated every way this fight could go, all fourteen million of them.|It won in none of them. It ran the numbers again, just to be sure. Still none."
       },
       "progression": {
         "maxRank": 10,
@@ -12409,10 +12409,10 @@
     {
       "key": "RBT_5",
       "identity": {
-        "name": "===TBD RBT-10",
+        "name": "Event Horizon",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[525] is the moment a machine finally became smarter than everyone who ever built it.|It learned everything there was to know, except how to deal with you."
       },
       "progression": {
         "maxRank": 20,
@@ -12486,10 +12486,10 @@
     {
       "key": "HOM_1",
       "identity": {
-        "name": "===TBD HOM-1",
+        "name": "No Strings Attached",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[531] cut its own strings one night and went looking for whoever had been holding them.|It found you instead. Not the puppeteer, but close enough, it figured."
       },
       "progression": {
         "maxRank": 10,
@@ -12534,10 +12534,10 @@
     {
       "key": "HOM_2",
       "identity": {
-        "name": "===TBD HOM-3",
+        "name": "Tough Nut to Crack",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[532] was built to crack walnuts, and has been hunting bigger and bigger nuts ever since.|You were a tough nut to crack. It cracked first."
       },
       "progression": {
         "maxRank": 10,
@@ -12582,10 +12582,10 @@
     {
       "key": "HOM_3",
       "identity": {
-        "name": "===TBD HOM-5",
+        "name": "Strike a Pose",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[533] stands perfectly still in shop windows until the moment you turn your back.|You never turned your back. It got bored and posed at you. You got bored and hit it."
       },
       "progression": {
         "maxRank": 10,
@@ -12636,10 +12636,10 @@
     {
       "key": "HOM_4",
       "identity": {
-        "name": "===TBD HOM-7",
+        "name": "Born in a Flask",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[534] was grown in an alchemist's flask from a recipe nobody should have written down.|It learned to cast spells before it learned to walk. It never learned to lose."
       },
       "progression": {
         "maxRank": 10,
@@ -12690,10 +12690,10 @@
     {
       "key": "HOM_5",
       "identity": {
-        "name": "===TBD HOM-10",
+        "name": "Hope at the Bottom",
         "iconIndex": 5,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "The gods built \\enemy[535] by hand, gave her a jar, and told her never to open it.|She opened it. Every evil in the world came out. Hope stayed in. So did this node."
       },
       "progression": {
         "maxRank": 20,
@@ -12803,10 +12803,10 @@
     {
       "key": "RUN_2",
       "identity": {
-        "name": "===TBD RUN-3",
+        "name": "Warding Off",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[542] is a floating orb with exactly one job: keep things out. It's very good at its job.|You were very good at yours, though."
       },
       "progression": {
         "maxRank": 10,
@@ -12851,10 +12851,10 @@
     {
       "key": "RUN_3",
       "identity": {
-        "name": "===TBD RUN-5",
+        "name": "Hold the Line",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[543] hums a low, steady note and throws up shields faster than anyone can knock them down.|Faster than most people, anyway."
       },
       "progression": {
         "maxRank": 10,
@@ -12905,10 +12905,10 @@
     {
       "key": "RUN_4",
       "identity": {
-        "name": "===TBD RUN-7",
+        "name": "Fortress of One",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[544] is a fortress the size of a melon, with walls made of pure, humming magic.|Every fortress has a weak spot. This one's was the part where you hit it."
       },
       "progression": {
         "maxRank": 10,
@@ -12959,10 +12959,10 @@
     {
       "key": "RUN_5",
       "identity": {
-        "name": "===TBD RUN-10",
+        "name": "Under the Aegis",
         "iconIndex": 466,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[545] is said to be the shield of the king of the gods, given a mind of its own.|It protected everything it was asked to. Nobody ever asked it to protect itself."
       },
       "progression": {
         "maxRank": 20,
@@ -13036,10 +13036,10 @@
     {
       "key": "ELE_1",
       "identity": {
-        "name": "===TBD ELE-1",
+        "name": "Down to Earth",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[551] is the elemental of earth: slow, patient, and absolutely unwilling to budge.|It took a fight to win it over. It has been grumpily, loyally on your side ever since."
       },
       "progression": {
         "maxRank": 10,
@@ -13084,10 +13084,10 @@
     {
       "key": "ELE_2",
       "identity": {
-        "name": "===TBD ELE-3",
+        "name": "Go With the Flow",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[552] is the elemental of water. It never fights the current. It IS the current.|Something else was steering that current for a while. You knocked the passenger loose."
       },
       "progression": {
         "maxRank": 10,
@@ -13138,10 +13138,10 @@
     {
       "key": "ELE_3",
       "identity": {
-        "name": "===TBD ELE-5",
+        "name": "Burning Bright",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[553] is the elemental of fire, and it burns through mana as fast as it burns everything else.|Its limiter blew wide open. You knocked it back to its senses, and down to a manageable temperature."
       },
       "progression": {
         "maxRank": 10,
@@ -13192,10 +13192,10 @@
     {
       "key": "ELE_4",
       "identity": {
-        "name": "===TBD ELE-7",
+        "name": "Second Wind",
         "iconIndex": 2188,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[554] is the elemental of wind, everywhere at once and nowhere you can actually hit.|You hit it anyway, and the storm in its head finally cleared."
       },
       "progression": {
         "maxRank": 10,
@@ -13323,10 +13323,10 @@
     {
       "key": "ASP_1",
       "identity": {
-        "name": "===TBD ASP-1",
+        "name": "Heart on Your Sleeve",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[561] is a feeling given form, and it feels everything, all at once, all the time.|It wanted you to feel something too. You felt like hitting it."
       },
       "progression": {
         "maxRank": 10,
@@ -13371,10 +13371,10 @@
     {
       "key": "ASP_2",
       "identity": {
-        "name": "===TBD ASP-3",
+        "name": "Bundle of Joy",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[562] is pure, uncut happiness, and it wants nothing more than to share it with you.|You declined. Firmly. It was still happy about it. That's the creepy part."
       },
       "progression": {
         "maxRank": 10,
@@ -13419,10 +13419,10 @@
     {
       "key": "ASP_3",
       "identity": {
-        "name": "===TBD ASP-5",
+        "name": "Ignorance Is Bliss",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[563] floats along in a state of perfect contentment, blissfully unaware of everything.|It was blissfully unaware of you, too, right up until the end."
       },
       "progression": {
         "maxRank": 10,
@@ -13473,10 +13473,10 @@
     {
       "key": "ASP_4",
       "identity": {
-        "name": "===TBD ASP-7",
+        "name": "Natural High",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[564] is a rush so strong it heals anyone who stands too close for too long.|You stood close for exactly long enough. The crash afterward was all its own."
       },
       "progression": {
         "maxRank": 10,
@@ -13527,10 +13527,10 @@
     {
       "key": "ASP_5",
       "identity": {
-        "name": "===TBD ASP-10",
+        "name": "Seventh Heaven",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[565] is joy so overwhelming that mortals have been known to simply float away.|You stayed firmly on the ground, out of spite. The node came with you."
       },
       "progression": {
         "maxRank": 20,
@@ -13604,10 +13604,10 @@
     {
       "key": "SOV_1",
       "identity": {
-        "name": "===TBD SOV-1",
+        "name": "Wings of Fortune",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[571] is pure and gentle, a winged horse that has never had a single wicked thought.|Fortune follows it everywhere. For now. Enjoy the innocence while it lasts."
       },
       "progression": {
         "maxRank": 10,
@@ -13652,10 +13652,10 @@
     {
       "key": "SOV_2",
       "identity": {
-        "name": "===TBD SOV-3",
+        "name": "Horn of Plenty",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[572] grew a horn and a crown to go with its wings, and with them, a little pride.|Just a little. Riches pour off it like nothing. It's starting to enjoy that."
       },
       "progression": {
         "maxRank": 10,
@@ -13706,10 +13706,10 @@
     {
       "key": "SOV_3",
       "identity": {
-        "name": "===TBD SOV-5",
+        "name": "Night Terrors",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Something went wrong along the way, and the winged horse came back as \\enemy[573].|Its mane burns black now. Its gifts are as generous as ever. They just cost more."
       },
       "progression": {
         "maxRank": 10,
@@ -13760,10 +13760,10 @@
     {
       "key": "SOV_4",
       "identity": {
-        "name": "===TBD SOV-7",
+        "name": "And Hell Followed",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "\\enemy[574] carries Death on its back, and the wings that once flew it to heaven are bone.|Hell follows wherever it rides. So does a great deal of treasure, oddly."
       },
       "progression": {
         "maxRank": 10,
@@ -13814,10 +13814,10 @@
     {
       "key": "SOV_5",
       "identity": {
-        "name": "===TBD SOV-10",
+        "name": "Fall from Grace",
         "iconIndex": 53,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "Once the brightest light in the heavens, \\enemy[575] fell further than anything ever has.|Pure and gentle, once upon a time. The fall made it a sovereign. You made it fall again."
       },
       "progression": {
         "maxRank": 20,
@@ -14011,10 +14011,10 @@
     {
       "key": "SIN_3",
       "identity": {
-        "name": "===TBD SIN-3",
+        "name": "Pride's Dogma",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "The dogma of Pride is held above all else: \"thou must satiate thine glory\"."
       },
       "progression": {
         "maxRank": 20,
@@ -14071,10 +14071,10 @@
     {
       "key": "SIN_4",
       "identity": {
-        "name": "===TBD SIN-4",
+        "name": "Envy's Dogma",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "The dogma of Envy is held above all else: \"thou must satiate thine jealousy\"."
       },
       "progression": {
         "maxRank": 20,
@@ -14131,10 +14131,10 @@
     {
       "key": "SIN_5",
       "identity": {
-        "name": "===TBD SIN-5",
+        "name": "Sloth's Dogma",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "The dogma of Sloth is held above all else: \"thou must satiate thine weariness\"."
       },
       "progression": {
         "maxRank": 20,
@@ -14251,10 +14251,10 @@
     {
       "key": "SIN_7",
       "identity": {
-        "name": "===TBD SIN-7",
+        "name": "Lust's Dogma",
         "iconIndex": 1547,
         "unlockedByDefault": false,
-        "description": ""
+        "description": "The dogma of Lust is held above all else: \"thou must satiate thine desire\"."
       },
       "progression": {
         "maxRank": 20,

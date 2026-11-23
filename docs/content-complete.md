@@ -252,18 +252,29 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Derelict Fork: its east posts pointed at the Frostbite Fields, which are gone
 - [ ] Passage 8: its rope posts, once the Basin mouth is picked (Map102)
 - [ ] `main-005`'s first objective sits off the road (Map116)
-- [ ] The elemental cutscenes point their bubbles at the events that show them
+- [x] The elemental cutscenes point their bubbles at the events that show them (checked 2026-11-22: every line whose
+  elemental is on screen already points at its event. The rest are plain windows because nothing shows the elemental:
+  seven maps (94, 167, 190, 214, 215, 218, 241), and The Bellows' pre-boss scene (Map246 event 31), since the spirits
+  there only appear once a scene turns partner-visible, switch 1, on. Two water-faced lines still carried Skye's
+  nameplate from when Skye and Aqualock traded actor slots, on Map192 event 7 and Map215 event 25; both now read
+  Aqualock, 2026-11-23)
 - [x] Onboarding: the armor path on the main rail, T-04 and T-05
 - [x] The save tutorial moves into the intro cave
 - [ ] A couple of side quests for the people in the pub
 - [ ] The deadly guard's warning should say something silly (Map276)
 - [ ] Two known one-way doors: Raevula's north exit, and Kadepths to the Extended Tunnel
 - [ ] Ice-slide puzzles under pixel movement: check they still work
-- [ ] Iris Threads, Giga Deflect and Giga Protect still say TBD in their descriptions
+- [ ] Giga Deflect and Giga Protect still say TBD in their descriptions, until Jeremy decides what they become: "they are
+  expected to radically change and enhance their respective guard types" (2026-11-22). Iris Threads' "TBD" is part of
+  its joke ("yet to be determined") and stays
 - [ ] The Whisk's real icon
 - [ ] Yelena's line about a utensil merchant who never existed
-- [ ] Icons for the folk quests, their category and the ch5 tag
-- [ ] Clear out the Recipe Journal leftovers (CE31, CE161-163)
+- [x] Icons for the folk quests, their category and the ch5 tag (2026-11-22: each line got its own icon, picked for who
+  they are and what they do, at Jeremy's word. The folk category already had icon 82, and the ch5 tag icon 2060, the
+  grey book in the chapter set)
+- [x] Clear out the Recipe Journal leftovers (CE31, CE161-163) (2026-11-22: nothing was left. CE161-163 and items
+  461-463 were already blank, and CE31 "Recipes init" is live, the innkeeper's five starter recipes, called from Map28,
+  Map1 and Map221, so it stays)
 - [ ] J&R's lines that say they wiped out Majik's whole species (Map172, Map284, Map320)
 - [ ] The HUD redesign (in 1.0.0, Jeremy 2026-11-22; what it covers is still being decided)
 - [x] Every character sheet a `$` single (in 1.0.0, Jeremy 2026-11-22: "everything", objects and unused sheets too). Cut the same day: 155 sheets into 1,060 singles, every event repointed; the two unused off-grid sheets (`m_bats-sm`, `m_slimeMedium`) deleted at his word
