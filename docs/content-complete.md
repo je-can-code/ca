@@ -252,12 +252,13 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Derelict Fork: its east posts pointed at the Frostbite Fields, which are gone
 - [ ] Passage 8: its rope posts, once the Basin mouth is picked (Map102)
 - [ ] `main-005`'s first objective sits off the road (Map116)
-- [x] The elemental cutscenes point their bubbles at the events that show them (checked 2026-11-22: every line whose
-  elemental is on screen already points at its event. The rest are plain windows because nothing shows the elemental:
-  seven maps (94, 167, 190, 214, 215, 218, 241), and The Bellows' pre-boss scene (Map246 event 31), since the spirits
-  there only appear once a scene turns partner-visible, switch 1, on. Two water-faced lines still carried Skye's
-  nameplate from when Skye and Aqualock traded actor slots, on Map192 event 7 and Map215 event 25; both now read
-  Aqualock, 2026-11-23)
+- [x] The elemental cutscenes point their bubbles at the events that show them (2026-11-23: the elementals stopped
+  being party members, so the chatter scenes they talk in now bring their spirits out beside the duo with common events
+  114 "Show Elementals" and 115 "Hide Elementals", and every elemental line bubbles off its spirit, The Bellows'
+  pre-boss scene included. Three checks still asked for Earthie in the party and now ask whether she has joined
+  (switch 66), which also unblocks cleansing Aqualock's bubble on Map192. Map167's "learn: support members" tutorial is
+  gone. Two water-faced lines still carried Skye's nameplate from when Skye and Aqualock traded actor slots; both read
+  Aqualock)
 - [x] Onboarding: the armor path on the main rail, T-04 and T-05
 - [x] The save tutorial moves into the intro cave
 - [ ] A couple of side quests for the people in the pub
