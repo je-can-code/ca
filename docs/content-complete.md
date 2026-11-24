@@ -122,7 +122,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] RGB Technohypercube: the fusion at the Spacial Flux Engine
 - [ ] `side-007`, the disk and hypercube descriptions read as the hypercube flow, and its third step can be moved
 - [ ] The Bleu disk gate: what it opens (Map280)
-- [ ] The Greed reveal: its thresholds and Trainer Lord's scene
+- [ ] The Greed reveal: its thresholds, Trainer Lord's lounge line, and the mirror battle he throws the duo into
 - [ ] The Sabre cameo, somewhere before chapter 5
 - [ ] Wyatt and Lucian stop calling themselves Lord of anything
 - [ ] The final scene: the meal
@@ -160,7 +160,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] `mittens`: the tribute tiers, Feline Favor and the follow behavior
 - [ ] `satoru-002`: his outcome
 - [ ] `silverkayla-003`: the destination and the Promise Ring
-- [ ] `leo-002`: Leo's Original formulas
+- [ ] `leo-002`: the scene that unlocks Leo's Original (its eight gems and recipes are built, locked until then)
 - [ ] `leo`: the new quest before "The Student", finding out what happened to his master, finished by killing Pride
 - [ ] `alice-002`: the Acolyte's Favor
 - [ ] `iris-001`: the Monsterpedia showing drop rates and node chances (plugin work)

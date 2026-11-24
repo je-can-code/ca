@@ -203,8 +203,9 @@ looks like when it wears a body: Gluttony = intake unbounded, Wrath = output unb
 **Drop mechanic** `LOCKED`: defeating a named sin boss does **not** drop their SDP. The defeat releases a
 permanent population of **lesser** versions throughout the region (naming rule: *boss-title → common-noun* —
 Gluttonwolf **Mayor** → **Gluttonwolf**; Vampire **King** → **Vampire Shade**), which carry a flat rare-drop
-roll for the unique SDP. All six *fought* sins sit on the main critical path; what gates postgame is
-**looting all seven SDPs** (six farmed + Greed).
+roll for the unique SDP. Six of the sins sit on the main critical path; Greed's fight comes whenever its
+threshold breaks (see [The Greed reveal](#the-greed-reveal-locked-reworked-2026-11-23)). What gates postgame is
+**looting all seven SDPs**, every one farmed from lessers: Greed's are its votaries (plural; what they are is `OPEN`).
 
 **Origin taxonomy** `LOCKED` — every transformation happens for a different reason; keep them distinct:
 
@@ -422,7 +423,7 @@ side-quest-driven passive grind may raise real-world numbers. Map sizes and enem
 
 ## Chapter 4 — The Breathing Chapter `LOCKED (design) / unbuilt`
 
-**Theme:** the world is yours; the key assembles; the first horror. **Sins:** Pride, Sloth (+ Greed revealed).
+**Theme:** the world is yours; the key assembles; the first horror. **Sins:** Pride, Sloth (+ Greed's mirror battle, whenever its threshold breaks).
 
 **Phase intent** `LOCKED — protect this on re-read`: Ch4 is deliberately **wrapperless and open**. The player
 knows the what and the why; this chapter is execution *in an open continent* — forks unlock via Raevula NPC
@@ -505,14 +506,19 @@ Technofragment items get retired; disks are singular collectibles, and the hyper
 Reconcile the Rouge's "bypassed in the story" item description; update `side-007`'s quest text from
 "use three disks" to the hypercube flow.
 
-### The Greed reveal `LOCKED`
+### The Greed reveal `LOCKED (reworked 2026-11-23)`
 
-Mid-game, threshold-triggered (collect X SDPs / learn Y recipes / craft Z foods — numbers `OPEN`): **Trainer
-Lord appears unprompted.** *"Something has... grown from within you. Allow me to show you a part of what
-you've become over this journey, protagonists!"* — and **extracts the Sin of Greed's SDP from the party's own
-essence.** No boss. No location. No fight. Greed was never the gent's doing; it is a manifestation of what
-Jerald and Rupert have been doing since minute one: hoarding. Unsettling, not celebratory — and a deliberate
-dress rehearsal for the Ammit reveal (see Postgame).
+Mid-game, threshold-triggered (collect X SDPs / learn Y recipes / craft Z foods — numbers `OPEN`). Nobody knows
+when the threshold breaks, so Trainer Lord does not come to them: **the next time the duo talks to him in his
+lounge, his usual creepy know-it-all line is replaced by the Greed one, and he immediately thrusts them into a
+mirror battle**: the duo against themselves. No warning and no backing out. Not a good surprise, and exactly what
+they deserve. Greed was never the gent's doing; it is a manifestation of what Jerald and Rupert have been doing since
+minute one: hoarding. Unsettling, not celebratory — and a deliberate dress rehearsal for the Ammit reveal (see
+Postgame).
+
+- **His Greed line:** `OPEN`. The draft from the old extraction version: *"Something has... grown from within you.
+  Allow me to show you a part of what you've become over this journey, protagonists!"*
+- **The mirror battle and Greed's votaries (plural):** `OPEN`, a design talk is queued.
 
 ### The Sabre cameo `PROPOSED (2026-07-31)`
 
@@ -708,8 +714,8 @@ to these two when the player moves between them,* and a child stared at it for f
 - **Guardrail `PROPOSED (principle)`: let them NOTICE, never let them CONCLUDE.** House style is a cosmology
   that refuses to explain itself — the Tower of Nare is never explained, the sigils are never explained, the
   Echoes get no journal entry. This lands as an unresolved shiver or not at all. Precedent for pointing at the
-  player through the characters without spelling it out: Trainer Lord's Greed extraction — *"something has
-  grown from within you"* — where the party's hoarding is the player's hoarding, said aloud, explained never.
+  player through the characters without spelling it out: Trainer Lord's Greed reveal, where the party's hoarding
+  is the player's hoarding, thrown back at them as a mirror battle and explained never.
 
 #### The interlock `PROPOSED (design)`
 
@@ -909,8 +915,8 @@ the last boss' sequence of scenes at first."*
    > J: "This doesn't look edible."
    > R: "No, but it FEELS... young, and old... at the same time?"
    The 2026 finish line does not hinge on it. TL delivering DLC diegetically is exactly his job.
-2. **The seven SDPs** — farm the six fought sins' lesser spawns (flat rare rolls) + Greed. Collecting all
-   seven is the gate.
+2. **The seven SDPs** — farm all seven sins' lesser spawns (flat rare rolls; Greed's are its votaries, loose
+   once the mirror battle is won). Collecting all seven is the gate.
 3. **Trainer Lord's Exam** `LOCKED` — full junction suppression, panels dark, friendly to the end:
    **"Show me what you learned, not what you collected."** The fight examines everything that *isn't* nodes —
    weapon identity, class verbs, proficiency, food, parry — the design contract enforced as a boss. (Lineage:
@@ -918,7 +924,8 @@ the last boss' sequence of scenes at first."*
    Passing unlocks the option to prove **mastery** of all seven sin SDPs.
 4. **The Ammit trigger** `LOCKED` — master all seven, and Trainer Lord's eyes narrow: *"Protagonists... do
    you realize what you have done? Here — let me show you."* Same gesture as the Greed extraction, vastly
-   larger scale: he plucks the composite essence from the party — seven misregulation patterns, unified in
+   larger scale *(the extraction became the mirror battle on 2026-11-23, so how the two rhyme now is `OPEN`
+   until postgame work)*: he plucks the composite essence from the party — seven misregulation patterns, unified in
    one junction-network, at critical mass — and casts it to a distant region. *"Face what you value, if you
    want a true challenge."*
 5. **HUNGER — the 8th sin.** `LOCKED` The sin that remains when all appetites are unified: appetite with no

@@ -347,6 +347,11 @@ time their own sounds), so the beat that went silent when you reached her comes 
 
 `Map443` "Basement 13: Lust", the 80×46 dome; enemy `587`. Rupert alone; Fortress band 115-130.
 
+**Votaries (his, 2026-11-23), not built yet:** succubi, placed around the world. They're slow and knockback-immune,
+and a landed hit can paralyze; they carry the flat rare `SIN_7` roll, so they're what finally drops Lust's SDP (today
+nothing does). On hand already: `img/characters/$m_succubus.png`, and a Paralyzed state (`<paralyzed>`, in a
+180-frame and a 60-frame version). Goop Vent `597` stays the arena hazard, so the succubi need a fresh row.
+
 ### Talked through (2026-11-13)
 
 His answers on the picks below, after re-running them against the morning rules:

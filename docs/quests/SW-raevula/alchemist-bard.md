@@ -48,6 +48,25 @@ made, because the master never could — pride doesn't experiment; it performs.
 #### After effects of "The Student"
 - "Leo's Original" formulae unlock (top-tier alchemy). **Tier 6 gems are Leo's Original** (Jeremy, 2026-11-22: "the
   6th tier will be a bit more amazing than just 'one more step on the ladder'"), so the journal's ladder stops at V.
+- **The Originals, designed 2026-11-23 (not built):** each one is its Gem V's stat at **+50%** plus a **+10**
+  secondary. Every secondary is a raw number or a stat contested by a counter-stat, never a percent that tops out at
+  100, because gear refines endlessly. The recipe is that Gem V, plus the tier V monster part carrying the secondary,
+  on the **Philosopher's Stone** as the tool:
+
+  | Original | Secondary | Ingredients |
+  |---|---|---|
+  | Life | HRG +10 | Life Gem V + Immortal Liver |
+  | Magi | MRG +10 | Magi Gem V + Flowing Pelt |
+  | Power | CDM +10 | Power Gem V + Executioner Tooth |
+  | Endurance | GRD +10 | Endurance Gem V + Spherical Stone |
+  | Sorcery | HIT +10 | Sorcery Gem V + Live Stinger |
+  | Resist | MEV +10 | Resist Gem V + Radiant Core |
+  | Finesse | CRI +10 | Finesse Gem V + Razor Fangs |
+  | Luck | CEV +10 | Luck Gem V + Lethal Talon |
+
+  The joke is Jeremy's: the legendary stone finally gets used, for something "kinda mundane sounding (taking an
+  already existing gem and slapping an item on it that is adjacent to make a better gem... uncreative lmaoooo, but on
+  the nose for Leo sucking at everything he does)". It works anyway, which is the point.
 - His dialogue drops the self-deprecation. Not all of it. The right amount.
 - The side character line pays off: the game makes him, on screen, the protagonist of his own story. Thesis,
   delivered by ukelele guy.
