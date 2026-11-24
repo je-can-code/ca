@@ -37,7 +37,7 @@
   }
 }
 body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); line-height: 1.45; }
-.page { padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 40px; display: grid; gap: 22px; min-width: 0; }
+.page { padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 16px; display: grid; gap: 22px; min-width: 0; }
 .page[data-loading] { opacity: .6; transition: opacity .2s; }
 h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5vw, 44px); line-height: 1.05; margin: 0; text-wrap: balance; }
 .lede { margin: 6px 0 0; max-width: 72ch; color: var(--muted); }
@@ -51,9 +51,16 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5vw, 
 .tally-key { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; color: var(--muted); }
 .tally-key b { color: var(--fg); font-family: var(--data); font-weight: 600; }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
-.legend { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; color: var(--muted); }
+/* the legend pins to the top of the window as the page scrolls, and the sheet is sized to fit beneath it, so
+   scrolling down lands on the switches and the whole grid together. */
+.legend { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; color: var(--muted); position: sticky; top: 0; z-index: 10; background: var(--bg); padding-block: 8px; }
 .legend .chip { display: inline-block; margin: 0; }
-.sheet { overflow: auto; max-height: calc(100vh - 32px); border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
+.legend button.chip { appearance: none; cursor: pointer; background: none; }
+.legend button.chip.first { background: var(--c); }
+.legend button.chip.off { background: transparent; color: var(--none); border-color: var(--none); }
+.legend button.chip:focus-visible { outline: 2px solid var(--t2); outline-offset: 2px; }
+.legend .hint { font-size: 12.5px; }
+.sheet { box-sizing: border-box; overflow: auto; max-height: calc(100vh - var(--legend-height, 60px) - 16px); border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
 table { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; width: 100%; }
 th, td { padding: 0; border-bottom: 1px solid var(--line); }
 thead th { position: sticky; background: var(--panel); z-index: 3; font-weight: 500; }
@@ -120,10 +127,17 @@ tbody tr:hover td.cell { background-color: var(--panel); }
 const NAMED = 10;
 
 /**
- * What the page is showing: the last data that came back, and whether only late lines are listed.
- * @type {{data: object|null, late: boolean, loading: boolean}}
+ * Every rung the legend can hide, in the order it shows them: the five tiers, then the named.
+ * @type {number[]}
  */
-const state = { data: null, late: false, loading: false };
+const RUNGS = [ 1, 2, 3, 4, 5, NAMED ];
+
+/**
+ * What the page is showing: the last data that came back, whether only late lines are listed, and which
+ * rungs the legend has switched off. Every rung starts on, and a fresh reading of the game keeps the choice.
+ * @type {{data: object|null, late: boolean, loading: boolean, hidden: Set<number>}}
+ */
+const state = { data: null, late: false, loading: false, hidden: new Set() };
 
 const el = id => document.getElementById(id);
 
@@ -250,11 +264,12 @@ function drawBody()
     who.append(make('span', metClass, metText(line)));
     row.append(who);
 
-    // every area gets a cell, empty or not, so the columns line up under their headings.
+    // every area gets a cell, empty or not, so the columns line up under their headings. a rung the legend
+    // switched off is left out, and the row stays where it was so nothing shuffles while filtering.
     areas.forEach((area, index) =>
     {
       const cell = make('td', 'cell');
-      (line.cells[index] || []).forEach(entry =>
+      (line.cells[index] || []).filter(entry => !state.hidden.has(entry.tier)).forEach(entry =>
       {
         const isFirst = line.meet !== null && line.meet.index === index && line.meet.tier === entry.tier;
         cell.append(chipFor(entry, line, index, isFirst));
@@ -294,10 +309,65 @@ function drawTally()
   });
 }
 
+/**
+ * Switches one rung on or off in the grid.
+ * @param {number} tier The rung's tier, or the named's slot.
+ */
+const toggleRung = tier =>
+{
+  if (state.hidden.has(tier)) state.hidden.delete(tier);
+  else state.hidden.add(tier);
+  paintLegend();
+  if (state.data !== null) drawBody();
+};
+
+/**
+ * Shows only one rung, or every rung again when that one is already the only one showing. A double-click
+ * lands here after its two clicks have each toggled the rung, which cancel out, so only this decides.
+ * @param {number} tier The rung's tier, or the named's slot.
+ */
+const isolateRung = tier =>
+{
+  const alone = RUNGS.every(rung => (rung === tier) !== state.hidden.has(rung));
+  state.hidden = alone ? new Set() : new Set(RUNGS.filter(rung => rung !== tier));
+  paintLegend();
+  if (state.data !== null) drawBody();
+};
+
+/**
+ * Lights the legend's rung buttons that are on and greys the ones that are off. The buttons are built once
+ * and only repainted, so a double-click lands on the same button as the clicks before it.
+ */
+const paintLegend = () =>
+{
+  document.querySelectorAll('#legend button[data-tier]').forEach(button =>
+  {
+    const tier = Number(button.dataset.tier);
+    const shown = !state.hidden.has(tier);
+    button.className = `chip ${rungClass(tier)} ${shown ? 'first' : 'off'}`;
+    button.setAttribute('aria-pressed', String(shown));
+    button.title = shown ? 'Hide this from the grid' : 'Show this in the grid';
+  });
+};
+
 function drawLegend()
 {
   const legend = el('legend');
-  [ 1, 2, 3, 4, 5, NAMED ].forEach(tier => legend.append(make('span', `chip ${rungClass(tier)} first`, tier === NAMED ? 'Named' : `T${tier}`)));
+
+  // each rung is a switch: all on to start, and one click takes it out of the grid.
+  RUNGS.forEach(tier =>
+  {
+    const button = make('button', '', tier === NAMED ? 'Named' : `T${tier}`);
+    button.type = 'button';
+    button.dataset.tier = String(tier);
+    button.addEventListener('click', () => toggleRung(tier));
+    button.addEventListener('dblclick', () => isolateRung(tier));
+    legend.append(button);
+  });
+  legend.append(make('span', 'hint', 'Click to hide, double-click to see only that one.'));
+  paintLegend();
+
+  // then what the chips themselves mean.
   [ [ 'chip c1 first', 'T1 8', 'Where you first meet it' ], [ 'chip c1', 'T1 8', 'It also stands here' ], [ 'chip c2', 'T2 8+', 'Levels vary, hover for the range' ] ].forEach(([ classes, text, label ]) =>
   {
     const item = make('span');
@@ -363,6 +433,14 @@ document.addEventListener('visibilitychange', () =>
 {
   if (document.visibilityState === 'visible') load();
 });
+
+// the sheet's height leaves room for the pinned legend, which wraps onto more lines in a narrow window, so its
+// real height is measured whenever it changes rather than assumed.
+const legendSizer = new ResizeObserver(([ entry ]) =>
+{
+  document.documentElement.style.setProperty('--legend-height', `${entry.target.offsetHeight}px`);
+});
+legendSizer.observe(el('legend'));
 
 drawLegend();
 load();

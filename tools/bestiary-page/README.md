@@ -13,6 +13,11 @@ opened, so a monster moved this morning is where it stands now.
   when the spots disagree; hover for the range and the count). The filled chip is the first meeting.
 - **The tally** of lines by the chapter they are first met in. Chapter 4 onward is a parallel set, so a
   line nobody meets before it counts as "chapter 4 on" rather than by area.
+- **The legend's rung chips are switches.** All six start on. Click one to take that rung out of the grid,
+  and double-click one to see only that rung; double-click it again to bring every rung back. The rows stay
+  where they are while filtering, so an empty row means that line's rung stands nowhere. Scroll down and the
+  legend pins to the top of the window with the whole grid sized to fit beneath it, so the switches and the
+  grid are always on screen together.
 
 It shows who each spot names. A spot's pool can also roll the tiers above that, by weight, and those rolls
 are not drawn.
