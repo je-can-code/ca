@@ -64,26 +64,28 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [x] Sigils in the six switcher rooms move between lanes, and save with no way out
 - [ ] Rafters: the spring lands Jerald on the beam, with the hall as parallax (Map413; the landing is wired and
       his beat on the beam is Jeremy's TODO; the parallax waits for the polished hall)
-- [ ] Landing and slide: Rupert's fall, and no climbing back up (Map429)
-- [ ] What the hazard grate does to Rupert (Map430, Map434, Map435)
-- [ ] The floor collapse: unskippable, with its cross-cut and variant line (Map415; the collapse is wired, and
-      its cross-cut into the goop lands with the basement)
-- [ ] The lever: unskippable, with its cross-cut and variant line (Map431)
-- [ ] Goop Ocean: the fallen chunk becomes the bridge (Map433)
+- [x] Landing and slide: Rupert's fall, and no climbing back up (Map429; the slide's line is Jeremy's TODO)
+- [ ] What the hazard grate does to Rupert (Map430, Map434, Map435; the grate is plain passable floor today, so
+      the field's hops and bridge save nothing until this is decided)
+- [x] The floor collapse: unskippable, with its cross-cut and variant line (Map415; the cut into the goop is CE36,
+      and the variant line is Jeremy's TODO)
+- [x] The lever: unskippable, with its cross-cut and variant line (Map431; the cut up to the elevator is CE29)
+- [x] Goop Ocean: the fallen chunk becomes the bridge (Map433)
 - [x] Dead elevator: power-gated, riding up to the Bolt Gallery (Map418; the block flag, the cross-cut in CE29,
       and the variant line's TODO)
 - [ ] Bolt Gallery: traps in the niches, and Jerald's line about the old castle (Map419; the seven traps are in,
       and the line is Jeremy's TODO)
 - [x] Needless Hazards: destroying them all reverse-charges the circuit (Map420)
-- [ ] Hazard Field: the switch puzzle, the jumps, and the light bridge both ways (Map435)
+- [x] Hazard Field: the switch puzzle, the jumps, and the light bridge both ways (Map435; the puzzle is a
+      placeholder of three coloured switches whose order the stones' lights give)
 - [ ] Mini-boss: the elysian ghost (Map422)
 - [ ] Mini-boss: the horde (Map438)
 - [x] Elevator ride: the climbing parallax, the robot waves and the care package trigger (Map423, Map424; the
       parallax is a placeholder made from the tower's own stone)
-- [ ] Cultists' Lair: torches lighting as he nears, demon waves off the platforms (Map439)
-- [ ] Dome Approach: the barely perceptible button (Map440)
-- [ ] The two care packages in the final switcher rooms (Map425, Map441; Jerald's in Map425 is wired, and
-      Rupert's comes with the basement)
+- [ ] Cultists' Lair: torches lighting as he nears, demon waves off the platforms (Map439; the torches are in,
+      and the waves wait for the votary rows)
+- [x] Dome Approach: the barely perceptible button (Map440)
+- [x] The two care packages in the final switcher rooms (Map425, Map441)
 - [ ] The fall: the tumble, the flip motion, the monologue, the forced flip to Rupert (Map426, Map417)
 - [ ] The VERY convenient elevator: Rupert's exit, the forced flip to Jerald (Map443)
 - [ ] The reunion, with both duration lines (Map411)

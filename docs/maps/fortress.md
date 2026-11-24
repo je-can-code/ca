@@ -883,8 +883,8 @@ and golems around 130 for Rupert.
       call common event 26: Save, Switch to the other man, Not now. Common event 25 notices the first dead cycle
       press (switch 114) for the beat, whose lines are Jeremy's TODO. Providence (common event 59) refuses while the
       split is on.
-- [ ] Both lanes room by room, with switcher rooms enemy-free and a sigil at every block. (The tower's beats
-      are wired; see the next entry. The basement's are next.)
+- [ ] Both lanes room by room, with switcher rooms enemy-free and a sigil at every block. (Both lanes' beats
+      are wired; see the next two entries. What is left is each room's one encounter, for the roster pass.)
 - [x] **Jerald's tower, wired and walked in engine 2026-11-23.** Every line the docs draft is Jeremy's TODO, quoted
       in the event's comments. Enemy rows, counts and levels here are placeholders for the roster pass.
   - Rafters: `Map413` e10 marks his beat on the bottom beam, which he does not want to go back down.
@@ -913,14 +913,38 @@ and golems around 130 for Rupert.
   - Grand Staircase: `Map424` e10 rides back down to `Map422`.
   - Jerald's care package: `Map425` e4 appears on switch 126 "fortress: jerald's care package", which the dome
     button below turns on. It's a supply crate holding two Serum V and two Ether V, as placeholder contents.
-- [ ] The two mandatory causes (floor collapse, lever), evented so they cannot be skipped, with the
-      cross-cut and the variant line for each order. (The tower's half is wired: the collapse, plus the
-      elevator's side of the lever's cross-cut and its variant line in common event 29. The lever and the goop's
-      side come with the basement.)
-- [ ] Room 7's mutual optional help, both triggers live, first-arriver-helps-second. (The tower's half is
-      wired: the reverse-charge turns on switch 118, and switch 119 disarms the tower's hazards.)
-- [ ] The two care packages in the final switcher rooms. (Jerald's is wired in `Map425` on switch 126; the
-      ride turns on switch 120 for Rupert's.)
+- [x] **Rupert's basement, wired and walked in engine 2026-11-23.** Same conventions as the tower: his lines are
+      TODOs with the drafts quoted, and the encounters wait for the roster pass.
+  - The slide: `Map429` e10 at the top (x 7-11, row 10) carries him down and out in one go, and e11 on row 18
+    turns him back with "It's too steep to climb back up."
+  - The lever: `Map431` e11, standing against the nook's back wall at (36, 17), so he uses it from (36, 18). After
+    its beat it calls common event 29, which powers the castle and cuts up to Jerald if he waits at the elevator.
+    e12 on x 41 across the passage turns him back toward the lever until the power is on, so he cannot pass it.
+  - The goop: `Map433` e39 turns on switch 179 "fortress: rupert at the goop" the first time he arrives before
+    the rock, with his goop line as a TODO, or plays the variant's TODO if the rock beat him there. Six boulders
+    (e33-e38) fill the channel on row 19 once switch 115 is on, and e40 and e41 carry him across and back.
+  - The floor falls: the crumbling floor's e12 now calls common event 36 "fortress: the floor falls". If switch 179
+    is on, it cuts down to Rupert on the shore at (8, 19), and common event 39 "fortress: the rock lands" drops the
+    rocks in while he watches, then it cuts back up. Otherwise it only turns on switch 115.
+  - The hazard field's puzzle: three wall switches at the west end (`Map435` e17-e19, red, yellow and green), and a
+    light of each colour on the three stepping stones (e20-e22), nearest first, give the order: yellow, red, green.
+    A press out of order buzzes and resets them all. Variable 44 "fortress: field switches" counts the right
+    presses; at 3 the six hops (e3-e8) open, and switch 119 disarms the tower's needless hazards.
+  - The light bridge: thirty-five sparkles along row 22 (e23-e57) show on switch 118, and e58 and e59 glide him
+    across from the west ground to the east ground and back. It runs on row 22, not 23, because row 23 is walled
+    at its west end.
+  - Cultists' Lair: twenty-three torches along the path (`Map439` e11-e33), and e34 lights every one within five
+    squares of him, for good. The demon waves are the room's encounter and wait for the votary rows.
+  - Dome Approach: `Map440` e11, the barely perceptible button at (9, 28), turns on switch 126 for Jerald's
+    care package.
+  - Rupert's care package: `Map441` e4 appears on switch 120 from the ride's waves. Same crate, same placeholder
+    contents.
+- [x] The two mandatory causes (floor collapse, lever), evented so they cannot be skipped, with the
+      cross-cut and the variant line for each order. (Common events 29 and 36 hold the cross-cuts; the variant
+      lines are TODOs on `Map418` and `Map433`.)
+- [x] Room 7's mutual optional help, both triggers live, first-arriver-helps-second. (The reverse-charge turns on
+      switch 118 for the light bridge; the field's puzzle turns on switch 119 to disarm the tower's hazards.)
+- [x] The two care packages in the final switcher rooms. (`Map425` on switch 126, `Map441` on switch 120.)
 - [ ] Lane exits: the fall, the elevator, the forced flip to the unfinished lane, the reunion, and the
       two duration lines.
 - [x] Party-cycle disabled from the trap until the reunion, and the sigils as the only way to move
