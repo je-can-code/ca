@@ -1291,6 +1291,10 @@ IconManager.registerJabsInputTexts = function() {
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirRight, 2459);
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirUp, 2460);
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirDown, 2461);
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.RStickUp, "R-Stick Up", "W");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.RStickDown, "R-Stick Down", "S");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.RStickLeft, "R-Stick Left", "A");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.RStickRight, "R-Stick Right", "D");
 };
 
 //#endregion
@@ -1372,7 +1376,11 @@ Input.keyMapper = {
 	49: JabsInputSymbols.CombatSkill1,
 	50: JabsInputSymbols.CombatSkill2,
 	51: JabsInputSymbols.CombatSkill3,
-	52: JabsInputSymbols.CombatSkill4
+	52: JabsInputSymbols.CombatSkill4,
+	87: JabsInputSymbols.RStickUp,
+	83: JabsInputSymbols.RStickDown,
+	65: JabsInputSymbols.RStickLeft,
+	68: JabsInputSymbols.RStickRight
 };
 /**
 * Overwrites gamepad button input to instead perform the various
@@ -1551,6 +1559,16 @@ Input.registerSymbolLabel = function(symbol, label) {
 	Input._jRegistries.symbolLabels[String(symbol)] = String(label || symbol);
 };
 /**
+* Whether a physical input symbol has been given a friendly label yet.<br/>
+* {@link Input.labelForSymbol} answers with the symbol itself when it has none, so that answer alone
+* cannot tell a named symbol from an unnamed one.
+* @param {string} symbol The physical symbol.
+* @returns {boolean}
+*/
+Input.hasSymbolLabel = function(symbol) {
+	return Object.prototype.hasOwnProperty.call(Input._jRegistries.symbolLabels, String(symbol));
+};
+/**
 * Resolves a friendly label for a physical input symbol.
 * @param {string} symbol The physical symbol.
 * @returns {string}
@@ -1659,7 +1677,9 @@ Input.bootstrapAllKeyboardKeysForCapture = function() {
 			const s = Input.keyMapper[code];
 			if (s && reserved.has(s) === false) {
 				Input.registerRemapCaptureSymbol(s);
-				Input.registerSymbolLabel(s, Input._keycodeLabelFor(code, s));
+				if (Input.hasSymbolLabel(s) === false) {
+					Input.registerSymbolLabel(s, Input._keycodeLabelFor(code, s));
+				}
 			}
 			continue;
 		}
@@ -1763,6 +1783,14 @@ Input._axisThreshold = .5;
 */
 Input._flickThreshold = .7;
 /**
+* Which right stick directions each pad was flicked the frame before, by the pad's index.
+*
+* The four flicks share their symbols with keys on the keyboard, so the stick may only write them when one
+* changes. Writing them every frame would have a stick at rest release a key the player is still holding.
+* @type {Object<number, Object<string, boolean>>}
+*/
+Input._rightStickStamps = {};
+/**
 * Sets the analog stick threshold.
 * @param {number} v The new threshold (0.05–0.90 recommended).
 */
@@ -1863,9 +1891,24 @@ Input._normalizeDpadFromButtons = function(gamepad, s, padState) {
 Input._normalizeRightStickFlicks = function(gamepad, s, padState) {
 	const flicks = Input._resolveRightStickFlicks(gamepad);
 	Object.keys(flicks).forEach((symbol) => {
-		s[symbol] = flicks[symbol];
 		padState[symbol] = flicks[symbol];
+		const wasFlicked = Input._wasRightStickFlicked(gamepad.index, symbol);
+		if (wasFlicked === flicks[symbol]) return;
+		s[symbol] = flicks[symbol];
 	});
+	Input._rightStickStamps[gamepad.index] = flicks;
+};
+/**
+* Whether a right stick direction was flicked on a pad the frame before.<br/>
+* A pad that has not been polled yet was at rest.
+* @param {number} padIndex The index of the pad, as the Gamepad API numbers them.
+* @param {string} symbol The symbol of the direction.
+* @returns {boolean}
+*/
+Input._wasRightStickFlicked = function(padIndex, symbol) {
+	const stamp = Input._rightStickStamps[padIndex];
+	if (stamp === undefined) return false;
+	return stamp[symbol] === true;
 };
 /**
 * Works out which direction the right stick is flicked this frame.
