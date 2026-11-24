@@ -883,11 +883,44 @@ and golems around 130 for Rupert.
       call common event 26: Save, Switch to the other man, Not now. Common event 25 notices the first dead cycle
       press (switch 114) for the beat, whose lines are Jeremy's TODO. Providence (common event 59) refuses while the
       split is on.
-- [ ] Both lanes room by room, with switcher rooms enemy-free and a sigil at every block.
+- [ ] Both lanes room by room, with switcher rooms enemy-free and a sigil at every block. (The tower's beats
+      are wired; see the next entry. The basement's are next.)
+- [x] **Jerald's tower, wired and walked in engine 2026-11-23.** Every line the docs draft is Jeremy's TODO, quoted
+      in the event's comments. Enemy rows, counts and levels here are placeholders for the roster pass.
+  - Rafters: `Map413` e10 marks his beat on the bottom beam, which he does not want to go back down.
+  - Crumbling floor: `Map415` e12 on the crossing (x 14-16, row 11). The edge breaks off, e11 being a boulder that
+    drops into the dark, and switch 115 "fortress: floor fell" goes on.
+  - Dead elevator: `Map418` e10 turns on switch 117 "fortress: jerald at the elevator" the first time he arrives
+    without power, or plays the variant line's TODO if the power got there first. e11 is the car: without power,
+    "The elevator has no power." and a step back out; with it, up to the Bolt Gallery. e12 is the call panel that
+    lights with the power.
+  - Common event 29 "fortress: power comes on" is what the basement lever calls. It turns on switch 116, and if
+    switch 117 is on it cuts up to Jerald in front of the car to watch it wake, then back down, leaving him kept at
+    the elevator.
+  - Bolt Gallery: seven ignihazard bolt traps in the niches (`Map419` e10-e16, level 115, the hazards' turret
+    route), Jerald's old-castle remark as a TODO (e17), and the car back down (e18).
+  - Needless Hazards: ten hazards (`Map420` e3-e12, the two roster homes plus eight), all `<noRespawn>`. Each has a
+    second page on switch 119 "fortress: hazards disarmed": inanimate, with no turret route, so it stops shooting
+    but can still be destroyed. The switch on the block's south face (e13) charges once all ten are down, and
+    pressing it turns on switch 118 "fortress: light bridge".
+  - Mini-boss floor: `Map422` e2 is the car into the ride, or straight up to `Map424` once switch 127 "fortress:
+    ride done" is on. e3 is the call panel.
+  - The ride: `Map423` e9, a parallel event. The placeholder parallax `FortressShaft` (the tower's own stone,
+    darkened, with a floor slab every eight tiles) streams down as the car climbs. Four waves of singularities
+    (E525, sized 2, 2, 3 and 3) come through the Spawn Enemy command with animation 154, each wave once the last is
+    down, for at most 150 seconds. Clearing three turns on switch 120 "fortress: rupert's care package".
+    Variables 41-43 hold the waves cleared, the ride's frames and the wave.
+  - Grand Staircase: `Map424` e10 rides back down to `Map422`.
+  - Jerald's care package: `Map425` e4 appears on switch 126 "fortress: jerald's care package", which the dome
+    button below turns on. It's a supply crate holding two Serum V and two Ether V, as placeholder contents.
 - [ ] The two mandatory causes (floor collapse, lever), evented so they cannot be skipped, with the
-      cross-cut and the variant line for each order.
-- [ ] Room 7's mutual optional help, both triggers live, first-arriver-helps-second.
-- [ ] The two care packages in the final switcher rooms.
+      cross-cut and the variant line for each order. (The tower's half is wired: the collapse, plus the
+      elevator's side of the lever's cross-cut and its variant line in common event 29. The lever and the goop's
+      side come with the basement.)
+- [ ] Room 7's mutual optional help, both triggers live, first-arriver-helps-second. (The tower's half is
+      wired: the reverse-charge turns on switch 118, and switch 119 disarms the tower's hazards.)
+- [ ] The two care packages in the final switcher rooms. (Jerald's is wired in `Map425` on switch 126; the
+      ride turns on switch 120 for Rupert's.)
 - [ ] Lane exits: the fall, the elevator, the forced flip to the unfinished lane, the reunion, and the
       two duration lines.
 - [x] Party-cycle disabled from the trap until the reunion, and the sigils as the only way to move
