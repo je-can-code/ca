@@ -108,12 +108,13 @@ const range = (first, last) => Array.from({ length: last - first + 1 }, (_, inde
  * The areas built after chapter 3.
  *
  * `noRoster` lists the maps that never count toward the enemy lane: rest rooms and switcher rooms, which
- * are enemy-free by convention, arenas, and rooms whose fight sits on the checklist by hand, so that
- * nothing is counted twice. Folder rows in these ranges hold no tiles and are skipped when read.
+ * are enemy-free by convention, the quiet room every boss gets before its fight, arenas, and rooms whose
+ * fight sits on the checklist by hand, so that nothing is counted twice. Folder rows in these ranges hold
+ * no tiles and are skipped when read.
  * @type {Array<{ name: string, maps: number[], noRoster: number[] }>}
  */
 const AREAS = [
-  { name: 'Nimbus', maps: range(363, 380), noRoster: [ 374, 378, 380 ] },
+  { name: 'Nimbus', maps: range(363, 380), noRoster: [ 374, 378, 379, 380 ] },
   { name: 'The Subterranean', maps: range(385, 409), noRoster: [ 406, 408, 409 ] },
   {
     name: 'The Frozen Fortress',
@@ -532,6 +533,14 @@ const surveyNodes = async world =>
 };
 
 /**
+ * The node panels cut from 1.0.0, which the panel lane leaves out of its count.
+ *
+ * ELE_5 is held for Brighteene, the sixth elemental, whose place in the story is still open.
+ * @type {Set<string>}
+ */
+const PANELS_CUT_FROM_RELEASE = new Set([ 'ELE_5' ]);
+
+/**
  * Reads how many of each subgroup's node panels are still placeholders.
  *
  * A placeholder panel already has its parameters and its mastery, and an enemy already hands it out, so
@@ -544,7 +553,8 @@ const surveyPanels = async () =>
 
   return subgroups.map(subgroup =>
   {
-    const panels = sdps.filter(panel => panel.mastery.subgroupKey === subgroup.key);
+    const panels = sdps.filter(panel => panel.mastery.subgroupKey === subgroup.key
+      && PANELS_CUT_FROM_RELEASE.has(panel.key) === false);
     const unnamed = panels.filter(panel => panel.identity.name.includes('==='));
 
     return {

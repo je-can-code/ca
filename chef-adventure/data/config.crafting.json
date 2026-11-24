@@ -34859,6 +34859,350 @@
       "tier": 0
     },
     {
+      "key": "a-gems-life-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 256,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 385,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 264,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-gems-magi-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 257,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 390,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 265,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-gems-power-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 258,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 450,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 266,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-gems-endurance-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 259,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 405,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 267,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-gems-sorcery-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 260,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 350,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 268,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-gems-resist-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 261,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 370,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 269,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-gems-finesse-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 262,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 360,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 270,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
+      "key": "a-gems-luck-6",
+      "name": "",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "tools": [
+        {
+          "id": 156,
+          "type": "i",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 263,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        },
+        {
+          "id": 365,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "outputs": [
+        {
+          "id": 271,
+          "type": "a",
+          "count": 1,
+          "categories": []
+        }
+      ],
+      "cost": [],
+      "tier": 0
+    },
+    {
       "key": "a-philosophers-stone",
       "name": "",
       "iconIndex": -1,
