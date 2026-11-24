@@ -55,11 +55,13 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 
 ## The Frozen Fortress
 
-- [ ] The gate opens to the hypercube, and the point of no return is signposted (Map116)
-- [ ] Entry hall: the mundane exchange, the spring trap and the trapdoor (Map411)
-- [ ] Who to follow: the moogle-style pick (Map411)
-- [ ] Party cycle off from the trap to the reunion, with the dead button beat
-- [ ] Sigils in the six switcher rooms move between lanes, and save with no way out
+- [x] The gate opens to the hypercube, and the point of no return is signposted (Map116)
+- [ ] Entry hall: the mundane exchange, the spring trap and the trapdoor (Map411; the trap and trapdoor are wired,
+      the exchange's lines are Jeremy's TODO)
+- [x] Who to follow: the moogle-style pick (Map411)
+- [ ] Party cycle off from the trap to the reunion, with the dead button beat (cycling is dead from the pick; the
+      beat's lines are Jeremy's TODO, in CE25)
+- [x] Sigils in the six switcher rooms move between lanes, and save with no way out
 - [ ] Rafters: the spring lands Jerald on the beam, with the hall as parallax (Map413)
 - [ ] Landing and slide: Rupert's fall, and no climbing back up (Map429)
 - [ ] What the hazard grate does to Rupert (Map430, Map434, Map435)

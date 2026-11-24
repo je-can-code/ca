@@ -873,7 +873,16 @@ and golems around 130 for Rupert.
 - [x] Tileset decision, then a Tilesets row: tileset 21 "EX Dungeon Fortress" (2026-10-24).
 - [ ] Polish pass: the floor-9 encounter alerts in `Map422` (Elysian Reapy) and `Map438` (Elysian Robot, robots).
       Raise with Jeremy first; see Open items.
-- [ ] Entry hall: the mundane-castle exchange, the spring trap and trapdoor, the moogle-style pick.
+- [ ] Entry hall: the mundane-castle exchange, the spring trap and trapdoor, the moogle-style pick. **Wired
+      2026-11-23** (`Map411` e2 "the trap", four steps in at row 40): the spring, the trapdoor and the pick; the
+      exchange's lines are Jeremy's TODO, with canon's pre-swap ambush draft quoted in the event's comments.
+- [x] **The split's machinery, wired and walked in engine 2026-11-23.** A party of one: common event 20 "fortress:
+      follow" (the followed man joins, the other leaves, transfer to his kept spot) and 23 "fortress: switch lanes"
+      (keep the leaving man's spot, follow the other). Switch 113 is the split; variable 32 is who is followed, 33-36
+      Jerald's spot and 37-40 Rupert's. Sigils (save-platform look) on `Map416`, `421`, `425`, `432`, `436` and `441`
+      call common event 26: Save, Switch to the other man, Not now. Common event 25 notices the first dead cycle
+      press (switch 114) for the beat, whose lines are Jeremy's TODO. Providence (common event 59) refuses while the
+      split is on.
 - [ ] Both lanes room by room, with switcher rooms enemy-free and a sigil at every block.
 - [ ] The two mandatory causes (floor collapse, lever), evented so they cannot be skipped, with the
       cross-cut and the variant line for each order.
@@ -881,13 +890,14 @@ and golems around 130 for Rupert.
 - [ ] The two care packages in the final switcher rooms.
 - [ ] Lane exits: the fall, the elevator, the forced flip to the unfinished lane, the reunion, and the
       two duration lines.
-- [ ] Party-cycle disabled from the trap until the reunion, and the sigils as the only way to move
-      between lanes.
+- [x] Party-cycle disabled from the trap until the reunion, and the sigils as the only way to move
+      between lanes. (The reunion's half lands with milestone 4.)
 - [ ] Enemy rows in band: hazards, a void ghost tier, puppets and orbs for the horde, robots, Sin
       Votaries at `593-597`, Lust, Envy, Grudj, plus their material blocks.
 - [ ] Lust's approach scene on proximity thresholds, and his fight (immune while lurching, open on
       the reach, an avoidable grab).
-- [ ] The point of no return: signposting at the entry hall, and no teleportal anywhere inside.
+- [x] The point of no return: signposting at the entry hall, and no teleportal anywhere inside. (Signposted at the
+      gate, `Map116` e1's hypercube page, with "Go in" / "Not yet"; Providence refuses mid-split.)
 - [ ] Envy's scene with the chatter stream, the two flashbacks, and her fight.
 - [ ] The courtyard gate needing both the key and the power.
 - [ ] The scrambler machine (cooldown, wind-up, interruptible), Grudj's Meltima as an enemy skill
