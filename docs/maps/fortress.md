@@ -119,6 +119,10 @@ out, and the switcher-room sigils inside save without offering an exit. This is 
 the building is tuned to the specific man who is in the room; there is no swapping to the one who
 would find it easy.
 
+**The reunion lifts it** `LOCKED (Jeremy, 2026-11-24)`: "once they are reunited, you can providence again and
+leave and continue." No second save point goes inside. The exterior platform is right outside the gate, and from
+it to the courtyard doors is two rooms with no enemies.
+
 ---
 
 ## Topology `PROPOSED (Jeremy, 2026-09-17)`
@@ -860,6 +864,11 @@ and golems around 130 for Rupert.
   are outside the boss pass (Jeremy, 2026-11-17: "they aren't bosses, thats just a part of the polish pass"). Build
   them the way his other encounter alerts are built (read one first): the tower's is the Elysian Reapy, the
   basement's is robots (his words, which settles the horde's robots-or-puppets question in the lane table).
+- **The key's name.** Item 175 "Technokey" is a placeholder, with a placeholder description and icon.
+- **J-Pixelistics on looping maps.** Vanilla movement wraps a character's position on a looping map
+  (`moveStraight` rounds it through `roundYWithDirection`); J-Pixelistics keeps the continuous position as it is, so
+  Jerald's row reached 52 on the 46-row shaft. The fall lifts him back one shaft height (`Map417` e2); whether the
+  plugin should wrap is Jeremy's call.
 
 ---
 
@@ -874,8 +883,9 @@ and golems around 130 for Rupert.
 - [ ] Polish pass: the floor-9 encounter alerts in `Map422` (Elysian Reapy) and `Map438` (Elysian Robot, robots).
       Raise with Jeremy first; see Open items.
 - [ ] Entry hall: the mundane-castle exchange, the spring trap and trapdoor, the moogle-style pick. **Wired
-      2026-11-23** (`Map411` e2 "the trap", four steps in at row 40): the spring, the trapdoor and the pick; the
-      exchange's lines are Jeremy's TODO, with canon's pre-swap ambush draft quoted in the event's comments.
+      2026-11-23** (`Map411` e2 "the trap", four steps in at row 40, across the whole hall): the spring, the trapdoor
+      and the pick; the exchange's lines are Jeremy's TODO, with canon's pre-swap ambush draft quoted in the event's
+      comments.
 - [x] **The split's machinery, wired and walked in engine 2026-11-23.** A party of one: common event 20 "fortress:
       follow" (the followed man joins, the other leaves, transfer to his kept spot) and 23 "fortress: switch lanes"
       (keep the leaving man's spot, follow the other). Switch 113 is the split; variable 32 is who is followed, 33-36
@@ -945,10 +955,37 @@ and golems around 130 for Rupert.
 - [x] Room 7's mutual optional help, both triggers live, first-arriver-helps-second. (The reverse-charge turns on
       switch 118 for the light bridge; the field's puzzle turns on switch 119 to disarm the tower's hazards.)
 - [x] The two care packages in the final switcher rooms. (`Map425` on switch 126, `Map441` on switch 120.)
-- [ ] Lane exits: the fall, the elevator, the forced flip to the unfinished lane, the reunion, and the
-      two duration lines.
+- [x] **Lane exits, wired and walked in engine 2026-11-24, in both orders.** The fall, the elevator, the forced flip
+      to the unfinished lane and the reunion; the two duration lines are Jeremy's TODOs, with the drafts quoted. A lane
+      is done when its man leaves (into the hole, into the car), never when its boss falls, because the boss rooms reopen
+      their way down after a fight. Switch 180 "fortress: jerald's lane done" and 181 "fortress: rupert's lane done" mark
+      the exits, variable 45 "fortress: first lane done" holds who left first (1 Jerald, 2 Rupert), and switch 182
+      "fortress: reunited" marks the end of the split.
+  - The key: Envy's post-boss (`Map426` e4) hands over item 175 "Technokey" as it ends, so it can never be missed.
+    The name, description and icon (195) are placeholders.
+  - The hole: `Map426` e5 covers the whole hole (`<areaEvent:[8,13]>` from (31, 5)), so facing it from any side and
+    pressing the button sends him over: a slip, a tumble and a shrink into the dark.
+  - The fall: `Map417` e1 turns him end over end (J-Motion's `flip`, one turn a second) down the looping shaft, with
+    the wind blowing, for as long as the monologue (a TODO) lasts. With Rupert still in his lane, the thought bubble's
+    TODO plays and control flips to Rupert, forced; with Rupert out, the fall ends at the reunion. e2 lifts him back
+    one shaft height whenever he passes the bottom, because J-Pixelistics does not wrap a position on a looping map
+    the way vanilla movement does.
+  - The elevator: `Map443` e5 and e6 (the right panel) open, take Rupert in and shut. With Jerald still in his lane,
+    the thought bubble's TODO plays and control flips to Jerald, forced; with Jerald out, the car rides up to the
+    reunion.
+  - Common event 40 "fortress: player back to normal" undoes whatever an exit put on the player before he is handed
+    on: the tumble, the wind, the forced route, being see-through or invisible. Both men are the same player.
+  - The sigils (common event 26) stop offering the other man once his lane is done, and only save.
+  - The reunion: `Map411` e7, an autorun once both lanes are done. Rupert's elevator (e3 and e4, the basement's
+    sliding door) dings open as Jerald (stand-in e6) drops out of the rafters and lands in front of it, Rupert
+    (stand-in e5) steps out, and whoever left first gets his duration line's TODO. Then both men join the party, the
+    split switch goes off, the follower is shown, and the hall's elevator stays shut for good. With the split off,
+    the way out (`Map411` e1) and Providence (common event 59) work again, and the gate outside lets them back in
+    without its warning (`Map116` e1's third page, on item 174 and switch 182); the trap stays sprung. Walked in
+    engine 2026-11-24.
 - [x] Party-cycle disabled from the trap until the reunion, and the sigils as the only way to move
-      between lanes. (The reunion's half lands with milestone 4.)
+      between lanes. (The reunion turns the split off and puts both men back in the party, and a cycle press swaps
+      them again.)
 - [ ] Enemy rows in band: hazards, a void ghost tier, puppets and orbs for the horde, robots, Sin
       Votaries at `593-597`, Lust, Envy, Grudj, plus their material blocks.
 - [ ] Lust's approach scene on proximity thresholds, and his fight (immune while lurching, open on
@@ -956,7 +993,10 @@ and golems around 130 for Rupert.
 - [x] The point of no return: signposting at the entry hall, and no teleportal anywhere inside. (Signposted at the
       gate, `Map116` e1's hypercube page, with "Go in" / "Not yet"; Providence refuses mid-split.)
 - [ ] Envy's scene with the chatter stream, the two flashbacks, and her fight.
-- [ ] The courtyard gate needing both the key and the power.
+- [x] The courtyard gate needing both the key and the power. `Map411` e12 covers the doors (x 18-21 on row 7,
+      drawn by the four door panels e8-e11). Without both, "The doors are sealed."; the first time with both, the key
+      goes in, the power wakes the doors and they slide open; after that they just open. Through them is the courtyard
+      on row 37, relative, where the gent's pre-boss opens.
 - [ ] The scrambler machine (cooldown, wind-up, interruptible), Grudj's Meltima as an enemy skill
       with a ten-second cast, his arsenal, the desperation CDR, and the Treis-gated paralysis.
 - [ ] Envy's fight: the stolen remote's four dial settings, the tendrils, the aura, and Grudj's intercom.

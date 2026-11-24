@@ -59,8 +59,8 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Entry hall: the mundane exchange, the spring trap and the trapdoor (Map411; the trap and trapdoor are wired,
       the exchange's lines are Jeremy's TODO)
 - [x] Who to follow: the moogle-style pick (Map411)
-- [ ] Party cycle off from the trap to the reunion, with the dead button beat (cycling is dead from the pick; the
-      beat's lines are Jeremy's TODO, in CE25)
+- [ ] Party cycle off from the trap to the reunion, with the dead button beat (cycling is dead from the pick and
+      live again from the reunion; the beat's lines are Jeremy's TODO, in CE25)
 - [x] Sigils in the six switcher rooms move between lanes, and save with no way out
 - [ ] Rafters: the spring lands Jerald on the beam, with the hall as parallax (Map413; the landing is wired and
       his beat on the beam is Jeremy's TODO; the parallax waits for the polished hall)
@@ -86,10 +86,14 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
       and the waves wait for the votary rows)
 - [x] Dome Approach: the barely perceptible button (Map440)
 - [x] The two care packages in the final switcher rooms (Map425, Map441)
-- [ ] The fall: the tumble, the flip motion, the monologue, the forced flip to Rupert (Map426, Map417)
-- [ ] The VERY convenient elevator: Rupert's exit, the forced flip to Jerald (Map443)
-- [ ] The reunion, with both duration lines (Map411)
-- [ ] The courtyard gate needs the key behind Envy and the power (Map411, Map444)
+- [ ] The fall: the tumble, the flip motion, the monologue, the forced flip to Rupert (Map426, Map417; all wired,
+      with the monologue and the thought bubble as Jeremy's TODO, and the shaft's windows still to place)
+- [x] The VERY convenient elevator: Rupert's exit, the forced flip to Jerald (Map443; his remark and the thought
+      bubble are Jeremy's TODO)
+- [ ] The reunion, with both duration lines (Map411; the elevator, the drop and the party back together are wired,
+      and both duration lines are Jeremy's TODO)
+- [x] The courtyard gate needs the key behind Envy and the power (Map411, Map444; the key is a placeholder row,
+      item 175)
 - [ ] Votary rows 593-597
 - [ ] Treasure in the lanes
 - [ ] Music for the hall, the tower and the basement, none of the twenty-nine maps has any
