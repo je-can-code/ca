@@ -19,7 +19,7 @@ looked at it.
 
 | File | What it is |
 |---|---|
-| `server.js` | The Bun server on port 1220. `/` is the page, `/data` runs the counter |
+| `server.js` | The Bun server on port 1220. `/` is the page, `/data` runs the counter. It also answers for the bestiary page at `/bestiary` (see `../bestiary-page/`) |
 | `page.html` | The whole page: its styles, markup and script |
 | `burndown.service` | The systemd user service that keeps the server running. Its comment has the install steps |
 | `../burndown.js` | The counter. `--json` feeds this page, and `--write` records today in the history |

@@ -10,8 +10,10 @@
  *   bun tools/bestiary.js
  *   bun tools/bestiary.js first
  *   bun tools/bestiary.js line <name or id>
+ *   bun tools/bestiary.js json
  *
- * See docs/maps/progression-bands.md for what each subcommand answers.
+ * See docs/maps/progression-bands.md for what each subcommand answers. `json` is what the bestiary page in
+ * `tools/bestiary-page/` asks for on every visit: the same placements and first meetings, as data to draw.
  */
 
 const DATA_DIR = `${import.meta.dir}/../chef-adventure/data`;
@@ -211,21 +213,29 @@ const showAreas = () =>
 };
 
 /**
- * Prints every line with where the player first meets it, and the tally by chapter. A line's first
- * meeting is the earliest area in play order that holds any of its tiers, at the lowest tier there.
+ * Finds where the player first meets a line: the earliest area in play order that holds any of its tiers,
+ * at the lowest tier there. Chapter 4 onward is a parallel set, so a line nobody meets before it has no
+ * first meeting, and its area comes back null.
+ * @param {number} first The first row of the line.
+ * @returns {{first: number, area: object|null, tier: number, level: number}}
+ */
+const meetingOf = first =>
+{
+  const onLine = spots.filter(entry => firstOf(entry.id) === first && tierOf(entry.id) <= TIERS && entry.area.chapter <= LAST_ORDERED_CHAPTER);
+  const earliest = areas.find(area => onLine.some(entry => entry.area === area));
+  if (earliest === undefined) return { first, area: null, tier: 0, level: 0 };
+  const there = onLine.filter(entry => entry.area === earliest);
+  const lowest = Math.min(...there.map(entry => tierOf(entry.id)));
+  const level = Math.min(...there.filter(entry => tierOf(entry.id) === lowest).map(entry => entry.level));
+  return { first, area: earliest, tier: lowest, level };
+};
+
+/**
+ * Prints every line with where the player first meets it, and the tally by chapter.
  */
 const showFirstMeetings = () =>
 {
-  const meetings = lineFirsts.map(first =>
-  {
-    const onLine = spots.filter(entry => firstOf(entry.id) === first && tierOf(entry.id) <= TIERS && entry.area.chapter <= LAST_ORDERED_CHAPTER);
-    const earliest = areas.find(area => onLine.some(entry => entry.area === area));
-    if (earliest === undefined) return { first, area: null };
-    const there = onLine.filter(entry => entry.area === earliest);
-    const lowest = Math.min(...there.map(entry => tierOf(entry.id)));
-    const level = Math.min(...there.filter(entry => tierOf(entry.id) === lowest).map(entry => entry.level));
-    return { first, area: earliest, tier: lowest, level };
-  });
+  const meetings = lineFirsts.map(meetingOf);
   const chapters = [ ...new Set(areas.map(area => area.chapter)) ].filter(chapter => chapter <= LAST_ORDERED_CHAPTER);
   const tally = chapters.map(chapter => `chapter ${chapter}: ${meetings.filter(meeting => meeting.area !== null && meeting.area.chapter === chapter).length}`);
   console.log(`${tally.join(', ')}, later: ${meetings.filter(meeting => meeting.area === null).length}`);
@@ -258,10 +268,56 @@ const showLine = query =>
   });
 };
 
+/**
+ * Groups one line's placements into the cells of the sheet: for each area, in play order, one entry per
+ * rung that stands there, with its level range and how many spots hold it.
+ * @param {number} first The first row of the line.
+ * @returns {Record<number, {tier: number, low: number, high: number, count: number}[]>} Keyed by the area's
+ *   place in play order, so the page can lay the cells out without knowing any area by name.
+ */
+const cellsOf = first =>
+{
+  const cells = {};
+  areas.forEach((area, index) =>
+  {
+    const here = spots.filter(entry => entry.area === area && firstOf(entry.id) === first);
+    if (here.length === 0) return;
+
+    // one entry per rung, the named last, since its slot is the highest.
+    const rungs = [ ...new Set(here.map(entry => tierOf(entry.id))) ].sort((a, b) => a - b);
+    cells[index] = rungs.map(tier =>
+    {
+      const levels = here.filter(entry => tierOf(entry.id) === tier).map(entry => entry.level);
+      return { tier, low: Math.min(...levels), high: Math.max(...levels), count: levels.length };
+    });
+  });
+  return cells;
+};
+
+/**
+ * Prints the data the bestiary page draws, as one JSON object: the areas in play order, and every line
+ * with its rungs' names, where each rung stands, and where the player first meets it. The first meeting is
+ * the one the `first` subcommand prints, so the page and the command line always agree.
+ */
+const showSheet = () =>
+{
+  const lines = lineFirsts.map(first =>
+  {
+    // the five tiers' names, then the named's, which is the line's tenth row.
+    const names = [ 1, 2, 3, 4, 5, NAMED_SLOT ].map(tier => enemies[first + tier - 1].name);
+    const { area, tier, level } = meetingOf(first);
+    const meet = area === null ? null : { index: areas.indexOf(area), tier, level };
+    return { first, names, cells: cellsOf(first), meet };
+  });
+  const shown = areas.map(({ label, band, chapter }) => ({ label, band, chapter }));
+  console.log(JSON.stringify({ areas: shown, lines }));
+};
+
 //endregion subcommands
 
 const [ command = 'areas', ...rest ] = Bun.argv.slice(2);
 if (command === 'areas') showAreas();
 else if (command === 'first') showFirstMeetings();
 else if (command === 'line') showLine(rest.join(' '));
-else throw new Error(`unknown subcommand "${command}"; try areas, first, or line <name or id>`);
+else if (command === 'json') showSheet();
+else throw new Error(`unknown subcommand "${command}"; try areas, first, line <name or id>, or json`);

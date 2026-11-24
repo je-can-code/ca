@@ -120,7 +120,9 @@ bun tools/map-atlas.js plan    <mapId>   # a single room as a text floor plan
 
 **`bun tools/bestiary.js` answers who lives where, at what level, and where the player first meets each
 line.** The bands are in [`docs/maps/progression-bands.md`](docs/maps/progression-bands.md), and no roster
-is written down anywhere, so ask it before hand-rolling a script over `Enemies.json`.
+is written down anywhere, so ask it before hand-rolling a script over `Enemies.json`. The same answer is a
+live sheet at http://j-desktop.local:1220/bestiary, every line against every area (see
+`tools/bestiary-page/`).
 
 Three things about this data that cost real time to rediscover:
 
