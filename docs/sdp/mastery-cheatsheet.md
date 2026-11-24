@@ -80,7 +80,7 @@
 | 46 | Deity | Elemental | `deity-elemental` | `ELE_*` | 1551–1555 | ✅ Verified — `<pierceElement:[ID, PCT]>` T1–3: 4 elements (4–7) 5/10/15%; T4–9: 6 elements (4–9) 25–50%; T10: 9 elements (1–9) 75% |
 | 47 | Deity | Emotion | `deity-emotion` | `ASP_*` | 1561–1565 | ✅ Verified — `<onAllyHpHealHp/Mp/Tp>` tiers 1–3 HP only radius 2 (5–15%), tiers 4–9 HP+MP radius 3 (25–50%), tier 10 HP+MP+TP radius 4 (50%) |
 | 48 | Deity | Devil | `deity-devil` | `SOV_*` | 1571–1575 | 🟠 Authored — verification pending |
-| 49 | Deity | Sin | `deity-sin` | `SIN_*` | 1581–1590 | 🔲 Todo |
+| 49 | Deity | Sin | `deity-sin` | `SIN_*` | 1581–1589 (1590 reserved) | 🔲 Todo |
 | 50 | Deity | Sin Votary | `deity-sin-votary` | — | 1591–1600 | — (enemy decade only; no mastery pass) |
 
 | Status | Meaning |
@@ -310,32 +310,39 @@ same accumulated stats.
 
 ## Family 10: Deity (551–600)
 
-Five subgroup slots (Kaiju sacked — Sin owns the last **two** enemy decades). **10** `SIN_*` panels (not 20); masteries **1581–1590**.
+Five subgroup slots (Kaiju sacked — Sin owns the last **two** enemy decades). **9** `SIN_*` panels; masteries **1581–1589**.
 
 | Slot | Subgroup | `subgroupKey` | Panel prefix | Enemy IDs | Archetype | **1–3** | **4–9** | **10** | Mastery IDs | What it does | Tag recipe |
 |---:|---|---|---|---|---|---|---|---|---:|---|---|
 | 1 | Elemental | `deity-elemental` | `ELE` | 551–560 | Wizard | Elemental Saturation | Elemental Flux | Elemental Singularity | 1551–1555 | Pierce X% elemental resist. | ✅ `<pierceElement:[…]>` |
 | 2 | Emotion | `deity-emotion` | `ASP` | 561–570 | Cleric | Empathic Bond | Empathic Echo | Empathic Nexus | 1561–1565 | Gain X% of ally heals in range. | ✅ `<onAllyHpHealHp:[PCT, R]>` |
 | 3 | Devil | `deity-devil` | `SOV` | 571–580 | Generalist | Devil's Bargain | Devil's Wager | Devil's Due | 1571–1575 | +X% damage dealt and taken. | ✅ +/- damage % |
-| 4 | Sin | `deity-sin` | `SIN` | 581–590 | Multi | — | — | — | 1581–1585 | One panel per sin; one mastery at panel max. | Per sin |
-| 5 | Sin Votary | `deity-sin-votary` | — | 591–600 | Multi | — | — | — | 1591–1600 reserved | Helpers respawn; ~1% drop for matching `SIN_*` panel. | No panel strip |
+| 4 | Sin | `deity-sin` | `SIN` | 581–589 | Multi | — | — | — | 1581–1589 | One panel per sin; one mastery at panel max. | Per sin |
+| 5 | Sin Votary | `deity-sin-votary` | — | 591–599 | Multi | — | — | — | 1590–1600 reserved | Helpers respawn; ~1% drop for matching `SIN_*` panel. | No panel strip |
 
 ### Sin panels — one panel, one mastery (not three-act)
 
-**`SIN_1`…`SIN_10`** → `deity-sin`, mastery **`1580 + N`**. Bosses are unique; **votary** enemies (591–600) farm the panel. Mastery skill/state **name** is authored separately from the panel dogma title.
+**`SIN_1`…`SIN_9`** → `deity-sin`, mastery **`1580 + N`**, boss **`580 + N`**, votaries **`590 + N`**: every sin shares
+one number across all four. Bosses are unique; **votary** enemies farm the panel. Mastery skill/state **name** is
+authored separately from the panel dogma title.
 
-| Panel | Mastery ID | Enemy (boss) | Notes |
-|---|---:|---:|---|
-| `SIN_1` | 1581 | 581 | Gluttony |
-| `SIN_2` | 1582 | 582 | Wrath |
-| `SIN_3` | 1583 | 583 | Pride (Gloria) |
-| `SIN_4` | 1584 | 584 | Envy |
-| `SIN_5` | 1585 | 585 | Sloth |
-| `SIN_6` | 1586 | 586 | Greed |
-| `SIN_7` | 1587 | 587 | Lust |
-| `SIN_8`–`SIN_10` | 1588–1590 | 588–590 | Meta / padding — TBD |
+| Panel | Mastery ID | Enemy (boss) | Votary | Notes |
+|---|---:|---:|---:|---|
+| `SIN_1` | 1581 | 581 | 591 | Gluttony |
+| `SIN_2` | 1582 | 582 | 592 | Wrath |
+| `SIN_3` | 1583 | 583 | 593 | Pride (Gloria) |
+| `SIN_4` | 1584 | 584 | 594 | Envy |
+| `SIN_5` | 1585 | 585 | 595 | Sloth |
+| `SIN_6` | 1586 | 586 | 596 | Lust |
+| `SIN_7` | 1587 | 587 | 597 | Hunger (Ammit), TBD |
+| `SIN_8` | 1588 | 588 | 598 | Greed, Jerald's shade |
+| `SIN_9` | 1589 | 589 | 599 | Greed, Rupert's shade |
 
-**1591–1600:** reserved shells (votary enemy decade; no mastery wiring yet).
+**Renumbered 2026-11-24 (Jeremy: Greed "last last (after hunger)", and "No holes!").** Lust moved from 7 to 6, Hunger
+from 8 to 7, Greed from 6 to 8 and 9. `SIN_10` and the meta padding (Vanity's, Despair's and Irony's Dogma) are gone.
+Enemy 590 is Goop Vent (Lust's arena hazard), and 600 is an empty row since the test dummies were deleted.
+
+**1590–1600:** reserved shells (no mastery wiring yet).
 
 ---
 

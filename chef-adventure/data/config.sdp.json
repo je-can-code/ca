@@ -14191,66 +14191,6 @@
     {
       "key": "SIN_6",
       "identity": {
-        "name": "===TBD SIN-6",
-        "iconIndex": 1547,
-        "unlockedByDefault": false,
-        "description": ""
-      },
-      "progression": {
-        "maxRank": 20,
-        "rarity": 3,
-        "baseCost": 0,
-        "flatGrowthCost": 0,
-        "multGrowthCost": 1
-      },
-      "mastery": {
-        "subgroupKey": "deity-sin",
-        "subgroupTier": 6,
-        "masterySkillId": 1586
-      },
-      "panelParameters": [
-        {
-          "parameterKey": "mhp",
-          "perRank": 10.5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 5.25,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 1.58,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 3.15,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 2.1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 5.25,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": []
-    },
-    {
-      "key": "SIN_7",
-      "identity": {
         "name": "Lust's Dogma",
         "iconIndex": 1547,
         "unlockedByDefault": false,
@@ -14265,8 +14205,8 @@
       },
       "mastery": {
         "subgroupKey": "deity-sin",
-        "subgroupTier": 7,
-        "masterySkillId": 1587
+        "subgroupTier": 6,
+        "masterySkillId": 1586
       },
       "panelParameters": [
         {
@@ -14309,9 +14249,9 @@
       "panelRewards": []
     },
     {
-      "key": "SIN_8",
+      "key": "SIN_7",
       "identity": {
-        "name": "===TBD SIN-8",
+        "name": "===TBD SIN-7",
         "iconIndex": 1547,
         "unlockedByDefault": false,
         "description": ""
@@ -14325,8 +14265,8 @@
       },
       "mastery": {
         "subgroupKey": "deity-sin",
-        "subgroupTier": 8,
-        "masterySkillId": 1588
+        "subgroupTier": 7,
+        "masterySkillId": 1587
       },
       "panelParameters": [
         {
@@ -14362,6 +14302,66 @@
         {
           "parameterKey": "mhp",
           "perRank": 5.79,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": []
+    },
+    {
+      "key": "SIN_8",
+      "identity": {
+        "name": "===TBD SIN-8",
+        "iconIndex": 1547,
+        "unlockedByDefault": false,
+        "description": ""
+      },
+      "progression": {
+        "maxRank": 20,
+        "rarity": 3,
+        "baseCost": 0,
+        "flatGrowthCost": 0,
+        "multGrowthCost": 1
+      },
+      "mastery": {
+        "subgroupKey": "deity-sin",
+        "subgroupTier": 8,
+        "masterySkillId": 1588
+      },
+      "panelParameters": [
+        {
+          "parameterKey": "mhp",
+          "perRank": 10.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "mhp",
+          "perRank": 5.25,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "mhp",
+          "perRank": 1.58,
+          "isFlat": false,
+          "isCore": false
+        },
+        {
+          "parameterKey": "mhp",
+          "perRank": 3.15,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "mhp",
+          "perRank": 2.1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterKey": "mhp",
+          "perRank": 5.25,
           "isFlat": true,
           "isCore": false
         }
@@ -14422,66 +14422,6 @@
         {
           "parameterKey": "mhp",
           "perRank": 6.08,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": []
-    },
-    {
-      "key": "SIN_10",
-      "identity": {
-        "name": "===TBD SIN-10",
-        "iconIndex": 1547,
-        "unlockedByDefault": false,
-        "description": ""
-      },
-      "progression": {
-        "maxRank": 20,
-        "rarity": 3,
-        "baseCost": 0,
-        "flatGrowthCost": 0,
-        "multGrowthCost": 1
-      },
-      "mastery": {
-        "subgroupKey": "deity-sin",
-        "subgroupTier": 10,
-        "masterySkillId": 1590
-      },
-      "panelParameters": [
-        {
-          "parameterKey": "mhp",
-          "perRank": 12.77,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 6.38,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 1.92,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 3.83,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 2.56,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterKey": "mhp",
-          "perRank": 6.38,
           "isFlat": true,
           "isCore": false
         }

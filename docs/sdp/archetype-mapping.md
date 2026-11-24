@@ -155,15 +155,16 @@ RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group
 
 ## Family 10: Deity (551–600)
 
-> Kaiju subgroup sacked — Sin owns the final **two** enemy decades (581–600). Ten `SIN_*` panels; votary helpers (591–600) drop panels.
+> Kaiju subgroup sacked — Sin owns the final **two** enemy decades (581–600). Nine `SIN_*` panels; each sin N has its
+> boss at `580 + N` and its votary helpers at `590 + N`, which drop its panel (renumbered 2026-11-24, Greed last).
 
 | Enemy IDs | Slot | Subgroup | Description | Archetype |
 |---|---|---|---|---|
 | 551–560 | 1 | **Elemental** | Bosses you fight then recruit as party members, elemental mastery incarnate | **Wizard** |
 | 561–570 | 2 | **Emotion** | Embodied emotions — Joy heals, Hope rekindles, Sorrow debuffs; emotional sustain | **Cleric** |
 | 571–580 | 3 | **Devil** | Imps, devils, alluring tricksters; too clever to commit to one strategy | **Generalist** |
-| 581–590 | 4 | **Sin** (boss decade) | Seven deadly sin bosses + padding tiers | **Multi** (see below) |
-| 591–600 | 5 | **Sin Votary** (helper decade) | Sin helpers; drop sin-themed panels | **Multi** (see below) |
+| 581–590 | 4 | **Sin** (boss decade) | The sin bosses at 581–589 (Greed's two shades last); 590 is Lust's Goop Vent | **Multi** (see below) |
+| 591–600 | 5 | **Sin Votary** (helper decade) | Sin helpers at 591–599; drop sin-themed panels | **Multi** (see below) |
 
 ### Sin archetype breakdown
 

@@ -94,7 +94,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
       and both duration lines are Jeremy's TODO)
 - [x] The courtyard gate needs the key behind Envy and the power (Map411, Map444; the key is a placeholder row,
       item 175)
-- [ ] Votary rows 593-597
+- [ ] Votary rows 596 (Lust's succubi) and 598-599 (Greed's two shades); 597 is Hunger's, postgame
 - [ ] Treasure in the lanes
 - [ ] Music for the hall, the tower and the basement, none of the twenty-nine maps has any
 

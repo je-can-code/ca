@@ -535,15 +535,32 @@ Five subgroup slots. Mastery skill/state ID = enemy ID + 1000. See [Deity family
 - [575]Morningstar
 - [580]!Beelzebuck
 
-### 4 — Sin bosses (581–590)
+### 4 — Sin bosses (581–589)
+
+Every sin N shares one number: boss `580 + N`, votaries `590 + N`, panel `SIN_N` (renumbered 2026-11-24, Greed last).
 
 - (15) [581]Gluttonwolf Mayor (gluttony)
   - (17) [591]Gluttonwolf
 - (70) [582]Vampire King (wrath)
   - (72) [592]Vampire Shade
-- (??) [583]Gloria (pride)
-- (??) [584–590]TBD Sin
+- (85) [583]Gloria (pride)
+  - (87) [593]Prideful Homunculus
+- (130) [584]Voidella (envy)
+  - (132) [594]Voidal Tendril
+- (110) [585]Sloth
+  - (110) [595]Slothful Votary
+- (130) [586]Lust
+  - (??) [596]TBD Sin Votary: Lust (his succubi, still to build)
+- (??) [587]TBD Sin: Hunger (Ammit, postgame)
+  - (??) [597]TBD Sin Votary: Hunger
+- (??) [588]TBD Sin: Greed, Jerald's shade (the mirror battle, lv80 planned)
+  - (??) [598]TBD Sin Votary: Greed, Jerald's shade (lv82 planned)
+- (??) [589]TBD Sin: Greed, Rupert's shade (the mirror battle, lv80 planned)
+  - (??) [599]TBD Sin Votary: Greed, Rupert's shade (lv82 planned)
+- [590]Goop Vent (Lust's arena hazard)
 
-### 5 — Sin votaries (591–600)
+### 5 — Sin votaries (591–599)
 
-- (??) [593–597]TBD Sin Votary — respawning helpers; ~1% drop for matching `SIN_*` panel (no mastery IDs wired yet)
+Listed under their bosses above: respawning helpers with a ~1% drop for their sin's `SIN_*` panel. [600] is an empty
+row: the Passive, Regen and Aggro dummies were deleted 2026-11-24, along with the Teleportal Side Room's (Map283)
+region skill, which had built its caster from the Passive Dummy.

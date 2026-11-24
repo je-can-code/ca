@@ -31,7 +31,7 @@ courtyard unseals.
 | `Map116` "Frozen Fortress" | the Lakeside Road **exterior**, 50x35, tileset 12 Outside (VisuStella): event 1 "overly advanced gate", event 5 "story: need more keys", the four elemental NPC events, a save platform. Not the dungeon |
 | A `DUNGEON:` tree node | **none**. Nimbus has `Map122` and the Subterranean has `Map290`; the Fortress has no node and no child maps |
 | `Items[174]` RGB Technohypercube | authored; its description still ends "This is not yet implemented" |
-| Enemies `583-590` | `583` is Gloria per [nimbus.md](nimbus.md), named 2026-11-10; `584-590` are `=== TBD Sin` at lv15. Envy is `584` and Lust `587`, matching their sin panels in [the mastery cheatsheet](../sdp/mastery-cheatsheet.md); the gent has no chosen slot. `593-597` are `=== TBD Sin Votary` stubs |
+| Enemies `583-590` | `583` is Gloria per [nimbus.md](nimbus.md), named 2026-11-10. Since the renumber of 2026-11-24 every sin N has its boss at `580 + N` and its votaries at `590 + N`, matching its panel in [the mastery cheatsheet](../sdp/mastery-cheatsheet.md): Envy `584`, Lust `586`, Hunger `587`, Greed's two shades `588-589`, and `590` is Lust's Goop Vent; the gent has no chosen slot. The votary stubs left are `596` (Lust), `597` (Hunger) and `598-599` (Greed) |
 | `ice-cavern_A2` / `_A5` / `_B` | on disk under `img/tilesets/`, referenced by **no** Tilesets row |
 | `SnowForest.png` | the only wintry parallax on disk |
 | [progression-bands.md](progression-bands.md) | carries Fortress 115-130 and the gent ~150 |
@@ -218,7 +218,8 @@ Notes on the draft:
 - **Database homes already exist for most of it:** Hazards `511-520`; Ghost is an Undead subgroup and
   Undead is the void faction (per [subterranean.md](subterranean.md)), so a void ghost in the gent's
   castle is on-theme; Puppet `531-540` and Runic Orb `541-550` for the horde; and the cultists are the
-  `=== TBD Sin Votary` stubs at `593-597`, which have been waiting for exactly this lair.
+  `=== TBD Sin Votary` stubs at `593-597`, which have been waiting for exactly this lair. (Since then `593-595`
+  became Pride's, Envy's and Sloth's votaries, and the 2026-11-24 renumber gave every sin its own votary row.)
 - **Fourteen maps a lane plus the entry hall and the courtyard is thirty maps**, the largest
   dungeon in the game (Nimbus is eighteen). Stated, not argued; it is the finale.
 - **Robots or puppets in the horde** `OPEN`: the lane row says puppets, orbs and golems; the
@@ -986,8 +987,8 @@ and golems around 130 for Rupert.
 - [x] Party-cycle disabled from the trap until the reunion, and the sigils as the only way to move
       between lanes. (The reunion turns the split off and puts both men back in the party, and a cycle press swaps
       them again.)
-- [ ] Enemy rows in band: hazards, a void ghost tier, puppets and orbs for the horde, robots, Sin
-      Votaries at `593-597`, Lust, Envy, Grudj, plus their material blocks.
+- [ ] Enemy rows in band: hazards, a void ghost tier, puppets and orbs for the horde, robots, Lust's votary
+      at `596`, Lust, Envy, Grudj, plus their material blocks.
 - [ ] Lust's approach scene on proximity thresholds, and his fight (immune while lurching, open on
       the reach, an avoidable grab).
 - [x] The point of no return: signposting at the entry hall, and no teleportal anywhere inside. (Signposted at the

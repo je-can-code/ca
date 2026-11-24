@@ -2235,11 +2235,11 @@
       "participants": [
         {
           "key": "lust",
-          "enemyId": 587,
+          "enemyId": 586,
           "expect": "Lust",
           "x": 40,
           "y": 33,
-          "template": 587
+          "template": 586
         }
       ],
       "aiControl": "shared",
@@ -2356,18 +2356,18 @@
             },
             {
               "verb": "spawn",
-              "enemyId": 597,
+              "enemyId": 590,
               "expect": "Goop Vent",
-              "template": 597,
+              "template": 590,
               "x": 22,
               "y": 16,
               "animation": 146
             },
             {
               "verb": "spawn",
-              "enemyId": 597,
+              "enemyId": 590,
               "expect": "Goop Vent",
-              "template": 597,
+              "template": 590,
               "x": 58,
               "y": 16,
               "animation": 146
@@ -2392,9 +2392,9 @@
             },
             {
               "verb": "spawn",
-              "enemyId": 597,
+              "enemyId": 590,
               "expect": "Goop Vent",
-              "template": 597,
+              "template": 590,
               "x": 20,
               "y": 32,
               "animation": 146
@@ -2419,9 +2419,9 @@
             },
             {
               "verb": "spawn",
-              "enemyId": 597,
+              "enemyId": 590,
               "expect": "Goop Vent",
-              "template": 597,
+              "template": 590,
               "x": 60,
               "y": 32,
               "animation": 146
