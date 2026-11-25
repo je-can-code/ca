@@ -66,7 +66,7 @@ Two are remembered:
 
 Any others are `LOST`.
 
-**Provenance note.** [story-canon.md](./story-canon.md) cites `jragyn = dragon` as an example of **void clown
+**Provenance note.** [story-canon.md](./story-canon.md) cites `jragyn = dragon` as an example of **Babagen
 naming grammar**, alongside `Majik = magic`. In origin it was neither: Robert said *"and you have a dragon
 morph,"* and Jeremy replied that it would be spelled **like this** — Robert then put that spelling in the
 game. It is also Jeremy's real-life handle to this day.
@@ -133,8 +133,8 @@ noticing what was on the other side.
 
 Everything downstream follows:
 
-- The void clown genocide happens *after* the turn. Two beings who had already decided morality was optional
-  wiped out a species and moved on.
+- The Babagen genocide, as the duo tell it, happens *after* the turn. Two beings who had already decided
+  morality was optional wiped out a species (a peaceful one, J&R1 reveals) and moved on.
 - J&R2 opens with them mugging a guard for fun and murdering two workmen over an interrupted nap, as comedy.
 - CA's thesis — *"everyone is the protagonist of their own story,"* the game never adjudicating, Grudj's
   righteous vengeance being *Tuesday* from the other side — is the adult articulation of the village the

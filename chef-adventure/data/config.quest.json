@@ -2946,6 +2946,44 @@
           },
           "hiddenByDefault": true,
           "isOptional": false
+        },
+        {
+          "id": 4,
+          "type": "Indiscriminate",
+          "description": "Craft any weapon off the bottom shelf and show Viskra.",
+          "logs": {
+            "inactive": "",
+            "active": "Blueprints are just paper until somebody uses them. Make anything off the bottom shelf and show Viskra.",
+            "completed": "One weapon, made by hand. Viskra called it wonderful, and she meant every word.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Craft any weapon at the forge, then talk to Viskra."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
         }
       ],
       "iconIndex": 0
@@ -2973,6 +3011,44 @@
           "fulfillment": {
             "indiscriminate": {
               "hint": "Have a talk with the Nature-Lover to understand more."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "Craft any armor piece at Millie's station and show her.",
+          "logs": {
+            "inactive": "",
+            "active": "Millie would love to feel the energy of your first creation. Anything from her patterns will do.",
+            "completed": "She called it lovely, and felt the care in it. She feels a lot of things.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Craft any armor piece at the station by her window, then talk to Millie."
             },
             "destination": {
               "mapId": -1,
@@ -4856,7 +4932,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 1653
     },
     {
       "name": "Bearcat Viscera",
@@ -5022,7 +5098,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 1653
     },
     {
       "name": "Surf \u0026 Turf",
@@ -5150,7 +5226,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 1653
     },
     {
       "name": "The Matriarch",
@@ -5316,7 +5392,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 1653
     },
     {
       "name": "The Family Cookbook",
@@ -5406,7 +5482,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 1653
     },
     {
       "name": "A Foundation",
@@ -5534,7 +5610,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 227
     },
     {
       "name": "Structural Integrity",
@@ -5662,7 +5738,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 227
     },
     {
       "name": "A Technical Suite",
@@ -5790,7 +5866,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 227
     },
     {
       "name": "Tribute",
@@ -5918,7 +5994,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 282
     },
     {
       "name": "Helping Hand",
@@ -6046,7 +6122,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 282
     },
     {
       "name": "Panegyric",
@@ -6174,7 +6250,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 282
     },
     {
       "name": "Friend in Need",
@@ -6302,7 +6378,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 282
     },
     {
       "name": "Out-Farmed",
@@ -6506,7 +6582,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 282
     },
     {
       "name": "The Harvest",
@@ -6710,7 +6786,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 282
     },
     {
       "name": "The Collapse",
@@ -6800,7 +6876,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 282
     },
     {
       "name": "His Keeper",
@@ -6928,7 +7004,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 282
     },
     {
       "name": "The Fork",
@@ -7018,7 +7094,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 282
     },
     {
       "name": "The Deed",
@@ -7146,7 +7222,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 282
     },
     {
       "name": "Are You Aliens?",
@@ -7350,7 +7426,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 217
     },
     {
       "name": "The Dig",
@@ -7478,7 +7554,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 217
     },
     {
       "name": "The Four Great Stones",
@@ -7682,7 +7758,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 217
     },
     {
       "name": "Cart Trouble",
@@ -7886,7 +7962,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 208
     },
     {
       "name": "The Route Less Traveled",
@@ -8090,7 +8166,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 208
     },
     {
       "name": "Where the Road Ends",
@@ -8256,7 +8332,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 208
     },
     {
       "name": "Nare Or Not",
@@ -8384,7 +8460,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 208
     },
     {
       "name": "Tell Me Everything",
@@ -8512,7 +8588,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 289
     },
     {
       "name": "The Vacant Lot",
@@ -8640,7 +8716,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 289
     },
     {
       "name": "Whispers From Below",
@@ -8730,7 +8806,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 289
     },
     {
       "name": "The Fort",
@@ -8858,7 +8934,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 212
     },
     {
       "name": "Deep Delivery",
@@ -8986,7 +9062,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 212
     },
     {
       "name": "Audition One",
@@ -9076,7 +9152,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 462
     },
     {
       "name": "Audition Two",
@@ -9166,7 +9242,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 462
     },
     {
       "name": "The Final Audition",
@@ -9294,7 +9370,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 462
     },
     {
       "name": "The Estate",
@@ -9460,7 +9536,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 195
     },
     {
       "name": "The Question of Governance",
@@ -9588,7 +9664,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 195
     },
     {
       "name": "The West Wing",
@@ -9678,7 +9754,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 195
     },
     {
       "name": "Master's Standard",
@@ -9806,7 +9882,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 223
     },
     {
       "name": "Say It Plain",
@@ -9934,7 +10010,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 223
     },
     {
       "name": "The Old Way",
@@ -10062,7 +10138,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 223
     },
     {
       "name": "The New Way",
@@ -10228,7 +10304,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 223
     },
     {
       "name": "Her Own Mark",
@@ -10394,7 +10470,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 771
     },
     {
       "name": "Validation",
@@ -10484,7 +10560,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 771
     },
     {
       "name": "Something Missing",
@@ -10612,7 +10688,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 771
     },
     {
       "name": "The Soul of the Craft",
@@ -10740,7 +10816,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 771
     },
     {
       "name": "Drills",
@@ -10868,7 +10944,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 132
     },
     {
       "name": "The Patrol Route",
@@ -10996,7 +11072,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 132
     },
     {
       "name": "Tribute (I)",
@@ -11086,7 +11162,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 245
     },
     {
       "name": "Tribute (II)",
@@ -11176,7 +11252,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 245
     },
     {
       "name": "Tribute (III)",
@@ -11266,7 +11342,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 245
     },
     {
       "name": "Letters Home",
@@ -11356,7 +11432,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 192
     },
     {
       "name": "What Remains",
@@ -11484,7 +11560,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 192
     },
     {
       "name": "Training Montage",
@@ -11612,7 +11688,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 84
     },
     {
       "name": "The Night Shift",
@@ -11740,7 +11816,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 84
     },
     {
       "name": "Level 44",
@@ -11868,7 +11944,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 84
     },
     {
       "name": "The Note in the Attic",
@@ -11958,7 +12034,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 1668
     },
     {
       "name": "The Student",
@@ -12086,7 +12162,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 1668
     },
     {
       "name": "The Catalog",
@@ -12290,7 +12366,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 219
     },
     {
       "name": "The Hood",
@@ -12380,7 +12456,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 219
     },
     {
       "name": "Cost-Benefit",
@@ -12584,7 +12660,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 207
     },
     {
       "name": "The Variables",
@@ -12674,7 +12750,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 207
     },
     {
       "name": "Recalculation",
@@ -12802,7 +12878,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 207
     },
     {
       "name": "Catch Me If You Can",
@@ -13006,7 +13082,7 @@
           "isOptional": false
         }
       ],
-      "iconIndex": 0
+      "iconIndex": 474
     }
   ],
   "tags": [

@@ -55,32 +55,46 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 
 ## The Frozen Fortress
 
-- [ ] The gate opens to the hypercube, and the point of no return is signposted (Map116)
-- [ ] Entry hall: the mundane exchange, the spring trap and the trapdoor (Map411)
-- [ ] Who to follow: the moogle-style pick (Map411)
-- [ ] Party cycle off from the trap to the reunion, with the dead button beat
-- [ ] Sigils in the six switcher rooms move between lanes, and save with no way out
-- [ ] Rafters: the spring lands Jerald on the beam, with the hall as parallax (Map413)
-- [ ] Landing and slide: Rupert's fall, and no climbing back up (Map429)
-- [ ] What the hazard grate does to Rupert (Map430, Map434, Map435)
-- [ ] The floor collapse: unskippable, with its cross-cut and variant line (Map415)
-- [ ] The lever: unskippable, with its cross-cut and variant line (Map431)
-- [ ] Goop Ocean: the fallen chunk becomes the bridge (Map433)
-- [ ] Dead elevator: power-gated, riding up to the Bolt Gallery (Map418)
-- [ ] Bolt Gallery: traps in the niches, and Jerald's line about the old castle (Map419)
-- [ ] Needless Hazards: destroying them all reverse-charges the circuit (Map420)
-- [ ] Hazard Field: the switch puzzle, the jumps, and the light bridge both ways (Map435)
+- [x] The gate opens to the hypercube, and the point of no return is signposted (Map116)
+- [ ] Entry hall: the mundane exchange, the spring trap and the trapdoor (Map411; the trap and trapdoor are wired,
+      the exchange's lines are Jeremy's TODO)
+- [x] Who to follow: the moogle-style pick (Map411)
+- [ ] Party cycle off from the trap to the reunion, with the dead button beat (cycling is dead from the pick and
+      live again from the reunion; the beat's lines are Jeremy's TODO, in CE25)
+- [x] Sigils in the six switcher rooms move between lanes, and save with no way out
+- [ ] Rafters: the spring lands Jerald on the beam, with the hall as parallax (Map413; the landing is wired and
+      his beat on the beam is Jeremy's TODO; the parallax waits for the polished hall)
+- [x] Landing and slide: Rupert's fall, and no climbing back up (Map429; the slide's line is Jeremy's TODO)
+- [ ] What the hazard grate does to Rupert (Map430, Map434, Map435; the grate is plain passable floor today, so
+      the field's hops and bridge save nothing until this is decided)
+- [x] The floor collapse: unskippable, with its cross-cut and variant line (Map415; the cut into the goop is CE36,
+      and the variant line is Jeremy's TODO)
+- [x] The lever: unskippable, with its cross-cut and variant line (Map431; the cut up to the elevator is CE29)
+- [x] Goop Ocean: the fallen chunk becomes the bridge (Map433)
+- [x] Dead elevator: power-gated, riding up to the Bolt Gallery (Map418; the block flag, the cross-cut in CE29,
+      and the variant line's TODO)
+- [ ] Bolt Gallery: traps in the niches, and Jerald's line about the old castle (Map419; the seven traps are in,
+      and the line is Jeremy's TODO)
+- [x] Needless Hazards: destroying them all reverse-charges the circuit (Map420)
+- [x] Hazard Field: the switch puzzle, the jumps, and the light bridge both ways (Map435; the puzzle is a
+      placeholder of three coloured switches whose order the stones' lights give)
 - [ ] Mini-boss: the elysian ghost (Map422)
 - [ ] Mini-boss: the horde (Map438)
-- [ ] Elevator ride: the climbing parallax, the robot waves and the care package trigger (Map423, Map424)
-- [ ] Cultists' Lair: torches lighting as he nears, demon waves off the platforms (Map439)
-- [ ] Dome Approach: the barely perceptible button (Map440)
-- [ ] The two care packages in the final switcher rooms (Map425, Map441)
-- [ ] The fall: the tumble, the flip motion, the monologue, the forced flip to Rupert (Map426, Map417)
-- [ ] The VERY convenient elevator: Rupert's exit, the forced flip to Jerald (Map443)
-- [ ] The reunion, with both duration lines (Map411)
-- [ ] The courtyard gate needs the key behind Envy and the power (Map411, Map444)
-- [ ] Votary rows 593-597
+- [x] Elevator ride: the climbing parallax, the robot waves and the care package trigger (Map423, Map424; the
+      parallax is a placeholder made from the tower's own stone)
+- [ ] Cultists' Lair: torches lighting as he nears, demon waves off the platforms (Map439; the torches are in,
+      and the waves wait for the votary rows)
+- [x] Dome Approach: the barely perceptible button (Map440)
+- [x] The two care packages in the final switcher rooms (Map425, Map441)
+- [ ] The fall: the tumble, the flip motion, the monologue, the forced flip to Rupert (Map426, Map417; all wired,
+      with the monologue and the thought bubble as Jeremy's TODO, and the shaft's windows still to place)
+- [x] The VERY convenient elevator: Rupert's exit, the forced flip to Jerald (Map443; his remark and the thought
+      bubble are Jeremy's TODO)
+- [ ] The reunion, with both duration lines (Map411; the elevator, the drop and the party back together are wired,
+      and both duration lines are Jeremy's TODO)
+- [x] The courtyard gate needs the key behind Envy and the power (Map411, Map444; the key is a placeholder row,
+      item 175)
+- [ ] Votary rows 596 (Lust's succubi) and 598-599 (Greed's two shades); 597 is Hunger's, postgame
 - [ ] Treasure in the lanes
 - [ ] Music for the hall, the tower and the basement, none of the twenty-nine maps has any
 
@@ -122,7 +136,7 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] RGB Technohypercube: the fusion at the Spacial Flux Engine
 - [ ] `side-007`, the disk and hypercube descriptions read as the hypercube flow, and its third step can be moved
 - [ ] The Bleu disk gate: what it opens (Map280)
-- [ ] The Greed reveal: its thresholds and Trainer Lord's scene
+- [ ] The Greed reveal: its thresholds, Trainer Lord's lounge line, and the mirror battle he throws the duo into
 - [ ] The Sabre cameo, somewhere before chapter 5
 - [ ] Wyatt and Lucian stop calling themselves Lord of anything
 - [ ] The final scene: the meal
@@ -160,7 +174,8 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] `mittens`: the tribute tiers, Feline Favor and the follow behavior
 - [ ] `satoru-002`: his outcome
 - [ ] `silverkayla-003`: the destination and the Promise Ring
-- [ ] `leo-002`: Leo's Original formulas
+- [ ] `leo-002`: the scene that unlocks Leo's Original (its eight gems and recipes are built, locked until then)
+- [ ] `leo`: the new quest before "The Student", finding out what happened to his master, finished by killing Pride
 - [ ] `alice-002`: the Acolyte's Favor
 - [ ] `iris-001`: the Monsterpedia showing drop rates and node chances (plugin work)
 - [ ] `iris-003`: the black market's stock
@@ -168,8 +183,8 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 
 ## Side quests and unlocks
 
-- [ ] `side-009`: the unlock beat at Leo
-- [ ] `side-009`: Leo's exchange, formulas for each page and the finale on the sixth
+- [x] `side-009`: the unlock beat at Leo
+- [x] `side-009`: Leo's exchange, formulas for each page and the finale on the sixth
 - [ ] `treis-004`: write the Voltage Baton quest and add it to the quest list
 - [ ] Learning with Treis: its event is still a TODO (CE111)
 - [ ] Fork unlock quest: Fucking Oni's forks
@@ -183,9 +198,9 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Transcendant and Omniscient: a couple of preposterous skills, the reward for the endless grind
 - [ ] The hunt board rebuilt around one named enemy for every group
 - [ ] Legendary recipe unlocks placed in the world
-- [ ] Survival's study shelf has no way in (CE28)
+- [x] Survival's study shelf has no way in (CE28)
 - [ ] Survival's inherited tier, above Millie
-- [ ] Alchemy's "material mastery OK" gate: nothing ever sets switch 128 (CE24)
+- [x] Alchemy's "material mastery OK" gate: nothing ever sets switch 128 (CE24)
 - [ ] The named two-hander's chest wants a recipe (Map321)
 - [ ] Flux Drive homes: Lemon
 - [ ] Flux Drive homes: Viridian
@@ -227,8 +242,8 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [x] Pass 5: Humanoid skills, traits and tricks
 - [x] Pass 5: Construct skills, traits and tricks
 - [x] Pass 5: Deity skills, traits and tricks
-- [ ] `<no:exp>`, `<no:gold>`, `<no:ap>` and `<no:sdp>` on the breakables
-- [ ] The Monsterpedia draws the character sprite
+- [x] `<no:exp>`, `<no:gold>`, `<no:ap>` and `<no:sdp>` on the breakables
+- [x] The Monsterpedia draws the character sprite
 
 ## Optional areas
 
@@ -251,32 +266,48 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Derelict Fork: its east posts pointed at the Frostbite Fields, which are gone
 - [ ] Passage 8: its rope posts, once the Basin mouth is picked (Map102)
 - [ ] `main-005`'s first objective sits off the road (Map116)
-- [ ] The elemental cutscenes point their bubbles at the events that show them
-- [ ] Onboarding: the armor path on the main rail, T-04 and T-05
-- [ ] The save tutorial moves into the intro cave
+- [x] The elemental cutscenes point their bubbles at the events that show them (2026-11-23: the elementals stopped
+  being party members, so the chatter scenes they talk in now bring their spirits out beside the duo with common events
+  114 "Show Elementals" and 115 "Hide Elementals", and every elemental line bubbles off its spirit, The Bellows'
+  pre-boss scene included. Three checks still asked for Earthie in the party and now ask whether she has joined
+  (switch 66), which also unblocks cleansing Aqualock's bubble on Map192. Map167's "learn: support members" tutorial is
+  gone. Two water-faced lines still carried Skye's nameplate from when Skye and Aqualock traded actor slots; both read
+  Aqualock)
+- [x] Onboarding: the armor path on the main rail, T-04 and T-05
+- [x] The save tutorial moves into the intro cave
 - [ ] A couple of side quests for the people in the pub
 - [ ] The deadly guard's warning should say something silly (Map276)
 - [ ] Two known one-way doors: Raevula's north exit, and Kadepths to the Extended Tunnel
 - [ ] Ice-slide puzzles under pixel movement: check they still work
-- [ ] Iris Threads, Giga Deflect and Giga Protect still say TBD in their descriptions
+- [ ] Giga Deflect and Giga Protect still say TBD in their descriptions, until Jeremy decides what they become: "they are
+  expected to radically change and enhance their respective guard types" (2026-11-22). Iris Threads' "TBD" is part of
+  its joke ("yet to be determined") and stays
 - [ ] The Whisk's real icon
 - [ ] Yelena's line about a utensil merchant who never existed
-- [ ] Icons for the folk quests, their category and the ch5 tag
-- [ ] Clear out the Recipe Journal leftovers (CE31, CE161-163)
+- [x] Icons for the folk quests, their category and the ch5 tag (2026-11-22: each line got its own icon, picked for who
+  they are and what they do, at Jeremy's word. The folk category already had icon 82, and the ch5 tag icon 2060, the
+  grey book in the chapter set)
+- [x] Clear out the Recipe Journal leftovers (CE31, CE161-163) (2026-11-22: nothing was left. CE161-163 and items
+  461-463 were already blank, and CE31 "Recipes init" is live, the innkeeper's five starter recipes, called from Map28,
+  Map1 and Map221, so it stays)
+- [ ] J&R's lines that say they wiped out Majik's whole species (Map172, Map284, Map320)
+- [ ] The HUD redesign (in 1.0.0, Jeremy 2026-11-22; what it covers is still being decided)
+- [x] Every character sheet a `$` single (in 1.0.0, Jeremy 2026-11-22: "everything", objects and unused sheets too). Cut the same day: 155 sheets into 1,060 singles, every event repointed; the two unused off-grid sheets (`m_bats-sm`, `m_slimeMedium`) deleted at his word
+- [x] Onboarding: the P1 and P2 beats (in 1.0.0, Jeremy 2026-11-22: "I can't have an incomplete tutorial"). Settled the same day: the save talk, the Monsterpedia lines and the parry corner built; the lap and the weapon blurbs already covered; the rest dropped (see `tutorials/onboarding-backlog.md`)
 
 ## Calls to make
 
-- [ ] Is the style picker, and the family prep line behind it, in 1.0?
-- [ ] Is the HUD redesign in 1.0?
-- [ ] Are spawner enemies in 1.0?
-- [ ] One fork quest per trunk, or one per fork?
-- [ ] Names for Sloth and Lust
-- [ ] Where the meal happens, and whether Nare gets a map
-- [ ] What fills the drop rows the berries left behind?
-- [ ] Do ingredients need descriptions? 396 items have none
-- [ ] Jerald and Rupert's new sprites from the character generator: in 1.0?
-- [ ] Every character sheet a `$` single: in 1.0?
-- [ ] Are the onboarding backlog's P1 and P2 beats in 1.0?
+- [x] Is the style picker, and the family prep line behind it, in 1.0? (No: parked for 1.1.0, Jeremy 2026-11-22)
+- [x] Is the HUD redesign in 1.0?
+- [x] Are spawner enemies in 1.0?
+- [x] One fork quest per trunk, or one per fork? (Per trunk, Jeremy 2026-11-22: six quests plus the two pointers, one objective per fork; see `quests/fork-quests.md`)
+- [x] Names for Sloth and Lust
+- [x] Where the meal happens, and whether Nare gets a map (Nare, Jeremy 2026-11-22: he builds the map himself, custom at first for the scenes after the last boss; the tower stays post-game)
+- [x] What fills the drop rows the berries left behind? (Nothing, Jeremy 2026-11-22: "Goodbye berries." Every drop comes from `<drops>` tags now)
+- [x] Do ingredients need descriptions? 396 items have none (Yes, Jeremy 2026-11-22. Filled the same day: the 250 rows of `food/recipes.md`, eleven trimmed to fit the help box's two lines, and the 145 raw ingredients, 60 of them his own lines from before the redesign (the old armor rows in git, and `food/backup-items.yaml`), carried over as written. He tempers every description in the database later, in one pass. Soular Energy, which nothing referenced, was deleted at his word: "delete it.")
+- [x] Jerald and Rupert's new sprites from the character generator: in 1.0?
+- [x] Every character sheet a `$` single: in 1.0?
+- [x] Are the onboarding backlog's P1 and P2 beats in 1.0?
 
 ## After the line
 

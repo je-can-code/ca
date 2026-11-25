@@ -196,13 +196,15 @@ this was not a detail.
 ### Berries
 
 Blueberries (2), Banaberry (4) and Tiny Heartfruit (8) come out, along with their drop rows — 763 native
-`dropItems` entries across the enemy roster, plus the `*Grass` and `*Mining Crate` harvest events. **This
-empties a lot of drop tables, and what backfills them is unresolved.** Those rows were doing pacing work
-as well as healing work.
+`dropItems` entries across the enemy roster, plus the `*Grass` and `*Mining Crate` harvest events. Those
+rows were doing pacing work as well as healing work. **Nothing backfills them** (Jeremy, 2026-11-22:
+"Goodbye berries."): every enemy drop now comes from `<drops>` tags, and the healing belongs to cooking and
+Metabolize.
 
 Redberry (1), Heartfruit (9) and Nectar (10) heal but drop from nothing, and Serum (5) and Draught (7)
 are orphaned outright — zero drops, zero shops, zero recipes. All five need a decision: delete them, or
-give them a real place. None of them is the panic button. Metabolize is.
+give them a real place. None of them is the panic button. Metabolize is. (Settled in the data since: none of
+the five exist any more, and items 1-10 are the Serum I-V and Ether I-V ladders.)
 
 ### Overstuffed and Bloated (states 281, 282)
 
@@ -396,10 +398,11 @@ The food states carry the slot transform; executing the skill ends the chain unl
 The engine and the first draft of the content are both in. What remains is not the plugin's to decide.
 
 1. **Play-tuning the numbers.** Every heal percent, cast time and state duration above is a first draft.
-2. **What backfills the 763 drop rows the berries vacate.** The deletion is decided; the replacement is
-   not, and those rows were doing pacing work as well as healing work.
-3. **Whether the five non-dropping heal items get deleted or get a real place**: Redberry, Heartfruit,
-   Nectar, Serum, Draught.
+2. ~~**What backfills the 763 drop rows the berries vacate.**~~ **Settled 2026-11-22: nothing.** Every enemy
+   drop comes from `<drops>` tags now (Jeremy: "Goodbye berries.").
+3. ~~**Whether the five non-dropping heal items get deleted or get a real place**~~ **settled in the data
+   since:** Redberry, Heartfruit, Nectar and Draught are gone, and items 1-10 are the Serum I-V and Ether I-V
+   ladders.
 4. **Tuning the squat itself.** `<castMotionPeriod:N>` on each skill is frames per squat (carb 10, sweet
    6, everything else 8) and `<castMotionIntensity:PERCENT>` is how far it deforms at the bottom (75
    everywhere, settled in play). Both are per-skill; nothing global needs touching.

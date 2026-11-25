@@ -90,7 +90,7 @@ Intro loop complete through **`main-008`** (fourth elemental recruited). Chapter
 | Tier | Rule | Examples |
 |------|------|----------|
 | **A — Story-required** | Main quest cannot advance until player **uses** the system once (not only unlocks menu). | Attack, skills, guard intro cave; craft **one** pudding; party cycle when forced |
-| **B — Story-teased** | Main or strong side quest: NPC sends you, **fetch/craft/slay gate** before reward. | First **weapon** craft before mines PONR; craft **one armor piece** before forest PONR; refine demo before kingdom route |
+| **B — Story-teased** | Main or strong side quest: NPC sends you, **fetch/craft/slay gate** before reward. | First **weapon** craft before mines PONR; craft **one armor piece** before forest PONR |
 | **C — Discoverable** | Omnipedia, anomalies, flux drives, optional farms, parry build—no main gate | Alchemy journal pages, sword in stone, orc node farm |
 
 **Default for pillars:** anything in **build + gear** fantasy should be **A or B through end of Ch3**, not only C.
@@ -100,9 +100,9 @@ Intro loop complete through **`main-008`** (fourth elemental recruited). Chapter
 | Content | Unlock source (per CommonEvents comments) | Tier today |
 |---------|-------------------------------------------|------------|
 | Cooking recipes | Inn / `main-002` | **A** |
-| Smith weapon recipes | `side-001` (Viktor at pub) | **C** → should be **B** |
-| Armor/survival recipes | Millie / forest | **C** → should be **B** |
-| Refinement | Smith (switch menu) | **C** |
+| Smith weapon recipes | `side-001` (Viktor at pub) | **B** since 2026-11-22: a required `main-003` step that ends on crafting a weapon |
+| Armor/survival recipes | Millie / forest | **B** since 2026-11-22: the basin waits until Millie has seen a crafted armor piece |
+| Refinement | Viktor, after 24 unique blueprints (CE105) | **C**, on purpose: optional and never story-gated (Jeremy, 2026-11-22: "The game is not a crafting game, its a cooking game.") |
 | Alchemy gems | Rescue Leo | **B/C** |
 
 ### Tutorial backlog (priority order)
@@ -113,7 +113,8 @@ Author these as **short, forced beats** (one screen + one success), not wiki pag
 2. **Ch1 — Weapon craft gate (B):** before mine PONR, require **craft any tier-1 weapon in your family** (materials from mansion free bundle or shop).
 3. **Ch2 — Armor craft gate (B):** tie `Survival init` to **main** beat (Millie or Treis), not only forest wander; craft **one** off/body/feet before basin depth.
 4. **Ch1 — Node tutorial (encourage, don’t hard-gate):** `???` on **Map 14** (`mysterious figure`, display name Adventurer’s Fork) unlocks starter panels `ENC_1` / `FGT_1`; player **spends core points** in **Empower** to level panels—nodes are not equipped gear. Story may nudge investment but does not gate progress on it; optional quest can track **panel level ≥ 1** only if we deliberately want Tier B.
-5. **Refinement (B):** one **refine +1** lesson before Fallen Kingdom or first gear wall.
+5. ~~**Refinement (B):** one **refine +1** lesson before Fallen Kingdom or first gear wall.~~ Dropped 2026-11-22:
+   refinement is optional and stays off the main scenario; if you unlock it, the game encourages it, never requires it.
 6. **Optional mastery (C):** parry room in intro already jokes about laziness—keep; add **Lord of Training** pointers after first death to high-level enemy.
 
 Track implementation in [`todo.md`](./todo.md) or Questopedia objectives—not only markdown.

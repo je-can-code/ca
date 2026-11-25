@@ -2235,11 +2235,11 @@
       "participants": [
         {
           "key": "lust",
-          "enemyId": 587,
+          "enemyId": 586,
           "expect": "Lust",
           "x": 40,
           "y": 33,
-          "template": 587
+          "template": 586
         }
       ],
       "aiControl": "shared",
@@ -2356,18 +2356,18 @@
             },
             {
               "verb": "spawn",
-              "enemyId": 597,
+              "enemyId": 590,
               "expect": "Goop Vent",
-              "template": 597,
+              "template": 590,
               "x": 22,
               "y": 16,
               "animation": 146
             },
             {
               "verb": "spawn",
-              "enemyId": 597,
+              "enemyId": 590,
               "expect": "Goop Vent",
-              "template": 597,
+              "template": 590,
               "x": 58,
               "y": 16,
               "animation": 146
@@ -2392,9 +2392,9 @@
             },
             {
               "verb": "spawn",
-              "enemyId": 597,
+              "enemyId": 590,
               "expect": "Goop Vent",
-              "template": 597,
+              "template": 590,
               "x": 20,
               "y": 32,
               "animation": 146
@@ -2419,9 +2419,9 @@
             },
             {
               "verb": "spawn",
-              "enemyId": 597,
+              "enemyId": 590,
               "expect": "Goop Vent",
-              "template": 597,
+              "template": 590,
               "x": 60,
               "y": 32,
               "animation": 146
@@ -2832,6 +2832,71 @@
               "verb": "log",
               "lines": [
                 "TODO: his line as the machine dies"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "greed",
+      "map": 556,
+      "defeatSwitch": 188,
+      "participants": [
+        {
+          "key": "evilJerald",
+          "enemyId": 588,
+          "expect": "Evil Jerald",
+          "x": 14,
+          "y": 6,
+          "template": 588
+        },
+        {
+          "key": "evilRupert",
+          "enemyId": 589,
+          "expect": "Evil Rupert",
+          "x": 16,
+          "y": 6,
+          "template": 589
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [],
+      "reactions": [
+        {
+          "key": "jerald-falls-first",
+          "on": "fallen",
+          "participants": [
+            "evilJerald"
+          ],
+          "steps": [
+            {
+              "verb": "dialogue",
+              "participant": "evilRupert",
+              "speaker": "Evil Rupert",
+              "face": "face_rp_evil",
+              "faceIndex": 0,
+              "lines": [
+                "\\pop[self]TODO: Evil Rupert, as Jerald's shade goes down."
+              ]
+            }
+          ]
+        },
+        {
+          "key": "rupert-falls-first",
+          "on": "fallen",
+          "participants": [
+            "evilRupert"
+          ],
+          "steps": [
+            {
+              "verb": "dialogue",
+              "participant": "evilJerald",
+              "speaker": "Evil Jerald",
+              "face": "face_je_evil",
+              "faceIndex": 0,
+              "lines": [
+                "\\pop[self]TODO: Evil Jerald, as Rupert's shade goes down."
               ]
             }
           ]

@@ -6,8 +6,11 @@ noticing.
 
 ## About
 The apprentice's name is Viskra. Canon establishes her on arrival: sold out of pre-mades, gramps at the pub, one
-person holding the store together with sass and spite. Sunny, sharp-tongued, and — the load-bearing trait —
-**willing to GO HARD, ALL THE WAY,** on anything she decides to master. She was never taught "the old ways,"
+person holding the store together. **She is warm, thankful and helpful, never sassy** (Jeremy, 2026-11-22): "She is
+supposed to be very thankful that you just pulled gramps from the tavern where he was drowning his half-weapon brain
+in drink." Her own first scenes say it: "Thank you so much for finding gramps." Sass and spite belong to Treis, if
+anyone in the cast. Sunny, earnest, and — the load-bearing trait — **willing to GO HARD, ALL THE WAY,** on
+anything she decides to master. She was never taught "the old ways,"
 because nobody teaches those first; you teach ingots, then swords. What she knows about smithing greatness is
 whatever Viktor manages to actually SAY to her. Remember that.
 
@@ -23,6 +26,11 @@ masterwork of the new way. Depends entirely on whether the old man learned to ta
 ## Quests
 
 ### 0) Unlock Quest: `side-001` + early Viktor engagement
+
+Fetch ore, smelt four ingots, trade them for the forge pass and the blueprints, and then (since 2026-11-22)
+**craft any weapon off the bottom shelf and show her**: "I'd love to see your first piece! It's a big moment for a
+smith." Her page 8 checks it; see [`onboarding-backlog.md`](../../tutorials/onboarding-backlog.md) T-02. The whole
+forge lesson was rewritten in her real voice the same day.
 
 ### 1) Her Own Mark: `viskra-001`
 Her first original, branded piece — forged WITH the duo. They source her materials (fetch list TBD — modest,

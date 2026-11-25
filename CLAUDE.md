@@ -120,7 +120,9 @@ bun tools/map-atlas.js plan    <mapId>   # a single room as a text floor plan
 
 **`bun tools/bestiary.js` answers who lives where, at what level, and where the player first meets each
 line.** The bands are in [`docs/maps/progression-bands.md`](docs/maps/progression-bands.md), and no roster
-is written down anywhere, so ask it before hand-rolling a script over `Enemies.json`.
+is written down anywhere, so ask it before hand-rolling a script over `Enemies.json`. The same answer is a
+live sheet at http://j-desktop.local:1220/bestiary, every line against every area (see
+`tools/bestiary-page/`).
 
 Three things about this data that cost real time to rediscover:
 
@@ -135,6 +137,11 @@ Three things about this data that cost real time to rediscover:
 Points of no return come in two kinds and both are detectable: a transfer whose mirror was never
 authored, and a `Set Movement Route` on the player carrying a `Jump` step. Neither needs a
 hand-maintained note — do not create one.
+
+**Every character sheet is a `$` single** (Jeremy, 2026-11-22). The old eight-character sheets were cut
+slot by slot into `$<sheet>-<slot>`, and object sheets into `!$<sheet>-<slot>`: `People2` slot 3 is now
+`$People2-3`, `!Flame` slot 0 is `!$Flame-0`. An event always wears index 0 of a single. Never add an
+eight-character sheet; cut it the same way first.
 
 ### Enemy AI tags
 

@@ -87,10 +87,45 @@ and hand it over.
   reactions now.
 - **The beat that unlocks side-009 at Leo** is `unlock-quests` and `set-quest-tracking`, with no `progress-quest`:
   unlocking already makes the first turn-in, "Bring Leo a journal page (1/6)", active, and a `progress-quest` there
-  would count a page nobody has brought yet.
+  would count a page nobody has brought yet. Built 2026-11-22 on his hunt page (`Map034` ev3 page 3), beside the
+  switch that starts the hunt.
+
+### The exchange as built `2026-11-22`
+
+Leo's "I've got new pages." (`Map034` ev3 page 4) takes every page the party carries, one at a time: the duo read
+each one aloud to him (the journal isn't in Erocian), variable 30 `journal pages turned in` counts it, his reaction
+plays, the page's formula event runs, and `progress-quest` moves side-009 along. The sixth completes the quest. With
+no pages he says so, and once the journal is whole he says that instead.
+
+| Turn-in | Formula event | Teaches |
+|---|---|---|
+| Rescue | CE34 `Alchemy init` | Serum I, Ether I |
+| 1 | CE190 `journal page 1` | gems tier 1 |
+| 2 | CE191 `journal page 2` | gems tier 2 with Serum and Ether II (CE181), Cut, Poke and Blunt glyphs, Undead, Slime and Beast seals, Weapon Killer |
+| 3 | CE192 `journal page 3` | gems tier 3 with III (CE182), Heat, Liquid, Air and Ground glyphs, Reptile, Aquatic, Insect and Plant seals, Flying Killer |
+| 4 | CE193 `journal page 4` | gems tier 4 with IV (CE183), Energy and Void glyphs, Humanoid, Construct and Deity seals, Aura Killer |
+| 5 | CE194 `journal page 5` | gems tier 5 with V (CE184) |
+| 6 | CE195 `journal page 6` | Shield Killer and the Philosopher's Stone |
+
+Every gem, rune and potion is taught exactly once across those seven events. CE196 (the old `anti-2`) is blank,
+since everything it taught moved onto pages 3 and 4. Tier 6 gems are not on the ladder: they are **Leo's Original**,
+after Nimbus (see `alchemist-bard.md`).
+
+**His reactions paint the woman who wrote it**, in the order Jeremy approved: he knows her handwriting at once; she
+skips whole steps as if the reader should keep up; there's not one name in the margins, not even his, though the
+elemental glyph trick was his; she writes of "the next world" like a promotion she was owed; "Perfection is the only
+acceptable failure," underlined twice. On the sixth: "Wow, you've found 'em all!", the Stone, her masterwork, "and
+never once what she wanted it for", and Jerald's "Philosophy Stone" gets corrected. Nobody names her; the quest
+keeps her unidentified until Nimbus.
+
+**The Philosopher's Stone** is `Items[156]`, a key item. Its recipe (`a-philosophers-stone`) fuses one of each top
+stone (Star Ruby, Twist Emerald, Imperial Topaz, Ethereal Sapphire, Power Crystal and Rainbow Diamond, all dropped by
+the ore nodes) with the Cross-pein, Graver and Alembic. **Holding it opens Material Mastery and Material
+Breakdown** at every alchemy station: CE24's gate reads the Stone where it used to read switch 128, which nothing ever
+set. The transmutation formula is in [`crafting/material-tools.md`](../crafting/material-tools.md#transmutation-decided-2026-11-22).
 
 ## Still to do
 
-- The named bird and its page drop.
-- The unlock beat at Leo, above.
-- Leo's exchange: a set of formulas for each page turned in, better as more come in, and the finale on the sixth.
+- The named bird and its page drop. Decided 2026-11-22 (Jeremy): the bird is the T5 beak, **Hraesvelgr**, "with
+  Prime or something attached", living on one of the offshoot maps he'll pick. Until it exists only five pages can
+  be found, so the finale, the Stone and Material Mastery can't be reached in play.

@@ -25,8 +25,10 @@ Robert's RM2K game *"Jeremy and Robert"*, ~2003) they:
 - scaled a mountain and absorbed a stupid alter-ego (Jerald — see *Raving Lunatic*, below)
 - watched old friends pass (**Kore**, Rupert's cat-humanoid ally who fought with claws — the in-fiction
   source of his **avenge skill**; see [origins-the-roleplay.md](./origins-the-roleplay.md))
-- **exterminated the void clown species** — a predatory race whose favorite prey was an alien race called
-  **The Elementals**. Final boss: a void clown named **Majik**.
+- **exterminated Majik's species**, as they tell it. Final boss: **Majik**, the arch enemy whose prey was an
+  alien race called **The Elementals**. His race is the **Babagen**, a peaceful people of jester-like aliens,
+  and he was good at heart; J&R1 says a living virus took him over (`LOCKED 2026-11-22`: Majik and Grudj are
+  peaceful jesters, not bad people inherently, and "void clowns" is retired).
 
 That genocide, ~**440 years ago "on this time loop"**, accidentally saved The Elementals — who ratified
 **the pact**: *if you save the life of an elemental, that elemental serves the rescuer until the end of their
@@ -36,7 +38,7 @@ days.* It is written into their genetics. They literally cannot refuse. (`SHIPPE
 verbatim, is at `/mnt/exdrive/dev/rm2k/jr1-dig/out/jr1-script.txt`. Its audience was about five people, all in
 their circle, and Jeremy is the only one who ever beat it. It doesn't match this section everywhere: Majik was a
 good creator-king taken over by a living virus, his race is the **Babagen**, and Jeremy *refuses* to fuse with the
-Raving Lune. Nothing has been reconciled yet; see Open Threads.
+Raving Lune. The Babagen part is reconciled (2026-11-22, above); the rest isn't yet; see Open Threads.
 
 There was also a **time adventure** (*J&R II: Disaster Of Time*) that the two barely remember — fittingly, because
 its source is literally lost to history. Running gag `PROPOSED`: J: "yeah, we went on that adventure through
@@ -91,15 +93,16 @@ up where you free her. The others arrived and were sabotaged in turn.
 
 ### Grudj — the red-eyed gent, the antagonist `LOCKED (named 2026-07-24)`
 
-**His name is Grudj** — a simple word, misspelled with meaning, per the void-clown naming grammar (Majik =
+**His name is Grudj** — a simple word, misspelled with meaning, per the Babagen naming grammar (Majik =
 magic; jragyn = dragon). And per the Maker's framing: it may not be his real name at all — **it's the name he
 gave himself**, a manifestation of a sin-like self-creation. He may have forgotten his true name. The
 un-happener un-happened his own identity and branded himself with the wound instead: Majik was named for his
 power; Grudj named himself for his grievance. (Contrast, quietly: Jerald and Rupert kept their names and each
-other. Naer traded his person for a tower; Grudj traded his name for a grudge. The whole cosmology's
+other. Nare traded his person for a tower; Grudj traded his name for a grudge. The whole cosmology's
 identity-economy in one villain.)
 
-**The last free void clown**, survivor of the genocide. (Retcon note: *not* the sole survivor — at least two
+**The last free Babagen**, survivor of the genocide, and no villain by nature: his people were peaceful jesters,
+and what drives him is grievance, not malice. (Retcon note: *not* the sole survivor — at least two
 kin also survived; see Lust and Sloth. They are siblings **to each other**, kin to the gent by species only.)
 
 - Spent ~400 years **leveling in isolation** for revenge against the two Destroyers of His Race. The prequel's
@@ -200,8 +203,9 @@ looks like when it wears a body: Gluttony = intake unbounded, Wrath = output unb
 **Drop mechanic** `LOCKED`: defeating a named sin boss does **not** drop their SDP. The defeat releases a
 permanent population of **lesser** versions throughout the region (naming rule: *boss-title → common-noun* —
 Gluttonwolf **Mayor** → **Gluttonwolf**; Vampire **King** → **Vampire Shade**), which carry a flat rare-drop
-roll for the unique SDP. All six *fought* sins sit on the main critical path; what gates postgame is
-**looting all seven SDPs** (six farmed + Greed).
+roll for the unique SDP. Six of the sins sit on the main critical path; Greed's fight comes whenever its
+threshold breaks (see [The Greed reveal](#the-greed-reveal-locked-reworked-2026-11-23)). What gates postgame is
+**looting all seven SDPs**, every one farmed from lessers: Greed's are its votaries (plural; what they are is `OPEN`).
 
 **Origin taxonomy** `LOCKED` — every transformation happens for a different reason; keep them distinct:
 
@@ -263,7 +267,7 @@ Voice sketch `LOCKED (drafted by Jeremy)`:
 | When | What |
 |---|---|
 | 4,400 yrs ago | The elementals last united |
-| ~440 yrs ago | Void clown genocide (J&R's prequel climax); The Elementals saved; the pact ratified |
+| ~440 yrs ago | Majik defeated and the Babagen wiped out, as the duo tell it (J&R's prequel climax); The Elementals saved; the pact ratified |
 | ~400+ yrs ago | The gent begins his isolation grind; Skye lands, SOS at the empty summit castle, naps |
 | ~300 yrs ago | Earthie arrives, ambushed at her pod by the gent, stasis-sealed |
 | "recently" | The Kingdom is aged to death; the summit castle is pause-displaced to Lakeside Road |
@@ -419,7 +423,7 @@ side-quest-driven passive grind may raise real-world numbers. Map sizes and enem
 
 ## Chapter 4 — The Breathing Chapter `LOCKED (design) / unbuilt`
 
-**Theme:** the world is yours; the key assembles; the first horror. **Sins:** Pride, Sloth (+ Greed revealed).
+**Theme:** the world is yours; the key assembles; the first horror. **Sins:** Pride, Sloth (+ Greed's mirror battle, whenever its threshold breaks).
 
 **Phase intent** `LOCKED — protect this on re-read`: Ch4 is deliberately **wrapperless and open**. The player
 knows the what and the why; this chapter is execution *in an open continent* — forks unlock via Raevula NPC
@@ -475,7 +479,8 @@ from the woman who builds things. Neither gates anything mandatory.
   contents** `PROPOSED (principle)`: escalating dread about the *place* (a miner who lost someone, a boarded
   shaft, whisper density rising after Nimbus; optionally Treis's instruments detecting "a massive, dormant
   junction signature, very deep, not moving") — zero information about what's down there.
-- **The Sin of Sloth: the gent's kinswoman** (name `OPEN`) — the void clown sister who **watched the gent
+- **The Sin of Sloth: the gent's kinswoman, Zeel** (`LOCKED 2026-11-22`: "zeal", the opposite of the sin she was
+  turned into) — the Babagen sister who **watched the gent
   forcibly scramble her brother** (see Lust) and fled below. Her junction amplified as she descended, but
   grief inverted it: **immense power, zero will to act** — because acting is what she watched destroy him.
 - **The fight** `LOCKED (design)`: she manifests as an immobile **void statue**. Direct hits deal **zero
@@ -501,14 +506,19 @@ Technofragment items get retired; disks are singular collectibles, and the hyper
 Reconcile the Rouge's "bypassed in the story" item description; update `side-007`'s quest text from
 "use three disks" to the hypercube flow.
 
-### The Greed reveal `LOCKED`
+### The Greed reveal `LOCKED (reworked 2026-11-23)`
 
-Mid-game, threshold-triggered (collect X SDPs / learn Y recipes / craft Z foods — numbers `OPEN`): **Trainer
-Lord appears unprompted.** *"Something has... grown from within you. Allow me to show you a part of what
-you've become over this journey, protagonists!"* — and **extracts the Sin of Greed's SDP from the party's own
-essence.** No boss. No location. No fight. Greed was never the gent's doing; it is a manifestation of what
-Jerald and Rupert have been doing since minute one: hoarding. Unsettling, not celebratory — and a deliberate
-dress rehearsal for the Ammit reveal (see Postgame).
+Mid-game, threshold-triggered (collect X SDPs / learn Y recipes / craft Z foods — numbers `OPEN`). Nobody knows
+when the threshold breaks, so Trainer Lord does not come to them: **the next time the duo talks to him in his
+lounge, his usual creepy know-it-all line is replaced by the Greed one, and he immediately thrusts them into a
+mirror battle**: the duo against themselves. No warning and no backing out. Not a good surprise, and exactly what
+they deserve. Greed was never the gent's doing; it is a manifestation of what Jerald and Rupert have been doing since
+minute one: hoarding. Unsettling, not celebratory — and a deliberate dress rehearsal for the Ammit reveal (see
+Postgame).
+
+- **His Greed line:** `OPEN`. The draft from the old extraction version: *"Something has... grown from within you.
+  Allow me to show you a part of what you've become over this journey, protagonists!"*
+- **The mirror battle and Greed's votaries (plural):** `OPEN`, a design talk is queued.
 
 ### The Sabre cameo `PROPOSED (2026-07-31)`
 
@@ -702,10 +712,10 @@ to these two when the player moves between them,* and a child stared at it for f
   the math and goes quiet. Same event, two reactions, entirely in character — the player watches the
   strategist arrive somewhere the bruiser cheerfully did not.
 - **Guardrail `PROPOSED (principle)`: let them NOTICE, never let them CONCLUDE.** House style is a cosmology
-  that refuses to explain itself — the Tower of Naer is never explained, the sigils are never explained, the
+  that refuses to explain itself — the Tower of Nare is never explained, the sigils are never explained, the
   Echoes get no journal entry. This lands as an unresolved shiver or not at all. Precedent for pointing at the
-  player through the characters without spelling it out: Trainer Lord's Greed extraction — *"something has
-  grown from within you"* — where the party's hoarding is the player's hoarding, said aloud, explained never.
+  player through the characters without spelling it out: Trainer Lord's Greed reveal, where the party's hoarding
+  is the player's hoarding, thrown back at them as a mirror battle and explained never.
 
 #### The interlock `PROPOSED (design)`
 
@@ -743,7 +753,7 @@ him, until he decides to.
 
 ### The Basement — Lust `LOCKED`
 
-The gent's kinsman (name `OPEN`) — **forcibly scrambled by the gent himself**, an act of violence and
+The gent's kinsman, **Pyur** (`LOCKED 2026-11-22`: "pure", the opposite of the sin he was turned into) — **forcibly scrambled by the gent himself**, an act of violence and
 control against his own kind, **long before the duo ever reached Erocia**. There is no witnessing scene:
 the duo's only forewarning is Sloth's oblique lore back in Ch4 — and to them, Sloth was just a Very Scary
 Demon In Hell whose technodisk drop was a happy coincidence. Meeting Lust is where the pieces start to
@@ -753,7 +763,7 @@ assemble: **Rupert begins to question the shape of the plot.** The dread arrives
 gone than others, and the change is the sin taking hold. Lust's was forced on him, but his body accepted it and
 in the end embraced it. Not "yay, I get to be Lust now", but "well, here we go, I guess this is my life now": the
 opposite of the hero who resists an evil transformation. Jeremy's line: "The sin acceptance transforms you." So the
-origin table above still reads **Forced**, and what that force left behind is a void clown turned incubus, dark-skinned
+origin table above still reads **Forced**, and what that force left behind is a peaceful jester turned incubus, dark-skinned
 and red-eyed (`$m_sin-incubus`). An idea, not yet a scene: "Might be worth a cutscene showing the gradual
 transformation from not sin to sin."
 
@@ -765,8 +775,8 @@ she fled. It sat empty, meant-for-someone. **Someone else wanted to be the one i
 **The Sin of Envy: the fifth elemental — the void elemental**, **Voidella** (Jeremy, 2026-11-14). Exiled by her own kind **for
 what she was, not anything she did** — void, coded dark, condemned before agency entered the picture. The
 one origin in the roster that happened *to* someone for simply existing — which is the gent's condition too,
-arrived at from the opposite direction (his race taken from him; hers exiling her). "Void clown" and "void
-elemental" share the word deliberately. She latched onto him — two beings with no race left to belong to —
+arrived at from the opposite direction (his race taken from him; hers exiling her). She latched onto him — two
+beings with no race left to belong to —
 gave him **centuries of devotion**, was never deemed good enough... and then the first time he actually
 bestowed "the gift," it went to the sibling. Not her. *"Why do YOU get the power? I WANTED that power."*
 She festered into the sin naturally. Nothing was done to her. That's the tragedy.
@@ -823,7 +833,7 @@ befallen you..."*
 The final fight of the main story. The shape:
 
 1. **The reveal**: the shady dude's cloak comes off. The armorer, the warner, the saboteur, the castle thief,
-   the kingdom's executioner — one being, the last free void clown, at a level no clown has ever reached
+   the kingdom's executioner — one being, the last free Babagen, at a level no Babagen has ever reached
    (~150, ballpark), at the end of a 400-year revenge epic. `PROPOSED` callback: *"I gave you your power. I TOLD you I was coming. You laughed."*
 2. **The scramble** `LOCKED (mechanics) / mechanism revised 2026-09-17`: the ailments and the Treis gate
    stand; the delivery is now a machine in the room on a repeating cycle, per
@@ -874,11 +884,12 @@ The final fight of the main story. The shape:
 continent.** The refusal the entire game is built on, honored to the last frame. The final scene is
 the meal. (Scene authoring: `OPEN`. The answer: not.) Then the credits — *"Maker: Jeremy E."*
 
-**Venue candidate** `PROPOSED (Jeremy leaning, 2026-07-24)`: **Nare** — the off-screen relaxation town already
+**Venue** `LOCKED (2026-11-22)`: **Nare** — the off-screen relaxation town already
 seeded in shipped dialogue three times over (the rich man from out of town; the naren lady knight; **Satoru,
 who literally traveled from Nare through the Kingdom** — the road exists, the route is walkable) — authored as
 a **small onsen area run by one person, with a tower in the background.** The vacation ends at the hot springs.
-Where else.
+Where else. **The map is Jeremy's to make:** *"That WILL be a map I'll make, it'll be custom for the 'you beat
+the last boss' sequence of scenes at first."*
 
 ---
 
@@ -904,8 +915,8 @@ Where else.
    > J: "This doesn't look edible."
    > R: "No, but it FEELS... young, and old... at the same time?"
    The 2026 finish line does not hinge on it. TL delivering DLC diegetically is exactly his job.
-2. **The seven SDPs** — farm the six fought sins' lesser spawns (flat rare rolls) + Greed. Collecting all
-   seven is the gate.
+2. **The seven SDPs** — farm all seven sins' lesser spawns (flat rare rolls; Greed's are its votaries, loose
+   once the mirror battle is won). Collecting all seven is the gate.
 3. **Trainer Lord's Exam** `LOCKED` — full junction suppression, panels dark, friendly to the end:
    **"Show me what you learned, not what you collected."** The fight examines everything that *isn't* nodes —
    weapon identity, class verbs, proficiency, food, parry — the design contract enforced as a boss. (Lineage:
@@ -913,7 +924,8 @@ Where else.
    Passing unlocks the option to prove **mastery** of all seven sin SDPs.
 4. **The Ammit trigger** `LOCKED` — master all seven, and Trainer Lord's eyes narrow: *"Protagonists... do
    you realize what you have done? Here — let me show you."* Same gesture as the Greed extraction, vastly
-   larger scale: he plucks the composite essence from the party — seven misregulation patterns, unified in
+   larger scale *(the extraction became the mirror battle on 2026-11-23, so how the two rhyme now is `OPEN`
+   until postgame work)*: he plucks the composite essence from the party — seven misregulation patterns, unified in
    one junction-network, at critical mass — and casts it to a distant region. *"Face what you value, if you
    want a true challenge."*
 5. **HUNGER — the 8th sin.** `LOCKED` The sin that remains when all appetites are unified: appetite with no
@@ -937,17 +949,18 @@ ungodly amounts of HP from the get-go, fighting a level 6 sin of gluttony become
 boss's enemy row keeps level-scaled stats, and its boss fight adds HP through a passive (Healthy to Healthy++++,
 States 306-310).
 
-**The Tower of Naer** `PROPOSED (Jeremy tempted, 2026-07-24; corrected 2026-11-14)`: the tower behind the Nare
+**The Tower of Nare** `PROPOSED (Jeremy tempted, 2026-07-24; corrected 2026-11-14)`: the tower behind the Nare
 onsen, a post-game "fun romp" dungeon of **hard-coded floors**, derived from an old game idea of his called "Tower of
 Naer" (where "Nare" came from as a kingdom, and where the King and backstory derive from). *"You can think of that
 more like 'Tower of Druaga'- except less stupid puzzles and an ARPG"*. It is not the Ancient Cave-style one; that is
 the Deep Dungeon, above. Source lore, from
-the hand-written 1995 docs: **King Naer traded his princess, Sophia, for the ultimate power in an act to protect
+the hand-written 1995 docs: **King Nare traded his princess, Sophia, for the ultimate power in an act to protect
 his kingdom — that power being a weird multi-world tower that was never explained.** It stays never-explained;
 a multi-world tower fits the Lords/Omnidimensional register without a word of exposition. (Optional whisper,
 unassigned: whatever became of Sophia — the onsen IS run by one person...) Strictly **post-1.0 stretch** — the
 2026 finish line does not hinge on it. Candidate flavor tie: the inherited regression power as the tower's
-per-run reset mechanism.
+per-run reset mechanism. **How you get there** `OPEN (2026-11-22)`: when the tower is built, probably a new inn
+at its base; where that inn is reached from, Jeremy decides later ("its post-game").
 
 **The onsen keeper's identity** `PROPOSED (Jeremy musing, 2026-07-24)`: the two floated options may be one
 answer wearing two names — **Sophia as the mask, Madeleine as the soul.** The traded princess of the 1995 lore
@@ -956,7 +969,7 @@ foothold would speak every world's tongue — a polyglot. Design principle if sh
 only transactionless NPC in the game** — everyone else in Erocia wanted something from the duo; she asks for
 nothing and offers rest. That's what makes the ending land.
 
-**The King of the Tower** `LOCKED (2026-07-24 — "the crown fits. Perfectly. 👑")`: the tower's final floor holds **King Naer himself** — an
+**The King of the Tower** `LOCKED (2026-07-24 — "the crown fits. Perfectly. 👑")`: the tower's final floor holds **King Nare himself** — an
 armored king/knight, vast halls, countless maid-constructs, and **too lordly to bother**. He traded his person
 for ultimate power, got a multi-world tower of mostly-empty floors, and has sat at the top of it ever since,
 using it for nothing. Boss design: maidstaff waves first; then a king who fights in dismissive, devastating,
@@ -968,10 +981,11 @@ different failures. *(For me: this is Joe's own self-described game persona, bui
 probably never play. The good years are already in the DNA — SO3/DDS/Disgaea couch canon → proficiency and the
 slots system. The King is the elegy; the mechanics are the memorial.)*
 
-**Naming footnote:** "Tower of Naer" → the town is "Nare" because Naer collides with a certain drugstore
-hair-removal cream (a fact discovered with appropriate horror). Free lore beat, optional: the town at the
-tower's foot *changed its spelling* — one vowel of disavowal, so as to no longer bear the king's name. The
-rename the real world forced becomes the town's quiet opinion of its lord.
+**Naming footnote** `LOCKED (2026-11-22)`: one spelling, **Nare**, for the town, the tower and the king. The 1995
+docs and JR2 spell it "Naer", which collides with a certain drugstore hair-removal cream (a fact discovered with
+appropriate horror). Jeremy, 2026-11-22: "I tried to make it Asian sounding instead of like a hair removal product
+😂. Use the common one." Every shipped line already says Nare. The old optional lore beat, where the town changed
+one vowel to disavow its king, goes with the split.
 
 **The fox, resolved** `LOCKED (2026-07-24)`: it was **Trainer Lord's pet** all along — canonized in a
 post-game stinger, not the main plot. Drafted scene:
@@ -991,18 +1005,18 @@ post-game stinger, not the main plot. Drafted scene:
 | 2 | Ammit's region | `OPEN` — candidate: Desolate Graves ("we'll see") |
 | 3 | Desolate Graves' purpose | **RESOLVED (2026-07-24): the Graveyard Unit** — Four Great Stones + Echoes + Mother-Sigil + the Cerak/Gilbert braid. Ammit candidacy still separate/open |
 | 4 | **The energy/light elemental** — is there one? | **RESOLVED (2026-11-15): yes.** Jeremy: "there is an energy/light/holy sprite coming too." A sixth sibling beside Voidella: **Brighteene** (named 2026-11-15). Her look is settled (floor-length golden hair, a gold glow); her role is still open — Jeremy: "I don't know what I'll use her for yet, but I want to have it available for when I inevitably do." See Part 0 |
-| 5 | Names: Lust, Sloth | `OPEN` — low importance, needed eventually. **Pride RESOLVED (2026-08-31): Gloria**, Leo's master (see Disk 1). **Envy RESOLVED (2026-11-14): Voidella** |
+| 5 | Names: Lust, Sloth | **RESOLVED (2026-11-22): Pyur and Zeel**, the opposites of their sins (pure, zeal), because they were transformed into Lust and Sloth rather than born to them. **Pride RESOLVED (2026-08-31): Gloria**, Leo's master (see Disk 1). **Envy RESOLVED (2026-11-14): Voidella** |
 | 6 | Greed thresholds (X SDPs / Y recipes / Z foods) | `OPEN` — pends end-of-Ch4 data |
 | 7 | Final level ladder (gent ~150 et al.) | `OPEN` — ballparks |
 | 8 | "What Lords would Jerald and Rupert even be?" | flavor musing — the ending quietly answers it |
-| 9 | **Nare** (onsen epilogue venue) + **Tower of Naer** (post-game Ancient-Cave romp) | `PROPOSED` — Jeremy leaning/tempted; tower is post-1.0 stretch |
+| 9 | **Nare** (onsen epilogue venue) + **Tower of Nare** (post-game romp of hard-coded floors) | **Venue `LOCKED (2026-11-22)`: Nare**, a map Jeremy makes himself, first for the scenes after the last boss. Tower `PROPOSED`, post-game; probably reached from a new inn at its base |
 | 10 | ~~The gent's NAME~~ **RESOLVED: Grudj** | `LOCKED (2026-07-24)` — self-given, a brand of his own wound; his true name may be forgotten, even by him |
 | 11 | Alex's (v4 protagonist) placement in Raevula | `OPEN` |
 | 12 | Silver & Kayla = the v3 duo? | `PROPOSED` — see The Erasures |
 | 13 | **The Fortress split** — whole sequence | `PROPOSED (2026-08-06)` — see Ch5 → THE SPLIT |
 | 14 | Who falls, who springs (Jerald→Lust / Rupert→Envy, or invert to put Jerald under Envy) | `OPEN` — draft assumes the former; the inversion argument is on file |
 | 15 | Is the freeze ever acknowledged out loud, and by whom? | `OPEN` — guardrail is notice-never-conclude |
-| 16 | **Reconcile Part 0 with the recovered J&R1**: Majik's nature and the Virus, Babagen vs. void clowns, whether there was a genocide, Jeremy the Astroidian and Robert the Darkoon, when and why Jerald fused with RL | `OPEN` — discussion started 2026-11-16; the opener (Ch1, "The summons") was its first decision |
+| 16 | **Reconcile Part 0 with the recovered J&R1**: Majik's nature and the Virus, Babagen vs. void clowns, whether there was a genocide, Jeremy the Astroidian and Robert the Darkoon, when and why Jerald fused with RL | `OPEN`, partly settled — discussion started 2026-11-16; the opener (Ch1, "The summons") was its first decision. **Babagen vs. void clowns RESOLVED (2026-11-22)**, Jeremy, after reading the script: the Babagen are peaceful jesters, Majik and Grudj aren't bad people inherently, and "void clowns" is retired. On the genocide, his words: the duo's lines are "not technically incorrect (they killed Majik, who was of 'an extinct species')", but they'll be reworded so J&R don't say they literally wiped out the race (Jeremy, later) |
 
 **Resolved 2026-07-24 (first pass):** RL-uncage → **rejected** (no suppression to uncage; RL is a class
 name). Room of Sacrifice → **explained** (the Nimbus gate). Technodisk L/R fragments → **nixed**. Lust
@@ -1029,7 +1043,7 @@ control-shift eventing, enemy-free checkpoint maps, cross-lane gate interlocks, 
 
 ## Lineage footnote (why this document exists)
 
-The final boss tradition (a void clown), the vampire boss, the Raving Lunatic, the tower/basement cosmology
+The final boss tradition (Majik, a jester), the vampire boss, the Raving Lunatic, the tower/basement cosmology
 (hand-written "Tower of Naer" docs, 1995), the avenge skill, the time adventure, Big Bertha, and the two
 protagonists themselves all descend from twenty-plus years of games — Robert's, Mike's ramblings, and
 Jeremy's own — carried across seven engines. Nothing load-bearing in this story is borrowed filler; every

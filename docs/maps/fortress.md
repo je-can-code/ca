@@ -31,7 +31,7 @@ courtyard unseals.
 | `Map116` "Frozen Fortress" | the Lakeside Road **exterior**, 50x35, tileset 12 Outside (VisuStella): event 1 "overly advanced gate", event 5 "story: need more keys", the four elemental NPC events, a save platform. Not the dungeon |
 | A `DUNGEON:` tree node | **none**. Nimbus has `Map122` and the Subterranean has `Map290`; the Fortress has no node and no child maps |
 | `Items[174]` RGB Technohypercube | authored; its description still ends "This is not yet implemented" |
-| Enemies `583-590` | `583` is Gloria per [nimbus.md](nimbus.md), named 2026-11-10; `584-590` are `=== TBD Sin` at lv15. Envy is `584` and Lust `587`, matching their sin panels in [the mastery cheatsheet](../sdp/mastery-cheatsheet.md); the gent has no chosen slot. `593-597` are `=== TBD Sin Votary` stubs |
+| Enemies `583-590` | `583` is Gloria per [nimbus.md](nimbus.md), named 2026-11-10. Since the renumber of 2026-11-24 every sin N has its boss at `580 + N` and its votaries at `590 + N`, matching its panel in [the mastery cheatsheet](../sdp/mastery-cheatsheet.md): Envy `584`, Lust `586`, Hunger `587`, Greed's two shades `588-589`, and `590` is Lust's Goop Vent; the gent has no chosen slot. The votary stubs left are `596` (Lust), `597` (Hunger) and `598-599` (Greed) |
 | `ice-cavern_A2` / `_A5` / `_B` | on disk under `img/tilesets/`, referenced by **no** Tilesets row |
 | `SnowForest.png` | the only wintry parallax on disk |
 | [progression-bands.md](progression-bands.md) | carries Fortress 115-130 and the gent ~150 |
@@ -63,7 +63,7 @@ The four "why nots" fall out of the rule:
   taking looks like for him.
 - **Why not Raevula?** He erased it four times and it kept coming back, so he hid. A town has tenants,
   and tenants are exactly the uninvited adventurers he has spent twenty years un-happening.
-- **Why not strive for more?** "More" is everyone else's arc. Naer traded his person for a tower; Envy
+- **Why not strive for more?** "More" is everyone else's arc. Nare traded his person for a tower; Envy
   wanted the power. Grudj is the one being in the cosmology who wanted less, exactly one thing, and the
   castle is precisely as much building as that want requires. Ambition would have made him a Lord. A
   grudge made him a squatter in a frozen house.
@@ -118,6 +118,10 @@ should make that plain at the door: the exterior save platform on `Map116` is th
 out, and the switcher-room sigils inside save without offering an exit. This is why every fight in
 the building is tuned to the specific man who is in the room; there is no swapping to the one who
 would find it easy.
+
+**The reunion lifts it** `LOCKED (Jeremy, 2026-11-24)`: "once they are reunited, you can providence again and
+leave and continue." No second save point goes inside. The exterior platform is right outside the gate, and from
+it to the courtyard doors is two rooms with no enemies.
 
 ---
 
@@ -214,7 +218,8 @@ Notes on the draft:
 - **Database homes already exist for most of it:** Hazards `511-520`; Ghost is an Undead subgroup and
   Undead is the void faction (per [subterranean.md](subterranean.md)), so a void ghost in the gent's
   castle is on-theme; Puppet `531-540` and Runic Orb `541-550` for the horde; and the cultists are the
-  `=== TBD Sin Votary` stubs at `593-597`, which have been waiting for exactly this lair.
+  `=== TBD Sin Votary` stubs at `593-597`, which have been waiting for exactly this lair. (Since then `593-595`
+  became Pride's, Envy's and Sloth's votaries, and the 2026-11-24 renumber gave every sin its own votary row.)
 - **Fourteen maps a lane plus the entry hall and the courtyard is thirty maps**, the largest
   dungeon in the game (Nimbus is eighteen). Stated, not argued; it is the finale.
 - **Robots or puppets in the horde** `OPEN`: the lane row says puppets, orbs and golems; the
@@ -430,7 +435,7 @@ Lust is scrambled to zero: not himself by any stretch, the first and only intent
 scramble-to-sin on a junction, done to a sibling of the species, for whatever "ultimate power" Grudj
 can speak to. He cannot talk. He lurches. Rupert does the rest.
 
-> Rupert: wait, is that one of the void clown species? I could've sworn I obliterated them with
+> Rupert: wait, is that one of those clown things? I could've sworn I obliterated them with
 > Meltima back on that ship...
 > *(flashback)*
 > Past Rupert: HOW DARE YOU TRY TO TAKE OVER MY PLANET EARTH! YOU WILL SUFFER!
@@ -458,8 +463,8 @@ Notes on the draft:
 
 - **The flashback.** The only time the player ever sees the predecessor game's finale: the ship, the
   castle it crashed into (Jeremy's remembered image, now drafted as in-fiction), the island, and the
-  crater of void where it stood. The species is called void clowns and the last thing Rupert left of
-  their world was a crater of void. Not a claim about intent; a rhyme now on the page.
+  crater of void where it stood. The species is the Babagen, a peaceful people of jesters, though Rupert
+  only ever knew them as clowns.
 - **The thesis in one mouth, unheard by its owner.** Rupert remembers vaporizing the species fondly
   ("yeah I definitely remember beating that boss") and is appalled, thirty seconds later, that
   somebody did something cruel to one of them. He sees, and does not connect. The ex-hero's blind
@@ -860,6 +865,11 @@ and golems around 130 for Rupert.
   are outside the boss pass (Jeremy, 2026-11-17: "they aren't bosses, thats just a part of the polish pass"). Build
   them the way his other encounter alerts are built (read one first): the tower's is the Elysian Reapy, the
   basement's is robots (his words, which settles the horde's robots-or-puppets question in the lane table).
+- **The key's name.** Item 175 "Technokey" is a placeholder, with a placeholder description and icon.
+- **J-Pixelistics on looping maps.** Vanilla movement wraps a character's position on a looping map
+  (`moveStraight` rounds it through `roundYWithDirection`); J-Pixelistics keeps the continuous position as it is, so
+  Jerald's row reached 52 on the 46-row shaft. The fall lifts him back one shaft height (`Map417` e2); whether the
+  plugin should wrap is Jeremy's call.
 
 ---
 
@@ -873,23 +883,121 @@ and golems around 130 for Rupert.
 - [x] Tileset decision, then a Tilesets row: tileset 21 "EX Dungeon Fortress" (2026-10-24).
 - [ ] Polish pass: the floor-9 encounter alerts in `Map422` (Elysian Reapy) and `Map438` (Elysian Robot, robots).
       Raise with Jeremy first; see Open items.
-- [ ] Entry hall: the mundane-castle exchange, the spring trap and trapdoor, the moogle-style pick.
-- [ ] Both lanes room by room, with switcher rooms enemy-free and a sigil at every block.
-- [ ] The two mandatory causes (floor collapse, lever), evented so they cannot be skipped, with the
-      cross-cut and the variant line for each order.
-- [ ] Room 7's mutual optional help, both triggers live, first-arriver-helps-second.
-- [ ] The two care packages in the final switcher rooms.
-- [ ] Lane exits: the fall, the elevator, the forced flip to the unfinished lane, the reunion, and the
-      two duration lines.
-- [ ] Party-cycle disabled from the trap until the reunion, and the sigils as the only way to move
-      between lanes.
-- [ ] Enemy rows in band: hazards, a void ghost tier, puppets and orbs for the horde, robots, Sin
-      Votaries at `593-597`, Lust, Envy, Grudj, plus their material blocks.
+- [ ] Entry hall: the mundane-castle exchange, the spring trap and trapdoor, the moogle-style pick. **Wired
+      2026-11-23** (`Map411` e2 "the trap", four steps in at row 40, across the whole hall): the spring, the trapdoor
+      and the pick; the exchange's lines are Jeremy's TODO, with canon's pre-swap ambush draft quoted in the event's
+      comments.
+- [x] **The split's machinery, wired and walked in engine 2026-11-23.** A party of one: common event 20 "fortress:
+      follow" (the followed man joins, the other leaves, transfer to his kept spot) and 23 "fortress: switch lanes"
+      (keep the leaving man's spot, follow the other). Switch 113 is the split; variable 32 is who is followed, 33-36
+      Jerald's spot and 37-40 Rupert's. Sigils (save-platform look) on `Map416`, `421`, `425`, `432`, `436` and `441`
+      call common event 26: Save, Switch to the other man, Not now. Common event 25 notices the first dead cycle
+      press (switch 114) for the beat, whose lines are Jeremy's TODO. Providence (common event 59) refuses while the
+      split is on.
+- [ ] Both lanes room by room, with switcher rooms enemy-free and a sigil at every block. (Both lanes' beats
+      are wired; see the next two entries. What is left is each room's one encounter, for the roster pass.)
+- [x] **Jerald's tower, wired and walked in engine 2026-11-23.** Every line the docs draft is Jeremy's TODO, quoted
+      in the event's comments. Enemy rows, counts and levels here are placeholders for the roster pass.
+  - Rafters: `Map413` e10 marks his beat on the bottom beam, which he does not want to go back down.
+  - Crumbling floor: `Map415` e12 on the crossing (x 14-16, row 11). The edge breaks off, e11 being a boulder that
+    drops into the dark, and switch 115 "fortress: floor fell" goes on.
+  - Dead elevator: `Map418` e10 turns on switch 117 "fortress: jerald at the elevator" the first time he arrives
+    without power, or plays the variant line's TODO if the power got there first. e11 is the car: without power,
+    "The elevator has no power." and a step back out; with it, up to the Bolt Gallery. e12 is the call panel that
+    lights with the power.
+  - Common event 29 "fortress: power comes on" is what the basement lever calls. It turns on switch 116, and if
+    switch 117 is on it cuts up to Jerald in front of the car to watch it wake, then back down, leaving him kept at
+    the elevator.
+  - Bolt Gallery: seven ignihazard bolt traps in the niches (`Map419` e10-e16, level 115, the hazards' turret
+    route), Jerald's old-castle remark as a TODO (e17), and the car back down (e18).
+  - Needless Hazards: ten hazards (`Map420` e3-e12, the two roster homes plus eight), all `<noRespawn>`. Each has a
+    second page on switch 119 "fortress: hazards disarmed": inanimate, with no turret route, so it stops shooting
+    but can still be destroyed. The switch on the block's south face (e13) charges once all ten are down, and
+    pressing it turns on switch 118 "fortress: light bridge".
+  - Mini-boss floor: `Map422` e2 is the car into the ride, or straight up to `Map424` once switch 127 "fortress:
+    ride done" is on. e3 is the call panel.
+  - The ride: `Map423` e9, a parallel event. The placeholder parallax `FortressShaft` (the tower's own stone,
+    darkened, with a floor slab every eight tiles) streams down as the car climbs. Four waves of singularities
+    (E525, sized 2, 2, 3 and 3) come through the Spawn Enemy command with animation 154, each wave once the last is
+    down, for at most 150 seconds. Clearing three turns on switch 120 "fortress: rupert's care package".
+    Variables 41-43 hold the waves cleared, the ride's frames and the wave.
+  - Grand Staircase: `Map424` e10 rides back down to `Map422`.
+  - Jerald's care package: `Map425` e4 appears on switch 126 "fortress: jerald's care package", which the dome
+    button below turns on. It's a supply crate holding two Serum V and two Ether V, as placeholder contents.
+- [x] **Rupert's basement, wired and walked in engine 2026-11-23.** Same conventions as the tower: his lines are
+      TODOs with the drafts quoted, and the encounters wait for the roster pass.
+  - The slide: `Map429` e10 at the top (x 7-11, row 10) carries him down and out in one go, and e11 on row 18
+    turns him back with "It's too steep to climb back up."
+  - The lever: `Map431` e11, standing against the nook's back wall at (36, 17), so he uses it from (36, 18). After
+    its beat it calls common event 29, which powers the castle and cuts up to Jerald if he waits at the elevator.
+    e12 on x 41 across the passage turns him back toward the lever until the power is on, so he cannot pass it.
+  - The goop: `Map433` e39 turns on switch 179 "fortress: rupert at the goop" the first time he arrives before
+    the rock, with his goop line as a TODO, or plays the variant's TODO if the rock beat him there. Six boulders
+    (e33-e38) fill the channel on row 19 once switch 115 is on, and e40 and e41 carry him across and back.
+  - The floor falls: the crumbling floor's e12 now calls common event 36 "fortress: the floor falls". If switch 179
+    is on, it cuts down to Rupert on the shore at (8, 19), and common event 39 "fortress: the rock lands" drops the
+    rocks in while he watches, then it cuts back up. Otherwise it only turns on switch 115.
+  - The hazard field's puzzle: three wall switches at the west end (`Map435` e17-e19, red, yellow and green), and a
+    light of each colour on the three stepping stones (e20-e22), nearest first, give the order: yellow, red, green.
+    A press out of order buzzes and resets them all. Variable 44 "fortress: field switches" counts the right
+    presses; at 3 the six hops (e3-e8) open, and switch 119 disarms the tower's needless hazards.
+  - The light bridge: thirty-five sparkles along row 22 (e23-e57) show on switch 118, and e58 and e59 glide him
+    across from the west ground to the east ground and back. It runs on row 22, not 23, because row 23 is walled
+    at its west end.
+  - Cultists' Lair: twenty-three torches along the path (`Map439` e11-e33), and e34 lights every one within five
+    squares of him, for good. The demon waves are the room's encounter and wait for the votary rows.
+  - Dome Approach: `Map440` e11, the barely perceptible button at (9, 28), turns on switch 126 for Jerald's
+    care package.
+  - Rupert's care package: `Map441` e4 appears on switch 120 from the ride's waves. Same crate, same placeholder
+    contents.
+- [x] The two mandatory causes (floor collapse, lever), evented so they cannot be skipped, with the
+      cross-cut and the variant line for each order. (Common events 29 and 36 hold the cross-cuts; the variant
+      lines are TODOs on `Map418` and `Map433`.)
+- [x] Room 7's mutual optional help, both triggers live, first-arriver-helps-second. (The reverse-charge turns on
+      switch 118 for the light bridge; the field's puzzle turns on switch 119 to disarm the tower's hazards.)
+- [x] The two care packages in the final switcher rooms. (`Map425` on switch 126, `Map441` on switch 120.)
+- [x] **Lane exits, wired and walked in engine 2026-11-24, in both orders.** The fall, the elevator, the forced flip
+      to the unfinished lane and the reunion; the two duration lines are Jeremy's TODOs, with the drafts quoted. A lane
+      is done when its man leaves (into the hole, into the car), never when its boss falls, because the boss rooms reopen
+      their way down after a fight. Switch 180 "fortress: jerald's lane done" and 181 "fortress: rupert's lane done" mark
+      the exits, variable 45 "fortress: first lane done" holds who left first (1 Jerald, 2 Rupert), and switch 182
+      "fortress: reunited" marks the end of the split.
+  - The key: Envy's post-boss (`Map426` e4) hands over item 175 "Technokey" as it ends, so it can never be missed.
+    The name, description and icon (195) are placeholders.
+  - The hole: `Map426` e5 covers the whole hole (`<areaEvent:[8,13]>` from (31, 5)), so facing it from any side and
+    pressing the button sends him over: a slip, a tumble and a shrink into the dark.
+  - The fall: `Map417` e1 turns him end over end (J-Motion's `flip`, one turn a second) down the looping shaft, with
+    the wind blowing, for as long as the monologue (a TODO) lasts. With Rupert still in his lane, the thought bubble's
+    TODO plays and control flips to Rupert, forced; with Rupert out, the fall ends at the reunion. e2 lifts him back
+    one shaft height whenever he passes the bottom, because J-Pixelistics does not wrap a position on a looping map
+    the way vanilla movement does.
+  - The elevator: `Map443` e5 and e6 (the right panel) open, take Rupert in and shut. With Jerald still in his lane,
+    the thought bubble's TODO plays and control flips to Jerald, forced; with Jerald out, the car rides up to the
+    reunion.
+  - Common event 40 "fortress: player back to normal" undoes whatever an exit put on the player before he is handed
+    on: the tumble, the wind, the forced route, being see-through or invisible. Both men are the same player.
+  - The sigils (common event 26) stop offering the other man once his lane is done, and only save.
+  - The reunion: `Map411` e7, an autorun once both lanes are done. Rupert's elevator (e3 and e4, the basement's
+    sliding door) dings open as Jerald (stand-in e6) drops out of the rafters and lands in front of it, Rupert
+    (stand-in e5) steps out, and whoever left first gets his duration line's TODO. Then both men join the party, the
+    split switch goes off, the follower is shown, and the hall's elevator stays shut for good. With the split off,
+    the way out (`Map411` e1) and Providence (common event 59) work again, and the gate outside lets them back in
+    without its warning (`Map116` e1's third page, on item 174 and switch 182); the trap stays sprung. Walked in
+    engine 2026-11-24.
+- [x] Party-cycle disabled from the trap until the reunion, and the sigils as the only way to move
+      between lanes. (The reunion turns the split off and puts both men back in the party, and a cycle press swaps
+      them again.)
+- [ ] Enemy rows in band: hazards, a void ghost tier, puppets and orbs for the horde, robots, Lust's votary
+      at `596`, Lust, Envy, Grudj, plus their material blocks.
 - [ ] Lust's approach scene on proximity thresholds, and his fight (immune while lurching, open on
       the reach, an avoidable grab).
-- [ ] The point of no return: signposting at the entry hall, and no teleportal anywhere inside.
+- [x] The point of no return: signposting at the entry hall, and no teleportal anywhere inside. (Signposted at the
+      gate, `Map116` e1's hypercube page, with "Go in" / "Not yet"; Providence refuses mid-split.)
 - [ ] Envy's scene with the chatter stream, the two flashbacks, and her fight.
-- [ ] The courtyard gate needing both the key and the power.
+- [x] The courtyard gate needing both the key and the power. `Map411` e12 covers the doors (x 18-21 on row 7,
+      drawn by the four door panels e8-e11). Without both, "The doors are sealed."; the first time with both, the key
+      goes in, the power wakes the doors and they slide open; after that they just open. Through them is the courtyard
+      on row 37, relative, where the gent's pre-boss opens.
 - [ ] The scrambler machine (cooldown, wind-up, interruptible), Grudj's Meltima as an enemy skill
       with a ten-second cast, his arsenal, the desperation CDR, and the Treis-gated paralysis.
 - [ ] Envy's fight: the stolen remote's four dial settings, the tendrils, the aura, and Grudj's intercom.

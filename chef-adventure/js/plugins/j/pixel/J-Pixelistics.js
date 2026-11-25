@@ -2783,7 +2783,7 @@ Game_Follower.prototype.update = function() {
 * on the understanding that whatever claimed it is now responsible for moving it.
 *
 * Pixel movement on its own has no such other system, so the answer is always no here. Ships that
-* introduce one - J-ABS-Pixelistics handing allies to formation movement, for instance - override
+* introduce one - J-ABS-Pixelistics handing allies to stance movement, for instance - override
 * this to claim their followers.
 * @returns {boolean} True if the follower train must not move this follower, false otherwise.
 */

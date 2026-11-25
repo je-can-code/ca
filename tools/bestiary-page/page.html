@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bestiary First Meetings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=Pixelify+Sans:wght@500;700&display=swap">
+<style>
+/* Layout: a staircase. Lines sorted by first meeting, areas in play order, so a late bloomer sits low and far to the right. */
+:root {
+  --bg: #eef2ee;
+  --fg: #1c2926;
+  --muted: #586863;
+  --line: #cfd8d2;
+  --panel: #e2e9e3;
+  --t1: #2f8450;
+  --t2: #1f7595;
+  --t3: #b87a10;
+  --t4: #c44a33;
+  --t5: #6f43b8;
+  --tn: #a3306b;
+  --on-tier: #ffffff;
+  --ch1: #2f8450;
+  --ch2: #1f7595;
+  --ch3: #b87a10;
+  --none: #9aa8a2;
+  --display: "Pixelify Sans", "IBM Plex Mono", monospace;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --data: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131a18; --fg: #e3ebe7; --muted: #94a59e; --line: #2c3834; --panel: #1b2522;
+    --t1: #66c088; --t2: #5cb6d6; --t3: #e6b24e; --t4: #f0846d; --t5: #ad90ec; --tn: #ef86b8; --on-tier: #10201a;
+    --ch1: #66c088; --ch2: #5cb6d6; --ch3: #e6b24e; --none: #5f6e68; color-scheme: dark;
+  }
+}
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); line-height: 1.45; }
+.page { padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 16px; display: grid; gap: 22px; min-width: 0; }
+.page[data-loading] { opacity: .6; transition: opacity .2s; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5vw, 44px); line-height: 1.05; margin: 0; text-wrap: balance; }
+.lede { margin: 6px 0 0; max-width: 72ch; color: var(--muted); }
+.problem { margin: 8px 0 0; color: var(--t4); font-weight: 600; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.late { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; }
+.late input:focus-visible { outline: 2px solid var(--t2); outline-offset: 2px; }
+.tally { display: grid; gap: 6px; min-width: 0; }
+.bar { display: flex; height: 16px; border-radius: 3px; overflow: hidden; background: var(--panel); }
+.bar span { display: block; min-width: 0; }
+.tally-key { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; color: var(--muted); }
+.tally-key b { color: var(--fg); font-family: var(--data); font-weight: 600; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+/* the legend pins to the top of the window as the page scrolls, and the sheet is sized to fit beneath it, so
+   scrolling down lands on the switches and the whole grid together. */
+.legend { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; color: var(--muted); position: sticky; top: 0; z-index: 10; background: var(--bg); padding-block: 8px; }
+.legend .chip { display: inline-block; margin: 0; }
+.legend button.chip { appearance: none; cursor: pointer; background: none; }
+.legend button.chip.first { background: var(--c); }
+.legend button.chip.off { background: transparent; color: var(--none); border-color: var(--none); }
+.legend button.chip:focus-visible { outline: 2px solid var(--t2); outline-offset: 2px; }
+.legend .hint { font-size: 12.5px; }
+.sheet { box-sizing: border-box; overflow: auto; max-height: calc(100vh - var(--legend-height, 60px) - 16px); border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
+table { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; width: 100%; }
+th, td { padding: 0; border-bottom: 1px solid var(--line); }
+thead th { position: sticky; background: var(--panel); z-index: 3; font-weight: 500; }
+.ch { top: 0; height: 26px; font-family: var(--display); font-size: 14px; border-left: 2px solid var(--bg); }
+.ch1 { color: var(--ch1); } .ch2 { color: var(--ch2); } .ch3 { color: var(--ch3); } .ch4 { color: var(--t5); } .ch5 { color: var(--t4); }
+.area { top: 26px; height: 128px; min-width: 50px; width: 50px; vertical-align: bottom; padding-block-end: 6px; }
+.area div { writing-mode: vertical-rl; transform: rotate(180deg); margin-inline: auto; font-size: 12.5px; white-space: nowrap; line-height: 1.15; }
+.area small { display: block; font-family: var(--data); font-size: 10.5px; color: var(--muted); }
+.corner { left: 0; z-index: 5; text-align: left; padding: 8px 10px; vertical-align: bottom; min-width: 232px; font-size: 13px; color: var(--muted); }
+.who { position: sticky; left: 0; z-index: 2; background: var(--bg); padding: 6px 10px; min-width: 232px; max-width: 232px; border-right: 1px solid var(--line); text-align: left; font-weight: 400; }
+.who b { font-weight: 600; font-size: 14.5px; }
+.who .names { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+.who .met { display: block; font-size: 12px; font-family: var(--data); }
+.who .met.later { color: var(--muted); }
+.who .met.nowhere { color: var(--t4); font-weight: 600; }
+td.cell { text-align: center; vertical-align: middle; padding: 3px 2px; background-image: linear-gradient(to right, transparent calc(100% - 1px), var(--panel) 0); }
+tbody tr:hover td.cell { background-color: var(--panel); }
+.chip { display: block; font: 600 11px/1.25 var(--data); border-radius: 3px; padding: 1px 0; margin: 1px auto; width: 46px; letter-spacing: -.3px; color: var(--c); border: 1px solid var(--c); white-space: nowrap; text-align: center; }
+.chip.first { background: var(--c); color: var(--on-tier); }
+.c1 { --c: var(--t1); } .c2 { --c: var(--t2); } .c3 { --c: var(--t3); } .c4 { --c: var(--t4); } .c5 { --c: var(--t5); } .cn { --c: var(--tn); }
+@media (max-width: 560px) {
+  .corner, .who { min-width: 150px; max-width: 150px; }
+  .who .names { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Bestiary First Meetings</h1>
+    <p class="lede">Every line against the whole world, in play order, read fresh from the game each time this page opens. The filled chip is where the player first meets a line, and the outlined ones are everywhere else it stands. Each column is an area from the band table in <code>docs/maps/progression-bands.md</code>, with its level range. A spot's pool can also roll the tiers above the one it names; this sheet shows who each spot names.</p>
+    <p class="problem" hidden></p>
+  </header>
+
+  <div class="controls">
+    <label class="late"><input id="late-only" type="checkbox"> Only lines met after chapter 1</label>
+  </div>
+
+  <div class="tally">
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <div class="tally-key" id="tally-key"></div>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="sheet" tabindex="0" aria-label="Lines by area">
+    <table>
+      <thead id="head"></thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// The page draws whatever `bun tools/bestiary.js json` prints. The server runs it for every visit through
+// /bestiary/data, so the sheet is never older than the moment it was opened.
+
+//region drawing
+
+/**
+ * The named's slot on a line, which the data reports as its tier.
+ * @type {number}
+ */
+const NAMED = 10;
+
+/**
+ * Every rung the legend can hide, in the order it shows them: the five tiers, then the named.
+ * @type {number[]}
+ */
+const RUNGS = [ 1, 2, 3, 4, 5, NAMED ];
+
+/**
+ * What the page is showing: the last data that came back, whether only late lines are listed, and which
+ * rungs the legend has switched off. Every rung starts on, and a fresh reading of the game keeps the choice.
+ * @type {{data: object|null, late: boolean, loading: boolean, hidden: Set<number>}}
+ */
+const state = { data: null, late: false, loading: false, hidden: new Set() };
+
+const el = id => document.getElementById(id);
+
+/**
+ * Builds an element. Text always goes in as text, never as markup, so a name can hold anything.
+ * @param {string} tag The element's tag.
+ * @param {string} className Its classes, or an empty string for none.
+ * @param {string} [text] Its text, if any.
+ * @returns {HTMLElement}
+ */
+const make = (tag, className, text) =>
+{
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+};
+
+// a rung's place in its line's names: the five tiers, then the named.
+const nameIndex = tier => (tier === NAMED ? 5 : tier - 1);
+const rungLabel = tier => (tier === NAMED ? 'N' : `T${tier}`);
+const rungClass = tier => (tier === NAMED ? 'cn' : `c${tier}`);
+
+/**
+ * Gets the chapter a line is first met in, or null when nobody meets it before chapter 4.
+ * @param {object} line One line from the data.
+ * @returns {number|null}
+ */
+const chapterOf = line => (line.meet === null ? null : state.data.areas[line.meet.index].chapter);
+
+/**
+ * Determines whether a line stands anywhere in the world at all.
+ * @param {object} line One line from the data.
+ * @returns {boolean}
+ */
+const isPlaced = line => Object.keys(line.cells).length > 0;
+
+/**
+ * Describes where a line is first met, for the line's own cell.
+ * @param {object} line One line from the data.
+ * @returns {string}
+ */
+const metText = line =>
+{
+  if (line.meet !== null) return `${state.data.areas[line.meet.index].label}, T${line.meet.tier} lv${line.meet.level}`;
+  return isPlaced(line) ? 'not before chapter 4' : 'nowhere yet';
+};
+
+/**
+ * Orders the lines into the staircase: by first meeting, and a line nobody meets before chapter 4 by the
+ * first area it stands in, so the parallel chapter still reads left to right.
+ * @param {object} line One line from the data.
+ * @returns {number}
+ */
+const orderOf = line =>
+{
+  if (line.meet !== null) return line.meet.index;
+  const indexes = Object.keys(line.cells).map(Number);
+  return indexes.length > 0 ? Math.min(...indexes) : 99;
+};
+
+function drawHead()
+{
+  const { areas } = state.data;
+  const top = make('tr');
+  const corner = make('th', 'corner ch', 'Line');
+  corner.rowSpan = 2;
+  top.append(corner);
+
+  // one heading per chapter, spanning its areas; a chapter of one column gets the short name.
+  const chapters = [ ...new Set(areas.map(area => area.chapter)) ];
+  chapters.forEach(chapter =>
+  {
+    const span = areas.filter(area => area.chapter === chapter).length;
+    const th = make('th', `ch ch${chapter}`, span === 1 ? `Ch ${chapter}` : `Chapter ${chapter}`);
+    th.colSpan = span;
+    th.scope = 'colgroup';
+    top.append(th);
+  });
+
+  // then one column per area, with its band beneath the name.
+  const lower = make('tr');
+  areas.forEach(area =>
+  {
+    const th = make('th', 'area');
+    th.scope = 'col';
+    const wrap = make('div', '', area.label);
+    wrap.append(make('small', '', `lv ${area.band}`));
+    th.append(wrap);
+    lower.append(th);
+  });
+  el('head').replaceChildren(top, lower);
+}
+
+function chipFor(entry, line, areaIndex, isFirst)
+{
+  const levels = entry.high > entry.low ? `${entry.low}+` : `${entry.low}`;
+  const classes = [ 'chip', rungClass(entry.tier) ];
+  if (isFirst) classes.push('first');
+  const chip = make('span', classes.join(' '), `${rungLabel(entry.tier)} ${levels}`);
+  const range = entry.high > entry.low ? `lv ${entry.low}-${entry.high}` : `lv ${entry.low}`;
+  const place = state.data.areas[areaIndex].label;
+  chip.title = `${line.names[nameIndex(entry.tier)]}, ${place}, ${range}, ${entry.count} ${entry.count === 1 ? 'spot' : 'spots'}`;
+  return chip;
+}
+
+function drawBody()
+{
+  const { areas, lines } = state.data;
+  const rows = [ ...lines ]
+    .sort((a, b) => orderOf(a) - orderOf(b) || a.first - b.first)
+    .filter(line => !state.late || chapterOf(line) !== 1);
+  const body = el('body');
+  body.replaceChildren();
+  rows.forEach(line =>
+  {
+    const row = make('tr');
+    const who = make('th', 'who');
+    who.scope = 'row';
+    who.append(make('b', '', line.names[0]));
+    who.append(make('span', 'names', line.names.slice(1).join(' · ')));
+    let metClass = 'met';
+    if (line.meet === null) metClass = isPlaced(line) ? 'met later' : 'met nowhere';
+    who.append(make('span', metClass, metText(line)));
+    row.append(who);
+
+    // every area gets a cell, empty or not, so the columns line up under their headings. a rung the legend
+    // switched off is left out, and the row stays where it was so nothing shuffles while filtering.
+    areas.forEach((area, index) =>
+    {
+      const cell = make('td', 'cell');
+      (line.cells[index] || []).filter(entry => !state.hidden.has(entry.tier)).forEach(entry =>
+      {
+        const isFirst = line.meet !== null && line.meet.index === index && line.meet.tier === entry.tier;
+        cell.append(chipFor(entry, line, index, isFirst));
+      });
+      row.append(cell);
+    });
+    body.append(row);
+  });
+}
+
+function drawTally()
+{
+  const { lines } = state.data;
+  const groups = [
+    [ 'Chapter 1', 'var(--ch1)', line => chapterOf(line) === 1 ],
+    [ 'Chapter 2', 'var(--ch2)', line => chapterOf(line) === 2 ],
+    [ 'Chapter 3', 'var(--ch3)', line => chapterOf(line) === 3 ],
+    [ 'Chapter 4 on', 'var(--t5)', line => line.meet === null && isPlaced(line) ],
+    [ 'Nowhere yet', 'var(--none)', line => !isPlaced(line) ],
+  ];
+  const bar = el('bar');
+  const key = el('tally-key');
+  bar.replaceChildren();
+  key.replaceChildren();
+  groups.forEach(([ label, color, belongs ]) =>
+  {
+    const count = lines.filter(belongs).length;
+    const part = make('span');
+    part.style.flexGrow = String(count);
+    part.style.background = color;
+    bar.append(part);
+    const item = make('span');
+    const dot = make('span', 'dot');
+    dot.style.background = color;
+    item.append(dot, `${label} `, make('b', '', String(count)));
+    key.append(item);
+  });
+}
+
+/**
+ * Switches one rung on or off in the grid.
+ * @param {number} tier The rung's tier, or the named's slot.
+ */
+const toggleRung = tier =>
+{
+  if (state.hidden.has(tier)) state.hidden.delete(tier);
+  else state.hidden.add(tier);
+  paintLegend();
+  if (state.data !== null) drawBody();
+};
+
+/**
+ * Shows only one rung, or every rung again when that one is already the only one showing. A double-click
+ * lands here after its two clicks have each toggled the rung, which cancel out, so only this decides.
+ * @param {number} tier The rung's tier, or the named's slot.
+ */
+const isolateRung = tier =>
+{
+  const alone = RUNGS.every(rung => (rung === tier) !== state.hidden.has(rung));
+  state.hidden = alone ? new Set() : new Set(RUNGS.filter(rung => rung !== tier));
+  paintLegend();
+  if (state.data !== null) drawBody();
+};
+
+/**
+ * Lights the legend's rung buttons that are on and greys the ones that are off. The buttons are built once
+ * and only repainted, so a double-click lands on the same button as the clicks before it.
+ */
+const paintLegend = () =>
+{
+  document.querySelectorAll('#legend button[data-tier]').forEach(button =>
+  {
+    const tier = Number(button.dataset.tier);
+    const shown = !state.hidden.has(tier);
+    button.className = `chip ${rungClass(tier)} ${shown ? 'first' : 'off'}`;
+    button.setAttribute('aria-pressed', String(shown));
+    button.title = shown ? 'Hide this from the grid' : 'Show this in the grid';
+  });
+};
+
+function drawLegend()
+{
+  const legend = el('legend');
+
+  // each rung is a switch: all on to start, and one click takes it out of the grid.
+  RUNGS.forEach(tier =>
+  {
+    const button = make('button', '', tier === NAMED ? 'Named' : `T${tier}`);
+    button.type = 'button';
+    button.dataset.tier = String(tier);
+    button.addEventListener('click', () => toggleRung(tier));
+    button.addEventListener('dblclick', () => isolateRung(tier));
+    legend.append(button);
+  });
+  legend.append(make('span', 'hint', 'Click to hide, double-click to see only that one.'));
+  paintLegend();
+
+  // then what the chips themselves mean.
+  [ [ 'chip c1 first', 'T1 8', 'Where you first meet it' ], [ 'chip c1', 'T1 8', 'It also stands here' ], [ 'chip c2', 'T2 8+', 'Levels vary, hover for the range' ] ].forEach(([ classes, text, label ]) =>
+  {
+    const item = make('span');
+    item.style.display = 'inline-flex';
+    item.style.gap = '6px';
+    item.style.alignItems = 'center';
+    item.append(make('span', classes, text), label);
+    legend.append(item);
+  });
+}
+
+function draw()
+{
+  drawHead();
+  drawTally();
+  drawBody();
+}
+
+//endregion drawing
+
+//region staying live
+
+/**
+ * Asks the server for a fresh reading of the game and draws it. The page dims while the bestiary runs, and
+ * a reading that fails leaves the last good sheet in place and says why above it.
+ */
+const load = async () =>
+{
+  if (state.loading) return;
+  state.loading = true;
+  const page = document.querySelector('.page');
+  const problem = document.querySelector('.problem');
+  page.dataset.loading = '';
+
+  try
+  {
+    const response = await fetch('/bestiary/data', { cache: 'no-store' });
+    if (!response.ok) throw new Error(await response.text());
+    state.data = await response.json();
+    problem.hidden = true;
+    draw();
+  }
+  catch (error)
+  {
+    problem.textContent = `The bestiary didn't come back: ${error.message}`;
+    problem.hidden = false;
+  }
+  finally
+  {
+    state.loading = false;
+    delete page.dataset.loading;
+  }
+};
+
+el('late-only').addEventListener('change', event =>
+{
+  state.late = event.target.checked;
+  if (state.data !== null) drawBody();
+});
+
+// a tab left open reads the game again whenever it comes back into view.
+document.addEventListener('visibilitychange', () =>
+{
+  if (document.visibilityState === 'visible') load();
+});
+
+// the sheet's height leaves room for the pinned legend, which wraps onto more lines in a narrow window, so its
+// real height is measured whenever it changes rather than assumed.
+const legendSizer = new ResizeObserver(([ entry ]) =>
+{
+  document.documentElement.style.setProperty('--legend-height', `${entry.target.offsetHeight}px`);
+});
+legendSizer.observe(el('legend'));
+
+drawLegend();
+load();
+
+//endregion staying live
+</script>
+</body>
+</html>

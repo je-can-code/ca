@@ -61,9 +61,10 @@ by up to 2.5×, and every "pulses to fall" count below moves with it: out-classi
 4. [Grudj](#grudj)
 5. [The ghost (Tower 9)](#the-ghost-tower-9)
 6. [The horde (Basement 9)](#the-horde-basement-9)
-7. [One leak that touches four fights](#one-leak-that-touches-four-fights)
-8. [Every boss's secondary stats](#every-bosss-secondary-stats)
-9. [The shopping list](#the-shopping-list)
+7. [Greed](#greed)
+8. [One leak that touches four fights](#one-leak-that-touches-four-fights)
+9. [Every boss's secondary stats](#every-bosss-secondary-stats)
+10. [The shopping list](#the-shopping-list)
 
 ---
 
@@ -81,7 +82,7 @@ by up to 2.5×, and every "pulses to fall" count below moves with it: out-classi
   animation 155 ("undying pulse"). States 2075 Stilled (rooted, disabled), 2076 Lethargic (speed -35% for 4s), 2077 Still
   Devotion (after 2 seconds standing still, stacks 2078 Hardened: +10% DEF and MDF per stack, up to 5, all gone on a
   step). Switch 192 "sloth defeated". Clone templates Map361 ev585 (her sheet, Stepping on, Earthie's death scene in
-  her purple) and ev595 (`m_winter-spirits` index 2).
+  her purple) and ev595 (`$m_winter-spirits-2`, once `m_winter-spirits` index 2).
 - **The fight**, encounter `sloth` (map 409): Sealed on at the start; fifteen waves 10 seconds apart, the pairs rotating
   from her feet (17,20)+(17,25) to the rims (28,14)+(28,30) to the path behind you (46,21)+(46,23), each arriving in
   "respawn" (154); at waves 5, 10 and 15 "Earth One 1" (86) on her and a one-second flicker into that crack's glowing
@@ -333,7 +334,7 @@ time their own sounds), so the beat that went silent when you reached her comes 
 - `data`: her row (element rates, the pulse), the Stilled state, the votary row and its Prime fight template, the
   encounter, her hall.
 - `art`: her statue is built, all eight sheets with the cracks (see Already yours). The votary sprite is chosen
-  (`m_winter-spirits` index 2) and can ship as it stands, my take, since its void face already matches hers.
+  (`$m_winter-spirits-2`) and can ship as it stands, my take, since its void face already matches hers.
 - `audio`: a heartbeat sound for the pulse (the Subterranean's heartbeat BGS is still missing too).
 - *Read in source* (11-13): a skill scoped to Everyone reaches its own caster, her allies and her opponents
   (`JABS_Battler.isWithinScope`), so one pulse can land on her, the votaries and the duo, as designed.
@@ -345,7 +346,26 @@ time their own sounds), so the beat that went silent when you reached her comes 
 
 ## Lust
 
-`Map443` "Basement 13: Lust", the 80×46 dome; enemy `587`. Rupert alone; Fortress band 115-130.
+`Map443` "Basement 13: Lust", the 80×46 dome; enemy `586`. Rupert alone; Fortress band 115-130.
+
+> **Renumbered 2026-11-24** so Greed comes last with no holes: Lust is now enemy `586` and panel `SIN_6` (mastery
+> 1586), Goop Vent is `590`, and Lust's votary row is `596`. Everything below that says `587`, `597` or `SIN_7` for
+> Lust was written before the move.
+
+**Votaries (his, 2026-11-23), BUILT 2026-11-24 ~19:20** (his 19:08: "Use blissed out, and use the succubi sprite that
+is TALL"; `~/.claude/backups/ca-greed-shades/succubus.js`; validate OK; not yet seen in a fight): row 596 "Succubus"
+(a working name), lv132 on Enemy Rank T5 (325), Humanoid, knockback-immune, every landed swing of the sin votaries'
+basic attack 2591 applies **Blissed Out** (state 2067, 120 frames, pink tint) through trait 32 at 100%, and no
+`<prepare:30>`, so the default 180-frame pause between actions outlasts the bliss and one succubus can't chain-lock a
+target. Drops `SIN_6` at 1%, so the succubi are what finally drops Lust's SDP. Template e596 "lust: succubus" wears
+`$m_votary-lust-succubus`, his pick of five recolours (19:30, "the last one with the red horns and bits but mostly grey
+and midnight blue black but pale moonlight skin"): the tall succubus `$m_monsters2-7` (beside the shark man and the
+flower on that sheet; `$m_succubus` is the short one) with blue-black hair, crimson horns and wings, a silver outfit
+and pale lavender skin, made by `~/.claude/backups/ca-greed-shades/recolor.js` (scheme `midnight`; her 27 colours
+mapped to parts by `groups.js`). The source sheet is untouched. `<motion:[breathe]>` and `<moveSpeed:3.0>`, ungated
+like votaries 591-595; placement is his.
+Blissed Out is also what Overjoyed (2066) becomes, so the state was left untouched. Goop Vent (now `590`) stays the
+arena hazard.
 
 ### Talked through (2026-11-13)
 
@@ -376,7 +396,7 @@ His answers on the picks below, after re-running them against the morning rules:
 - **His look**: Jeremy said, "It's lust. Wanna find a luxurious elf dude or something?" A lineup of six went out.
   He picked CA's own unused incubus (`$m_incubus`), recolored: "Use option 1, but recolor with dark skin and red
   eyes as you described. Incubus through and through. The sin acceptance transforms you." Dark skin and red eyes
-  are Majik's, the one look canon gives a void clown ("black-skinned, red-eyed", `prequel-jr2.md`). Three shades
+  are Majik's, the one look canon gives a Babagen ("black-skinned, red-eyed", `prequel-jr2.md`). Three shades
   went out; the build uses the void black, installed as `$m_sin-incubus`. What "acceptance" means for a sin that
   was forced is in `story-canon.md` under the Basement: forced, then accepted with resignation.
 - **The feint is not built.** *Read tonight*: no step stops or swaps a routine, and a second routine started at 33%
@@ -459,7 +479,7 @@ Map443, by `/tmp/claude-1000/lust/data/arena.js` (RAM), modeled on Sloth's Map40
 - **The encounter's participant now spawns at (40, 33),** where the approach leaves him; the hall's fight starts there
   too.
 - **The post-boss stub** (ev4), on switch 194: ends the encounter, cleans up, and leaves a TODO for the post-amble.
-- **The elevator** (ev5) stands in the back wall's recess at (39, 2) as a placeholder `!SF_Door1`, dead until he falls.
+- **The elevator** (ev5) stands in the back wall's recess at (39, 2) as a placeholder `!$SF_Door1-0`, dead until he falls.
   Then it holds a TODO for the lane's exit, "How the two exits line up": the ride up to the entry hall, and the
   Rupert-first or Jerald-first scenes.
 - **Proven both ways** (`dist/playtest/lust-arena-probe.js`, `LUST_PREAMBLE=watch|skip`). The scene starts on its own,
@@ -828,13 +848,13 @@ backup folder). Mechanics only:
     - **The look:** night-sky hair full of stars, porcelain-lilac skin, amethyst eyes, a wreath of void orbs whose
       centre orb is missing (only its empty diamond setting is left), an eclipse halo behind her head (dark disc,
       violet rim, corona, spark). No fins: "She is void, not dirty water."
-    - **Bases:** the sprite is Katakura's water spirit (`kh-elementals` #1), fins snipped from all 12 frames, recoloured
+    - **Bases:** the sprite is Katakura's water spirit (`kh-elementals` #1, now `$kh-elementals-1`), fins snipped from all 12 frames, recoloured
       void, a halo ring found per frame so it rides her bob, forehead gem emptied. The face is MV's RTP moon lady
       (`RPG Maker MV/NewData/img/faces/Nature.png` cell 6, not otherwise in CA), circlet filled out, wreath laid on
       its line. Tools and sources: `~/.claude/backups/ca-pass3-sprites/voidella/`.
     - **The chibi edition is kept** at his earlier ask, as `$m_elemental-voidella-chibi.png`,
       `$elemental-void-chibi.png` and `faces/elemental-void-chibi.png` (front view in every cell).
-  - **His open idea: every elemental less "fat naked children", more human-shaped.** Katakura's four (`kh-elementals`)
+  - **His open idea: every elemental less "fat naked children", more human-shaped.** Katakura's four (`kh-elementals`, now cut into `$kh-elementals-<slot>`)
     are the candidate set; their sprites already dress the Emotion ladder (561), which he's fine with (monsters never
     show faces). Faces used on his Oasis maps are free to reuse.
   - **A light/holy elemental is coming too** (story-canon open item 4); she needs the same treatment. Base idea: CA's
@@ -1612,6 +1632,166 @@ Three surges of about 45 seconds each, **about 2-2.5 minutes**. Move, plus a cro
 `data` only: fight templates per row (the row, Origin, level 130), the encounter (nine participants, six of them
 summoned, two `fallen` reactions), the west door's sealed page until the last surge falls, a hall. No art.
 
+## Greed
+
+The mirror battle. Talked through as Talk #5 on 2026-11-24; the full record of his rulings is in my design memory
+(threshold 150 distinct nodes, fixed lv80, the kits, the look, the arena, the votaries).
+
+### Built (2026-11-24, at his "Yep, sounds good." to building the pair; uncommitted)
+
+Script `~/.claude/backups/ca-greed-shades/bosses.js` (the votaries' is `votaries.js` beside it); validate OK.
+
+- **Rows.** 588 "Evil Jerald" and 589 "Evil Rupert" (working names), `<level:80>`, the locked kits as actions:
+  Jerald 311 Crimson Glide, 302 Stomp, 314 Puree, 421 Shared Suffering; Rupert 501 Heated Enchant, 504 Mince, 472
+  Magic Bomb, 484 Meltima. Both slots had been holding the Gluttonwolf Mayor's pre-growth row (its flats, vs Beast,
+  PDR/MDR and the Euphoria/Hemorrage rates), all gone now.
+- **HP.** The sin bosses' line `(a.level ** 2) * 28`, leaning by each real class's lv80 HP against the baseline class:
+  Raving Lunatic ×1.15 (K 32), Melufa ×0.60 (K 17), so evil Rupert carries a bit over half of evil Jerald's bar, like
+  the real pair. Each template wears **Hearty** (306, ×5): Jerald 1,025,265, Rupert 544,660, the pair about one Plump
+  sin boss at lv80 (1.79M). Computed, not probed.
+- **Primary lines.** The real class curves at one boss scale of 1.5 (the factor that lifts the duo's own lv80 totals
+  to a lv80 regular's): Jerald ATK 5.85, DEF 4.95, MAT 3.2, MDF 3.75, AGI 5.4, LUK 3.4 a level; Rupert ATK 4.15, DEF
+  3.6, MAT 5.4, MDF 4.35, AGI 4.5, LUK 4.95. Bases (params) the same curves' constant terms at that scale; MMP 650.
+- **Secondary lines.** The boss rule (see "Every boss's secondary stats"), the regulars' yardstick times each class's
+  own trailing multipliers (RL 1.10/1.20/1.25/1.10/0.90/0.75, Melufa 1.10/1.50/1.00/1.10/1.00/1.25).
+- **Traits.** Basic attack 2581 (the sin bosses'), Cut, creature tags Humanoid and Deity (weakness and attack, as on
+  the Mayor and the Vampire King), TRG and MRG 0.05 (5 TP/MP per tick, a tick every 30 frames). Enemy max TP is 100
+  (`enemyBaseTp`), so Stomp plus Puree is exactly a full bar.
+- **Note tags.** The arena set (sight/pursuit 99, noIdle, noHpBar, knockbackResist 100, hideTargetFrame,
+  noDangerIndicator), careful + executor, `<prepare:30>` (the default is 180), the placeholder's SDP lines and drops
+  (SIN_8 / SIN_9 at 1%). `<cdmBuffPlus:[50]>` on Jerald only: Raving Lunatic is the crit class.
+- **Templates.** Map361 e588 "boss: evil jerald" and e589 "boss: evil rupert", cloned from Lust's: `<passive:[306]>`,
+  `<moveSpeed:4.2>`, sight/pursuit 99, then a per-shade death (TODO for last words, animation 65 Death, Collapse1 at
+  pitch 80, Lust's opacity fade). No tint or BGM fade on either, since the partner may still be standing; the finale
+  belongs to the encounter.
+- **Art.** `img/characters/$m_sin-greed-jerald.png` and `-rupert.png` (the approved first pass, re-encoded RGBA), and
+  `img/faces/face_je_evil.png` / `face_rp_evil.png` for the intro, wired to nothing yet. The pose sheets were never
+  recoloured, and none of the eight kit skills carries `<poseSuffix>`, so nothing asks for them.
+- **The votaries, squared the same day:** 598/599 shed the same Mayor residue, keep Humanoid and drop Deity (like the
+  votaries 591-593), ride Enemy Rank T4 (324, like the lv87 Homunculus) for level-based HIT/EVA/CRI/CEV, drop
+  `<prepare:30>` to the default, and Rupert's Shade drops the crit-damage line. Their primary lines are still the TBD
+  placeholder's (MAT 8, MDF 8.5 a level, above their bosses'), left for the rebalance pass.
+
+### Found while building: Mince is dead for everyone
+
+504 Mince carries `<stackCost:[136,1]>` (state 136 "Mince Ready"), and nothing grants 136: no effect, trait, note tag,
+event command, config or plugin anywhere (swept every path; the July `Skills.backup.json` has the same gap). Nor does
+any basic attack fire the enchant follow-ups: only 503 Enchanted Whip and 504 Mince carry
+`<onCastExecuteSkillIfAfflicted:[267/268,100,134/135]>`, and states 134/135 have no tags. So Heated Enchant only arms
+Whip and Mince. Today evil Rupert fights with Magic Bomb, Meltima and his swing, and Rupert's Shade with its swing.
+The Melufa doc says "Basic attacks trigger a heat-element MAT-scaled follow-up hit" and "Charges accumulate from
+enchant follow-up procs". The natural wiring sits on the enchant states: `<autoExecuteSkill:[267, onWeaponHit, 0]>` (and
+268 on 135) plus `<autoApplyState:[136, onWeaponHit, 0]>`. *Read:* `onWeaponHit` only fires for the Mainhand/Offhand
+cooldown slot (`J-Passive-Conditional` `postExecuteSkillEffects`), and an enemy's actions carry
+`${skill.id}-${skill.name}` keys (`JABS_AiManager.buildEnemyCooldownType`), so a shade's swing never counts: the shades
+would need `onDamageDealt` instead. ASKED 2026-11-24.
+
+**His 16:04: "Yeah that sounds right regarding the Mince stacking"**, then "Are you positive nothing grants the state
+buff? I thought I did implement it and it was silly..." Re-swept to be sure: every string in every data file (notes,
+damage formulas, scripts, comments, plugin args, configs), every effect and trait of any code, every state command,
+the plugin parameters, and every git snapshot since Mince Ready was born (CA `0dd3f64e`, 2026-07-25) on main and on
+the unmerged branches: the only thing that has ever named 136 is Mince's own cost. What he likely remembers: the same
+July 25 PR (rmmz-plugins `a72a8ee8`, #66) built `<onCastSelfStateIfAfflicted>` and `<onCastExecuteSkillIfAfflicted>`;
+the second is on Whip and Mince, the first is used nowhere in the data. **WIRED ~16:15, uncommitted, validate OK**
+(`~/.claude/backups/ca-greed-shades/mince-wiring.js`):
+
+- States 134 Heated Enchant / 135 Liquid Enchant: `<autoExecuteSkill:[267|268, onWeaponHit, 0]>`, so every enchanted
+  basic-attack hit fires the follow-up.
+- Skills 267 Illusion / 268 Rapids: `<onHitSelfState:[136,100]>` (his self-state family), so every follow-up that
+  lands banks one Mince Ready. That is the doc's loop: a swing banks a charge, and a Mince cast while enchanted fires
+  Illusion, which refunds its own charge when it lands.
+- Enemies 589 Evil Rupert / 599 Rupert's Shade: `<autoApplyState:[136, onDamageDealt, 90]>`, any damage at most once
+  per 90 frames, the swing's own cadence (2581/2591: cast 30 + cooldown 60). The knob is that 90.
+- *Read:* the rules read every applied state and the enemy's own row (`getPassiveStateSources`: databaseData +
+  allStates + skills), J-Passive-Conditional is ON, the game's `defaultStateReapplyType` is `stack` (each grant adds
+  a charge, cap 9999), and a forced follow-up carries the global cooldown key, not a weapon slot, so it can't re-fire
+  itself.
+- 267/268 were magical hits (hitType 2) on an ATK-vs-DEF formula, while the doc says "MAT-scaled". **His 16:20:**
+  "Mince itself is physical, but the enchanted attacks are, well, enchanted. So I think that's right- making the class
+  a hybrid class and not just a melee caster." DONE: both read `(a.mat*2) - (b.mdf*1)` (`followups-mat.js` beside
+  the others; only those two rows changed; validate OK). Their descriptions name no stat, so they stand.
+- **Asked 16:21:** Mince (504) is NOT physical in the data: hitType 0 (Certain Hit) on `(a.mat*2) - (b.def*1)`. His
+  hybrid reading wants a physical blade; my pick is `(a.atk*2) - (b.def*1)` keeping Certain Hit, since "your reflexes
+  are pristine" reads like a swing that never misses. **His 16:22: "Nope, make it physical though and through. It's
+  Rupert's blender for button mashing goodness."** DONE: hitType 1 (physical), `(a.atk*2) - (b.def*1)`; element -1
+  and skill type 4 (Rupert's own) kept (`mince-physical.js`; validate OK). It can now be evaded and parried.
+
+### The mirror battle built (2026-11-24 ~17:00, at his "Then yeah back in front of trainer lord"; uncommitted)
+
+Script `~/.claude/backups/ca-greed-shades/arena.js` (the fallen sheets are made by hand beside it, see below);
+validate OK. Committed work before it: CA `ac8b104d`.
+
+- **His 16:51 change:** "the first one to fall stays fallen and visible. That way they can get up and vanish together
+  (gone not defeated... you can never truly eradicate your evil side, only suppress it- for now)."
+- **How the fall works.** *Read:* J-ABS plays a death scene through the map interpreter (`targetCharacter.start()` in
+  `handleDefeatedEnemy`), every battler holds still while an event runs, and the body is destroyed once
+  `isDying() && !$gameMap.isEventRunning()`. So a death scene that waited for the partner would freeze the fight, and
+  there is no defender-side HP floor (`noTargetKill` reads the attacker). Instead each template's death scene (Map361
+  e588/e589) hides its body (opacity 0), places the arena's double (event 2 or 3) on the body's exact position with
+  one script line, `$gameMap.event(N).locate(this.character(0).x, this.character(0).y);` (J-Pixelistics is on, so a
+  body can stand between tiles, and game variables would floor it), and turns on 186 or 187 ("greed: jerald's/rupert's
+  shade down"), which shows the double's fallen page. No waits, so the fight barely pauses. **Coupling:** the templates
+  name arena events 2 and 3, so a test hall for this fight must keep its doubles at those ids.
+- **Fixes after a review the same evening** (`arena-fixes.js`): the finale fades the boss music (Fadeout BGM 3 s;
+  CE17 started it, and the Lounge autoplays its own track on arrival); the doubles are placed by script, as above,
+  instead of through variables 46/47 (named, then freed again); and **Providence goes cold during the mirror battle**:
+  CE59 now opens with a gate on `$gameSwitches.value(189) && !$gameSwitches.value(188)` that shows the Fortress split's
+  own "stays cold in your hand" line. *Read:* Providence (item 125) is a J-ABS tool, so it works with the menu locked,
+  and CE59 only refused it during the Fortress split (switch 113); every other arena still lets the duo leave.
+  *Read:* RMMZ's `Game_Map.setup` never clears the map interpreter, so the lines after both cross-map transfers play,
+  and J-Weather re-reads each map's note on arrival, so the gold fog stays in the mirror.
+- **Fallen art.** `img/characters/$m_sin-greed-jerald-fallen.png` / `-rupert-fallen.png`: each shade's front-facing
+  middle frame, trimmed and tipped onto its side (Jerald -90, head left; Rupert +90, head right), bottom-aligned, in
+  all twelve cells. Made with ImageMagick in `/tmp/claude-scratch/greed/fallen/` (preview sent to him).
+- **Map556 "Greed's Mirror"**, under the Lounge (order 556): the shared oasis layout (Map228's tiles, 32x18, tileset 4,
+  parallax Space), note `<noToneChange>` + `<weather:gilded>`, no BGM. No `<ambient>`: the gloom maps carry
+  `<ambient:[85]>`, which J-Lighting reads as 85% darkness (*proven* in the first hall run: the shades were dark
+  smudges), and his rule here is that the shades are always in view, so the room stays as lit as the oases.
+  - e1 "story: pre-boss" (autorun): Lust's arena pattern. Watch or skip; TODO lines (the mirror duo talk to the
+    protagonists, evil faces); then Show UI, CE17 big boss BGM, switch 189, `start-encounter greed`, menu off. No boss
+    frame: it holds one battler, so both shades lost `<jabsConfig:noHpBar>` and `<hideTargetFrame>` and show their own.
+  - e2 "shade: evil jerald" (14,6) / e3 "shade: evil rupert" (16,6): p1 the standing stand-in, p2 hidden on 189, p3
+    on 186/187 the fallen double (below characters, through, direction fixed).
+  - e4 "story: post-boss": p2 autorun on 188: end-encounter, CE104 (menu back), a beat, both doubles change back to
+    standing, hop and turn to the duo, TODO for parting words, both fade out together, then a fade, the transfer to the
+    Lounge (19,21) facing Trainer Lord, and his line verbatim: "Oh you two are back sooner than I anticipated." / "That
+    truly is a surprise." with a TODO for the rest. p3 (188 + self A) empty.
+- **Weather preset 19 "gilded"**: gloom's layers with gold tints (#6e5212 fog, #ffc83d wisps, #ffe9a6 sparks), icon
+  2213. *Read:* config.weather.json is hand-edited (mixed escaped/literal brackets), so it was spliced as exact text
+  and the parsed result checked against the original.
+- **Encounter "greed"** (config.jabs.json): map 556, defeatSwitch 188, participants evilJerald 588 (14,6) and
+  evilRupert 589 (16,6) on their own templates, shared AI, no routines; two `fallen` reactions give the survivor a
+  TODO `dialogue` line when the other drops first (skipped if it's the last, since the survivor has no body then).
+- **Trainer Lord** (Map196 e2, the ask page on switch 85): opens with a script branch,
+  `$gameActors.actor(1).getAllUnlockedSdps().length >= 150 && !$gameSwitches.value(188)` (unlocks are party-wide;
+  301 panels, none unlocked by default), a TODO for his greed line, then fade, transfer to the arena (15,12) facing
+  up, and exit. Otherwise his usual menu.
+
+**PROVEN in the real arena, 2026-11-24 ~17:45** (`dist/playtest/greed-arena-probe.js`, watch branch, two runs with
+film; the second after the arena lost its darkness; probe, log, clip and contact sheet copied to
+`~/.claude/backups/ca-greed-shades/`). The duo at lv80 (Raving Lunatic / Melufa, padded with 5M HP), 150 nodes
+unlocked, switch 85 on, in the Lounge: Trainer Lord's chat skipped his menu and transferred them to (15,12) facing up;
+weather variable 19 (the HUD reads "gilded (moderate)"); the pre-boss scene ran and the fight started with both
+shades on their marks at full HP (1,025,265 / 544,660), stand-ins hidden, menu locked, the big boss track on, no boss
+frame. Providence mid-fight: "stays cold", still on Map556. Jerald's shade fell at (11.74,10.26) and his double landed
+on exactly that spot (fractions kept) on its fallen page at full opacity; Evil Rupert's TODO line played with his
+face; the double was still down four seconds on while Rupert fought; Rupert fell at (9.70,13.00) and his double
+landed there too. Then the encounter ended, switch 188 on, the boss music faded, both doubles stood (sheet back,
+hop) and faded 200/120/80/40/0 in lockstep, and they landed in the Lounge at (19,21) facing up, weather 0, menu back,
+for Trainer Lord's two lines. The probe parks a shade at 1 HP before its finishing Stomp, so in the second run a
+damage-over-time tick credited to Rupert's own state landed the last point; a test artifact (enemy-scope skills only
+reach opponents, `getCollisionTargets`).
+
+### Still open
+
+- His lines: the intro, the survivor's two lines, the parting words, Trainer Lord's greed line, and the rest of the
+  homecoming. The Dogma panel names, and final names for all four.
+- A hall: Shared Suffering, Magic Bomb, the self-buff and Meltima are built, not yet seen to fire from an enemy.
+- A pacing watch for that hall: Heated Enchant has no cooldown and costs 50 MP, against evil Rupert's 650 pool, 10 MP
+  a second and Meltima at 150. Whether the AI keeps recasting the buff and starves Meltima only shows in a run.
+- The Mince loop in that hall: an enchanted shade's Mince fires Illusion, and an Illusion that lands refunds the
+  charge, so expect Mince often once Heated Enchant is up. The 90-frame throttle only gates the first charge.
+
 ## One leak that touches four fights
 
 Every "can't be hurt" state in this doc (Sealed on Sloth in phase 1, Scrambled on Lust) is built the way Sealed is:
@@ -1683,6 +1863,8 @@ Each cell is base + per level, then what it reaches at the boss's level:
 | Sloth (585) | 110 | 12.5 + 1.25 (150%) | 7.5 + 0.75 (90%) | 7.5 + 0.75 (90%) | 2 + 0.2 (24%) | 7.5 + 0.75 (90%) | 5 + 0.5 (60%) |
 | Lust (587) | 130 | 25 + 2.5 (350%) | 10 + 1 (140%) | 10 + 1 (140%) | 2.5 + 0.25 (35%) | 10 + 1 (140%) | 5 + 0.5 (70%) |
 | Envy (584) | 130 | 25 + 2.5 (350%) | 15 + 1.5 (210%) | 15 + 1.5 (210%) | 4 + 0.4 (56%) | 10 + 1 (140%) | 5 + 0.5 (170%) |
+| Evil Jerald (588) | 80 | 22 + 2.2 (198%) | 15 + 1.5 (135%) | 12.5 + 1.25 (112.5%) | 3.3 + 0.33 (29.7%) | 9 + 0.9 (81%) | 5.6 + 0.56 (150.4%) |
+| Evil Rupert (589) | 80 | 22 + 2.2 (198%) | 18.8 + 1.88 (169.2%) | 10 + 1 (90%) | 3.3 + 0.33 (29.7%) | 10 + 1 (90%) | 9.4 + 0.94 (184.6%) |
 
 Envy's lines sit on her slot, which is otherwise still the lv15 stub until her own build, so hers read at 130 here.
 
@@ -1748,7 +1930,7 @@ unblocks:
 |---|---|---|---|
 | 1 | **Measure the duo at each band**: damage per second and max HP for each lead around 110, 130 and 150, plus Rupert's cast times. One probe per band, the way `boss-matchup-probe.js` was run. **Read 11-13 as a floor, your framing: "we're only testing that the mechanics fire, not for balance"** (SDPs, classes, passives and refinement are anyone's guess). `dist/playtest/band-probe.js`: Raving Lunatic Jerald and Lavos Rupert, crafted gear of the band's tier in what each class wears for free (RL: Glaive and Mail, no offhand type at all; Lavos: Rod, Relic, Cloth, so no Tome), no SDPs, no accessory. **Lv110, tier 5:** Jerald MHP 7,967, MDF 354; Rupert MHP 3,278, MDF 379. **Lv130, tier 6:** Jerald 9,687 / 439; Rupert 3,848 / 579. Sloth's pulse fires at both bands, never swallowed by MDF: 885 on Jerald and 719 on Rupert at 110, so Rupert drops on pulse 5 and Jerald on pulse 10 (the 1% of her bar does most of Jerald's). Anything a real build adds only stretches that. Floor stats also read EVA 249% (Jerald) and MEV 126% (Rupert), so a votary's basic attack may never land; check its HIT when the votary is built (done 11-14: it rides Enemy Rank T5) | measurement | all six (every Numbers block hangs off it) |
 | 2 | **The immunity leak**: `<noDamage>` (yours, 11-13), on any note source: 0 damage of any type from any source, DoTs included (they still apply), healing still works. **Built 11-13** (rmmz-plugins `boss-pass`, uncommitted): hits, drains, formula packets, DoT ticks, regen run below zero, damage floors and below-zero Recover effects all land as nothing; skill costs, TP, event commands and the death state are left alone | `engine (small)` | Sloth, Lust, Envy, and Earthie's shipped seal |
-| 3 | **Sprites**: Sloth is done (her statue built 11-13, her votary chosen: `m_winter-spirits` index 2); Lust; Envy's sheet and her phase-4 glitch look; Grudj and his machine | `art`, yours | Sloth, Lust, Envy, Grudj |
+| 3 | **Sprites**: Sloth is done (her statue built 11-13, her votary chosen: `$m_winter-spirits-2`); Lust; Envy's sheet and her phase-4 glitch look; Grudj and his machine | `art`, yours | Sloth, Lust, Envy, Grudj |
 | 4 | **`<interrupt:N>` on some player skills**, Rupert's Meltima (484) at least. Nothing in the game can interrupt a cast today | class kits, yours | Grudj, and any later boss that casts |
 | 5 | **A heartbeat sound** for Sloth's pulse (the Subterranean's heartbeat BGS is still missing too) | `audio`, yours | Sloth |
 | 6 | **Two kill-floor tags** (yours, 11-13). `<noSelfKill>` on battlers, equips and states, `<thisNoSelfKill>` on a skill: a skill executed by the battler carrying it can't take that battler's own HP to 0 or less (Sloth 2A). `<noTargetKill>` / `<thisNoTargetKill>`, same homes: it can't take an *opposing* battler's HP to 0 or less, "think False Swipe from pokemon" (friendly fire can still kill). Both clamp where HP drops, after every multiplier. **Built 11-13** (same branch): a skill's damage and its formula packets stop one HP short, after shields absorb their share; "opposing" is J-ABS's team rules (an actor and an enemy count as opposed if the caster has already left the map); DoT ticks aren't a skill's damage, so they aren't held | `engine (small)` | Sloth, and any False Swipe you want |

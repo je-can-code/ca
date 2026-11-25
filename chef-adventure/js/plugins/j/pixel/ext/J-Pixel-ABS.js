@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
+ * [v1.3.0 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -150,7 +150,7 @@ J.PIXEL.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-Pixel-ABS", "1.2.0");
+J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-Pixel-ABS", "1.3.0");
 /**
 * A collection of regex patterns for this plugin.
 */
@@ -287,10 +287,10 @@ JABS_AiManager.rubberbandAlly = function(allyBattler) {
 /**
 * Extends {@link #moveTowardSlotIfNeeded}.<br/>
 * Replaces movement with PIXEL-aware hysteresis and near-target throttling to prevent sliding.
-* This implementation does NOT call the original; it fully handles formation movement.
+* This implementation does NOT call the original; it fully handles stance movement.
 * @param {JABS_Battler} allyBattler The ally battler.
-* @param {number} desiredX The desired slot x (fractional center).
-* @param {number} desiredY The desired slot y (fractional center).
+* @param {number} desiredX The x coordinate of the ally's stance spot.
+* @param {number} desiredY The y coordinate of the ally's stance spot.
 */
 J.PIXEL.EXT.ABS.Aliased.JABS_AiManager.set("moveTowardSlotIfNeeded", JABS_AiManager.moveTowardSlotIfNeeded);
 JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY) {
@@ -301,18 +301,18 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
 		return;
 	}
 	const chr = allyBattler.getCharacter();
-	const tolerance = J.ABS.EXT.ALLYAI.Metadata.FormationTolerance;
+	const tolerance = J.ABS.EXT.ALLYAI.Metadata.StanceTolerance;
 	const hysteresis = .25;
 	const dx = chr.x - desiredX;
 	const dy = chr.y - desiredY;
 	const dist = Math.sqrt(dx * dx + dy * dy);
 	if (dist <= tolerance) {
 		chr.stopPixelMoving();
-		allyBattler.clearFormationApproach();
+		allyBattler.clearStanceApproach();
 		return;
 	}
-	allyBattler.observeFormationApproach(dist, desiredX, desiredY);
-	if (allyBattler.hasGivenUpOnFormationSlot()) {
+	allyBattler.observeStanceApproach(dist, desiredX, desiredY);
+	if (allyBattler.hasGivenUpOnStanceSpot()) {
 		chr.stopPixelMoving();
 		return;
 	}
@@ -330,36 +330,6 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
 	if (allyBattler.canBattlerMove()) {
 		allyBattler.smartMoveTowardCoordinates(desiredX, desiredY);
 	}
-};
-/**
-* Overwrites {@link #calculateFormationSlotCoordinates}.<br/>
-* Calculates considering the tile center.
-* @param {number} lx The leader's x coordinate.
-* @param {number} rx The rotated x.
-* @param {number} ly The leader's y coordinate.
-* @param {number} ry The rotated y.
-* @returns {[number, number]}
-*/
-JABS_AiManager.calculateFormationSlotCoordinates = function(lx, rx, ly, ry) {
-	const sx = lx + rx + .5;
-	const sy = ly + ry + .5;
-	return [sx, sy];
-};
-/**
-* Overwrites {@link #isWithinTolerance}.<br/>
-* Checks if a battler is within a Euclidean tolerance of the target point.
-* @param {JABS_Battler} allyBattler The ally battler.
-* @param {number} targetX The target x (fractional center).
-* @param {number} targetY The target y (fractional center).
-* @param {number} tolerance The allowed range before moving.
-* @returns {boolean} True if within tolerance, false otherwise.
-*/
-JABS_AiManager.isWithinTolerance = function(allyBattler, targetX, targetY, tolerance) {
-	const chr = allyBattler.getCharacter();
-	const dx = chr.x - targetX;
-	const dy = chr.y - targetY;
-	const dist = Math.sqrt(dx * dx + dy * dy);
-	return dist <= tolerance;
 };
 
 //#endregion
@@ -770,18 +740,18 @@ Game_Event.prototype._pixelHitbox = function(radius) {
 //#region src/plugins/pixel/ext/abs/objects/Game_Follower.js
 /**
 * Overwrites {@link Game_Follower.isPixelTrainSuspended}.<br/>
-* An ally with a JABS battler is steered by formation movement, which this same plugin implements
+* An ally with a JABS battler is steered by stance movement, which this same plugin implements
 * over in its {@link JABS_AiManager} augments. The player's breadcrumb train must therefore keep
 * its hands off: two systems writing a position to the same sprite every frame make it stutter
-* between the trail and the formation slot instead of settling on either.
-* @returns {boolean} True if formation movement owns this follower, false otherwise.
+* between the trail and the stance spot instead of settling on either.
+* @returns {boolean} True if stance movement owns this follower, false otherwise.
 */
 Game_Follower.prototype.isPixelTrainSuspended = function() {
 	return this.getJabsBattler() !== undefined;
 };
 /**
 * Extends {@link Game_Follower.chaseCharacter}.<br/>
-* Suppresses vanilla chasing for an AI-controlled ally, so formation movement owns where it goes.
+* Suppresses vanilla chasing for an AI-controlled ally, so stance movement owns where it goes.
 * @param {Game_Character} character The character to chase (usually the preceding character).
 */
 J.PIXEL.EXT.ABS.Aliased.Game_Follower.set("chaseCharacter", Game_Follower.prototype.chaseCharacter);
@@ -791,10 +761,10 @@ Game_Follower.prototype.chaseCharacter = function(character) {
 };
 /**
 * Extends {@link Game_Follower.update}.<br/>
-* Clamps residual movement state on an idle AI-controlled ally. Formation movement issues its
+* Clamps residual movement state on an idle AI-controlled ally. Stance movement issues its
 * steps deliberately rather than continuously, so an ally that took no pixel step this frame must
 * be told it is stationary- otherwise the engine keeps interpolating toward a destination nothing
-* intends to reach, and the ally drifts away from its slot.
+* intends to reach, and the ally drifts away from its spot.
 */
 J.PIXEL.EXT.ABS.Aliased.Game_Follower.set("update", Game_Follower.prototype.update);
 Game_Follower.prototype.update = function() {
@@ -807,12 +777,12 @@ Game_Follower.prototype.update = function() {
 };
 /**
 * Determines whether generic movement should be blocked for an idle AI-controlled ally.
-* While an ally is neither engaged nor alerted it is in its formation phase, where the only
-* legitimate movement is the pixel step formation itself issued this frame. Anything else
-* reaching this point is a stray vanilla-cadence move that would fight the formation pull.
+* While an ally is neither engaged nor alerted it is keeping to its stance, where the only
+* legitimate movement is the pixel step the stance itself issued this frame. Anything else
+* reaching this point is a stray vanilla-cadence move that would fight the stance pull.
 * @returns {boolean} True if the movement should be blocked, false otherwise.
 */
-Game_Follower.prototype.isIdleFormationMoveBlocked = function() {
+Game_Follower.prototype.isIdleStanceMoveBlocked = function() {
 	if (this.isPixelTrainSuspended() === false) return false;
 	const jabsBattler = this.getJabsBattler();
 	if (jabsBattler.isEngaged() || jabsBattler.isAlerted()) return false;
@@ -825,7 +795,7 @@ Game_Follower.prototype.isIdleFormationMoveBlocked = function() {
 */
 J.PIXEL.EXT.ABS.Aliased.Game_Follower.set("moveStraight", Game_Follower.prototype.moveStraight);
 Game_Follower.prototype.moveStraight = function(direction) {
-	if (this.isIdleFormationMoveBlocked()) return;
+	if (this.isIdleStanceMoveBlocked()) return;
 	J.PIXEL.EXT.ABS.Aliased.Game_Follower.get("moveStraight").call(this, direction);
 };
 /**
@@ -836,7 +806,7 @@ Game_Follower.prototype.moveStraight = function(direction) {
 */
 J.PIXEL.EXT.ABS.Aliased.Game_Follower.set("moveDiagonally", Game_Follower.prototype.moveDiagonally);
 Game_Follower.prototype.moveDiagonally = function(horz, vert) {
-	if (this.isIdleFormationMoveBlocked()) return;
+	if (this.isIdleStanceMoveBlocked()) return;
 	J.PIXEL.EXT.ABS.Aliased.Game_Follower.get("moveDiagonally").call(this, horz, vert);
 };
 

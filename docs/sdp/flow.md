@@ -41,7 +41,27 @@ Each subgroup occupies a decade of ids, of which only the first five and the las
 |---|---|
 | 1–5 | the strip |
 | 6–9 | empty; growth room |
-| 10 | the named **anomaly**, which grants SDP points but no panel |
+| 10 | the named **anomaly**, which grants SDP points and node items but no panel |
+
+**An anomaly pays the plain rung and drops node items** (`DECIDED 2026-11-21`). It used to pay the top
+rung (`<sdpPoints:30>` plus `a.level ** 1.5 * 3`). Now it pays what a tier 1 does (`<sdpPoints:3>` plus
+`a.level ** 1.5 * 1`), and the difference comes back as node items, the consumables that grant every ally
+SDP points. Every anomaly drops one item for certain, then rolls for rarer ones, and its base level picks
+which:
+
+| Base level | Always | Then |
+|---|---|---|
+| under 40 | Node Dust | Microgems 15%, Crystals 1% |
+| 40–69 | Node Dust | Microgems 50%, Crystals 3% |
+| 70–99 | Node Microgems | Crystals 15%, Geode 1% |
+| 100 and up | Node Microgems | Crystals 25%, Geode 5% |
+
+Each band's average payout lands within 20% of the SDP it gave up. The items also feed the four Junction
+accessories, two of a tier each, so a single pass through every anomaly yields about 16 Dust, 35
+Microgems, 6 Crystals and less than one Geode. An anomaly spawns for certain until its first defeat and
+comes back half the time after that, which makes Geode, and with it Junction Chakra, the one thing worth
+farming; the top band's Geode chance is the knob. The two translated bonuses (see Masteries, below) stay
+on top of the plain rung: Ratatoskr's 500 extra SDP points and Beelzebuck's 100 extra AP.
 
 The 5 panels in a subgroup form a **strip**. Strips are divided into three **acts**:
 - **Beginning (tiers 1–2):** entry-level potency, base effect established

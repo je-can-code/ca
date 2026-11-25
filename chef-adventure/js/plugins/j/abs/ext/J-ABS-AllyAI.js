@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.2.0 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v4.0.0 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -40,52 +40,21 @@
  * @desc The control switch for whether or not the ally ai command displays in the menu.
  * @default 101
  *
- * @param partyConfigs
- * @text PARTY-WIDE DETAILS
+ * @param allyStanceConfigs
+ * @text ALLY STANCE DETAILS
  *
- * @param partyWidePassiveText
- * @parent partyConfigs
+ * @param allyStanceCommandName
+ * @parent allyStanceConfigs
  * @type string
- * @text Party Passive Text
- * @desc The text displayed when the party-wide toggle is set to "passive".
- * @default Passive Enabled
+ * @text Stance Command Text
+ * @desc The text displayed for the ally stance command in the party menu.
+ * @default Ally Stance
  *
- * @param partyWidePassiveIconIndex
- * @parent partyConfigs
+ * @param allyStanceCommandIconIndex
+ * @parent allyStanceConfigs
  * @type number
- * @text Party Passive Icon
- * @desc The icon indicating party-wide passive engagement is enabled.
- * @default 4
- *
- * @param partyWideAggressiveText
- * @parent partyConfigs
- * @type string
- * @text Party Aggressive Text
- * @desc The text displayed when the party-wide toggle is set to "aggressive".
- * @default Aggressive Enabled
- *
- * @param partyWideAggressiveIconIndex
- * @parent partyConfigs
- * @type number
- * @text Party Aggressive Icon
- * @desc The icon indicating party-wide aggressive engagement is enabled.
- * @default 15
- *
- * @param allyFormationsConfigs
- * @text ALLY FORMATIONS DETAILS
- *
- * @param allyFormationsCommandName
- * @parent allyFormationsConfigs
- * @type string
- * @text Formations Command Text
- * @desc The text displayed for the ally formations command in the party menu.
- * @default Ally Formations
- *
- * @param allyFormationsCommandIconIndex
- * @parent allyFormationsConfigs
- * @type number
- * @text Formations Command Icon
- * @desc The icon displayed beside the ally formations command.
+ * @text Stance Command Icon
+ * @desc The icon displayed beside the ally stance command.
  * @default 289
  *
  * @param aiModeConfigs
@@ -104,9 +73,193 @@
  * @text Mode Not Equipped Icon
  * @desc The icon indicating that the mode is not equipped.
  * @default 95
+ *
+ * @param doNothingOnIconIndex
+ * @parent aiModeConfigs
+ * @type number
+ * @text Do-Nothing On Icon
+ * @desc The icon shown on an ally's do-nothing toggle while it is switched on.
+ * @default 4
+ *
+ * @param doNothingOffIconIndex
+ * @parent aiModeConfigs
+ * @type number
+ * @text Do-Nothing Off Icon
+ * @desc The icon shown on an ally's do-nothing toggle while it is switched off.
+ * @default 15
  */
 //endregion annotations
 
+//#region src/plugins/abs/ext/allyai/_models/JABS_Stance.js
+/**
+* One of the stances the party's allies can take: where an ally keeps itself around the leader while there
+* is nothing to fight, and whether it goes into a fight before the leader does.
+*
+* A stance describes a zone rather than a single tile. An ally anywhere inside its zone is already in
+* position and stays put, so it is not forever shuffling after a leader who only took a step. One that has
+* strayed walks back to just inside the nearest edge of the zone and no further, which is the least walking
+* that puts it back where it belongs.
+*
+* Every zone is laid out for a leader facing down, and turned to match the leader's real facing by
+* whoever places the ally. In that frame "forward" runs the way the leader faces and "side" runs across
+* it, so a forward of 2 is two tiles in front of the leader whichever way they happen to be facing.
+*/
+var JABS_Stance = class JABS_Stance {
+	/**
+	* The places around the leader a stance can keep an ally.
+	*/
+	static Placements = {
+		/**
+		* In front of the leader, between them and whatever lies ahead.
+		*/
+		Front: "front",
+		/**
+		* Beside the leader, on whichever side the ally already stands nearer.
+		*/
+		Side: "side",
+		/**
+		* Behind the leader, out of the way of whatever lies ahead.
+		*/
+		Behind: "behind"
+	};
+	/**
+	* The nearest an ally kept in front of or behind the leader stands to them, in tiles.
+	* @type {number}
+	*/
+	static NearDistance = 1;
+	/**
+	* The furthest an ally kept in front of or behind the leader strays from them, in tiles.
+	* @type {number}
+	*/
+	static FarDistance = 3;
+	/**
+	* How far out to the leader's side an ally kept beside them stands, in tiles.
+	* @type {number}
+	*/
+	static SideDistance = 1;
+	/**
+	* How far ahead of or behind the leader an ally kept beside them may drift before it moves, in tiles.
+	*
+	* Without any slack a side stance would be a single tile, and a leader walking forward would leave the
+	* ally out of position after every step they took.
+	* @type {number}
+	*/
+	static SideSlack = 1;
+	/**
+	* The key this stance is stored and looked up by.
+	* @type {string}
+	*/
+	key = String.empty;
+	/**
+	* The name of this stance, as the player sees it.
+	* @type {string}
+	*/
+	name = String.empty;
+	/**
+	* The description of this stance, as the player sees it when choosing one.
+	* @type {string}
+	*/
+	description = String.empty;
+	/**
+	* Where around the leader this stance keeps an ally; one of {@link JABS_Stance.Placements}.
+	* @type {string}
+	*/
+	placement = JABS_Stance.Placements.Behind;
+	/**
+	* Whether an ally in this stance takes on anything it can see without waiting for the leader.
+	* @type {boolean}
+	*/
+	engagesFirst = false;
+	/**
+	* Constructor.
+	* @param {string} key The key this stance is stored and looked up by.
+	* @param {string} name The name of this stance, as the player sees it.
+	* @param {string} description The description of this stance, as the player sees it.
+	* @param {string} placement Where around the leader this stance keeps an ally.
+	* @param {boolean} engagesFirst Whether an ally in this stance goes in before the leader does.
+	*/
+	constructor(key, name, description, placement, engagesFirst) {
+		this.key = key;
+		this.name = name;
+		this.description = description;
+		this.placement = placement;
+		this.engagesFirst = engagesFirst;
+	}
+	/**
+	* Gets the lane an ally keeps within a stance, which spreads several allies apart.
+	*
+	* Every ally in the party takes the same stance, and without lanes they would all head for the same
+	* spot and pile up on one another. The first ally keeps the middle lane; each one after it alternates
+	* out to either side of it, one tile further each pair.
+	* @param {number} allyIndex The ally's place among the leader's followers; the first is zero.
+	* @returns {number} The lane this ally keeps, in tiles from the middle one.
+	*/
+	static laneFor(allyIndex) {
+		const distanceOut = Math.ceil(allyIndex / 2);
+		return allyIndex % 2 === 1 ? -distanceOut : distanceOut;
+	}
+	/**
+	* Pins a value between two bounds.
+	*
+	* Kept here rather than borrowed from the engine's `Number.prototype.clamp`, so this model stands on
+	* its own without anything else having been loaded first.
+	* @param {number} value The value to pin.
+	* @param {number} min The lowest the value may be.
+	* @param {number} max The highest the value may be.
+	* @returns {number} The value, moved inside the bounds if it was outside them.
+	*/
+	static clampToRange(value, min, max) {
+		return Math.min(Math.max(value, min), max);
+	}
+	/**
+	* Finds the nearest spot within this stance to where an ally currently stands.
+	*
+	* An ally well inside the zone gets its own position straight back, which is what lets it stand still;
+	* one outside it gets the closest point near the zone's edge.
+	*
+	* Every mover counts an ally as arrived once it is within some tolerance of its spot, so a spot right on
+	* the zone's edge lets the ally stop that far outside the zone - and the edge nearest the leader is only a
+	* tile away, so an ally kept in front would stop half a tile from them, standing in their sprite. The spot
+	* is therefore pulled inside the zone by the inset given, which is that tolerance: wherever short of the
+	* spot the ally stops, it stops inside the zone.
+	* @param {number} side How far across the leader's facing the ally stands, with the leader facing down.
+	* @param {number} forward How far ahead of the leader the ally stands; negative when it is behind them.
+	* @param {number} lane The lane this ally keeps; see {@link JABS_Stance.laneFor}.
+	* @param {number} inset How far inside the zone's edges the spot is pulled.
+	* @returns {[number, number]} The [side, forward] spot this ally should stand at.
+	*/
+	nearestSpot(side, forward, lane, inset) {
+		const nearest = JABS_Stance.NearDistance + inset;
+		const furthest = JABS_Stance.FarDistance - inset;
+		switch (this.placement) {
+			case JABS_Stance.Placements.Front: return [lane, JABS_Stance.clampToRange(forward, nearest, furthest)];
+			case JABS_Stance.Placements.Behind: return [lane, JABS_Stance.clampToRange(forward, -furthest, -nearest)];
+			default: return this.nearestSideSpot(side, forward, lane, inset);
+		}
+	}
+	/**
+	* Finds the nearest spot at the leader's side to where an ally currently stands.
+	*
+	* The ally keeps to whichever side it already stands on, so a leader turning around never sends it
+	* across their path to the far side. An ally standing exactly in line with the leader has no nearer
+	* side, and takes the positive one. The spot is pulled inside the zone the same way
+	* {@link JABS_Stance.nearestSpot} explains: further out to the side, and less far along it.
+	* @param {number} side How far across the leader's facing the ally stands, with the leader facing down.
+	* @param {number} forward How far ahead of the leader the ally stands; negative when it is behind them.
+	* @param {number} lane The lane this ally keeps; see {@link JABS_Stance.laneFor}.
+	* @param {number} inset How far inside the zone's edges the spot is pulled.
+	* @returns {[number, number]} The [side, forward] spot this ally should stand at.
+	*/
+	nearestSideSpot(side, forward, lane, inset) {
+		const whichSide = side < 0 ? -1 : 1;
+		const sideSpot = whichSide * (JABS_Stance.SideDistance + inset);
+		const slack = JABS_Stance.SideSlack - inset;
+		const forwardSpot = JABS_Stance.clampToRange(forward, lane - slack, lane + slack);
+		return [sideSpot, forwardSpot];
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/ext/allyai/_metadata/_pluginMetadata.js
 var J_AllyAiPluginMetadata = class extends PluginMetadata {
 	/**
@@ -117,7 +270,7 @@ var J_AllyAiPluginMetadata = class extends PluginMetadata {
 	}
 	/**
 	* Extends {@link #postInitialize}.<br/>
-	* Maps ally AI menu commands and formation defaults from plugin parameters.
+	* Maps ally AI menu commands and stance defaults from plugin parameters.
 	*/
 	postInitialize() {
 		super.postInitialize();
@@ -130,72 +283,37 @@ var J_AllyAiPluginMetadata = class extends PluginMetadata {
 		this.AllyAiCommandName = this.parsedPluginParameters["jabsMenuAllyAiCommandName"];
 		this.AllyAiCommandIconIndex = Number(this.parsedPluginParameters["jabsMenuAllyAiCommandIconIndex"]);
 		this.AllyAiCommandSwitchId = Number(this.parsedPluginParameters["jabsMenuAllyAiCommandSwitchId"]);
-		this.PartyAiPassiveText = this.parsedPluginParameters["partyWidePassiveText"];
-		this.PartyAiPassiveIconIndex = Number(this.parsedPluginParameters["partyWidePassiveIconIndex"]);
-		this.PartyAiAggressiveText = this.parsedPluginParameters["partyWideAggressiveText"];
-		this.PartyAiAggressiveIconIndex = Number(this.parsedPluginParameters["partyWideAggressiveIconIndex"]);
 		this.AiModeEquippedIconIndex = Number(this.parsedPluginParameters["aiModeEquipped"]);
 		this.AiModeNotEquippedIconIndex = Number(this.parsedPluginParameters["aiModeNotEquipped"]);
-		this.AllyFormationsCommandName = this.parsedPluginParameters["allyFormationsCommandName"] || "Ally Formations";
-		this.AllyFormationsCommandIconIndex = Number(this.parsedPluginParameters["allyFormationsCommandIconIndex"] || 289);
-		this.FormationTolerance = .5;
-		this.FormationProgressEpsilon = .05;
-		this.FormationStallFrames = 60;
+		this.DoNothingOnIconIndex = Number(this.parsedPluginParameters["doNothingOnIconIndex"]);
+		this.DoNothingOffIconIndex = Number(this.parsedPluginParameters["doNothingOffIconIndex"]);
+		this.AllyStanceCommandName = this.parsedPluginParameters["allyStanceCommandName"] || "Ally Stance";
+		this.AllyStanceCommandIconIndex = Number(this.parsedPluginParameters["allyStanceCommandIconIndex"] || 289);
+		this.StanceTolerance = .5;
+		this.StanceProgressEpsilon = .05;
+		this.StanceStallFrames = 60;
+		this.StanceSpotDrift = .5;
+		this.StanceFacingSettleFrames = 30;
+		this.StanceCatchUpDistance = 1.5;
+		this.StanceCatchUpSpeedBoost = 1;
+		this.PullBackFrames = 180;
 		/**
-		* All available formations that a party can take.
-		* @type {JABS_Formation[]}
+		* All available stances the party's allies can take.
+		*
+		* Listed in ladder order, from hanging back behind the leader to leading the charge ahead of them. The
+		* menu shows them in this order, and stepping the stance safer or bolder moves along it.
+		* @type {JABS_Stance[]}
 		*/
-		this.FormationTypes = [
-			{
-				key: "fan-behind",
-				name: "Rear Support",
-				description: "The rear-wedge formation.\nAllies will fan out behind you for support.",
-				formation: [
-					[-1, -1],
-					[1, -1],
-					[0, -2],
-					[-1, -2],
-					[1, -2],
-					[0, -4]
-				],
-				effects: []
-			},
-			{
-				key: "flank-sides",
-				name: "Wings",
-				description: "A side- flank formation.\nAllies will flank you at either side to look extra menacing.",
-				formation: [
-					[-1, 0],
-					[1, 0],
-					[-2, 0],
-					[2, 0],
-					[-3, 0],
-					[3, 0]
-				],
-				effects: []
-			},
-			{
-				key: "close-circle",
-				name: "Body Barricade",
-				description: "The tight circle formation.\nNo one will get to most delicate squishy innard!",
-				formation: [
-					[0, 1],
-					[1, 0],
-					[0, -1],
-					[-1, 0],
-					[1, 1],
-					[-1, 1],
-					[1, -1],
-					[-1, -1]
-				],
-				effects: []
-			}
+		this.StanceTypes = [
+			new JABS_Stance("safe-support", "Safe Support", "Hangs back 1-3 tiles behind you.\nJoins the fight the moment you do.", JABS_Stance.Placements.Behind, false),
+			new JABS_Stance("bloody-wanker", "Bloody Wanker", "Sticks right at your side.\nAlways first to swing at anything in sight.", JABS_Stance.Placements.Side, true),
+			new JABS_Stance("meat-shield", "Meat Shield", "Marches 1-3 tiles ahead of you.\nCharges anything in sight before it reaches you.", JABS_Stance.Placements.Front, true)
 		];
 		/**
-		* The default formation type if none is selected.
+		* The default stance the party takes if none has been chosen.
 		* @type {string}
 		*/
-		this.DefaultFormationType = this.FormationTypes[0].key;
+		this.DefaultStanceType = this.StanceTypes[0].key;
 	}
 };
 
@@ -221,7 +339,7 @@ J.ABS.EXT.ALLYAI = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.2.0");
+J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "4.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -803,46 +921,100 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 SerializableRegistry.register(JABS_AllyAI);
 
 //#endregion
-//#region src/plugins/abs/ext/allyai/_models/JABS_FormationStall.js
+//#region src/plugins/abs/ext/allyai/_models/JABS_StanceFacing.js
 /**
-* Tracks how an ally is faring at reaching one formation slot, so that one it cannot reach can be
-* abandoned instead of chased forever.
+* Tracks which way an ally's stance is laid out around its leader, turning it only once the leader has
+* settled on a new facing.
 *
-* An ally that cannot occupy its slot does not fail quietly. The pathfinder rounds a character's
-* position to a whole tile before searching, so an ally standing near a tile boundary gets a
-* different first step depending on which side of that boundary it is on. It takes the step, lands
-* back on the other side, and is handed the opposite answer next frame. Because a move command
-* faces its character whether or not the move succeeds, the result reads as a character vibrating
-* in place rather than as one that is stuck.
-*
-* **Progress is measured, not time.** Giving up after a fixed number of frames would abandon a long
-* but perfectly good walk around a wall, which is the common case and the one that must not break.
-* What is tracked instead is the closest the ally has ever come to the slot during this attempt, and
-* how long it has been since that improved. A detour that is genuinely working keeps beating its own
-* record and never stalls; the two-step shuffle above never beats it once.
+* Laying a stance out from the leader's facing directly would swing it the instant they turned, and a
+* stance kept in front of the leader swings all the way round to behind them. An ally in front, watching
+* its leader turn to read a sign, would sprint a lap around them and then sprint back. So a new facing has
+* to be held for a moment before the stance follows it, and a glance one way and back moves nobody.
 */
-var JABS_FormationStall = class {
+var JABS_StanceFacing = class {
 	/**
-	* Whether an attempt on a slot is currently underway.
+	* The facing the stance is currently laid out from, or zero before any facing has been seen.
+	* @type {number}
+	*/
+	#direction = 0;
+	/**
+	* The facing the leader has most recently turned to and held; zero before any has been counted.
+	* @type {number}
+	*/
+	#candidate = 0;
+	/**
+	* How many consecutive observations the leader has held {@link #candidate} for.
+	* @type {number}
+	*/
+	#candidateFrames = 0;
+	/**
+	* Gets the facing the stance is currently laid out from.
+	* @returns {number} The direction, or zero before any facing has been seen.
+	*/
+	direction() {
+		return this.#direction;
+	}
+	/**
+	* Records which way the leader faces this frame, and turns the stance if they have held a new facing
+	* for long enough.
+	* @param {number} direction The direction the leader currently faces.
+	* @param {number} settleFrames How many frames a new facing must be held before the stance follows it.
+	*/
+	observe(direction, settleFrames) {
+		if (this.#direction === 0) {
+			this.#direction = direction;
+			return;
+		}
+		if (direction !== this.#candidate) {
+			this.#candidate = direction;
+			this.#candidateFrames = 0;
+		}
+		this.#candidateFrames += 1;
+		if (this.#candidateFrames < settleFrames) return;
+		this.#direction = direction;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/_models/JABS_StanceStall.js
+/**
+* Tracks how an ally is faring at reaching its spot in the party's stance, so that a spot it cannot reach
+* can be abandoned instead of chased forever.
+*
+* An ally that cannot reach its spot does not fail quietly. The pathfinder rounds a character's position
+* to a whole tile before searching, so an ally standing near a tile boundary gets a different first step
+* depending on which side of that boundary it is on. It takes the step, lands back on the other side, and
+* is handed the opposite answer next frame. Because a move command faces its character whether or not the
+* move succeeds, the result reads as a character vibrating in place rather than as one that is stuck.
+*
+* **Progress is measured, not time.** Giving up after a fixed number of frames would abandon a long but
+* perfectly good walk around a wall, which is the common case and the one that must not break. What is
+* tracked instead is the closest the ally has ever come to the spot during this attempt, and how long it
+* has been since that improved. A detour that is genuinely working keeps beating its own record and never
+* stalls; the two-step shuffle above never beats it once.
+*/
+var JABS_StanceStall = class {
+	/**
+	* Whether an attempt on a spot is currently underway.
 	*
-	* Kept as its own flag rather than inferred from the coordinates below, because `0,0` is a real
-	* place on a map and an ally assigned a slot there would otherwise inherit the history of an
-	* attempt that never happened.
+	* Kept as its own flag rather than inferred from the coordinates below, because `0,0` is a real place on
+	* a map and an ally assigned a spot there would otherwise inherit the history of an attempt that never
+	* happened.
 	* @type {boolean}
 	*/
 	#attempting = false;
 	/**
-	* The x coordinate of the slot this attempt is aimed at.
+	* The x coordinate of the spot this attempt is aimed at.
 	* @type {number}
 	*/
 	#targetX = 0;
 	/**
-	* The y coordinate of the slot this attempt is aimed at.
+	* The y coordinate of the spot this attempt is aimed at.
 	* @type {number}
 	*/
 	#targetY = 0;
 	/**
-	* The closest this ally has come to the slot during the current attempt.
+	* The closest this ally has come to the spot during the current attempt.
 	* @type {number}
 	*/
 	#bestDistance = 0;
@@ -854,18 +1026,23 @@ var JABS_FormationStall = class {
 	/**
 	* Records how this frame's approach went.
 	*
-	* A slot that has moved since last frame starts a fresh attempt, because the leader walking or
-	* turning relocates every slot behind them and the old attempt's history says nothing about the
-	* new one. That also means an ally is never stalled while its leader is on the move, which is the
-	* behaviour worth protecting - standing still is only ever the answer to a slot that is genuinely
-	* unreachable from where the ally is.
-	* @param {number} distance How far this ally currently is from the slot.
-	* @param {number} targetX The x coordinate of the slot.
-	* @param {number} targetY The y coordinate of the slot.
+	* A spot that has moved since the attempt began starts a fresh attempt, because the leader walking or
+	* turning relocates it and the old attempt's history says nothing about the new one. That also means an
+	* ally is never stalled while its leader is on the move, which is the behaviour worth protecting -
+	* standing still is only ever the answer to a spot that is genuinely unreachable from where the ally is.
+	*
+	* A spot is also the nearest point of a zone to wherever the ally happens to be, so an ally shuffling on
+	* the spot drags its spot around with it by a hair each frame. Those hairs are not a moved spot - they
+	* are exactly the shuffle this tracker exists to catch - so a spot only counts as moved once it has
+	* drifted further than the given tolerance from where the attempt began.
+	* @param {number} distance How far this ally currently is from the spot.
+	* @param {number} targetX The x coordinate of the spot.
+	* @param {number} targetY The y coordinate of the spot.
 	* @param {number} epsilon How much closer counts as having made progress.
+	* @param {number} driftTolerance How far the spot may drift before it counts as a different spot.
 	*/
-	observe(distance, targetX, targetY, epsilon) {
-		const isNewAttempt = this.#attempting === false || targetX !== this.#targetX || targetY !== this.#targetY;
+	observe(distance, targetX, targetY, epsilon, driftTolerance) {
+		const isNewAttempt = this.#attempting === false || this.#hasSpotMoved(targetX, targetY, driftTolerance);
 		if (isNewAttempt) {
 			this.#beginAttempt(distance, targetX, targetY);
 			return;
@@ -878,10 +1055,21 @@ var JABS_FormationStall = class {
 		this.#framesWithoutProgress += 1;
 	}
 	/**
+	* Whether the spot has drifted far enough from where this attempt began to count as a different spot.
+	* @param {number} targetX The x coordinate of the spot now.
+	* @param {number} targetY The y coordinate of the spot now.
+	* @param {number} driftTolerance How far the spot may drift before it counts as a different spot.
+	* @returns {boolean} True if this is a different spot, false if it is still the same one.
+	*/
+	#hasSpotMoved(targetX, targetY, driftTolerance) {
+		const drift = Math.hypot(targetX - this.#targetX, targetY - this.#targetY);
+		return drift > driftTolerance;
+	}
+	/**
 	* Starts measuring a fresh attempt from wherever the ally happens to be standing.
-	* @param {number} distance How far this ally currently is from the slot.
-	* @param {number} targetX The x coordinate of the slot.
-	* @param {number} targetY The y coordinate of the slot.
+	* @param {number} distance How far this ally currently is from the spot.
+	* @param {number} targetX The x coordinate of the spot.
+	* @param {number} targetY The y coordinate of the spot.
 	*/
 	#beginAttempt(distance, targetX, targetY) {
 		this.#attempting = true;
@@ -891,7 +1079,7 @@ var JABS_FormationStall = class {
 		this.#framesWithoutProgress = 0;
 	}
 	/**
-	* Whether this ally has spent long enough getting no closer to give up on the slot.
+	* Whether this ally has spent long enough getting no closer to give up on the spot.
 	* @param {number} stallFrames How many frames without progress are tolerated.
 	* @returns {boolean} True if the ally should stop trying, false otherwise.
 	*/
@@ -901,9 +1089,9 @@ var JABS_FormationStall = class {
 	/**
 	* Abandons the current attempt, so the next one is measured from scratch.
 	*
-	* Called when an ally is standing in its slot, which is the one outcome that says everything
-	* recorded so far is spent - the next time it is out of position it is a new problem, even if the
-	* slot has not moved an inch.
+	* Called when an ally is standing in its spot, which is the one outcome that says everything recorded so
+	* far is spent - the next time it is out of position it is a new problem, even if the spot has not moved
+	* an inch.
 	*/
 	reset() {
 		this.#attempting = false;
@@ -926,8 +1114,9 @@ JABS_Battler.createAlly = function(follower, actor) {
 	return new JABS_Battler(follower, actor, coreData);
 };
 /**
-* Extends the engagement determination to handle aggro/passive party toggling.
+* Extends the engagement determination so allies decide by the party's stance.
 * @param {JABS_Battler} target The target to see if we should engage with.
+* @param {number} distance The distance from this battler to the target.
 * @returns {boolean}
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.set("shouldEngage", JABS_Battler.prototype.shouldEngage);
@@ -935,13 +1124,14 @@ JABS_Battler.prototype.shouldEngage = function(target, distance) {
 	if (this.isEnemy()) {
 		return J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get("shouldEngage").call(this, target, distance);
 	}
-	if ($gameParty.isAggro() && !target.isInanimate()) {
-		return J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get("shouldEngage").call(this, target, distance);
-	}
 	return this.shouldAllyEngage(target, distance);
 };
 /**
 * Determines whether or not the ally should engage in combat with the target.
+*
+* The party's stance decides whether an ally goes in first, but every stance answers the leader: an ally
+* that was struck, or that the leader's own fight has rallied, joins in whatever its stance, and so does
+* one whose leader is already trading blows. Only a direct order to pull back keeps an ally out of it.
 * @param {JABS_Battler} target The target to potentially engage with.
 * @param {number} distance The distance from this battler to the nearest potential target.
 * @returns {boolean} True if this ally should engage in combat, false otherwise.
@@ -950,11 +1140,24 @@ JABS_Battler.prototype.shouldAllyEngage = function(target, distance) {
 	const allyAI = this.getAllyAiMode();
 	if (allyAI && allyAI.isDoNothing()) return false;
 	if (target.isInanimate()) return false;
+	if (this.isPullingBack()) return false;
 	if (!this.inSightRange(target, distance)) return false;
-	const isAlerted = this.isAlerted();
-	const playerHitSomething = $jabsEngine.getPlayer1().hasBattlerLastHit();
-	const shouldEngage = isAlerted || playerHitSomething;
-	return shouldEngage;
+	if (this.isAlerted()) return true;
+	if (this.isLeaderFighting()) return true;
+	return $gameParty.getPartyStanceType().engagesFirst;
+};
+/**
+* Determines whether the leader is fighting something right now.
+*
+* The leader's last hit is the record of what they last struck. Smashing a crate is not a fight worth
+* joining, so an inanimate last hit does not count, and neither does one that has since been defeated.
+* @returns {boolean} True if the leader's last hit is something alive that fights back, false otherwise.
+*/
+JABS_Battler.prototype.isLeaderFighting = function() {
+	const lastHit = $jabsEngine.getPlayer1().lastHit();
+	if (lastHit === null) return false;
+	if (lastHit.isInanimate()) return false;
+	return lastHit.isDead() === false;
 };
 /**
 * Gets all allies to this battler within a large range.
@@ -996,59 +1199,271 @@ JABS_Battler.prototype.getFarDistance = function() {
 };
 /**
 * Extends {@link JABS_Battler.initIdleInfo}.<br/>
-* Also prepares this battler to keep track of how it is faring at reaching a formation slot.
+* Also prepares this battler to keep its place in the party's stance.
 *
-* Seeded alongside the rest of the idle state because that is exactly when it applies: formation
-* keeping is what an ally does when it has nothing to fight, and the measurement is meaningless
-* while it is engaged.
+* Seeded alongside the rest of the idle state because that is exactly when it applies: keeping to a stance
+* is what an ally does when it has nothing to fight, and none of it means anything while it is engaged.
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.set("initIdleInfo", JABS_Battler.prototype.initIdleInfo);
 JABS_Battler.prototype.initIdleInfo = function() {
 	J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get("initIdleInfo").call(this);
 	/**
-	* How this battler is faring at reaching its formation slot.
-	* @type {JABS_FormationStall}
+	* How this battler is faring at reaching its spot in the party's stance.
+	* @type {JABS_StanceStall}
 	*/
-	this._formationStall = new JABS_FormationStall();
+	this._stanceStall = new JABS_StanceStall();
+	/**
+	* Which way this battler's stance is laid out around the leader.
+	* @type {JABS_StanceFacing}
+	*/
+	this._stanceFacing = new JABS_StanceFacing();
+	/**
+	* Whether this battler has strayed far enough from its stance to sprint back into it.
+	* @type {boolean}
+	*/
+	this._stanceCatchingUp = false;
+	/**
+	* The frame this battler last kept to its stance on; see {@link JABS_Battler.isStanceCatchingUp}.
+	* @type {number}
+	*/
+	this._stanceFollowFrame = 0;
 };
 /**
-* Gets how this battler is faring at reaching its formation slot.
-* @returns {JABS_FormationStall} The tracker for this battler's current attempt.
+* Extends {@link JABS_Battler.initBattleInfo}.<br/>
+* Also prepares this battler to obey an order to pull back.
 */
-JABS_Battler.prototype.getFormationStall = function() {
-	return this._formationStall;
+J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.set("initBattleInfo", JABS_Battler.prototype.initBattleInfo);
+JABS_Battler.prototype.initBattleInfo = function() {
+	J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get("initBattleInfo").call(this);
+	/**
+	* How many more frames this battler stays out of the fight after being told to pull back.
+	* @type {number}
+	*/
+	this._pullBackFrames = 0;
 };
 /**
-* Records how this frame's approach toward a formation slot went.
+* Extends {@link JABS_Battler.updateTimers}.<br/>
+* Also counts down any order to pull back.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.set("updateTimers", JABS_Battler.prototype.updateTimers);
+JABS_Battler.prototype.updateTimers = function() {
+	J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get("updateTimers").call(this);
+	this.processPullBackTimer();
+};
+/**
+* Gets how this battler is faring at reaching its spot in the party's stance.
+* @returns {JABS_StanceStall} The tracker for this battler's current attempt.
+*/
+JABS_Battler.prototype.getStanceStall = function() {
+	return this._stanceStall;
+};
+/**
+* Records how this frame's approach toward a stance spot went.
 *
-* Exposed on the battler rather than left inside the AI manager because more than one manager
-* steers an ally into formation - the pixel movement bridge replaces the tile-based mover outright
-* - and a give-up implemented in only one of them is a give-up that never happens. Ally AI owns the
-* knobs, so it owns the seam; whoever is doing the moving calls it.
-* @param {number} distance How far this battler currently is from the slot.
-* @param {number} slotX The x coordinate of the slot.
-* @param {number} slotY The y coordinate of the slot.
+* Exposed on the battler rather than left inside the AI manager because more than one manager steers an
+* ally into its stance - the pixel movement bridge replaces the tile-based mover outright - and a give-up
+* implemented in only one of them is a give-up that never happens. Ally AI owns the knobs, so it owns the
+* seam; whoever is doing the moving calls it.
+* @param {number} distance How far this battler currently is from the spot.
+* @param {number} spotX The x coordinate of the spot.
+* @param {number} spotY The y coordinate of the spot.
 */
-JABS_Battler.prototype.observeFormationApproach = function(distance, slotX, slotY) {
-	const epsilon = J.ABS.EXT.ALLYAI.Metadata.FormationProgressEpsilon;
-	this.getFormationStall().observe(distance, slotX, slotY, epsilon);
+JABS_Battler.prototype.observeStanceApproach = function(distance, spotX, spotY) {
+	const { StanceProgressEpsilon, StanceSpotDrift } = J.ABS.EXT.ALLYAI.Metadata;
+	this.getStanceStall().observe(distance, spotX, spotY, StanceProgressEpsilon, StanceSpotDrift);
 };
 /**
-* Whether this battler has spent long enough getting no closer to abandon its formation slot.
-* @returns {boolean} True if the battler should stop trying to reach the slot, false otherwise.
+* Whether this battler has spent long enough getting no closer to abandon its stance spot.
+* @returns {boolean} True if the battler should stop trying to reach the spot, false otherwise.
 */
-JABS_Battler.prototype.hasGivenUpOnFormationSlot = function() {
-	const stallFrames = J.ABS.EXT.ALLYAI.Metadata.FormationStallFrames;
-	return this.getFormationStall().isStalled(stallFrames);
+JABS_Battler.prototype.hasGivenUpOnStanceSpot = function() {
+	const stallFrames = J.ABS.EXT.ALLYAI.Metadata.StanceStallFrames;
+	return this.getStanceStall().isStalled(stallFrames);
 };
 /**
-* Abandons this battler's current attempt at a formation slot.
+* Abandons this battler's current attempt at a stance spot.
 *
 * Called on arrival, which is the one outcome that spends an attempt outright - the next time this
-* battler is out of position it is a new problem, even against the very same slot.
+* battler is out of position it is a new problem, even against the very same spot.
 */
-JABS_Battler.prototype.clearFormationApproach = function() {
-	this.getFormationStall().reset();
+JABS_Battler.prototype.clearStanceApproach = function() {
+	this.getStanceStall().reset();
+};
+/**
+* Gets which way this battler's stance is laid out around the leader.
+* @returns {JABS_StanceFacing} The tracker for this battler's stance facing.
+*/
+JABS_Battler.prototype.stanceFacing = function() {
+	return this._stanceFacing;
+};
+/**
+* Records which way the leader faces this frame, turning this battler's stance once they have settled.
+* @param {number} direction The direction the leader currently faces.
+*/
+JABS_Battler.prototype.observeLeaderFacing = function(direction) {
+	const settleFrames = J.ABS.EXT.ALLYAI.Metadata.StanceFacingSettleFrames;
+	this.stanceFacing().observe(direction, settleFrames);
+};
+/**
+* Gets the facing this battler's stance is currently laid out from.
+* @returns {number} The direction the stance is laid out from.
+*/
+JABS_Battler.prototype.getStanceFacing = function() {
+	return this.stanceFacing().direction();
+};
+/**
+* Gets whether this battler has strayed far enough from its stance to sprint back into it.
+* @returns {boolean}
+*/
+JABS_Battler.prototype.stanceCatchingUp = function() {
+	return this._stanceCatchingUp;
+};
+/**
+* Sets whether this battler has strayed far enough from its stance to sprint back into it.
+* @param {boolean} catchingUp Whether the battler is catching up.
+*/
+JABS_Battler.prototype.setStanceCatchingUp = function(catchingUp) {
+	this._stanceCatchingUp = catchingUp;
+};
+/**
+* Gets the frame this battler last kept to its stance on.
+* @returns {number}
+*/
+JABS_Battler.prototype.stanceFollowFrame = function() {
+	return this._stanceFollowFrame;
+};
+/**
+* Sets the frame this battler last kept to its stance on.
+* @param {number} frame The frame count it kept to its stance on.
+*/
+JABS_Battler.prototype.setStanceFollowFrame = function(frame) {
+	this._stanceFollowFrame = frame;
+};
+/**
+* Decides whether this battler sprints back into its stance, from how far outside the stance it stands.
+*
+* The decision has a memory on purpose. An ally starts sprinting once it is well out of position, and
+* keeps sprinting until it is back in it. Deciding afresh every frame would stop the sprint the moment the
+* ally was merely close - and an ally kept in front of a walking leader, sent behind them by a turn, would
+* then trail them at a walk forever, never quite getting back in front.
+*
+* Between those two points it changes nothing, which is what keeps an ally trailing a walking leader at
+* the edge of its zone walking with them rather than lurching after them.
+* @param {number} distance How far the battler stands from its stance spot.
+*/
+JABS_Battler.prototype.updateStanceCatchUp = function(distance) {
+	const { StanceCatchUpDistance, StanceTolerance } = J.ABS.EXT.ALLYAI.Metadata;
+	this.setStanceFollowFrame(Graphics.frameCount);
+	if (distance > StanceCatchUpDistance) {
+		this.setStanceCatchingUp(true);
+		return;
+	}
+	if (distance <= StanceTolerance) {
+		this.setStanceCatchingUp(false);
+	}
+};
+/**
+* Whether this battler is sprinting back into its stance right now.
+*
+* A sprint only holds while the battler is actually keeping to its stance. The moment it does anything else
+* - fights, chases an alert, or stands frozen through a cutscene that stopped the AI - it stops being
+* steered by its stance, and a sprint left over from before would carry into whatever it does next. So a
+* sprint also requires the stance to have steered the battler this frame or the one before; either order
+* of the AI and the character update within a frame then sees it.
+* @returns {boolean} True if the battler should be moving faster than its leader, false otherwise.
+*/
+JABS_Battler.prototype.isStanceCatchingUp = function() {
+	if (!this.stanceCatchingUp()) return false;
+	return this.stanceFollowFrame() >= Graphics.frameCount - 1;
+};
+/**
+* Gets how many more frames this battler stays out of the fight after being told to pull back.
+* @returns {number}
+*/
+JABS_Battler.prototype.pullBackFrames = function() {
+	return this._pullBackFrames;
+};
+/**
+* Sets how many more frames this battler stays out of the fight after being told to pull back.
+* @param {number} frames The number of frames.
+*/
+JABS_Battler.prototype.setPullBackFrames = function(frames) {
+	this._pullBackFrames = frames;
+};
+/**
+* Whether this battler is staying out of the fight because it was told to pull back.
+* @returns {boolean} True if it is pulling back, false otherwise.
+*/
+JABS_Battler.prototype.isPullingBack = function() {
+	return this.pullBackFrames() > 0;
+};
+/**
+* Counts down an order to pull back by one frame.
+*/
+JABS_Battler.prototype.processPullBackTimer = function() {
+	if (!this.isPullingBack()) return;
+	this.setPullBackFrames(this.pullBackFrames() - 1);
+};
+/**
+* Obeys an order to charge: goes after something to fight right now, whatever the party's stance says.
+*
+* An ally already fighting is already charging, and one told to do nothing goes on doing nothing. A
+* charge also overrides any pull back still in effect, since the newer order is the one that stands.
+*/
+JABS_Battler.prototype.chargeOnCommand = function() {
+	if (this.getAllyAiMode().isDoNothing()) return;
+	if (this.isEngaged()) return;
+	this.setPullBackFrames(0);
+	const target = this.findChargeTarget();
+	if (target === null) return;
+	this.showBalloon(J.ABS.Balloons.Exclamation);
+	this.engageTarget(target);
+};
+/**
+* Finds something this battler can charge at.
+*
+* Whatever the leader is fighting comes first, since a charge is the leader asking for help with their
+* fight. Failing that, the nearest foe in sight will do.
+* @returns {JABS_Battler|null} The battler to charge at, or null when nothing worth charging is in reach.
+*/
+JABS_Battler.prototype.findChargeTarget = function() {
+	if (this.isLeaderFighting()) {
+		const leaderTarget = $jabsEngine.getPlayer1().lastHit();
+		if (this.canChargeAt(leaderTarget)) return leaderTarget;
+	}
+	const nearestFoe = JABS_AiManager.getClosestOpposingBattler(this);
+	if (nearestFoe === null) return null;
+	if (nearestFoe.isInanimate()) return null;
+	if (!this.canChargeAt(nearestFoe)) return null;
+	return nearestFoe;
+};
+/**
+* Whether a target is within reach for a charge.
+*
+* A charge is a chase, so the target must sit within this battler's pursuit range, or the chase would be
+* abandoned on its first step. It must also sit within this battler's leash of the leader, or the chase
+* would carry the battler far enough from the leader to be snapped straight back to them.
+* @param {JABS_Battler} target The battler to charge at.
+* @returns {boolean} True if the target is within reach, false otherwise.
+*/
+JABS_Battler.prototype.canChargeAt = function(target) {
+	const distance = this.distanceToDesignatedTarget(target);
+	if (!this.inPursuitRange(target, distance)) return false;
+	const leader = $jabsEngine.getPlayer1();
+	return target.distanceToDesignatedTarget(leader) <= this.getAllyLeashRange();
+};
+/**
+* Obeys an order to pull back: drops out of any fight, and stays out of every fight for a while.
+*
+* The ally forgets why it was fighting as well as what, so it does not turn straight back around the
+* moment the order runs out. Disengaging also clears any alert, so it does not walk back toward one
+* either, and while the order holds it cannot be alerted again.
+*/
+JABS_Battler.prototype.pullBackOnCommand = function() {
+	this.disengageTarget();
+	this.resetAllAggro(null, true);
+	this.setPullBackFrames(J.ABS.EXT.ALLYAI.Metadata.PullBackFrames);
+	this.showBalloon(J.ABS.Balloons.Sweat);
 };
 /**
 * Gets the leash range for this ally battler.
@@ -1068,47 +1483,6 @@ JABS_Battler.prototype.getAllyLeashRange = function() {
 JABS_Battler.prototype.applyBattleMemories = function(newMemory) {
 	if (this.isEnemy()) return;
 	return this.getBattler().getAllyAI().applyMemory(newMemory);
-};
-
-//#endregion
-//#region src/plugins/abs/ext/allyai/_models/JABS_Formation.js
-/**
-* The structure of a party formation in JABS.
-*/
-var JABS_Formation = class {
-	/**
-	* The name of the formation.
-	* @type {string}
-	*/
-	name = String.empty;
-	/**
-	* The description of the formation for use when reviewing formations.
-	* @type {string}
-	*/
-	description = String.empty;
-	/**
-	* A collection of the x,y coordinates of each ally relative to the leader and their facing.
-	* @type {[number[]]}
-	*/
-	formation = [];
-	/**
-	* A collection of the effects applied to the party while this formation is active.
-	* @type {any[]}
-	*/
-	effects = [];
-	/**
-	* Constructor.
-	* @param {string} name The name of this formation.
-	* @param {string} description The description of this formation to display to the player.
-	* @param {[number[]]} formation The array of positions for allies representing the formation.
-	* @param {any[]=} effects The additional effects applied when this formation is active.
-	*/
-	constructor(name, description, formation, effects = []) {
-		this.name = name;
-		this.description = description;
-		this.formation = formation;
-		this.effects = effects;
-	}
 };
 
 //#endregion
@@ -1141,7 +1515,7 @@ JABS_AiManager.aiPhase0 = function(battler) {
 };
 /**
 * Decides what to do for allies in their idle phase.
-* When not alerted/engaged, allies follow the leader in a loose formation.
+* When not alerted/engaged, allies keep to the party's stance around the leader.
 * @param {JABS_Battler} allyBattler The ally battler.
 */
 JABS_AiManager.allyAiPhase0 = function(allyBattler) {
@@ -1184,8 +1558,11 @@ JABS_AiManager.canPerformAllyPhase0 = function(allyBattler) {
 	return true;
 };
 /**
-* Causes an ally to follow their leader (player1) intelligently while idle.
-* Uses a small formation offset per follower index, a leash, and keeps spacing.
+* Causes an ally to keep to the party's stance around their leader (player1) while idle.
+*
+* The stance is a zone, so an ally already inside it stays where it is. One outside it heads for the
+* nearest spot in it, sprinting if it has strayed far enough. The zone turns with the leader, but only
+* once the leader has settled on a new facing.
 * @param {JABS_Battler} allyBattler The ally battler to reposition.
 */
 JABS_AiManager.allyFollowLeader = function(allyBattler) {
@@ -1193,11 +1570,56 @@ JABS_AiManager.allyFollowLeader = function(allyBattler) {
 	if (!leader) return;
 	if (this.maintainLeashAndEngagement(allyBattler, leader)) return;
 	if (!allyBattler.canBattlerMove()) return;
+	const leaderFacing = leader.getCharacter().direction();
+	allyBattler.observeLeaderFacing(leaderFacing);
+	const spot = this.findStanceSpot(allyBattler, leader);
+	const [spotX, spotY] = spot;
+	const distance = this.distanceToSlot(allyBattler, spotX, spotY);
+	allyBattler.updateStanceCatchUp(distance);
+	this.moveTowardSlotIfNeeded(allyBattler, spotX, spotY);
+};
+/**
+* Finds the nearest spot in the party's stance for an ally, as map coordinates.
+* @param {JABS_Battler} allyBattler The ally battler being placed.
+* @param {JABS_Battler} leaderBattler The leader the stance is laid out around.
+* @returns {[number, number]} The [x, y] coordinates of the spot.
+*/
+JABS_AiManager.findStanceSpot = function(allyBattler, leaderBattler) {
+	const stance = $gameParty.getPartyStanceType();
 	const followerIndex = this.getFollowerIndexFromBattler(allyBattler);
-	const formationType = $gameParty.getPartyFormation();
-	const coords = this.computeFormationTarget(leader, followerIndex, formationType);
-	const [desiredX, desiredY] = coords;
-	this.moveTowardSlotIfNeeded(allyBattler, desiredX, desiredY);
+	const lane = JABS_Stance.laneFor(Math.max(0, followerIndex));
+	const facing = allyBattler.getStanceFacing();
+	return this.computeStanceSpot(allyBattler, leaderBattler, stance, facing, lane);
+};
+/**
+* Computes the nearest spot within a stance's zone to where an ally stands, as map coordinates.
+*
+* Both battlers are measured by their logical position, the same position every mover measures arrival
+* against, so the answer means the same thing under tile and pixel movement alike: the ally's place
+* relative to the leader is turned into the leader-facing-down frame the stance is defined in, brought to
+* the nearest point of the zone there, and turned back out onto the map.
+* @param {JABS_Battler} allyBattler The ally battler being placed.
+* @param {JABS_Battler} leaderBattler The leader the stance is laid out around.
+* @param {JABS_Stance} stance The stance the ally is keeping to.
+* @param {2|4|6|8} facing The facing the stance is laid out from.
+* @param {number} lane The lane this ally keeps within the stance.
+* @returns {[number, number]} The [x, y] coordinates of the spot.
+*/
+JABS_AiManager.computeStanceSpot = function(allyBattler, leaderBattler, stance, facing, lane) {
+	const leaderCharacter = leaderBattler.getCharacter();
+	const leaderX = leaderCharacter.x;
+	const leaderY = leaderCharacter.y;
+	const allyCharacter = allyBattler.getCharacter();
+	const fromLeaderX = allyCharacter.x - leaderX;
+	const fromLeaderY = allyCharacter.y - leaderY;
+	const allyOffset = this.unrotateOffsetForFacing(fromLeaderX, fromLeaderY, facing);
+	const [side, forward] = allyOffset;
+	const inset = J.ABS.EXT.ALLYAI.Metadata.StanceTolerance;
+	const spotOffset = stance.nearestSpot(side, forward, lane, inset);
+	const [spotSide, spotForward] = spotOffset;
+	const mapOffset = this.rotateOffsetForFacing(spotSide, spotForward, facing);
+	const [offsetX, offsetY] = mapOffset;
+	return [leaderX + offsetX, leaderY + offsetY];
 };
 /**
 * Applies leash rules to keep allies reasonably near the leader.
@@ -1244,49 +1666,6 @@ JABS_AiManager.getFollowerIndexFromBattler = function(allyBattler) {
 	return followers.indexOf(character);
 };
 /**
-* Computes the absolute map tile for a follower’s formation slot.
-* Offsets are defined assuming the leader faces DOWN (2); they will be rotated to match current facing.
-* @param {JABS_Battler} leaderBattler The leader battler.
-* @param {number} followerIndex The index of the follower (0-based).
-* @param {string} formationType The formation type key.
-* @returns {[number, number]} The [x, y] tile target for this follower.
-*/
-JABS_AiManager.computeFormationTarget = function(leaderBattler, followerIndex, formationType) {
-	const idx = Math.max(0, followerIndex);
-	const offsets = this.getFormationOffsets(formationType);
-	const chosen = offsets[idx % offsets.length];
-	const [ox, oy] = chosen;
-	const dir = leaderBattler.getCharacter().direction();
-	const rotated = this.rotateOffsetForFacing(ox, oy, dir);
-	const [rx, ry] = rotated;
-	const lx = Math.floor(leaderBattler.getX());
-	const ly = Math.floor(leaderBattler.getY());
-	return this.calculateFormationSlotCoordinates(lx, rx, ly, ry);
-};
-/**
-* Gets the array of [x,y] tile offsets for the requested formation type.
-* Offsets are relative to the leader's current tile.
-* @param {string} formationKey The formation type key.
-* @returns {number[][]} The list of offsets.
-*/
-JABS_AiManager.getFormationOffsets = function(formationKey) {
-	const foundFormation = J.ABS.EXT.ALLYAI.Metadata.FormationTypes.find((formation) => formation.key === formationKey) ?? J.ABS.EXT.ALLYAI.Metadata.FormationTypes[0];
-	return foundFormation.formation;
-};
-/**
-* Calculates the formation slot's coordinates based on the given parameters.
-* @param {number} lx The leader's x coordinate.
-* @param {number} rx The rotated x.
-* @param {number} ly The leader's y coordinate.
-* @param {number} ry The rotated y.
-* @returns {[number, number]}
-*/
-JABS_AiManager.calculateFormationSlotCoordinates = function(lx, rx, ly, ry) {
-	const sx = lx + rx;
-	const sy = ly + ry;
-	return [sx, sy];
-};
-/**
 * Rotates a baseline offset [ox, oy] (assumed for leader facing DOWN) into the space of the given facing.
 * Directions follow RMMZ standard: 2=down, 4=left, 6=right, 8=up.
 * @param {number} ox The baseline x-offset (facing DOWN).
@@ -1304,6 +1683,27 @@ JABS_AiManager.rotateOffsetForFacing = function(ox, oy, dir) {
 	}
 };
 /**
+* Rotates an offset on the map back into the baseline frame of a leader facing DOWN - the exact reverse of
+* {@link JABS_AiManager.rotateOffsetForFacing}, so turning an offset one way and then the other returns it
+* unchanged.
+*
+* Stances are defined in that baseline frame, so this is how an ally's place on the map is read in terms a
+* stance understands: how far in front of the leader it stands, and how far to one side.
+* @param {number} mapX The x-offset on the map.
+* @param {number} mapY The y-offset on the map.
+* @param {2|4|6|8} dir The facing the offset is measured against.
+* @returns {[number, number]} The baseline offset [x, y], as though the leader faced DOWN.
+*/
+JABS_AiManager.unrotateOffsetForFacing = function(mapX, mapY, dir) {
+	switch (dir) {
+		case 2: return [mapX, mapY];
+		case 4: return [mapY, -mapX];
+		case 6: return [-mapY, mapX];
+		case 8: return [-mapX, -mapY];
+		default: return [mapX, mapY];
+	}
+};
+/**
 * Issues a smart move toward the designated slot if outside tolerance and able to move.
 * @param {JABS_Battler} allyBattler The ally battler.
 * @param {number} desiredX The desired slot x.
@@ -1316,14 +1716,14 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
 	if (allyBattler.guarding()) {
 		return;
 	}
-	const tolerance = J.ABS.EXT.ALLYAI.Metadata.FormationTolerance;
+	const tolerance = J.ABS.EXT.ALLYAI.Metadata.StanceTolerance;
 	if (this.isWithinTolerance(allyBattler, desiredX, desiredY, tolerance)) {
-		allyBattler.clearFormationApproach();
+		allyBattler.clearStanceApproach();
 		return;
 	}
 	const distance = this.distanceToSlot(allyBattler, desiredX, desiredY);
-	allyBattler.observeFormationApproach(distance, desiredX, desiredY);
-	if (allyBattler.hasGivenUpOnFormationSlot()) return;
+	allyBattler.observeStanceApproach(distance, desiredX, desiredY);
+	if (allyBattler.hasGivenUpOnStanceSpot()) return;
 	const character = allyBattler.getCharacter();
 	if (character.isMoving()) return;
 	if (allyBattler.canBattlerMove()) {
@@ -1575,7 +1975,8 @@ JABS_Engine.prototype.postPartyCycling = function() {
 };
 /**
 * Extends {@link JABS_Engine#canBeAlerted}.<br/>
-* Do-nothing allies cannot be alerted; they ignore attacks passively.
+* Do-nothing allies cannot be alerted; they ignore attacks passively. Neither can allies pulling back, who
+* would otherwise be dragged straight back toward the fight they were just told to leave.
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("canBeAlerted", JABS_Engine.prototype.canBeAlerted);
 JABS_Engine.prototype.canBeAlerted = function(attacker, battler) {
@@ -1583,8 +1984,126 @@ JABS_Engine.prototype.canBeAlerted = function(attacker, battler) {
 	if (battler.isActor()) {
 		const allyAI = battler.getAllyAiMode();
 		if (allyAI && allyAI.isDoNothing()) return false;
+		if (battler.isPullingBack()) return false;
 	}
 	return true;
+};
+/**
+* Extends {@link JABS_Engine#processOnHitEffects}.<br/>
+* Also rallies the leader's allies whenever the leader lands a hit or takes one.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("processOnHitEffects", JABS_Engine.prototype.processOnHitEffects);
+JABS_Engine.prototype.processOnHitEffects = function(action, target) {
+	J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get("processOnHitEffects").call(this, action, target);
+	const caster = action.getCaster();
+	this.rallyAlliesForLeaderHit(caster, target);
+};
+/**
+* Rallies the leader's allies toward the other side of a hit the leader was part of.
+*
+* Every stance answers the leader: whatever an ally would otherwise wait for, the leader striking
+* something or being struck sends it toward the fight. A hit that did not involve the leader rallies
+* nobody; an ally that was struck itself is alerted by the hit as usual.
+* @param {JABS_Battler} caster The battler who landed the hit.
+* @param {JABS_Battler} target The battler who took the hit.
+*/
+JABS_Engine.prototype.rallyAlliesForLeaderHit = function(caster, target) {
+	const leader = this.getPlayer1();
+	if (caster === leader) {
+		this.rallyAlliesToward(target);
+		return;
+	}
+	if (target === leader) {
+		this.rallyAlliesToward(caster);
+	}
+};
+/**
+* Rallies every ally on the field toward a foe.
+* @param {JABS_Battler} foe The battler the allies are rallied toward.
+*/
+JABS_Engine.prototype.rallyAlliesToward = function(foe) {
+	$gameMap.getFollowerBattlers().forEach((ally) => this.rallyAllyToward(ally, foe));
+};
+/**
+* Rallies a single ally toward a foe, by alerting it to where that foe stands.
+*
+* Being rallied is being alerted: the ally heads toward the foe until something is in sight, then fights
+* it, exactly as it would after being struck. Whatever an ally cannot be alerted by, it is not rallied by
+* either, which is how a healed friend or a smashed crate rallies nobody, and how an ally already fighting
+* keeps to its own fight. The alert is raised quietly, with neither the balloon nor the startled pause a
+* hit brings, because the ally is answering its leader rather than being caught off guard.
+* @param {JABS_Battler} ally The ally being rallied.
+* @param {JABS_Battler} foe The battler the ally is rallied toward.
+*/
+JABS_Engine.prototype.rallyAllyToward = function(ally, foe) {
+	if (!this.canBeAlerted(foe, ally)) return;
+	ally.setAlertedCoordinates(foe.getX(), foe.getY());
+	ally.setAlertedCounter(ally.getAlertDuration());
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/managers/JABS_InputAdapter.js
+/**
+* Orders every ally on the field to charge: each one goes after something to fight right now, whatever
+* the party's stance would have it wait for.
+*
+* Added to the core adapter so that whatever reads the player's input can issue the order without knowing
+* how allies carry it out; see {@link JABS_Battler.chargeOnCommand} for that.
+*/
+JABS_InputAdapter.performAllyCharge = function() {
+	$gameMap.getFollowerBattlers().forEach((ally) => ally.chargeOnCommand());
+};
+/**
+* Orders every ally on the field to pull back: each one drops out of whatever it is fighting and stays
+* out of every fight for a while.
+*
+* Added to the core adapter so that whatever reads the player's input can issue the order without knowing
+* how allies carry it out; see {@link JABS_Battler.pullBackOnCommand} for that.
+*/
+JABS_InputAdapter.performAllyPullBack = function() {
+	$gameMap.getFollowerBattlers().forEach((ally) => ally.pullBackOnCommand());
+};
+/**
+* Steps the party's stance one rung safer, toward hanging back behind the leader.
+*/
+JABS_InputAdapter.performAllyStanceSafer = function() {
+	this.stepAllyStance(-1);
+};
+/**
+* Steps the party's stance one rung bolder, toward leading the charge ahead of the leader.
+*/
+JABS_InputAdapter.performAllyStanceBolder = function() {
+	this.stepAllyStance(1);
+};
+/**
+* Steps the party's stance along the ladder of stances, and lets the player know how it went.
+*
+* A player stepping the stance mid-fight is not looking at a menu, so the change has to be heard and read
+* without one: a cursor sound and a line in the map's action log when it changes, and a buzzer when the
+* stance is already at the end of the ladder and there is nowhere further to step.
+* @param {number} step How many rungs to move; positive is bolder, negative is safer.
+*/
+JABS_InputAdapter.stepAllyStance = function(step) {
+	const nextStanceKey = $gameParty.stanceKeyAlongLadder(step);
+	if (nextStanceKey === $gameParty.getPartyStance()) {
+		SoundManager.playBuzzer();
+		return;
+	}
+	$gameParty.setPartyStance(nextStanceKey);
+	SoundManager.playCursor();
+	this.logAllyStance();
+};
+/**
+* Writes the party's current stance into the map's action log.
+*
+* The log belongs to J-Log, which this plugin does not require; without it, the sound is the whole of the
+* feedback.
+*/
+JABS_InputAdapter.logAllyStance = function() {
+	if (!J.LOG) return;
+	const stance = $gameParty.getPartyStanceType();
+	const stanceLog = new ActionLogBuilder().setMessage(`Stance set to \\C[23]${stance.name}\\C[0].`).build();
+	$mapLogs.action.addLog(stanceLog);
 };
 
 //#endregion
@@ -1739,6 +2258,30 @@ Game_Follower.prototype.jumpToPlayer = function() {
 	const sy = $gamePlayer.deltaYFrom(this.y);
 	this.jump(sx, sy);
 };
+/**
+* Extends {@link #realMoveSpeed}.<br/>
+* Also lets an ally sprint back into the party's stance when it has strayed far from it.
+*
+* A follower copies the player's speed every frame, so an ally is never faster than its leader on its own.
+* That leaves an ally kept in front of the leader stranded behind them after a turn, for as long as they
+* keep walking. The sprint is what lets it get back in front.
+* @returns {number}
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Follower.set("realMoveSpeed", Game_Follower.prototype.realMoveSpeed);
+Game_Follower.prototype.realMoveSpeed = function() {
+	const originalSpeed = J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get("realMoveSpeed").call(this);
+	if (!this.isCatchingUpToStance()) return originalSpeed;
+	return originalSpeed + J.ABS.EXT.ALLYAI.Metadata.StanceCatchUpSpeedBoost;
+};
+/**
+* Whether this follower is sprinting back into the party's stance right now.
+* @returns {boolean} True if it is sprinting, false otherwise.
+*/
+Game_Follower.prototype.isCatchingUpToStance = function() {
+	const battler = this.getJabsBattler();
+	if (!battler) return false;
+	return battler.isStanceCatchingUp();
+};
 
 //#endregion
 //#region src/plugins/abs/ext/allyai/objects/Game_Followers.js
@@ -1889,50 +2432,58 @@ Game_Party.prototype.initAllyAi = function() {
 	*/
 	this._j._abs._allyAI ||= {};
 	/**
-	* Whether or not the party will engage without the player's engagement.
-	* @type {boolean}
-	*/
-	this._j._abs._allyAI._aggroPassiveToggle ||= false;
-	/**
-	* The name of the current formation the party is leveraging.
+	* The key of the stance the party's allies currently take.
+	*
+	* The key is what gets saved, never the stance itself, so a stance retuned in a later version reaches
+	* every existing save as soon as it loads.
 	* @type {string}
 	*/
-	this._j._abs._allyAI._partyFormation = J.ABS.EXT.ALLYAI.Metadata.DefaultFormationType;
+	this._j._abs._allyAI._partyStance = J.ABS.EXT.ALLYAI.Metadata.DefaultStanceType;
 };
 /**
-* Gets whether or not the party is allowed to actively engage enemies.
-* @returns {boolean}
-*/
-Game_Party.prototype.isAggro = function() {
-	return this._j._abs._allyAI._aggroPassiveToggle;
-};
-/**
-* Sets the party ally AI to be aggro.
-* Aggro party ally AI will have their own sight ranges and engage any enemies nearby.
-*/
-Game_Party.prototype.becomeAggro = function() {
-	this._j._abs._allyAI._aggroPassiveToggle = true;
-};
-/**
-* Sets the party ally AI to be passive.
-* Passive party ally AI will only fight if hit first or when the leader engages.
-*/
-Game_Party.prototype.becomePassive = function() {
-	this._j._abs._allyAI._aggroPassiveToggle = false;
-};
-/**
-* Gets the key of the current party formation.
+* Gets the key of the stance the party's allies currently take.
 * @returns {string}
 */
-Game_Party.prototype.getPartyFormation = function() {
-	return this._j._abs._allyAI._partyFormation;
+Game_Party.prototype.getPartyStance = function() {
+	return this._j._abs._allyAI._partyStance;
 };
 /**
-* Sets the key of the current party formation to the given formation.
-* @param formation
+* Sets the stance the party's allies take.
+* @param {string} stanceKey The key of the stance to take.
 */
-Game_Party.prototype.setPartyFormation = function(formation) {
-	this._j._abs._allyAI._partyFormation = formation;
+Game_Party.prototype.setPartyStance = function(stanceKey) {
+	this._j._abs._allyAI._partyStance = stanceKey;
+};
+/**
+* Gets the stance the party's allies currently take.
+*
+* A key that names no stance falls back to the default one. The key is saved, so a save written before a
+* stance was retired still holds that stance's key, and it should load into a sensible stance rather than
+* into none at all.
+* @returns {JABS_Stance}
+*/
+Game_Party.prototype.getPartyStanceType = function() {
+	const stanceKey = this.getPartyStance();
+	const { StanceTypes } = J.ABS.EXT.ALLYAI.Metadata;
+	const stance = StanceTypes.find((stanceType) => stanceType.key === stanceKey);
+	return stance ?? StanceTypes[0];
+};
+/**
+* Gets the key of the stance a number of rungs along the ladder from the party's current one.
+*
+* The stances are listed in ladder order, from hanging back behind the leader to leading the charge ahead
+* of them, so a positive step is bolder and a negative one is safer. The ladder does not wrap around: a
+* step past either end stays on the end rung, so stepping bolder from the boldest stance never sends the
+* party all the way back to the safest one.
+* @param {number} step How many rungs to move; positive is bolder, negative is safer.
+* @returns {string} The key of the stance that many rungs along, or of the end rung if the step runs out.
+*/
+Game_Party.prototype.stanceKeyAlongLadder = function(step) {
+	const { StanceTypes } = J.ABS.EXT.ALLYAI.Metadata;
+	const currentRung = StanceTypes.indexOf(this.getPartyStanceType());
+	const lastRung = StanceTypes.length - 1;
+	const nextRung = JABS_Stance.clampToRange(currentRung + step, 0, lastRung);
+	return StanceTypes[nextRung].key;
 };
 /**
 * Extends {@link Game_Party.addActor}.<br/>
@@ -1997,7 +2548,7 @@ var Window_AllyAiSelect = class Window_AllyAiSelect extends Window_Command {
 	*/
 	static Types = {
 		/**
-		* The list of party members whose AI may be configured, plus the party-wide toggles.
+		* The list of party members whose AI may be configured, plus the party's stance.
 		*/
 		PartyList: "ai-party-list",
 		/**
@@ -2068,9 +2619,8 @@ var Window_AllyAiSelect = class Window_AllyAiSelect extends Window_Command {
 	makeCommandList() {
 		switch (this.menuType()) {
 			case Window_AllyAiSelect.Types.PartyList:
-				this.addAggroPassiveToggleCommand();
 				this.makeAllyList();
-				this.addAllyFormationCommand();
+				this.addAllyStanceCommand();
 				break;
 			case Window_AllyAiSelect.Types.SelectAi:
 				this.makeAllyAiDoNothingToggle();
@@ -2089,26 +2639,17 @@ var Window_AllyAiSelect = class Window_AllyAiSelect extends Window_Command {
 		$gameParty.allMembers().forEach(forEacher, this);
 	}
 	/**
-	* Injects the aggro-passive toggle command into the menu.
+	* Injects the party stance command into the menu, naming the stance the party currently takes.
 	*/
-	addAggroPassiveToggleCommand() {
-		const aggroPassiveCommandName = $gameParty.isAggro() ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveText : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveText;
-		const aggroPassiveCommandIcon = $gameParty.isAggro() ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex;
-		const description = $gameParty.isAggro() ? "The party is currently 'aggro'.\nAllies will engage in any enemy that comes within their range." : "The party is currently 'passive'.\nAllies will not engage until the leader strikes or is struck.";
-		const textColor = $gameParty.isAggro() ? 2 : 3;
-		const command = new WindowCommandBuilder(aggroPassiveCommandName).setSymbol("aggro-passive-toggle").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setColorIndex(textColor).setIconIndex(aggroPassiveCommandIcon).build();
-		this.addBuiltCommand(command);
-	}
-	/**
-	* Injects the party formations command into the menu.
-	*/
-	addAllyFormationCommand() {
-		const allyFormationsCommand = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandName).setSymbol("ally-formations").setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandIconIndex).setColorIndex(23).build();
-		this.addBuiltCommand(allyFormationsCommand);
+	addAllyStanceCommand() {
+		const currentStance = $gameParty.getPartyStanceType();
+		const currentStanceText = `Currently: ${currentStance.name}`;
+		const allyStanceCommand = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyStanceCommandName).setSymbol("ally-stances").setTextLines([currentStanceText]).flagAsSubText().setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyStanceCommandIconIndex).setColorIndex(23).build();
+		this.addBuiltCommand(allyStanceCommand);
 	}
 	/**
 	* Adds a do-nothing toggle command at the top of the ally AI selection window.
-	* Mirrors the aggro/passive toggle pattern from the party list window.
+	* The toggle renders its own state, so it reads correctly whichever way it is set.
 	*/
 	makeAllyAiDoNothingToggle() {
 		const currentActor = $gameActors.actor(this.getActorId());
@@ -2118,7 +2659,7 @@ var Window_AllyAiSelect = class Window_AllyAiSelect extends Window_Command {
 		const commandName = isDoNothing ? "Do Nothing: ON" : "Do Nothing: OFF";
 		const description = isDoNothing ? "This ally hangs back and takes no actions.\nToggle off to restore their preset behavior." : "This ally acts according to their preset.\nToggle on to make them stand down entirely.";
 		const colorIndex = isDoNothing ? 3 : 2;
-		const iconIndex = isDoNothing ? J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex : J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex;
+		const iconIndex = isDoNothing ? J.ABS.EXT.ALLYAI.Metadata.DoNothingOnIconIndex : J.ABS.EXT.ALLYAI.Metadata.DoNothingOffIconIndex;
 		const command = new WindowCommandBuilder(commandName).setSymbol("do-nothing-toggle").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setColorIndex(colorIndex).setIconIndex(iconIndex).build();
 		this.addBuiltCommand(command);
 	}
@@ -2150,29 +2691,42 @@ var Window_AllyAiSelect = class Window_AllyAiSelect extends Window_Command {
 };
 
 //#endregion
-//#region src/plugins/abs/ext/allyai/windows/Window_Formations.js
+//#region src/plugins/abs/ext/allyai/windows/Window_Stances.js
 /**
-* A window that allows selection from a list of ally AI formations.
+* A window that allows selection from the stances the party's allies can take.
 */
-var Window_Formations = class extends Window_Command {
+var Window_Stances = class extends Window_Command {
+	/**
+	* Constructor.
+	* @param {Rectangle} rect The shape of this window.
+	*/
 	constructor(rect) {
 		super(rect);
 	}
 	/**
-	* Generates the command list for the JABS menu.
+	* Generates the command list of stances.
 	*/
 	makeCommandList() {
 		const commands = this.buildCommands();
 		commands.forEach(this.addBuiltCommand, this);
 	}
+	/**
+	* Builds one command for every stance the party can take.
+	* @returns {BuiltWindowCommand[]}
+	*/
 	buildCommands() {
-		return J.ABS.EXT.ALLYAI.Metadata.FormationTypes.map(this.buildCommand, this);
+		return J.ABS.EXT.ALLYAI.Metadata.StanceTypes.map(this.buildCommand, this);
 	}
-	buildCommand(formation) {
-		const { key, name, description } = formation;
-		const isEquipped = $gameParty.getPartyFormation() === key;
+	/**
+	* Builds the command for a single stance.
+	* @param {JABS_Stance} stance The stance to build a command for.
+	* @returns {BuiltWindowCommand}
+	*/
+	buildCommand(stance) {
+		const { key, name, description } = stance;
+		const isEquipped = $gameParty.getPartyStance() === key;
 		const iconIndex = isEquipped ? J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex : J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
-		return new WindowCommandBuilder(name).setSymbol("select-formation").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setIconIndex(iconIndex).setEnabled(true).setExtensionData(formation).build();
+		return new WindowCommandBuilder(name).setSymbol("select-stance").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setIconIndex(iconIndex).setEnabled(true).setExtensionData(stance).build();
 	}
 	/**
 	* Overwrites {@link #itemHeight}.<br/>
@@ -2274,7 +2828,7 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		this.createHelpWindow();
 		this.createPartyListWindow();
 		this.createPresetListWindow();
-		this.createFormationListWindow();
+		this.createStanceListWindow();
 		this.focusPartyList();
 	}
 	/**
@@ -2284,8 +2838,7 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		const window = new Window_AllyAiSelect(this.partyListRect(), Window_AllyAiSelect.Types.PartyList);
 		window.setHandler("cancel", this.popScene.bind(this));
 		window.setHandler("party-member", this.commandSelectMemberAi.bind(this));
-		window.setHandler("aggro-passive-toggle", this.commandAggroPassiveToggle.bind(this));
-		window.setHandler("ally-formations", this.commandAllyFormations.bind(this));
+		window.setHandler("ally-stances", this.commandAllyStances.bind(this));
 		window.setHelpWindow(this.helpWindow());
 		this.setPartyListWindow(window);
 		this.addWindow(window);
@@ -2305,14 +2858,14 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		window.deactivate();
 	}
 	/**
-	* Creates the list of party formations.
+	* Creates the list of stances the party can take.
 	*/
-	createFormationListWindow() {
-		const window = new Window_Formations(this.detailRect());
+	createStanceListWindow() {
+		const window = new Window_Stances(this.detailRect());
 		window.setHandler("cancel", this.focusPartyList.bind(this));
-		window.setHandler("select-formation", this.commandSelectAllyFormation.bind(this));
+		window.setHandler("select-stance", this.commandSelectAllyStance.bind(this));
 		window.setHelpWindow(this.helpWindow());
-		this.setFormationListWindow(window);
+		this.setStanceListWindow(window);
 		this.addWindow(window);
 		window.hide();
 		window.deactivate();
@@ -2321,7 +2874,7 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 	* The share of the content area given to the party column.
 	*
 	* The party gets the smaller half because its rows are names, while the column beside it carries
-	* presets and formations that each explain themselves across a second line.
+	* presets and stances that each explain themselves across a second line.
 	* @returns {number}
 	*/
 	partyColumnRatio() {
@@ -2337,7 +2890,7 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		return new Rectangle(area.x, area.y, width, area.height);
 	}
 	/**
-	* The shape of the column beside the party, shared by the presets and the formations.
+	* The shape of the column beside the party, shared by the presets and the stances.
 	*
 	* Defined as the remainder rather than its own fraction, so the two columns cannot drift apart or
 	* leave a seam between them however the ratio is tuned.
@@ -2371,8 +2924,8 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 	focusPartyList() {
 		this.presetListWindow().hide();
 		this.presetListWindow().deactivate();
-		this.formationListWindow().hide();
-		this.formationListWindow().deactivate();
+		this.stanceListWindow().hide();
+		this.stanceListWindow().deactivate();
 		this.partyListWindow().activate();
 		this.partyListWindow().show();
 	}
@@ -2400,18 +2953,6 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		this.focusDetail(this.presetListWindow());
 	}
 	/**
-	* Toggles the party-wide aggro/passive stance.
-	*
-	* Passive confines allies to the leader's current target; aggro gives them their full sight range and
-	* lets them pick fights of their own.
-	*/
-	commandAggroPassiveToggle() {
-		SoundManager.playRecovery();
-		$gameParty.isAggro() ? $gameParty.becomePassive() : $gameParty.becomeAggro();
-		this.partyListWindow().refresh();
-		this.partyListWindow().activate();
-	}
-	/**
 	* Applies the chosen preset to the chosen ally.
 	*/
 	commandEquipMemberAi() {
@@ -2432,20 +2973,21 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		this.presetListWindow().activate();
 	}
 	/**
-	* Shows the party's available formations.
+	* Shows the stances the party can take.
 	*/
-	commandAllyFormations() {
-		this.focusDetail(this.formationListWindow());
+	commandAllyStances() {
+		this.focusDetail(this.stanceListWindow());
 	}
 	/**
-	* Applies the chosen formation to the party.
+	* Applies the chosen stance to the party.
 	*/
-	commandSelectAllyFormation() {
-		/** @type {JABS_Formation} */
-		const selectedFormation = this.formationListWindow().currentExt();
-		$gameParty.setPartyFormation(selectedFormation.key);
-		this.formationListWindow().refresh();
-		this.formationListWindow().activate();
+	commandSelectAllyStance() {
+		/** @type {JABS_Stance} */
+		const selectedStance = this.stanceListWindow().currentExt();
+		$gameParty.setPartyStance(selectedStance.key);
+		this.stanceListWindow().refresh();
+		this.partyListWindow().refresh();
+		this.stanceListWindow().activate();
 	}
 	/**
 	* Gets the party column.
@@ -2476,18 +3018,18 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		this._presetListWindow = window;
 	}
 	/**
-	* Gets the formation list.
-	* @returns {Window_Formations}
+	* Gets the stance list.
+	* @returns {Window_Stances}
 	*/
-	formationListWindow() {
-		return this._formationListWindow;
+	stanceListWindow() {
+		return this._stanceListWindow;
 	}
 	/**
-	* Sets the formation list.
-	* @param {Window_Formations} window The window to track.
+	* Sets the stance list.
+	* @param {Window_Stances} window The window to track.
 	*/
-	setFormationListWindow(window) {
-		this._formationListWindow = window;
+	setStanceListWindow(window) {
+		this._stanceListWindow = window;
 	}
 };
 

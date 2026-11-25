@@ -11,7 +11,11 @@ written down here, because a roster in a doc goes stale the moment an enemy move
 bun tools/bestiary.js              # every area in play order, with its band and who lives there
 bun tools/bestiary.js first        # every line, where the player first meets it, and the tally by chapter
 bun tools/bestiary.js line Titan   # one line's tiers and named, and where each one stands
+bun tools/bestiary.js json         # all of it as data, which the bestiary page draws
 ```
+
+The bestiary page draws every line against every area at once, at http://j-desktop.local:1220/bestiary.
+It reads the game fresh on every visit; `tools/bestiary-page/README.md` says how.
 
 ---
 

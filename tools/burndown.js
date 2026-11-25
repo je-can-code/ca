@@ -14,11 +14,16 @@
  *
  * Usage:
  *   bun tools/burndown.js          # print the count
+ *   bun tools/burndown.js --json   # print the page's data instead, writing nothing
  *   bun tools/burndown.js --write  # also record today in the history and write the page's data
  *
  * With `--write`, today's rows replace any earlier run from the same day in
  * `docs/content-complete-history.json`, and `dist/burndown/` gets `items.json`, `history.json`,
  * `areas.json` and `supply.json`, which are the four files the burndown page reads.
+ *
+ * `--json` is what the live page in `tools/burndown-page/` runs on every visit. It prints those same four
+ * datasets as one object, with today's count standing in the history as though it had been recorded, so
+ * the page always ends its line at today without a visit ever adding a row to the record.
  */
 
 const ROOT = `${import.meta.dir}/..`;
@@ -103,12 +108,13 @@ const range = (first, last) => Array.from({ length: last - first + 1 }, (_, inde
  * The areas built after chapter 3.
  *
  * `noRoster` lists the maps that never count toward the enemy lane: rest rooms and switcher rooms, which
- * are enemy-free by convention, arenas, and rooms whose fight sits on the checklist by hand, so that
- * nothing is counted twice. Folder rows in these ranges hold no tiles and are skipped when read.
+ * are enemy-free by convention, the quiet room every boss gets before its fight, arenas, and rooms whose
+ * fight sits on the checklist by hand, so that nothing is counted twice. Folder rows in these ranges hold
+ * no tiles and are skipped when read.
  * @type {Array<{ name: string, maps: number[], noRoster: number[] }>}
  */
 const AREAS = [
-  { name: 'Nimbus', maps: range(363, 380), noRoster: [ 374, 378, 380 ] },
+  { name: 'Nimbus', maps: range(363, 380), noRoster: [ 374, 378, 379, 380 ] },
   { name: 'The Subterranean', maps: range(385, 409), noRoster: [ 406, 408, 409 ] },
   {
     name: 'The Frozen Fortress',
@@ -527,6 +533,14 @@ const surveyNodes = async world =>
 };
 
 /**
+ * The node panels cut from 1.0.0, which the panel lane leaves out of its count.
+ *
+ * ELE_5 is held for Brighteene, the sixth elemental, whose place in the story is still open.
+ * @type {Set<string>}
+ */
+const PANELS_CUT_FROM_RELEASE = new Set([ 'ELE_5' ]);
+
+/**
  * Reads how many of each subgroup's node panels are still placeholders.
  *
  * A placeholder panel already has its parameters and its mastery, and an enemy already hands it out, so
@@ -539,7 +553,8 @@ const surveyPanels = async () =>
 
   return subgroups.map(subgroup =>
   {
-    const panels = sdps.filter(panel => panel.mastery.subgroupKey === subgroup.key);
+    const panels = sdps.filter(panel => panel.mastery.subgroupKey === subgroup.key
+      && PANELS_CUT_FROM_RELEASE.has(panel.key) === false);
     const unnamed = panels.filter(panel => panel.identity.name.includes('==='));
 
     return {
@@ -899,11 +914,15 @@ const writeRows = (path, rows) =>
 };
 
 /**
- * Records today in the history, replacing any earlier run from the same day.
+ * The recorded history with today's count in it, replacing any earlier run from the same day.
+ *
+ * Nothing is written here. `--write` saves what this returns, and `--json` only shows it, which is how the
+ * live page can end its line at today on every visit while the record still grows one deliberate run at
+ * a time.
  * @param {Array<{ lane: string, total: number, left: number }>} lanes Today's count.
  * @returns {Promise<object[]>}
  */
-const recordHistory = async lanes =>
+const historyWithToday = async lanes =>
 {
   const file = Bun.file(HISTORY_PATH);
   const earlier = await file.exists()
@@ -911,13 +930,10 @@ const recordHistory = async lanes =>
     : [];
 
   const date = today();
-  const rows = [
+  return [
     ...earlier.filter(row => row.date !== date),
     ...lanes.map(({ lane, total, left }) => ({ date, lane, total, left })),
   ];
-
-  await writeRows(HISTORY_PATH, rows);
-  return rows;
 };
 
 /**
@@ -958,12 +974,21 @@ const measured = new Map([
 const checklist = parseChecklist(await Bun.file(CHECKLIST_PATH).text());
 const items = buildItems(checklist, measured);
 const lanes = countLanes(items);
+const history = await historyWithToday(lanes);
 
-printCount(lanes, areas, supply);
+// the live page reads standard output as its data, so the human count stays out of the way.
+if (process.argv.includes('--json'))
+{
+  console.log(JSON.stringify({ items, history, areas, supply: [ supply ] }));
+}
+else
+{
+  printCount(lanes, areas, supply);
+}
 
 if (process.argv.includes('--write'))
 {
-  const history = await recordHistory(lanes);
+  await writeRows(HISTORY_PATH, history);
   await writeRows(`${OUT_DIR}/items.json`, items);
   await writeRows(`${OUT_DIR}/history.json`, history);
   await writeRows(`${OUT_DIR}/areas.json`, areas);

@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1c1c1c">
+<title>Chef Adventure burndown</title>
+<style>
+  /*
+   * The page was first a hosted dashboard, which supplied these design tokens itself. They are set
+   * here to the same dark look, so the rules below could come across unchanged.
+   */
+  :root {
+    color-scheme: dark;
+    --color-bg: #1c1c1c;
+    --color-panel: #262626;
+    --color-border-line: #363636;
+    --color-fg: #ececec;
+    --color-fg-muted: #a3a3a3;
+    --color-ok: #74c48f;
+    --color-warn: #e3b35f;
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --cds-gap-xs: 4px;
+    --cds-gap-sm: 8px;
+    --cds-gap-md: 16px;
+    --cds-gap-lg: 24px;
+    --cds-pad-xs: 4px;
+    --cds-pad-sm: 8px;
+    --cds-pad-lg: 16px;
+    --cds-radius: 8px;
+    --cds-font-size-caption: 12px;
+    --cds-font-size-body: 14px;
+    --cds-font-size-heading: 16px;
+    --cds-font-size-title: 26px;
+    --cds-font-weight-medium: 560;
+    --cds-chart-grid: #333333;
+    --cds-chart-axis: #4f4f4f;
+    --cds-chart-reference: #8c8c8c;
+    --cds-surface-popover: #2e2e2e;
+    --cds-border: #464646;
+    --cds-shadow-popover: 0 6px 18px rgb(0 0 0 / 0.45);
+    --cds-text-secondary: #a3a3a3;
+    --cds-dur-slow: 300ms;
+  }
+  body { margin: 0; padding: 24px; background: var(--color-bg); font-size: var(--cds-font-size-body); line-height: 1.45; }
+  .bd { max-width: 1400px; margin-inline: auto; }
+  [hidden] { display: none !important; }
+  .dash-skeleton { border-radius: var(--cds-radius); background: var(--color-bg); }
+  .bd-problem { color: var(--color-warn); }
+  @media (max-width: 640px) {
+    body { padding: 12px; }
+  }
+
+  .bd { display: grid; gap: var(--cds-gap-lg); min-width: 0; font-family: var(--font-sans); color: var(--color-fg); }
+  .bd-head { display: grid; gap: var(--cds-gap-xs); }
+  .bd-title { margin: 0; font-family: var(--font-serif); font-weight: 400; font-size: var(--cds-font-size-title); text-wrap: balance; }
+  .bd-take { margin: 0; max-width: 70ch; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); }
+  .bd .bd-take b { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+
+  .bd-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: var(--cds-gap-md); }
+  .bd-tile, .bd-card { min-width: 0; padding: var(--cds-pad-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
+  .bd-tile { display: grid; gap: var(--cds-gap-xs); align-content: start; }
+  .bd-tile-label, .bd-tile-note, .bd-note, .bd-shown { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .bd-tile-value { font-family: var(--font-serif); font-weight: 400; font-size: calc(var(--cds-font-size-title) * 1.35); line-height: 1.1; font-variant-numeric: tabular-nums; }
+
+  .bd-card { display: grid; gap: var(--cds-gap-sm); align-content: start; }
+  .bd-h { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+  .bd-note { margin: 0; max-width: 70ch; }
+  .bd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+
+  .bd-chart { position: relative; min-width: 0; min-height: 320px; }
+  .bd-chart svg { display: block; }
+  .bd-chart text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-sans); }
+  .bd-chart .bd-end { fill: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+  .bd-tip { position: absolute; top: 0; left: 0; display: grid; gap: 2px; padding: var(--cds-pad-xs) var(--cds-pad-sm); background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; pointer-events: none; white-space: nowrap; }
+  .bd-tip-date { color: var(--cds-text-secondary); }
+
+  .bd-lanes { display: grid; gap: 2px; min-height: 12rem; }
+  .bd-lane { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px var(--cds-gap-sm); width: 100%; padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 0; border-radius: var(--cds-radius); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .bd-lane:hover { background: var(--color-bg); }
+  .bd-lane.is-picked { background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-border-line); }
+  .bd-lane:focus-visible, .bd-clear:focus-visible, .bd-search:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 1px; }
+  .bd-lane-name { min-width: 0; font-size: var(--cds-font-size-body); }
+  .bd-lane-count { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .bd-track { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--cds-chart-grid); overflow: hidden; }
+  .bd-fill { height: 100%; border-radius: 3px; }
+
+  .bd-scroll { min-width: 0; overflow-x: auto; }
+  .bd-box { min-width: 0; max-height: 34rem; overflow: auto; }
+  .bd-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-body); }
+  .bd-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .bd-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+  .bd-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bd-muted { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); white-space: nowrap; }
+  .bd-chip { font-size: var(--cds-font-size-caption); white-space: nowrap; color: var(--color-fg-muted); }
+  .bd-chip.is-done { color: var(--color-ok); }
+  .bd-chip.is-started { color: var(--color-warn); }
+
+  .bd-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-sm); }
+  .bd-search { flex: 1 1 12rem; min-width: 0; padding: var(--cds-pad-xs) var(--cds-pad-sm); background: var(--color-bg); color: var(--color-fg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); font: inherit; }
+  .bd-check { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .bd-clear { padding: var(--cds-pad-xs) var(--cds-pad-sm); background: transparent; color: var(--color-fg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); font: inherit; font-size: var(--cds-font-size-caption); cursor: pointer; }
+  .bd-off { margin: 0; padding-left: 1.2em; display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-body); }
+  .bd .bd-off b { font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+
+  @media (max-width: 640px) {
+    .bd-col-where { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="bd">
+  <header class="bd-head" id="top">
+    <h1 class="bd-title">Chef Adventure burndown</h1>
+    <p class="bd-take"><b data-draw="left">—</b> things left to build and <b data-draw="days">—</b> days to <b data-draw="target">—</b>. Content complete means every event is built and theoretically works.</p>
+    <p class="bd-note bd-problem" hidden></p>
+  </header>
+
+  <section class="bd-tiles" id="tiles" aria-label="Where it stands">
+    <div class="bd-tile" id="tile-left">
+      <div class="bd-tile-label">Left to build</div>
+      <div class="bd-tile-value" data-draw="left">—</div>
+      <div class="bd-tile-note">of <span data-draw="total">—</span> on the list</div>
+    </div>
+    <div class="bd-tile" id="tile-days">
+      <div class="bd-tile-label">Days to target</div>
+      <div class="bd-tile-value" data-draw="days">—</div>
+      <div class="bd-tile-note">counting from today</div>
+    </div>
+    <div class="bd-tile" id="tile-rate">
+      <div class="bd-tile-label">Needed per day</div>
+      <div class="bd-tile-value" data-draw="rate">—</div>
+      <div class="bd-tile-note">to reach zero on time</div>
+    </div>
+    <div class="bd-tile" id="tile-line">
+      <div class="bd-tile-label">Against the line</div>
+      <div class="bd-tile-value" data-draw="delta">—</div>
+      <div class="bd-tile-note">last counted <span data-draw="counted">—</span></div>
+    </div>
+  </section>
+
+  <section class="bd-card" id="burndown">
+    <h2 class="bd-h">Work left by day</h2>
+    <p class="bd-note">The solid line is what was left on each count. The dashed line runs to zero on the target date, so staying on or under it lands on time. Big batches will make it drop in steps.</p>
+    <div class="bd-chart dash-skeleton" id="burndown-chart" data-draw="chart"></div>
+    <p class="bd-note bd-forecast" hidden>At the pace so far, zero lands around <b data-draw="finish">—</b>.</p>
+  </section>
+
+  <div class="bd-grid">
+    <section class="bd-card" id="lanes">
+      <h2 class="bd-h">By lane</h2>
+      <p class="bd-note">A longer bar is a bigger lane. The filled part is finished. Select a lane to filter the list below.</p>
+      <div class="bd-lanes dash-skeleton" id="lanes-list" data-draw="lanes"></div>
+    </section>
+
+    <section class="bd-card" id="areas">
+      <h2 class="bd-h">New areas</h2>
+      <p class="bd-note">Populated means a real population is placed, more than a lone T5 or a roster stamp. Polished means a tile changed since the draft.</p>
+      <div class="bd-scroll">
+        <table class="bd-table" id="areas-table">
+          <thead>
+            <tr>
+              <th>Area</th>
+              <th class="num">Maps</th>
+              <th class="num">Need enemies</th>
+              <th class="num">Populated</th>
+              <th class="num">Dialogue lines</th>
+              <th class="num">Polished</th>
+            </tr>
+          </thead>
+          <tbody data-draw="areasBody"></tbody>
+        </table>
+      </div>
+      <h2 class="bd-h">Can it all be made?</h2>
+      <p class="bd-note">Traced from every way a thing enters the game: drops, chests, shops, events and recipes.</p>
+      <ul class="bd-off">
+        <li><b data-draw="craftable">—</b> of <b data-draw="recipes">—</b> recipes can be made today.</li>
+        <li><b data-draw="gettable">—</b> of <b data-draw="gear">—</b> pieces of gear can be had.</li>
+      </ul>
+      <h2 class="bd-h">Off the line</h2>
+      <p class="bd-note">None of this counts toward content complete.</p>
+      <ul class="bd-off">
+        <li>Tile polish: <b data-draw="polished">—</b> of <b data-draw="polishMaps">—</b> new maps have some so far.</li>
+      </ul>
+      <ul class="bd-off" id="after-line" data-draw="afterLine"></ul>
+    </section>
+  </div>
+
+  <section class="bd-card" id="list">
+    <h2 class="bd-h">Everything on the list</h2>
+    <div class="bd-tools">
+      <input class="bd-search" id="bd-search" type="search" placeholder="Search the list" aria-label="Search the list">
+      <label class="bd-check"><input class="bd-done" id="bd-done" type="checkbox">Show finished</label>
+      <button class="bd-clear" id="bd-clear" type="button" hidden>Clear lane filter</button>
+      <span class="bd-shown" data-draw="shown">—</span>
+    </div>
+    <div class="bd-box">
+      <table class="bd-table" id="list-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Lane</th>
+            <th>Status</th>
+            <th class="bd-col-where">Where</th>
+          </tr>
+        </thead>
+        <tbody data-draw="itemsBody"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+  //region the runtime
+
+  // The page was first drawn by a hosted dashboard's runtime, which handed it four datasets, worked out
+  // everything calculated from them, and redrew whatever depended on the result. This is that same
+  // contract in miniature, so the page's own code further down could move here nearly unchanged. The four
+  // datasets come from this server's /data, which counts the game fresh on every visit.
+
+  // every dataset by name: the four the counter sends, then each one calculated from them.
+  const sources = new Map();
+
+  // the calculations in the order they are declared, which is also the order they depend on each other.
+  const calcs = [];
+
+  // the draw for each data-draw name, rerun whenever the data or the page's parameters change.
+  const draws = new Map();
+
+  // what runs after every redraw, for the parts of the page that no single draw owns.
+  const dataListeners = [];
+
+  // the four datasets the counter sends, by the names the calculations ask for them.
+  const COUNTED = ['items', 'history', 'areas', 'supply'];
+
+  // one day in milliseconds, for stepping dates along the chart's axis.
+  const DAY = 86400000;
+
+  const dash = {
+    // the chart's own blue, the one color the page asks the runtime for.
+    colors: ['#5b97f2'],
+
+    // declares a dataset worked out from others; it is filled in once its inputs have all arrived.
+    calc: (name, definition) => calcs.push({name, ...definition}),
+
+    // a dataset as it stands, which reads as loading until the count comes back.
+    data: (name) => sources.get(name) ?? {status: 'loading', data: []},
+
+    // registers a draw when given one, and either way runs it over every element that names it.
+    draw: (name, fn) => {
+      if (fn) draws.set(name, fn);
+      const run = draws.get(name);
+      document.querySelectorAll(`[data-draw="${name}"]`).forEach((el) => run(el));
+    },
+
+    // the page's parameters live in the address after the #, so a lane filter survives a reload.
+    params: () => Object.fromEntries(new URLSearchParams(location.hash.slice(1))),
+
+    // merges new parameters in, dropping any set to nothing, and redraws.
+    setParams: (next) => {
+      const merged = {...dash.params(), ...next};
+      const kept = Object.entries(merged).filter(([, value]) => value);
+      const hash = new URLSearchParams(kept).toString();
+      history.replaceState(null, '', hash ? `#${hash}` : location.pathname);
+      redraw();
+    },
+
+    // adds something to run after every redraw.
+    onData: (fn) => dataListeners.push(fn),
+  };
+
+  /**
+   * Works out every calculated dataset, in declaration order, from whatever has arrived so far.
+   */
+  const calculate = () => {
+    calcs.forEach(({name, inputs, fn}) => {
+      const given = inputs.map((input) => dash.data(input));
+      const isReady = given.every((source) => source.status === 'ok');
+      const result = isReady ? {status: 'ok', data: fn(...given.map((source) => source.data))} : {status: 'loading', data: []};
+      sources.set(name, result);
+    });
+  };
+
+  /**
+   * Reruns every draw, then everything waiting on a redraw.
+   */
+  const redraw = () => {
+    draws.forEach((run, name) => document.querySelectorAll(`[data-draw="${name}"]`).forEach((el) => run(el)));
+    dataListeners.forEach((listener) => listener());
+  };
+
+  // a count takes about a second, so a second request while one is running waits for that one instead.
+  let isCounting = false;
+
+  /**
+   * Asks the server for a fresh count and redraws the page from it.
+   *
+   * The page dims while the count runs, the way the dashboard showed a source refreshing. A count that
+   * fails leaves the last good numbers in place and says why above them.
+   */
+  const load = async () => {
+    if (isCounting) return;
+    isCounting = true;
+
+    const root = document.querySelector('.bd');
+    const problem = document.querySelector('.bd-problem');
+    root.dataset.dashSourceState = 'refreshing';
+
+    try {
+      const response = await fetch('/data', {cache: 'no-store'});
+      if (!response.ok) throw new Error(await response.text());
+
+      const counted = await response.json();
+      COUNTED.forEach((name) => sources.set(name, {status: 'ok', data: counted[name]}));
+      calculate();
+      problem.hidden = true;
+    } catch (error) {
+      problem.textContent = `The count didn't come back: ${error.message}`;
+      problem.hidden = false;
+    } finally {
+      isCounting = false;
+      delete root.dataset.dashSourceState;
+      redraw();
+    }
+  };
+
+  //endregion the runtime
+
+  //region formats
+
+  // Dates travel as plain YYYY-MM-DD text, and day numbers make the arithmetic immune to daylight saving.
+  const dayNumber = (text) => Date.UTC(Number(text.slice(0, 4)), Number(text.slice(5, 7)) - 1, Number(text.slice(8, 10))) / 86400000;
+  const toDate = (text) => new Date(`${text}T00:00:00Z`);
+  const shortDateFormat = new Intl.DateTimeFormat('en-US', {month: 'short', day: 'numeric', timeZone: 'UTC'});
+  const shortDate = (text) => shortDateFormat.format(toDate(text));
+  const localToday = () => {
+    const now = new Date();
+    return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+  };
+
+  // the two number formats the page uses: thousands grouping, and one decimal place.
+  const grouped = (value) => value.toLocaleString('en-US');
+  const oneDecimal = (value) => value.toFixed(1);
+
+  // the largest of what read() finds in each row.
+  const largest = (rows, read) => Math.max(...rows.map(read));
+
+  //endregion formats
+
+  //region calculations
+
+  dash.calc('totals', {
+    title: 'List totals',
+    description: 'Everything on the list, split into finished and left.',
+    inputs: ['items'],
+    fn: (items) => {
+      const counted = items.filter((row) => row.counted);
+      const done = counted.filter((row) => row.status === 'Done').length;
+      return [{total: counted.length, done, left: counted.length - done}];
+    },
+  });
+
+  dash.calc('lanes', {
+    title: 'Count by lane',
+    description: 'The list grouped by lane, in list order.',
+    inputs: ['items'],
+    fn: (items) => {
+      const lanes = new Map();
+      items.filter((row) => row.counted).forEach((row) => {
+        const lane = lanes.get(row.lane) ?? {lane: row.lane, total: 0, done: 0};
+        lane.total += 1;
+        if (row.status === 'Done') lane.done += 1;
+        lanes.set(row.lane, lane);
+      });
+      return [...lanes.values()].map((lane) => ({...lane, left: lane.total - lane.done}));
+    },
+  });
+
+  dash.calc('series', {
+    title: 'Left on each count',
+    description: 'Each recorded day, summed across the lanes.',
+    inputs: ['history'],
+    fn: (history) => {
+      const days = new Map();
+      history.forEach((row) => days.set(row.date, (days.get(row.date) ?? 0) + Number(row.left)));
+      return [...days.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([date, left]) => ({date, left}));
+    },
+  });
+
+  dash.calc('pace', {
+    title: 'Pace against the target',
+    description: 'Where the latest count sits against a straight line from the first count to zero on the target date.',
+    inputs: ['series'],
+    fn: (series) => {
+      const target = '2026-12-20';
+      if (series.length === 0) return [];
+      const day = (text) => Date.UTC(Number(text.slice(0, 4)), Number(text.slice(5, 7)) - 1, Number(text.slice(8, 10))) / 86400000;
+      const first = series[0];
+      const last = series[series.length - 1];
+      const span = day(target) - day(first.date);
+      const elapsed = day(last.date) - day(first.date);
+      const ideal = Math.round(first.left * (1 - elapsed / span));
+      const burned = first.left - last.left;
+      const perDay = elapsed > 0 ? burned / elapsed : 0;
+      const daysToZero = perDay > 0 ? Math.ceil(last.left / perDay) : 0;
+      const finish = daysToZero > 0 ? new Date((day(last.date) + daysToZero) * 86400000).toISOString().slice(0, 10) : '';
+      return [{target, start: first.date, startLeft: first.left, counted: last.date, left: last.left, ideal, delta: ideal - last.left, finish}];
+    },
+  });
+
+  dash.calc('polish', {
+    title: 'Polish so far',
+    description: 'New maps, and how many have any tile changed since their draft.',
+    inputs: ['areas'],
+    fn: (areas) => [{
+      maps: areas.reduce((sum, row) => sum + Number(row.maps), 0),
+      polished: areas.reduce((sum, row) => sum + Number(row.polished), 0),
+    }],
+  });
+
+  //endregion calculations
+
+  //region headline figures
+
+  const firstRow = (id) => {
+    const got = dash.data(id);
+    return got.status === 'ok' && got.data.length > 0 ? got.data[0] : null;
+  };
+  const daysLeft = (row) => Math.max(0, dayNumber(row.target) - dayNumber(localToday()));
+
+  // Each headline number shows a dash until its source has answered.
+  const figure = (name, read) => dash.draw(name, (el) => {
+    const value = read();
+    el.textContent = value ?? '—';
+  });
+
+  figure('left', () => firstRow('totals')?.left);
+  figure('total', () => firstRow('totals')?.total);
+  figure('craftable', () => firstRow('supply')?.craftable);
+  figure('recipes', () => firstRow('supply')?.recipes);
+  figure('gettable', () => firstRow('supply')?.gettable);
+  figure('gear', () => firstRow('supply')?.gear);
+  figure('polished', () => firstRow('polish')?.polished);
+  figure('polishMaps', () => firstRow('polish')?.maps);
+  figure('target', () => {
+    const row = firstRow('pace');
+    return row ? shortDate(row.target) : null;
+  });
+  figure('days', () => {
+    const row = firstRow('pace');
+    return row ? daysLeft(row) : null;
+  });
+  figure('rate', () => {
+    const pace = firstRow('pace');
+    const totals = firstRow('totals');
+    if (!pace || !totals || daysLeft(pace) === 0) return null;
+    return oneDecimal(totals.left / daysLeft(pace));
+  });
+  figure('delta', () => {
+    const row = firstRow('pace');
+    if (!row) return null;
+    if (row.delta === 0) return 'On it';
+    return row.delta > 0 ? `${row.delta} ahead` : `${-row.delta} behind`;
+  });
+  figure('counted', () => {
+    const row = firstRow('pace');
+    return row ? shortDate(row.counted) : null;
+  });
+  // a forecast that lands past the target's year says which year, so a date a year out never reads as next week.
+  const longDateFormat = new Intl.DateTimeFormat('en-US', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'});
+  figure('finish', () => {
+    const row = firstRow('pace');
+    if (!row || !row.finish) return null;
+    const isTargetYear = row.finish.slice(0, 4) === row.target.slice(0, 4);
+    return isTargetYear ? shortDate(row.finish) : longDateFormat.format(toDate(row.finish));
+  });
+
+  //endregion headline figures
+
+  //region the chart
+
+  /**
+   * The step between axis ticks for a range from zero, rounded to 1, 2 or 5 times a power of ten.
+   *
+   * This is d3's own rule, so the axis lands on the same round numbers the dashboard's chart did.
+   * @param {number} stop The top of the range.
+   * @param {number} count Roughly how many steps to aim for.
+   * @returns {number}
+   */
+  const tickStep = (stop, count) => {
+    const step = stop / count;
+    const power = Math.floor(Math.log10(step));
+    const error = step / 10 ** power;
+
+    let factor = 1;
+    if (error >= Math.sqrt(50)) {
+      factor = 10;
+    } else if (error >= Math.sqrt(10)) {
+      factor = 5;
+    } else if (error >= Math.sqrt(2)) {
+      factor = 2;
+    }
+
+    return 10 ** power * factor;
+  };
+
+  /**
+   * The top of the axis, rounded up to a whole step and again until the step stops changing, as d3's
+   * nice() does it.
+   * @param {number} top The largest value the chart has to show.
+   * @returns {number}
+   */
+  const niceTop = (top) => {
+    let stop = top;
+    let previous = 0;
+
+    for (let tries = 0; tries < 10; tries += 1) {
+      const step = tickStep(stop, 10);
+      if (step === previous) break;
+      stop = Math.ceil(stop / step) * step;
+      previous = step;
+    }
+
+    return stop;
+  };
+
+  /**
+   * Every tick from zero to the top of the axis.
+   * @param {number} stop The top of the axis.
+   * @param {number} count Roughly how many ticks to aim for.
+   * @returns {number[]}
+   */
+  const ticksUpTo = (stop, count) => {
+    const step = tickStep(stop, count);
+    return Array.from({length: Math.floor(stop / step) + 1}, (_, index) => index * step);
+  };
+
+  /**
+   * Adds one svg element with its attributes, which is all the chart ever needed from d3's selections.
+   * @param {Element} parent Where the element goes.
+   * @param {string} tag The kind of element.
+   * @param {Record<string, string|number>} attributes Its attributes.
+   * @returns {SVGElement}
+   */
+  const svgNode = (parent, tag, attributes = {}) => {
+    const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.entries(attributes).forEach(([name, value]) => node.setAttribute(name, value));
+    parent.append(node);
+    return node;
+  };
+
+  dash.draw('chart', (el) => {
+    const series = dash.data('series');
+    const pace = firstRow('pace');
+    el.replaceChildren();
+    if (series.status !== 'ok' || !pace) return;
+    el.classList.remove('dash-skeleton');
+
+    const width = Math.max(el.clientWidth, 280);
+    const height = 320;
+    const points = series.data.map((row) => ({date: toDate(row.date), left: row.left, text: row.date}));
+    const start = toDate(pace.start);
+    const target = toDate(pace.target);
+    const end = new Date(target.getTime() + 3 * DAY);
+    const top = niceTop(largest(points, (point) => point.left));
+    const y = (value) => (height - 28) - (value / top) * ((height - 28) - 22);
+
+    const svg = svgNode(el, 'svg', {
+      width: '100%',
+      viewBox: `0 0 ${width} ${height}`,
+      role: 'img',
+      'aria-label': `${pace.left} left, with a dashed line running to zero on ${shortDate(pace.target)}`,
+    });
+
+    // The left margin comes from the widest tick as drawn, so no label ever runs off the edge.
+    const ticks = ticksUpTo(top, 5);
+    const probes = ticks.map((tick) => {
+      const probe = svgNode(svg, 'text');
+      probe.textContent = grouped(tick);
+      return probe;
+    });
+    const widest = largest(probes, (probe) => probe.getComputedTextLength());
+    probes.forEach((probe) => probe.remove());
+    const left = Math.ceil(widest) + 10;
+    const right = 14;
+    const x = (date) => left + ((date - start) / (end - start)) * (width - right - left);
+
+    ticks.forEach((tick) => {
+      const line = svgNode(svg, 'line', {x1: left, x2: width - right, y1: y(tick), y2: y(tick), 'stroke-width': 1});
+      line.style.stroke = 'var(--cds-chart-grid)';
+      const label = svgNode(svg, 'text', {x: left - 8, y: y(tick), dy: '0.32em', 'text-anchor': 'end'});
+      label.textContent = grouped(tick);
+    });
+
+    const baseline = y(0);
+    const axis = svgNode(svg, 'line', {x1: left, x2: width - right, y1: baseline, y2: baseline, 'stroke-width': 1});
+    axis.style.stroke = 'var(--cds-chart-axis)';
+
+    // Dates go every two weeks, or every four when the chart is phone-narrow.
+    // The target's own date sits on the axis, so a tick too close to it steps aside.
+    const stride = width < 520 ? 28 : 14;
+    const targetX = x(target);
+    for (let date = start; date < target; date = new Date(date.getTime() + stride * DAY)) {
+      if (Math.abs(x(date) - targetX) < 52) continue;
+      const label = svgNode(svg, 'text', {x: x(date), y: height - 8, 'text-anchor': 'middle'});
+      label.textContent = shortDateFormat.format(date);
+    }
+
+    const targetLine = svgNode(svg, 'line', {x1: targetX, x2: targetX, y1: 18, y2: baseline, 'stroke-width': 1});
+    targetLine.style.stroke = 'var(--cds-chart-reference)';
+    const targetLabel = svgNode(svg, 'text', {class: 'bd-end', x: Math.min(targetX, width - right), y: height - 8, 'text-anchor': 'end'});
+    targetLabel.textContent = shortDate(pace.target);
+
+    const idealLine = svgNode(svg, 'line', {
+      x1: x(start),
+      y1: y(pace.startLeft),
+      x2: targetX,
+      y2: y(0),
+      'stroke-width': 2,
+      'stroke-dasharray': '6 5',
+    });
+    idealLine.style.stroke = 'var(--cds-chart-reference)';
+
+    const color = dash.colors[0];
+    const gradient = svgNode(svgNode(svg, 'defs'), 'linearGradient', {id: 'bd-fade', x1: 0, x2: 0, y1: 0, y2: 1});
+    [[0, 0.26], [0.25, 0.16], [0.5, 0.08], [0.75, 0.03], [1, 0]].forEach(([offset, opacity]) => {
+      svgNode(gradient, 'stop', {offset, style: `stop-color: ${color}; stop-opacity: ${opacity}`});
+    });
+    if (points.length > 1) {
+      const trail = points.map((point) => `${x(point.date)},${y(point.left)}`).join(' L ');
+      const firstX = x(points[0].date);
+      const lastX = x(points[points.length - 1].date);
+      svgNode(svg, 'path', {fill: 'url(#bd-fade)', d: `M ${firstX},${baseline} L ${trail} L ${lastX},${baseline} Z`});
+      svgNode(svg, 'path', {
+        fill: 'none',
+        stroke: color,
+        'stroke-width': 2,
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: `M ${trail}`,
+      });
+    }
+    points.forEach((point, index) => {
+      const isLast = index === points.length - 1;
+      svgNode(svg, 'circle', {cx: x(point.date), cy: y(point.left), r: isLast ? 4.5 : 3, fill: color});
+    });
+
+    const newest = points[points.length - 1];
+    const endLabel = svgNode(svg, 'text', {class: 'bd-end', y: y(newest.left) - 10});
+    endLabel.textContent = `${grouped(newest.left)} left`;
+    const labelWidth = endLabel.getComputedTextLength();
+    endLabel.setAttribute('x', Math.min(x(newest.date) + 8, width - right - labelWidth));
+
+    const tip = document.createElement('div');
+    tip.className = 'bd-tip';
+    tip.hidden = true;
+    const tipDate = document.createElement('div');
+    tipDate.className = 'bd-tip-date';
+    const tipLeft = document.createElement('div');
+    const tipLine = document.createElement('div');
+    tip.append(tipDate, tipLeft, tipLine);
+    el.append(tip);
+
+    const lineAt = (text) => {
+      const span = dayNumber(pace.target) - dayNumber(pace.start);
+      return Math.round(pace.startLeft * (1 - (dayNumber(text) - dayNumber(pace.start)) / span));
+    };
+    const scale = (node) => node.getBoundingClientRect().width / width;
+
+    // where the pointer sits in the chart's own coordinates, at whatever size the chart is drawn.
+    const pointerX = (event) => {
+      const toChart = svg.getScreenCTM().inverse();
+      return new DOMPoint(event.clientX, event.clientY).matrixTransform(toChart).x;
+    };
+
+    const overlay = svgNode(svg, 'rect', {x: left, y: 0, width: width - right - left, height: baseline, fill: 'transparent'});
+    overlay.addEventListener('pointermove', (event) => {
+      const mouseX = pointerX(event);
+      const nearest = points.reduce((best, point) => Math.abs(x(point.date) - mouseX) < Math.abs(x(best.date) - mouseX) ? point : best);
+      tipDate.textContent = shortDate(nearest.text);
+      tipLeft.textContent = `${grouped(nearest.left)} left`;
+      tipLine.textContent = `Line: ${grouped(lineAt(nearest.text))}`;
+      tip.hidden = false;
+      const ratio = scale(svg);
+      const limit = el.clientWidth - tip.offsetWidth - 4;
+      tip.style.transform = `translate(${Math.max(0, Math.min(x(nearest.date) * ratio + 10, limit))}px, ${Math.max(0, y(nearest.left) * ratio + 12)}px)`;
+    });
+    overlay.addEventListener('pointerleave', () => {
+      tip.hidden = true;
+    });
+  });
+
+  //endregion the chart
+
+  //region lanes, areas and the list
+
+  dash.draw('lanes', (el) => {
+    const got = dash.data('lanes');
+    el.replaceChildren();
+    if (got.status !== 'ok') {
+      el.textContent = '—';
+      return;
+    }
+    el.classList.remove('dash-skeleton');
+    const picked = dash.params().lane ?? '';
+    const biggest = largest(got.data, (row) => row.total);
+    got.data.forEach((row) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = row.lane === picked ? 'bd-lane is-picked' : 'bd-lane';
+      button.setAttribute('aria-pressed', String(row.lane === picked));
+      button.addEventListener('click', () => dash.setParams({lane: row.lane === picked ? '' : row.lane}));
+
+      const name = document.createElement('span');
+      name.className = 'bd-lane-name';
+      name.textContent = row.lane;
+      const tally = document.createElement('span');
+      tally.className = 'bd-lane-count';
+      tally.textContent = `${row.left} left of ${row.total}`;
+
+      const track = document.createElement('div');
+      track.className = 'bd-track';
+      track.style.width = `${(row.total / biggest) * 100}%`;
+      const fill = document.createElement('div');
+      fill.className = 'bd-fill';
+      fill.style.width = `${(row.done / row.total) * 100}%`;
+      fill.style.background = dash.colors[0];
+      track.append(fill);
+
+      button.append(name, tally, track);
+      el.append(button);
+    });
+  });
+
+  dash.draw('areasBody', (body) => {
+    const got = dash.data('areas');
+    const rows = got.status === 'ok' ? got.data : [];
+    body.replaceChildren(...rows.map((row) => {
+      const tr = document.createElement('tr');
+      [row.area, row.maps, row.needing, row.populated, row.lines, row.polished].forEach((value, index) => {
+        const td = document.createElement('td');
+        td.textContent = value;
+        if (index > 0) td.className = 'num';
+        tr.append(td);
+      });
+      return tr;
+    }));
+  });
+
+  // The search box and the checkbox are the page's own state, so they are read here on every draw.
+  const controlValue = (selector, read, fallback) => {
+    const control = document.querySelector(selector);
+    return control ? read(control) : fallback;
+  };
+  const visibleItems = () => {
+    const got = dash.data('items');
+    if (got.status !== 'ok') return [];
+    const lane = dash.params().lane ?? '';
+    const query = controlValue('.bd-search', (control) => control.value.trim().toLowerCase(), '');
+    const showFinished = controlValue('.bd-done', (control) => control.checked, false);
+    return got.data.filter((row) => {
+      if (!row.counted) return false;
+      if (!showFinished && row.status === 'Done') return false;
+      if (lane && row.lane !== lane) return false;
+      if (!query) return true;
+      return `${row.item} ${row.lane} ${row.where}`.toLowerCase().includes(query);
+    });
+  };
+
+  dash.draw('itemsBody', (body) => {
+    const chipClass = {Done: 'bd-chip is-done', Started: 'bd-chip is-started'};
+    body.replaceChildren(...visibleItems().map((row) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = row.id;
+      const item = document.createElement('td');
+      item.textContent = row.item;
+      const lane = document.createElement('td');
+      lane.className = 'bd-muted';
+      lane.textContent = row.lane;
+      const status = document.createElement('td');
+      const chip = document.createElement('span');
+      chip.className = chipClass[row.status] ?? 'bd-chip';
+      chip.textContent = row.status;
+      status.append(chip);
+      const where = document.createElement('td');
+      where.className = 'bd-muted bd-col-where';
+      where.textContent = row.where;
+      tr.append(item, lane, status, where);
+      return tr;
+    }));
+  });
+
+  dash.draw('afterLine', (list) => {
+    const got = dash.data('items');
+    const rows = got.status === 'ok' ? got.data.filter((row) => !row.counted) : [];
+    list.replaceChildren(...rows.map((row) => {
+      const entry = document.createElement('li');
+      entry.textContent = row.item;
+      return entry;
+    }));
+  });
+
+  dash.draw('shown', (el) => {
+    const got = dash.data('items');
+    el.textContent = got.status === 'ok' ? `${visibleItems().length} shown` : '—';
+  });
+
+  const redrawList = () => {
+    dash.draw('itemsBody');
+    dash.draw('shown');
+  };
+  document.querySelectorAll('.bd-search').forEach((el) => el.addEventListener('input', redrawList));
+  document.querySelectorAll('.bd-done').forEach((el) => el.addEventListener('change', redrawList));
+  document.querySelectorAll('.bd-clear').forEach((el) => el.addEventListener('click', () => dash.setParams({lane: ''})));
+
+  dash.onData(() => {
+    const lane = dash.params().lane ?? '';
+    document.querySelectorAll('.bd-clear').forEach((el) => {
+      el.hidden = !lane;
+    });
+    const pace = firstRow('pace');
+    document.querySelectorAll('.bd-forecast').forEach((el) => {
+      el.hidden = !(pace && pace.finish);
+    });
+  });
+
+  //endregion lanes, areas and the list
+
+  //region staying live
+
+  // The chart is laid out for its width, so a resize or a phone turning sideways lays it out again.
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => dash.draw('chart'), 150);
+  });
+
+  // A tab left open counts again whenever it comes back into view, so a pinned tab never shows a stale day.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') load();
+  });
+
+  load();
+
+  //endregion staying live
+</script>
+</body>
+</html>
