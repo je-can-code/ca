@@ -52431,9 +52431,9 @@
   },
   {
     "id": 588,
-    "name": "=== TBD Sin: Greed (Jerald)",
-    "note": "\u003clevel:15\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.11)]\u003e\n\u003csdpPoints:18\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_8,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
-    "battlerName": "Wolfman",
+    "name": "Evil Jerald",
+    "note": "\u003clevel:80\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 32]\u003e\n\u003catkBuffPlus:[(a.level * 5.85)]\u003e\n\u003cdefBuffPlus:[(a.level * 4.95)]\u003e\n\u003cmatBuffPlus:[(a.level * 3.2)]\u003e\n\u003cmdfBuffPlus:[(a.level * 3.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 5.4)]\u003e\n\u003clukBuffPlus:[(a.level * 3.4)]\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003chitBuffPlus:[22 + (a.level * 2.2)]\u003e\n\u003cevaBuffPlus:[15 + (a.level * 1.5)]\u003e\n\u003ccriBuffPlus:[12.5 + (a.level * 1.25)]\u003e\n\u003ccevBuffPlus:[3.3 + (a.level * 0.33)]\u003e\n\u003cmevBuffPlus:[9 + (a.level * 0.9)]\u003e\n\u003cgrdBuffPlus:[5.6 + (a.level * 0.56)]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.11)]\u003e\n\u003csdpPoints:18\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_8,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e",
+    "battlerName": "",
     "traits": [
       {
         "code": 35,
@@ -52451,41 +52451,6 @@
         "value": 30
       },
       {
-        "code": 22,
-        "dataId": 0,
-        "value": 0.8
-      },
-      {
-        "code": 22,
-        "dataId": 2,
-        "value": 0.12
-      },
-      {
-        "code": 23,
-        "dataId": 1,
-        "value": 1.3
-      },
-      {
-        "code": 22,
-        "dataId": 3,
-        "value": 0.1
-      },
-      {
-        "code": 23,
-        "dataId": 6,
-        "value": 0.9
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 1.1
-      },
-      {
-        "code": 11,
-        "dataId": 16,
-        "value": 2
-      },
-      {
         "code": 11,
         "dataId": 18,
         "value": 2
@@ -52496,21 +52461,6 @@
         "value": 2
       },
       {
-        "code": 13,
-        "dataId": 36,
-        "value": 0.5
-      },
-      {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
-      },
-      {
-        "code": 31,
-        "dataId": 16,
-        "value": 0
-      },
-      {
         "code": 31,
         "dataId": 18,
         "value": 0
@@ -52519,9 +52469,48 @@
         "code": 31,
         "dataId": 20,
         "value": 0
+      },
+      {
+        "code": 22,
+        "dataId": 8,
+        "value": 0.05
+      },
+      {
+        "code": 22,
+        "dataId": 9,
+        "value": 0.05
       }
     ],
-    "actions": [],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 311
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 302
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 314
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 421
+      }
+    ],
     "battlerHue": 254,
     "dropItems": [
       {
@@ -52543,21 +52532,21 @@
     "exp": 0,
     "gold": 0,
     "params": [
-      22500,
+      253,
       650,
-      53,
-      33,
-      40,
-      33,
-      40,
-      46
+      18,
+      12,
+      7,
+      5,
+      13,
+      5
     ]
   },
   {
     "id": 589,
-    "name": "=== TBD Sin: Greed (Rupert)",
-    "note": "\u003clevel:15\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.78)]\u003e\n\u003csdpPoints:27\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_9,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
-    "battlerName": "Wolfman",
+    "name": "Evil Rupert",
+    "note": "\u003clevel:80\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 17]\u003e\n\u003catkBuffPlus:[(a.level * 4.15)]\u003e\n\u003cdefBuffPlus:[(a.level * 3.6)]\u003e\n\u003cmatBuffPlus:[(a.level * 5.4)]\u003e\n\u003cmdfBuffPlus:[(a.level * 4.35)]\u003e\n\u003cagiBuffPlus:[(a.level * 4.5)]\u003e\n\u003clukBuffPlus:[(a.level * 4.95)]\u003e\n\u003chitBuffPlus:[22 + (a.level * 2.2)]\u003e\n\u003cevaBuffPlus:[18.8 + (a.level * 1.88)]\u003e\n\u003ccriBuffPlus:[10 + (a.level * 1)]\u003e\n\u003ccevBuffPlus:[3.3 + (a.level * 0.33)]\u003e\n\u003cmevBuffPlus:[10 + (a.level * 1)]\u003e\n\u003cgrdBuffPlus:[9.4 + (a.level * 0.94)]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.78)]\u003e\n\u003csdpPoints:27\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_9,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e\n\u003csight:99\u003e\n\u003cpursuit:99\u003e\n\u003cjabsConfig:noIdle\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003cknockbackResist:100\u003e\n\u003chideTargetFrame\u003e\n\u003cnoDangerIndicator\u003e\n\u003cautoApplyState:[136, onDamageDealt, 90]\u003e",
+    "battlerName": "",
     "traits": [
       {
         "code": 35,
@@ -52575,41 +52564,6 @@
         "value": 30
       },
       {
-        "code": 22,
-        "dataId": 0,
-        "value": 0.8
-      },
-      {
-        "code": 22,
-        "dataId": 2,
-        "value": 0.12
-      },
-      {
-        "code": 23,
-        "dataId": 1,
-        "value": 1.3
-      },
-      {
-        "code": 22,
-        "dataId": 3,
-        "value": 0.1
-      },
-      {
-        "code": 23,
-        "dataId": 6,
-        "value": 0.9
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 1.1
-      },
-      {
-        "code": 11,
-        "dataId": 16,
-        "value": 2
-      },
-      {
         "code": 11,
         "dataId": 18,
         "value": 2
@@ -52620,21 +52574,6 @@
         "value": 2
       },
       {
-        "code": 13,
-        "dataId": 36,
-        "value": 0.5
-      },
-      {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
-      },
-      {
-        "code": 31,
-        "dataId": 16,
-        "value": 0
-      },
-      {
         "code": 31,
         "dataId": 18,
         "value": 0
@@ -52643,9 +52582,48 @@
         "code": 31,
         "dataId": 20,
         "value": 0
+      },
+      {
+        "code": 22,
+        "dataId": 8,
+        "value": 0.05
+      },
+      {
+        "code": 22,
+        "dataId": 9,
+        "value": 0.05
       }
     ],
-    "actions": [],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 501
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 504
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 472
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 484
+      }
+    ],
     "battlerHue": 254,
     "dropItems": [
       {
@@ -52667,14 +52645,14 @@
     "exp": 0,
     "gold": 0,
     "params": [
-      22500,
+      132,
       650,
-      53,
-      33,
-      40,
-      33,
-      40,
-      46
+      9,
+      8,
+      16,
+      8,
+      6,
+      12
     ]
   },
   {
@@ -53653,8 +53631,8 @@
   },
   {
     "id": 598,
-    "name": "=== TBD Sin Votary: Greed (Jerald)",
-    "note": "\u003clevel:58\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 48.57]\u003e\n\u003catkBuffPlus:[(a.level * 6)]\u003e\n\u003cdefBuffPlus:[(a.level * 6.5)]\u003e\n\u003cmatBuffPlus:[(a.level * 8)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.75)]\u003e\n\u003clukBuffPlus:[(a.level * 1.25)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.11)]\u003e\n\u003csdpPoints:18\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_8,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
+    "name": "Jerald's Shade",
+    "note": "\u003clevel:82\u003e\n\u003cpassive:[324]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 48.57]\u003e\n\u003catkBuffPlus:[(a.level * 6)]\u003e\n\u003cdefBuffPlus:[(a.level * 6.5)]\u003e\n\u003cmatBuffPlus:[(a.level * 8)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.75)]\u003e\n\u003clukBuffPlus:[(a.level * 1.25)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.11)]\u003e\n\u003csdpPoints:18\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_8,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e",
     "battlerName": "Tigerbunny",
     "traits": [
       {
@@ -53693,44 +53671,9 @@
         "value": 0.1
       },
       {
-        "code": 23,
-        "dataId": 6,
-        "value": 0.9
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 1.1
-      },
-      {
-        "code": 11,
-        "dataId": 16,
-        "value": 2
-      },
-      {
         "code": 11,
         "dataId": 18,
         "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 20,
-        "value": 2
-      },
-      {
-        "code": 13,
-        "dataId": 36,
-        "value": 0.5
-      },
-      {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
-      },
-      {
-        "code": 31,
-        "dataId": 16,
-        "value": 0
       },
       {
         "code": 31,
@@ -53738,12 +53681,32 @@
         "value": 0
       },
       {
-        "code": 31,
-        "dataId": 20,
-        "value": 0
+        "code": 22,
+        "dataId": 8,
+        "value": 0.05
+      },
+      {
+        "code": 22,
+        "dataId": 9,
+        "value": 0.05
       }
     ],
-    "actions": [],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 311
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 312
+      }
+    ],
     "battlerHue": 0,
     "dropItems": [
       {
@@ -53777,8 +53740,8 @@
   },
   {
     "id": 599,
-    "name": "=== TBD Sin Votary: Greed (Rupert)",
-    "note": "\u003clevel:58\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 48.57]\u003e\n\u003catkBuffPlus:[(a.level * 6)]\u003e\n\u003cdefBuffPlus:[(a.level * 6.5)]\u003e\n\u003cmatBuffPlus:[(a.level * 8)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.75)]\u003e\n\u003clukBuffPlus:[(a.level * 1.25)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.11)]\u003e\n\u003csdpPoints:18\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_9,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
+    "name": "Rupert's Shade",
+    "note": "\u003clevel:82\u003e\n\u003cpassive:[324]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 48.57]\u003e\n\u003catkBuffPlus:[(a.level * 6)]\u003e\n\u003cdefBuffPlus:[(a.level * 6.5)]\u003e\n\u003cmatBuffPlus:[(a.level * 8)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.75)]\u003e\n\u003clukBuffPlus:[(a.level * 1.25)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.11)]\u003e\n\u003csdpPoints:18\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_9,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cautoApplyState:[136, onDamageDealt, 90]\u003e",
     "battlerName": "Tigerbunny",
     "traits": [
       {
@@ -53817,44 +53780,9 @@
         "value": 0.1
       },
       {
-        "code": 23,
-        "dataId": 6,
-        "value": 0.9
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 1.1
-      },
-      {
-        "code": 11,
-        "dataId": 16,
-        "value": 2
-      },
-      {
         "code": 11,
         "dataId": 18,
         "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 20,
-        "value": 2
-      },
-      {
-        "code": 13,
-        "dataId": 36,
-        "value": 0.5
-      },
-      {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
-      },
-      {
-        "code": 31,
-        "dataId": 16,
-        "value": 0
       },
       {
         "code": 31,
@@ -53862,12 +53790,32 @@
         "value": 0
       },
       {
-        "code": 31,
-        "dataId": 20,
-        "value": 0
+        "code": 22,
+        "dataId": 8,
+        "value": 0.05
+      },
+      {
+        "code": 22,
+        "dataId": 9,
+        "value": 0.05
       }
     ],
-    "actions": [],
+    "actions": [
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 501
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 504
+      }
+    ],
     "battlerHue": 0,
     "dropItems": [
       {

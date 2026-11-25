@@ -553,10 +553,10 @@ Every sin N shares one number: boss `580 + N`, votaries `590 + N`, panel `SIN_N`
   - (??) [596]TBD Sin Votary: Lust (his succubi, still to build)
 - (??) [587]TBD Sin: Hunger (Ammit, postgame)
   - (??) [597]TBD Sin Votary: Hunger
-- (??) [588]TBD Sin: Greed, Jerald's shade (the mirror battle, lv80 planned)
-  - (??) [598]TBD Sin Votary: Greed, Jerald's shade (lv82 planned)
-- (??) [589]TBD Sin: Greed, Rupert's shade (the mirror battle, lv80 planned)
-  - (??) [599]TBD Sin Votary: Greed, Rupert's shade (lv82 planned)
+- (80) [588]Evil Jerald (greed, the mirror battle; working name)
+  - (82) [598]Jerald's Shade (working name; on the palette behind switch 188 "greed defeated")
+- (80) [589]Evil Rupert (greed, the mirror battle; working name)
+  - (82) [599]Rupert's Shade (working name; on the palette behind switch 188 "greed defeated")
 - [590]Goop Vent (Lust's arena hazard)
 
 ### 5 — Sin votaries (591–599)

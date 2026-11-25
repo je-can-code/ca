@@ -4143,7 +4143,7 @@
   {
     "id": 134,
     "name": "Heated Enchant",
-    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:900\u003e",
+    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:900\u003e\n\u003cautoExecuteSkill:[267, onWeaponHit, 0]\u003e",
     "description": "",
     "iconIndex": 3773,
     "traits": [],
@@ -4169,7 +4169,7 @@
   {
     "id": 135,
     "name": "Liquid Enchant",
-    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:900\u003e",
+    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:900\u003e\n\u003cautoExecuteSkill:[268, onWeaponHit, 0]\u003e",
     "description": "",
     "iconIndex": 3789,
     "traits": [],

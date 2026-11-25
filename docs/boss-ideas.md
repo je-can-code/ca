@@ -61,9 +61,10 @@ by up to 2.5×, and every "pulses to fall" count below moves with it: out-classi
 4. [Grudj](#grudj)
 5. [The ghost (Tower 9)](#the-ghost-tower-9)
 6. [The horde (Basement 9)](#the-horde-basement-9)
-7. [One leak that touches four fights](#one-leak-that-touches-four-fights)
-8. [Every boss's secondary stats](#every-bosss-secondary-stats)
-9. [The shopping list](#the-shopping-list)
+7. [Greed](#greed)
+8. [One leak that touches four fights](#one-leak-that-touches-four-fights)
+9. [Every boss's secondary stats](#every-bosss-secondary-stats)
+10. [The shopping list](#the-shopping-list)
 
 ---
 
@@ -1621,6 +1622,101 @@ Three surges of about 45 seconds each, **about 2-2.5 minutes**. Move, plus a cro
 `data` only: fight templates per row (the row, Origin, level 130), the encounter (nine participants, six of them
 summoned, two `fallen` reactions), the west door's sealed page until the last surge falls, a hall. No art.
 
+## Greed
+
+The mirror battle. Talked through as Talk #5 on 2026-11-24; the full record of his rulings is in my design memory
+(threshold 150 distinct nodes, fixed lv80, the kits, the look, the arena, the votaries).
+
+### Built (2026-11-24, at his "Yep, sounds good." to building the pair; uncommitted)
+
+Script `~/.claude/backups/ca-greed-shades/bosses.js` (the votaries' is `votaries.js` beside it); validate OK.
+
+- **Rows.** 588 "Evil Jerald" and 589 "Evil Rupert" (working names), `<level:80>`, the locked kits as actions:
+  Jerald 311 Crimson Glide, 302 Stomp, 314 Puree, 421 Shared Suffering; Rupert 501 Heated Enchant, 504 Mince, 472
+  Magic Bomb, 484 Meltima. Both slots had been holding the Gluttonwolf Mayor's pre-growth row (its flats, vs Beast,
+  PDR/MDR and the Euphoria/Hemorrage rates), all gone now.
+- **HP.** The sin bosses' line `(a.level ** 2) * 28`, leaning by each real class's lv80 HP against the baseline class:
+  Raving Lunatic ×1.15 (K 32), Melufa ×0.60 (K 17), so evil Rupert carries a bit over half of evil Jerald's bar, like
+  the real pair. Each template wears **Hearty** (306, ×5): Jerald 1,025,265, Rupert 544,660, the pair about one Plump
+  sin boss at lv80 (1.79M). Computed, not probed.
+- **Primary lines.** The real class curves at one boss scale of 1.5 (the factor that lifts the duo's own lv80 totals
+  to a lv80 regular's): Jerald ATK 5.85, DEF 4.95, MAT 3.2, MDF 3.75, AGI 5.4, LUK 3.4 a level; Rupert ATK 4.15, DEF
+  3.6, MAT 5.4, MDF 4.35, AGI 4.5, LUK 4.95. Bases (params) the same curves' constant terms at that scale; MMP 650.
+- **Secondary lines.** The boss rule (see "Every boss's secondary stats"), the regulars' yardstick times each class's
+  own trailing multipliers (RL 1.10/1.20/1.25/1.10/0.90/0.75, Melufa 1.10/1.50/1.00/1.10/1.00/1.25).
+- **Traits.** Basic attack 2581 (the sin bosses'), Cut, creature tags Humanoid and Deity (weakness and attack, as on
+  the Mayor and the Vampire King), TRG and MRG 0.05 (5 TP/MP per tick, a tick every 30 frames). Enemy max TP is 100
+  (`enemyBaseTp`), so Stomp plus Puree is exactly a full bar.
+- **Note tags.** The arena set (sight/pursuit 99, noIdle, noHpBar, knockbackResist 100, hideTargetFrame,
+  noDangerIndicator), careful + executor, `<prepare:30>` (the default is 180), the placeholder's SDP lines and drops
+  (SIN_8 / SIN_9 at 1%). `<cdmBuffPlus:[50]>` on Jerald only: Raving Lunatic is the crit class.
+- **Templates.** Map361 e588 "boss: evil jerald" and e589 "boss: evil rupert", cloned from Lust's: `<passive:[306]>`,
+  `<moveSpeed:4.2>`, sight/pursuit 99, then a per-shade death (TODO for last words, animation 65 Death, Collapse1 at
+  pitch 80, Lust's opacity fade). No tint or BGM fade on either, since the partner may still be standing; the finale
+  belongs to the encounter.
+- **Art.** `img/characters/$m_sin-greed-jerald.png` and `-rupert.png` (the approved first pass, re-encoded RGBA), and
+  `img/faces/face_je_evil.png` / `face_rp_evil.png` for the intro, wired to nothing yet. The pose sheets were never
+  recoloured, and none of the eight kit skills carries `<poseSuffix>`, so nothing asks for them.
+- **The votaries, squared the same day:** 598/599 shed the same Mayor residue, keep Humanoid and drop Deity (like the
+  votaries 591-593), ride Enemy Rank T4 (324, like the lv87 Homunculus) for level-based HIT/EVA/CRI/CEV, drop
+  `<prepare:30>` to the default, and Rupert's Shade drops the crit-damage line. Their primary lines are still the TBD
+  placeholder's (MAT 8, MDF 8.5 a level, above their bosses'), left for the rebalance pass.
+
+### Found while building: Mince is dead for everyone
+
+504 Mince carries `<stackCost:[136,1]>` (state 136 "Mince Ready"), and nothing grants 136: no effect, trait, note tag,
+event command, config or plugin anywhere (swept every path; the July `Skills.backup.json` has the same gap). Nor does
+any basic attack fire the enchant follow-ups: only 503 Enchanted Whip and 504 Mince carry
+`<onCastExecuteSkillIfAfflicted:[267/268,100,134/135]>`, and states 134/135 have no tags. So Heated Enchant only arms
+Whip and Mince. Today evil Rupert fights with Magic Bomb, Meltima and his swing, and Rupert's Shade with its swing.
+The Melufa doc says "Basic attacks trigger a heat-element MAT-scaled follow-up hit" and "Charges accumulate from
+enchant follow-up procs". The natural wiring sits on the enchant states: `<autoExecuteSkill:[267, onWeaponHit, 0]>` (and
+268 on 135) plus `<autoApplyState:[136, onWeaponHit, 0]>`. *Read:* `onWeaponHit` only fires for the Mainhand/Offhand
+cooldown slot (`J-Passive-Conditional` `postExecuteSkillEffects`), and an enemy's actions carry
+`${skill.id}-${skill.name}` keys (`JABS_AiManager.buildEnemyCooldownType`), so a shade's swing never counts: the shades
+would need `onDamageDealt` instead. ASKED 2026-11-24.
+
+**His 16:04: "Yeah that sounds right regarding the Mince stacking"**, then "Are you positive nothing grants the state
+buff? I thought I did implement it and it was silly..." Re-swept to be sure: every string in every data file (notes,
+damage formulas, scripts, comments, plugin args, configs), every effect and trait of any code, every state command,
+the plugin parameters, and every git snapshot since Mince Ready was born (CA `0dd3f64e`, 2026-07-25) on main and on
+the unmerged branches: the only thing that has ever named 136 is Mince's own cost. What he likely remembers: the same
+July 25 PR (rmmz-plugins `a72a8ee8`, #66) built `<onCastSelfStateIfAfflicted>` and `<onCastExecuteSkillIfAfflicted>`;
+the second is on Whip and Mince, the first is used nowhere in the data. **WIRED ~16:15, uncommitted, validate OK**
+(`~/.claude/backups/ca-greed-shades/mince-wiring.js`):
+
+- States 134 Heated Enchant / 135 Liquid Enchant: `<autoExecuteSkill:[267|268, onWeaponHit, 0]>`, so every enchanted
+  basic-attack hit fires the follow-up.
+- Skills 267 Illusion / 268 Rapids: `<onHitSelfState:[136,100]>` (his self-state family), so every follow-up that
+  lands banks one Mince Ready. That is the doc's loop: a swing banks a charge, and a Mince cast while enchanted fires
+  Illusion, which refunds its own charge when it lands.
+- Enemies 589 Evil Rupert / 599 Rupert's Shade: `<autoApplyState:[136, onDamageDealt, 90]>`, any damage at most once
+  per 90 frames, the swing's own cadence (2581/2591: cast 30 + cooldown 60). The knob is that 90.
+- *Read:* the rules read every applied state and the enemy's own row (`getPassiveStateSources`: databaseData +
+  allStates + skills), J-Passive-Conditional is ON, the game's `defaultStateReapplyType` is `stack` (each grant adds
+  a charge, cap 9999), and a forced follow-up carries the global cooldown key, not a weapon slot, so it can't re-fire
+  itself.
+- 267/268 were magical hits (hitType 2) on an ATK-vs-DEF formula, while the doc says "MAT-scaled". **His 16:20:**
+  "Mince itself is physical, but the enchanted attacks are, well, enchanted. So I think that's right- making the class
+  a hybrid class and not just a melee caster." DONE: both read `(a.mat*2) - (b.mdf*1)` (`followups-mat.js` beside
+  the others; only those two rows changed; validate OK). Their descriptions name no stat, so they stand.
+- **Asked 16:21:** Mince (504) is NOT physical in the data: hitType 0 (Certain Hit) on `(a.mat*2) - (b.def*1)`. His
+  hybrid reading wants a physical blade; my pick is `(a.atk*2) - (b.def*1)` keeping Certain Hit, since "your reflexes
+  are pristine" reads like a swing that never misses. **His 16:22: "Nope, make it physical though and through. It's
+  Rupert's blender for button mashing goodness."** DONE: hitType 1 (physical), `(a.atk*2) - (b.def*1)`; element -1
+  and skill type 4 (Rupert's own) kept (`mince-physical.js`; validate OK). It can now be evaded and parried.
+
+### Still open
+
+- The encounter config (both participants, defeatSwitch 188, the finale when both fall), the arena (oasis-sized, the
+  gold twin of `gloom`), the intro (his lines as TODOs), Trainer Lord's lounge trigger at 150 distinct nodes, the Dogma
+  panel names, and final names for all four.
+- A hall: Shared Suffering, Magic Bomb, the self-buff and Meltima are built, not yet seen to fire from an enemy.
+- A pacing watch for that hall: Heated Enchant has no cooldown and costs 50 MP, against evil Rupert's 650 pool, 10 MP
+  a second and Meltima at 150. Whether the AI keeps recasting the buff and starves Meltima only shows in a run.
+- The Mince loop in that hall: an enchanted shade's Mince fires Illusion, and an Illusion that lands refunds the
+  charge, so expect Mince often once Heated Enchant is up. The 90-frame throttle only gates the first charge.
+
 ## One leak that touches four fights
 
 Every "can't be hurt" state in this doc (Sealed on Sloth in phase 1, Scrambled on Lust) is built the way Sealed is:
@@ -1692,6 +1788,8 @@ Each cell is base + per level, then what it reaches at the boss's level:
 | Sloth (585) | 110 | 12.5 + 1.25 (150%) | 7.5 + 0.75 (90%) | 7.5 + 0.75 (90%) | 2 + 0.2 (24%) | 7.5 + 0.75 (90%) | 5 + 0.5 (60%) |
 | Lust (587) | 130 | 25 + 2.5 (350%) | 10 + 1 (140%) | 10 + 1 (140%) | 2.5 + 0.25 (35%) | 10 + 1 (140%) | 5 + 0.5 (70%) |
 | Envy (584) | 130 | 25 + 2.5 (350%) | 15 + 1.5 (210%) | 15 + 1.5 (210%) | 4 + 0.4 (56%) | 10 + 1 (140%) | 5 + 0.5 (170%) |
+| Evil Jerald (588) | 80 | 22 + 2.2 (198%) | 15 + 1.5 (135%) | 12.5 + 1.25 (112.5%) | 3.3 + 0.33 (29.7%) | 9 + 0.9 (81%) | 5.6 + 0.56 (150.4%) |
+| Evil Rupert (589) | 80 | 22 + 2.2 (198%) | 18.8 + 1.88 (169.2%) | 10 + 1 (90%) | 3.3 + 0.33 (29.7%) | 10 + 1 (90%) | 9.4 + 0.94 (184.6%) |
 
 Envy's lines sit on her slot, which is otherwise still the lv15 stub until her own build, so hers read at 130 here.
 
