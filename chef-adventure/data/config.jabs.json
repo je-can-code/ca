@@ -2837,6 +2837,71 @@
           ]
         }
       ]
+    },
+    {
+      "key": "greed",
+      "map": 556,
+      "defeatSwitch": 188,
+      "participants": [
+        {
+          "key": "evilJerald",
+          "enemyId": 588,
+          "expect": "Evil Jerald",
+          "x": 14,
+          "y": 6,
+          "template": 588
+        },
+        {
+          "key": "evilRupert",
+          "enemyId": 589,
+          "expect": "Evil Rupert",
+          "x": 16,
+          "y": 6,
+          "template": 589
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [],
+      "reactions": [
+        {
+          "key": "jerald-falls-first",
+          "on": "fallen",
+          "participants": [
+            "evilJerald"
+          ],
+          "steps": [
+            {
+              "verb": "dialogue",
+              "participant": "evilRupert",
+              "speaker": "Evil Rupert",
+              "face": "face_rp_evil",
+              "faceIndex": 0,
+              "lines": [
+                "\\pop[self]TODO: Evil Rupert, as Jerald's shade goes down."
+              ]
+            }
+          ]
+        },
+        {
+          "key": "rupert-falls-first",
+          "on": "fallen",
+          "participants": [
+            "evilRupert"
+          ],
+          "steps": [
+            {
+              "verb": "dialogue",
+              "participant": "evilJerald",
+              "speaker": "Evil Jerald",
+              "face": "face_je_evil",
+              "faceIndex": 0,
+              "lines": [
+                "\\pop[self]TODO: Evil Jerald, as Rupert's shade goes down."
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "foodTypes": [

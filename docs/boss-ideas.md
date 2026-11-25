@@ -1706,11 +1706,76 @@ the second is on Whip and Mince, the first is used nowhere in the data. **WIRED 
   Rupert's blender for button mashing goodness."** DONE: hitType 1 (physical), `(a.atk*2) - (b.def*1)`; element -1
   and skill type 4 (Rupert's own) kept (`mince-physical.js`; validate OK). It can now be evaded and parried.
 
+### The mirror battle built (2026-11-24 ~17:00, at his "Then yeah back in front of trainer lord"; uncommitted)
+
+Script `~/.claude/backups/ca-greed-shades/arena.js` (the fallen sheets are made by hand beside it, see below);
+validate OK. Committed work before it: CA `ac8b104d`.
+
+- **His 16:51 change:** "the first one to fall stays fallen and visible. That way they can get up and vanish together
+  (gone not defeated... you can never truly eradicate your evil side, only suppress it- for now)."
+- **How the fall works.** *Read:* J-ABS plays a death scene through the map interpreter (`targetCharacter.start()` in
+  `handleDefeatedEnemy`), every battler holds still while an event runs, and the body is destroyed once
+  `isDying() && !$gameMap.isEventRunning()`. So a death scene that waited for the partner would freeze the fight, and
+  there is no defender-side HP floor (`noTargetKill` reads the attacker). Instead each template's death scene (Map361
+  e588/e589) hides its body (opacity 0), places the arena's double (event 2 or 3) on the body's exact position with
+  one script line, `$gameMap.event(N).locate(this.character(0).x, this.character(0).y);` (J-Pixelistics is on, so a
+  body can stand between tiles, and game variables would floor it), and turns on 186 or 187 ("greed: jerald's/rupert's
+  shade down"), which shows the double's fallen page. No waits, so the fight barely pauses. **Coupling:** the templates
+  name arena events 2 and 3, so a test hall for this fight must keep its doubles at those ids.
+- **Fixes after a review the same evening** (`arena-fixes.js`): the finale fades the boss music (Fadeout BGM 3 s;
+  CE17 started it, and the Lounge autoplays its own track on arrival); the doubles are placed by script, as above,
+  instead of through variables 46/47 (named, then freed again); and **Providence goes cold during the mirror battle**:
+  CE59 now opens with a gate on `$gameSwitches.value(189) && !$gameSwitches.value(188)` that shows the Fortress split's
+  own "stays cold in your hand" line. *Read:* Providence (item 125) is a J-ABS tool, so it works with the menu locked,
+  and CE59 only refused it during the Fortress split (switch 113); every other arena still lets the duo leave.
+  *Read:* RMMZ's `Game_Map.setup` never clears the map interpreter, so the lines after both cross-map transfers play,
+  and J-Weather re-reads each map's note on arrival, so the gold fog stays in the mirror.
+- **Fallen art.** `img/characters/$m_sin-greed-jerald-fallen.png` / `-rupert-fallen.png`: each shade's front-facing
+  middle frame, trimmed and tipped onto its side (Jerald -90, head left; Rupert +90, head right), bottom-aligned, in
+  all twelve cells. Made with ImageMagick in `/tmp/claude-scratch/greed/fallen/` (preview sent to him).
+- **Map556 "Greed's Mirror"**, under the Lounge (order 556): the shared oasis layout (Map228's tiles, 32x18, tileset 4,
+  parallax Space), note `<noToneChange>` + `<weather:gilded>`, no BGM. No `<ambient>`: the gloom maps carry
+  `<ambient:[85]>`, which J-Lighting reads as 85% darkness (*proven* in the first hall run: the shades were dark
+  smudges), and his rule here is that the shades are always in view, so the room stays as lit as the oases.
+  - e1 "story: pre-boss" (autorun): Lust's arena pattern. Watch or skip; TODO lines (the mirror duo talk to the
+    protagonists, evil faces); then Show UI, CE17 big boss BGM, switch 189, `start-encounter greed`, menu off. No boss
+    frame: it holds one battler, so both shades lost `<jabsConfig:noHpBar>` and `<hideTargetFrame>` and show their own.
+  - e2 "shade: evil jerald" (14,6) / e3 "shade: evil rupert" (16,6): p1 the standing stand-in, p2 hidden on 189, p3
+    on 186/187 the fallen double (below characters, through, direction fixed).
+  - e4 "story: post-boss": p2 autorun on 188: end-encounter, CE104 (menu back), a beat, both doubles change back to
+    standing, hop and turn to the duo, TODO for parting words, both fade out together, then a fade, the transfer to the
+    Lounge (19,21) facing Trainer Lord, and his line verbatim: "Oh you two are back sooner than I anticipated." / "That
+    truly is a surprise." with a TODO for the rest. p3 (188 + self A) empty.
+- **Weather preset 19 "gilded"**: gloom's layers with gold tints (#6e5212 fog, #ffc83d wisps, #ffe9a6 sparks), icon
+  2213. *Read:* config.weather.json is hand-edited (mixed escaped/literal brackets), so it was spliced as exact text
+  and the parsed result checked against the original.
+- **Encounter "greed"** (config.jabs.json): map 556, defeatSwitch 188, participants evilJerald 588 (14,6) and
+  evilRupert 589 (16,6) on their own templates, shared AI, no routines; two `fallen` reactions give the survivor a
+  TODO `dialogue` line when the other drops first (skipped if it's the last, since the survivor has no body then).
+- **Trainer Lord** (Map196 e2, the ask page on switch 85): opens with a script branch,
+  `$gameActors.actor(1).getAllUnlockedSdps().length >= 150 && !$gameSwitches.value(188)` (unlocks are party-wide;
+  301 panels, none unlocked by default), a TODO for his greed line, then fade, transfer to the arena (15,12) facing
+  up, and exit. Otherwise his usual menu.
+
+**PROVEN in the real arena, 2026-11-24 ~17:45** (`dist/playtest/greed-arena-probe.js`, watch branch, two runs with
+film; the second after the arena lost its darkness; probe, log, clip and contact sheet copied to
+`~/.claude/backups/ca-greed-shades/`). The duo at lv80 (Raving Lunatic / Melufa, padded with 5M HP), 150 nodes
+unlocked, switch 85 on, in the Lounge: Trainer Lord's chat skipped his menu and transferred them to (15,12) facing up;
+weather variable 19 (the HUD reads "gilded (moderate)"); the pre-boss scene ran and the fight started with both
+shades on their marks at full HP (1,025,265 / 544,660), stand-ins hidden, menu locked, the big boss track on, no boss
+frame. Providence mid-fight: "stays cold", still on Map556. Jerald's shade fell at (11.74,10.26) and his double landed
+on exactly that spot (fractions kept) on its fallen page at full opacity; Evil Rupert's TODO line played with his
+face; the double was still down four seconds on while Rupert fought; Rupert fell at (9.70,13.00) and his double
+landed there too. Then the encounter ended, switch 188 on, the boss music faded, both doubles stood (sheet back,
+hop) and faded 200/120/80/40/0 in lockstep, and they landed in the Lounge at (19,21) facing up, weather 0, menu back,
+for Trainer Lord's two lines. The probe parks a shade at 1 HP before its finishing Stomp, so in the second run a
+damage-over-time tick credited to Rupert's own state landed the last point; a test artifact (enemy-scope skills only
+reach opponents, `getCollisionTargets`).
+
 ### Still open
 
-- The encounter config (both participants, defeatSwitch 188, the finale when both fall), the arena (oasis-sized, the
-  gold twin of `gloom`), the intro (his lines as TODOs), Trainer Lord's lounge trigger at 150 distinct nodes, the Dogma
-  panel names, and final names for all four.
+- His lines: the intro, the survivor's two lines, the parting words, Trainer Lord's greed line, and the rest of the
+  homecoming. The Dogma panel names, and final names for all four.
 - A hall: Shared Suffering, Magic Bomb, the self-buff and Meltima are built, not yet seen to fire from an enemy.
 - A pacing watch for that hall: Heated Enchant has no cooldown and costs 50 MP, against evil Rupert's 650 pool, 10 MP
   a second and Meltima at 150. Whether the AI keeps recasting the buff and starves Meltima only shows in a run.
