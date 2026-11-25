@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.4.0 ABS-INPUT] A manager for overseeing the input of JABS.
+ * [v2.5.0 ABS-INPUT] A manager for overseeing the input of JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -1019,7 +1019,7 @@ J.ABS.EXT.INPUT.Symbols.CombatSkill4 = JabsInputSymbols.CombatSkill4;
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.INPUT.Metadata = new J_InputPluginMetadata("J-ABS-InputManager", "2.4.0");
+J.ABS.EXT.INPUT.Metadata = new J_InputPluginMetadata("J-ABS-InputManager", "2.5.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

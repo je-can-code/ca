@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.2.0 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v4.0.0 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -339,7 +339,7 @@ J.ABS.EXT.ALLYAI = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.2.0");
+J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "4.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
