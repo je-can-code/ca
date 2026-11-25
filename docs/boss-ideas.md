@@ -358,8 +358,12 @@ is TALL"; `~/.claude/backups/ca-greed-shades/succubus.js`; validate OK; not yet 
 basic attack 2591 applies **Blissed Out** (state 2067, 120 frames, pink tint) through trait 32 at 100%, and no
 `<prepare:30>`, so the default 180-frame pause between actions outlasts the bliss and one succubus can't chain-lock a
 target. Drops `SIN_6` at 1%, so the succubi are what finally drops Lust's SDP. Template e596 "lust: succubus" wears
-`$m_monsters2-7` (the tall pink-haired succubus beside the shark man and the flower on that sheet; `$m_succubus` is
-the short one) with `<motion:[breathe]>` and `<moveSpeed:3.0>`, ungated like votaries 591-595; placement is his.
+`$m_votary-lust-succubus`, his pick of five recolours (19:30, "the last one with the red horns and bits but mostly grey
+and midnight blue black but pale moonlight skin"): the tall succubus `$m_monsters2-7` (beside the shark man and the
+flower on that sheet; `$m_succubus` is the short one) with blue-black hair, crimson horns and wings, a silver outfit
+and pale lavender skin, made by `~/.claude/backups/ca-greed-shades/recolor.js` (scheme `midnight`; her 27 colours
+mapped to parts by `groups.js`). The source sheet is untouched. `<motion:[breathe]>` and `<moveSpeed:3.0>`, ungated
+like votaries 591-595; placement is his.
 Blissed Out is also what Overjoyed (2066) becomes, so the state was left untouched. Goop Vent (now `590`) stays the
 arena hazard.
 
