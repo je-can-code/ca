@@ -53383,8 +53383,8 @@
   },
   {
     "id": 596,
-    "name": "=== TBD Sin Votary: Lust",
-    "note": "\u003clevel:58\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 48.57]\u003e\n\u003catkBuffPlus:[(a.level * 6)]\u003e\n\u003cdefBuffPlus:[(a.level * 6.5)]\u003e\n\u003cmatBuffPlus:[(a.level * 8)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.75)]\u003e\n\u003clukBuffPlus:[(a.level * 1.25)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.11)]\u003e\n\u003csdpPoints:18\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_6,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cprepare:30\u003e",
+    "name": "Succubus",
+    "note": "\u003clevel:132\u003e\n\u003cpassive:[325]\u003e\n\u003cmonsterFamilyIcon:53\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 48.57]\u003e\n\u003catkBuffPlus:[(a.level * 6)]\u003e\n\u003cdefBuffPlus:[(a.level * 6.5)]\u003e\n\u003cmatBuffPlus:[(a.level * 8)]\u003e\n\u003cmdfBuffPlus:[(a.level * 8.5)]\u003e\n\u003cagiBuffPlus:[(a.level * 2.75)]\u003e\n\u003clukBuffPlus:[(a.level * 1.25)]\u003e\n\u003csdpPlus:[(a.level ** 1.5 * 2.11)]\u003e\n\u003csdpPoints:18\u003e\n\u003cap:3\u003e\n\u003csdpDropData:[SIN_6,1]\u003e\n\u003caiTrait:careful\u003e\n\u003caiTrait:executor\u003e\n\u003cknockbackResist:100\u003e",
     "battlerName": "Tigerbunny",
     "traits": [
       {
@@ -53423,44 +53423,9 @@
         "value": 0.1
       },
       {
-        "code": 23,
-        "dataId": 6,
-        "value": 0.9
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 1.1
-      },
-      {
-        "code": 11,
-        "dataId": 16,
-        "value": 2
-      },
-      {
         "code": 11,
         "dataId": 18,
         "value": 2
-      },
-      {
-        "code": 11,
-        "dataId": 20,
-        "value": 2
-      },
-      {
-        "code": 13,
-        "dataId": 36,
-        "value": 0.5
-      },
-      {
-        "code": 13,
-        "dataId": 37,
-        "value": 0.75
-      },
-      {
-        "code": 31,
-        "dataId": 16,
-        "value": 0
       },
       {
         "code": 31,
@@ -53468,9 +53433,9 @@
         "value": 0
       },
       {
-        "code": 31,
-        "dataId": 20,
-        "value": 0
+        "code": 32,
+        "dataId": 2067,
+        "value": 1
       }
     ],
     "actions": [],

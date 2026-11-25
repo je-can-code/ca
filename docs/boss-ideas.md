@@ -352,10 +352,16 @@ time their own sounds), so the beat that went silent when you reached her comes 
 > 1586), Goop Vent is `590`, and Lust's votary row is `596`. Everything below that says `587`, `597` or `SIN_7` for
 > Lust was written before the move.
 
-**Votaries (his, 2026-11-23), not built yet:** succubi, placed around the world. They're slow and knockback-immune,
-and a landed hit can paralyze; they carry the flat rare `SIN_6` roll, so they're what finally drops Lust's SDP (today
-nothing does). On hand already: `img/characters/$m_succubus.png`, and a Paralyzed state (`<paralyzed>`, in a
-180-frame and a 60-frame version). Goop Vent (now `590`) stays the arena hazard, and the succubi's row is `596`.
+**Votaries (his, 2026-11-23), BUILT 2026-11-24 ~19:20** (his 19:08: "Use blissed out, and use the succubi sprite that
+is TALL"; `~/.claude/backups/ca-greed-shades/succubus.js`; validate OK; not yet seen in a fight): row 596 "Succubus"
+(a working name), lv132 on Enemy Rank T5 (325), Humanoid, knockback-immune, every landed swing of the sin votaries'
+basic attack 2591 applies **Blissed Out** (state 2067, 120 frames, pink tint) through trait 32 at 100%, and no
+`<prepare:30>`, so the default 180-frame pause between actions outlasts the bliss and one succubus can't chain-lock a
+target. Drops `SIN_6` at 1%, so the succubi are what finally drops Lust's SDP. Template e596 "lust: succubus" wears
+`$m_monsters2-7` (the tall pink-haired succubus beside the shark man and the flower on that sheet; `$m_succubus` is
+the short one) with `<motion:[breathe]>` and `<moveSpeed:3.0>`, ungated like votaries 591-595; placement is his.
+Blissed Out is also what Overjoyed (2066) becomes, so the state was left untouched. Goop Vent (now `590`) stays the
+arena hazard.
 
 ### Talked through (2026-11-13)
 

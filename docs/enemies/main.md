@@ -550,7 +550,7 @@ Every sin N shares one number: boss `580 + N`, votaries `590 + N`, panel `SIN_N`
 - (110) [585]Sloth
   - (110) [595]Slothful Votary
 - (130) [586]Lust
-  - (??) [596]TBD Sin Votary: Lust (his succubi, still to build)
+  - (132) [596]Succubus (working name; Blissed Out on hit, slow, knockback-immune)
 - (??) [587]TBD Sin: Hunger (Ammit, postgame)
   - (??) [597]TBD Sin Votary: Hunger
 - (80) [588]Evil Jerald (greed, the mirror battle; working name)
