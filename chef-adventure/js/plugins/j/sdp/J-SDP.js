@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.10.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v4.10.1 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -3484,7 +3484,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.10.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "4.10.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3783,17 +3783,17 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 	SdpBlackoutCache.record(this, notes, this.hasSdpBlackoutNote());
 };
 /**
-* The rankings whose panels are granting their bonuses right now: every ranking this actor has, or none at all while
-* the panels are blacked out.<br/>
-* Every panel bonus reads from here, while storage, menus and masteries read {@link #getAllSdpRankings}, so a
-* blackout never costs a rank.
+* The rankings whose panels are granting their bonuses right now: every unlocked ranking this actor has, or none at
+* all while the panels are blacked out.<br/>
+* Every panel bonus reads from here, while storage, menus and masteries read {@link #getAllSdpRankings}, so neither a
+* lock nor a blackout ever costs a rank: a locked panel simply grants nothing until it is unlocked again.
 * @returns {PanelRanking[]}
 */
 Game_Actor.prototype.getContributingSdpRankings = function() {
 	const rankings = this.getAllSdpRankings();
 	if (rankings.length === 0) return rankings;
 	if (this.isSdpBlackedOut() === true) return [];
-	return rankings;
+	return rankings.filter((panelRanking) => panelRanking.isUnlocked() === true);
 };
 /**
 * Sum of all panel current ranks for this actor (convenience for menus / reporting).
@@ -4298,8 +4298,9 @@ Game_Party.prototype.isSdpUnlocked = function(key) {
 	return $gameActors.actors().every((actor) => actor.isSdpUnlocked(key));
 };
 /**
-* Locks a panel for all party members.
-* @param {string} key The key of the panel unlock.
+* Locks a panel for all party members: it leaves the SDP list and stops granting its bonuses, while every rank
+* invested in it is kept for the day it is unlocked again.
+* @param {string} key The key of the panel to lock.
 */
 Game_Party.prototype.lockSdp = function(key) {
 	if (J.SDP.Metadata.panelsMap.has(key) === false) {
