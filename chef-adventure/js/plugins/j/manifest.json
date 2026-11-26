@@ -74,7 +74,7 @@
     "omni/ext/J-OMNI-Stats.js": "7d662c477589720c1e43b310b40bc6c7f3e3de6ef3099c29c1c084ad805b8c85",
     "passive/J-Passive.js": "8d1fc0c896254f336df48b23a8640bacb47763827cd6839305641938115a2c22",
     "passive/ext/J-Passive-Affix.js": "946ac81bd0fd9fbeedfc8eb9c8c6e95174ca161d864705f025ca5d612bf08cef",
-    "passive/ext/J-Passive-Conditional.js": "04c81adad8b731c136e8c27ce0ba6c62569005585117efa142e5c3406f51af23",
+    "passive/ext/J-Passive-Conditional.js": "e015f11a6dfa39d37a2564069c7660620173a4cfbd70c6fd6fd317d359ca6f58",
     "passive/ext/J-Passive-Difficulty.js": "89ce77176a89177994060186349e0f8b8f594215e09c220d5d29778153cbae64",
     "passive/ext/J-Passive-OTIB.js": "1fbe9f82c33ea75b8cde14a231d90f3b430c2842261f8acbe2a0b99cd896cd94",
     "passive/ext/J-Passive-SKS.js": "60580e2f7662745ed31aa810ba37f11d173d3c033d30795f36fd4103f27efb50",
@@ -5328,6 +5328,14 @@
       ],
       "pattern": "<autoModifyCooldowns:[ ]?(\\[[^\\]]+])>",
       "flags": "gi"
+    },
+    {
+      "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.CountsAsWeaponHit",
+      "names": [
+        "countsAsWeaponHit"
+      ],
+      "pattern": "<countsAsWeaponHit>",
+      "flags": "i"
     },
     {
       "label": "J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveSourceRule",

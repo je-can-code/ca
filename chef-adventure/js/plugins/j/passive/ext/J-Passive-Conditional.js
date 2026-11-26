@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.5.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
+ * [v1.6.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -128,7 +128,7 @@ J.PASSIVE.EXT.CONDITIONAL = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.5.0");
+J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.6.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -260,6 +260,30 @@ J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby = /<autoApplyStateOnNear
 * @type {RegExp}
 */
 J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill = /<autoExecuteSkill:[ ]?(\[[^\]]+])>/gi;
+/**
+* Marks a skill whose hits count as weapon hits for {@code onWeaponHit} rules, though it is cast from a
+* combat-skill slot rather than the Mainhand or Offhand slot.<br/>
+* Read by {@link RPGManager.checkForBooleanFromNoteByRegex} off the skill whose hit just landed, in
+* {@link JABS_Engine#isWeaponHitAction}.
+* <p>
+* Meant for a skill that is a weapon technique in all but its slot- a blade flurry, a whip whirl- so that
+* whatever a swing sets off (an enchant's follow-up, a per-swing buff) goes off on its hits as well. A payload
+* that a weapon-hit rule fires must never carry it: that follow-up would count as a weapon hit itself, and fire
+* again off every hit it lands.
+* </p>
+* <pre>
+* Structure:
+*  <countsAsWeaponHit>
+*
+* Example:
+*  <countsAsWeaponHit>
+*
+* Translation:
+*  every hit this skill lands fires its caster's onWeaponHit rules, as a basic attack's hit would.
+* </pre>
+* @type {RegExp}
+*/
+J.PASSIVE.EXT.CONDITIONAL.RegExp.CountsAsWeaponHit = /<countsAsWeaponHit>/i;
 /**
 * Captures {@code autoModifyCooldowns} bracket tuples from database notes.<br/>
 * Parsed by {@link RPGManager.getArraysFromNotesByRegex} (Path 1: outer tag + inner bracket capture).<br/>
@@ -472,6 +496,16 @@ Object.defineProperty(RPG_BaseItem.prototype, "autoApplyStateOnNearbyRules", { g
 */
 Object.defineProperty(RPG_BaseItem.prototype, "autoExecuteSkillRules", { get() {
 	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill);
+} });
+/**
+* Whether this skill's hits count as weapon hits for {@code onWeaponHit} rules, per
+* {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.CountsAsWeaponHit}.<br/>
+* Only ever asked of the skill whose hit just landed, by {@link JABS_Engine#isWeaponHitAction}, so on any other
+* kind of row it is simply never read.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "countsAsWeaponHit", { get() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.CountsAsWeaponHit);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns} tuples from this row.<br/>
@@ -838,9 +872,11 @@ var AutoRuleManager = class {
 	* @param {any[]} _tuple - The full authored tuple this dispatch came from, for subclasses whose
 	* payload needs more than just `id` (e.g. a modification amount plus a range/target selector
 	* living further down the tuple than the shared loop itself ever inspects).
+	* @param {JABS_Battler|null} _hitTarget - The battler a hit-driven rule's hit landed on, for subclasses
+	* that aim at it; null for every condition that has no hit behind it.
 	* @returns {boolean} - True when the effect was successfully dispatched.
 	*/
-	static dispatch(_battler, _id, _tuple) {
+	static dispatch(_battler, _id, _tuple, _hitTarget) {
 		throw new Error(`${this.name} must implement static dispatch()`);
 	}
 	/**
@@ -964,23 +1000,28 @@ var AutoRuleManager = class {
 	/**
 	* Fires {@code onDamageDealt} rules on the battler that just landed damage on an opponent.
 	* @param {Game_Actor|Game_Enemy} battler - The battler that dealt the damage.
+	* @param {JABS_Battler|null} [hitTarget=null] - The battler the damage landed on, handed to every rule
+	* this fires so a payload aimed at it can land on it.
 	*/
-	static scheduleDamageDealtTriggers(battler) {
+	static scheduleDamageDealtTriggers(battler, hitTarget = null) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		if (!battler) return;
-		this.tryDispatch(battler, "onDamageDealt");
+		this.tryDispatch(battler, "onDamageDealt", hitTarget);
 	}
 	/**
-	* Fires {@code onWeaponHit} rules on the battler that just landed a mainhand/offhand attack.
+	* Fires {@code onWeaponHit} rules on the battler that just landed a weapon hit.
 	*
-	* Narrower than {@code onDamageDealt} — only counts hits from the caster's own basic-attack or
-	* combo chain (whatever is bound to the Mainhand/Offhand slot), not damage from arbitrary skills.
+	* Narrower than {@code onDamageDealt}: only hits from the caster's own basic attack or combo chain
+	* (whatever is bound to the Mainhand/Offhand slot) count, along with skills authored to count as weapon
+	* hits, never damage from arbitrary skills. See {@link JABS_Engine#isWeaponHitAction}.
 	* @param {Game_Actor|Game_Enemy} battler - The battler that landed the weapon hit.
+	* @param {JABS_Battler|null} [hitTarget=null] - The battler the hit landed on, handed to every rule this
+	* fires so a payload aimed at it can land on it.
 	*/
-	static scheduleWeaponHitTriggers(battler) {
+	static scheduleWeaponHitTriggers(battler, hitTarget = null) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		if (!battler) return;
-		this.tryDispatch(battler, "onWeaponHit");
+		this.tryDispatch(battler, "onWeaponHit", hitTarget);
 	}
 	/**
 	* Credits one whole tile of travel toward {@code move} rules on this battler.
@@ -1025,8 +1066,10 @@ var AutoRuleManager = class {
 	* Walks every authored tuple on this battler and dispatches when the condition kind matches.
 	* @param {Game_Actor|Game_Enemy} battler - The battler whose rules are evaluated.
 	* @param {string} conditionKind - The condition kind to match against authored tuples.
+	* @param {JABS_Battler|null} [hitTarget=null] - The battler a hit-driven condition's hit landed on, passed
+	* through to every dispatch; null for every condition that has no hit behind it.
 	*/
-	static tryDispatch(battler, conditionKind) {
+	static tryDispatch(battler, conditionKind, hitTarget = null) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		const rules = this.collectRules(battler);
 		for (const entry of rules) {
@@ -1042,7 +1085,7 @@ var AutoRuleManager = class {
 			}
 			const param = Number(tuple[2]);
 			if (Number.isNaN(param) || param < 0) continue;
-			this._tryDispatchRule(battler, source, tupleIndex, id, kind, param, tuple);
+			this._tryDispatchRule(battler, source, tupleIndex, id, kind, param, tuple, hitTarget);
 		}
 	}
 	/**
@@ -1144,14 +1187,16 @@ var AutoRuleManager = class {
 	* @param {number} cooldownFrames - Minimum frames that must elapse between dispatches for this key.
 	* @param {any[]} tuple - The full authored tuple, forwarded to the subclass dispatch for rules
 	* whose payload needs more than just `id`.
+	* @param {JABS_Battler|null} [hitTarget=null] - The battler a hit-driven condition's hit landed on,
+	* forwarded to the subclass dispatch; null for every condition that has no hit behind it.
 	*/
-	static _tryDispatchRule(battler, source, tupleIndex, id, condition, cooldownFrames, tuple) {
+	static _tryDispatchRule(battler, source, tupleIndex, id, condition, cooldownFrames, tuple, hitTarget = null) {
 		const ruleKey = this.buildRuleKey(source, tupleIndex, id, condition);
 		const now = Graphics.frameCount;
 		const lastFrame = battler.getAutoRuleLastFrame(ruleKey);
 		const elapsed = now - lastFrame;
 		if (lastFrame > 0 && elapsed < cooldownFrames) return;
-		const dispatched = this.dispatch(battler, id, tuple);
+		const dispatched = this.dispatch(battler, id, tuple, hitTarget);
 		if (dispatched === true) {
 			battler.setAutoRuleLastFrame(ruleKey, now);
 		}
@@ -1288,6 +1333,9 @@ var AutoApplyStateOnNearbyManager = class extends AutoRuleManager {
 * windup down exactly as it would for any other cast, and it fires the moment that windup ends. Either way the
 * skills fired here are real map actions with hitboxes, elements, and effects, subject to JABS parry and
 * retaliation, and either way they cost nothing and start no cooldown.
+*
+* A rule fired by a hit knows the battler that was struck, and a direct payload lands on that battler's tile:
+* an enchant's follow-up hits the foe the swing hit. Every other payload fires from its bearer, as one always has.
 */
 var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleManager {
 	/**
@@ -1306,9 +1354,10 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 	static #executionDepth = 0;
 	/**
 	* The windups this manager started, each keyed by the bearer winding it up and holding the very actions it
-	* decided, so landing one can tell its own cast from anything the bearer decided for itself since. Held
-	* weakly: a bearer taken off the map takes its windup with it, and only a bearer still being updated lands one.
-	* @type {WeakMap<JABS_Battler, JABS_Action[]>}
+	* decided, so landing one can tell its own cast from anything the bearer decided for itself since, along with
+	* the tile it aims at, so it lands where it was aimed when it was wound up. Held weakly: a bearer taken off the
+	* map takes its windup with it, and only a bearer still being updated lands one.
+	* @type {WeakMap<JABS_Battler, { actions: JABS_Action[], aimTile: Array<number|null> }>}
 	*/
 	static #windups = new WeakMap();
 	/**
@@ -1320,9 +1369,11 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 	* @param {Game_Actor|Game_Enemy} battler - The battler firing the skill.
 	* @param {number} skillId - The database id of the skill to execute.
 	* @param {any[]} _tuple - The full authored tuple; unused here, this rule's whole payload is the id.
+	* @param {JABS_Battler|null} [hitTarget=null] - The battler a hit-driven rule's hit landed on, which a direct
+	* payload aims at; null when no hit fired this rule.
 	* @returns {boolean} - True when the skill fired at once or began its windup.
 	*/
-	static dispatch(battler, skillId, _tuple) {
+	static dispatch(battler, skillId, _tuple, hitTarget = null) {
 		const maxDepth = J.PASSIVE.EXT.CONDITIONAL.Metadata.autoExecuteSkillMaxDepth || 1;
 		if (AutoExecuteSkillManager.#executionDepth >= maxDepth) return false;
 		const jabsBattler = PassiveRuleJabsAccess.getJabsBattler(battler);
@@ -1334,12 +1385,29 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 			const preview = jabsBattler.createJabsActionFromSkill(skillId);
 			if (!$jabsEngine.canExecuteMapActions(jabsBattler, preview)) return false;
 			const [primaryAction] = preview;
-			if (primaryAction.getCastTime() > 0) return AutoExecuteSkillManager.#beginWindup(jabsBattler, preview);
-			$jabsEngine.forceMapAction(jabsBattler, skillId, false);
+			const aimTile = AutoExecuteSkillManager.resolveAimTile(primaryAction, hitTarget);
+			if (primaryAction.getCastTime() > 0) return AutoExecuteSkillManager.#beginWindup(jabsBattler, preview, aimTile);
+			const [aimX, aimY] = aimTile;
+			$jabsEngine.forceMapAction(jabsBattler, skillId, false, aimX, aimY);
 			return true;
 		} finally {
 			AutoExecuteSkillManager.#executionDepth -= 1;
 		}
+	}
+	/**
+	* Resolves the tile a payload aims at, as the coordinate pair {@link JABS_Engine#forceMapAction} takes.<br/>
+	* A direct payload fired by a hit aims at the battler that was struck, so it lands on them: an enchant's
+	* follow-up lands on the foe the swing hit, not around the one swinging. Everything else aims nowhere, and both
+	* coordinates are null. A rule with no hit behind it has nobody to aim at, and a non-direct payload's origin is
+	* its bearer, whatever it was fired by: a projectile still leaves from whoever fired it.
+	* @param {JABS_Action} primaryAction The payload's primary action.
+	* @param {JABS_Battler|null} hitTarget The battler a hit-driven rule's hit landed on, or null.
+	* @returns {Array<number|null>} The `[x, y]` to aim at, or `[null, null]` when the payload aims nowhere.
+	*/
+	static resolveAimTile(primaryAction, hitTarget) {
+		if (hitTarget === null) return [null, null];
+		if (primaryAction.isDirectAction() === false) return [null, null];
+		return [hitTarget.getX(), hitTarget.getY()];
 	}
 	/**
 	* Starts a payload's windup in its bearer's own cast slot: decided, with its countdown running. That is all
@@ -1348,15 +1416,20 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 	* stamps no cooldown, so a timed or proximity rule tries again on the next frame.
 	* @param {JABS_Battler} jabsBattler The bearer to wind the payload up.
 	* @param {JABS_Action[]} actions The payload's actions, built the way the instant path builds them.
+	* @param {Array<number|null>} aimTile The `[x, y]` the payload aims at, kept until it lands; see
+	* {@link resolveAimTile}.
 	* @returns {boolean}
 	*/
-	static #beginWindup(jabsBattler, actions) {
+	static #beginWindup(jabsBattler, actions, aimTile) {
 		if (jabsBattler.isActionDecided()) return false;
 		if (jabsBattler.isCastingOrChanneling()) return false;
 		jabsBattler.setDecidedAction(actions);
 		const [primaryAction] = actions;
 		jabsBattler.setCastCountdown(primaryAction.getCastTime());
-		AutoExecuteSkillManager.#windups.set(jabsBattler, actions);
+		AutoExecuteSkillManager.#windups.set(jabsBattler, {
+			actions,
+			aimTile
+		});
 		return true;
 	}
 	/**
@@ -1367,12 +1440,14 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 	* has no AI at all. So it fires through the very instant path a payload without a cast time takes, under the
 	* same depth guard, and anything extending that path sees a wound-up payload exactly as it sees an instant
 	* one. The volley that path rebuilds matches the telegraph: a casting AI neither walks nor turns, an inanimate
-	* bearer never does, and a player's movement interrupts the cast. The cast slot is cleared after.
+	* bearer never does, and a player's movement interrupts the cast. It lands on the tile it was aimed at when it
+	* was wound up, if it was aimed at all. The cast slot is cleared after.
 	* @param {JABS_Battler} jabsBattler The bearer whose windup may have ended.
 	*/
 	static landWindup(jabsBattler) {
-		const actions = AutoExecuteSkillManager.#windups.get(jabsBattler);
-		if (jabsBattler.getDecidedAction() !== actions) {
+		const windup = AutoExecuteSkillManager.#windups.get(jabsBattler);
+		if (windup === undefined) return;
+		if (jabsBattler.getDecidedAction() !== windup.actions) {
 			AutoExecuteSkillManager.#windups.delete(jabsBattler);
 			return;
 		}
@@ -1380,13 +1455,14 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 			AutoExecuteSkillManager.#windups.delete(jabsBattler);
 			return;
 		}
-		const [primaryAction] = actions;
+		const [primaryAction] = windup.actions;
 		if (!primaryAction.isCastComplete()) return;
 		AutoExecuteSkillManager.#windups.delete(jabsBattler);
 		AutoExecuteSkillManager.#executionDepth += 1;
 		try {
 			const skillId = primaryAction.getBaseSkill().id;
-			$jabsEngine.forceMapAction(jabsBattler, skillId, false);
+			const [aimX, aimY] = windup.aimTile;
+			$jabsEngine.forceMapAction(jabsBattler, skillId, false, aimX, aimY);
 		} finally {
 			AutoExecuteSkillManager.#executionDepth -= 1;
 		}
@@ -2766,7 +2842,9 @@ JABS_Engine.prototype.checkKnockback = function(action, target) {
 };
 /**
 * Extends {@link JABS_Engine#postExecuteSkillEffects}.<br/>
-* Fires {@code onDamageDealt} rules on the caster after landing damage on an opposing battler.
+* Fires {@code onDamageDealt} rules on the caster after landing damage on an opposing battler, and
+* {@code onWeaponHit} rules too when the hit counts as a weapon hit. Both hand the rules the battler that was
+* hit, so a direct payload one of them fires lands on whoever was struck.
 * Reuses the same result-field check {@link JABS_Engine#applyAggroEffects} already performs here.
 */
 J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.set("postExecuteSkillEffects", JABS_Engine.prototype.postExecuteSkillEffects);
@@ -2779,14 +2857,26 @@ JABS_Engine.prototype.postExecuteSkillEffects = function(action, target) {
 	if (!dealtDamage) return;
 	const casterBattler = caster.getBattler();
 	if (!casterBattler) return;
-	AutoApplyStateManager.scheduleDamageDealtTriggers(casterBattler);
-	AutoExecuteSkillManager.scheduleDamageDealtTriggers(casterBattler);
+	AutoApplyStateManager.scheduleDamageDealtTriggers(casterBattler, target);
+	AutoExecuteSkillManager.scheduleDamageDealtTriggers(casterBattler, target);
+	if (this.isWeaponHitAction(action) === false) return;
+	AutoApplyStateManager.scheduleWeaponHitTriggers(casterBattler, target);
+	AutoExecuteSkillManager.scheduleWeaponHitTriggers(casterBattler, target);
+};
+/**
+* Whether a hit from this action counts as a weapon hit, for {@code onWeaponHit} rules.<br/>
+* Anything fired from the Mainhand or Offhand slot does: the basic attack and its combo chain. A skill cast from
+* any other slot counts only when it carries {@code <countsAsWeaponHit>}, the way a blade flurry would, so an
+* arbitrary skill (e.g. a nuke hitting the whole map) never sets off a "weapon" follow-up. A forced payload
+* carries the global cooldown key rather than a slot, so the follow-up a weapon hit fires never counts as one
+* itself, and can never fire itself again.
+* @param {JABS_Action} action The action whose hit just landed.
+* @returns {boolean}
+*/
+JABS_Engine.prototype.isWeaponHitAction = function(action) {
 	const cooldownType = action.getCooldownType();
-	const isWeaponSlot = cooldownType === JABS_Button.Mainhand || cooldownType === JABS_Button.Offhand;
-	if (isWeaponSlot) {
-		AutoApplyStateManager.scheduleWeaponHitTriggers(casterBattler);
-		AutoExecuteSkillManager.scheduleWeaponHitTriggers(casterBattler);
-	}
+	if (cooldownType === JABS_Button.Mainhand || cooldownType === JABS_Button.Offhand) return true;
+	return action.getBaseSkill().countsAsWeaponHit;
 };
 
 //#endregion
