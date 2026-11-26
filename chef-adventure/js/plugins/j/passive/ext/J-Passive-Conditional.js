@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.5.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
+ * [v1.6.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -128,7 +128,7 @@ J.PASSIVE.EXT.CONDITIONAL = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.5.0");
+J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.6.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -261,6 +261,30 @@ J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby = /<autoApplyStateOnNear
 */
 J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill = /<autoExecuteSkill:[ ]?(\[[^\]]+])>/gi;
 /**
+* Marks a skill whose hits count as weapon hits for {@code onWeaponHit} rules, though it is cast from a
+* combat-skill slot rather than the Mainhand or Offhand slot.<br/>
+* Read by {@link RPGManager.checkForBooleanFromNoteByRegex} off the skill whose hit just landed, in
+* {@link JABS_Engine#isWeaponHitAction}.
+* <p>
+* Meant for a skill that is a weapon technique in all but its slot- a blade flurry, a whip whirl- so that
+* whatever a swing sets off (an enchant's follow-up, a per-swing buff) goes off on its hits as well. A payload
+* that a weapon-hit rule fires must never carry it: that follow-up would count as a weapon hit itself, and fire
+* again off every hit it lands.
+* </p>
+* <pre>
+* Structure:
+*  <countsAsWeaponHit>
+*
+* Example:
+*  <countsAsWeaponHit>
+*
+* Translation:
+*  every hit this skill lands fires its caster's onWeaponHit rules, as a basic attack's hit would.
+* </pre>
+* @type {RegExp}
+*/
+J.PASSIVE.EXT.CONDITIONAL.RegExp.CountsAsWeaponHit = /<countsAsWeaponHit>/i;
+/**
 * Captures {@code autoModifyCooldowns} bracket tuples from database notes.<br/>
 * Parsed by {@link RPGManager.getArraysFromNotesByRegex} (Path 1: outer tag + inner bracket capture).<br/>
 * Each match schedules a signed cooldown modification via {@link AutoModifyCooldownManager} against
@@ -304,17 +328,19 @@ J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns = /<autoModifyCooldowns:[ ]
 *   <li>{@code [1071, 'negaStateInflicted', 0]} — every time this battler inflicts any negative state</li>
 *   <li>{@code [1072, 'posiStateInflicted', 60]} — on inflicting a positive state, at most once per 60 frames</li>
 *   <li>{@code [1073, 'anyStateInflicted', 0]} — every time this battler inflicts any state at all</li>
-*   <li>{@code [1074, 'onKnockback', 0]} — every time this battler knocks an enemy back</li>
+*   <li>{@code [1074, 'onKnockback', 0]} — every time one of this battler's hits moves an enemy, pushed or pulled</li>
 * </ul>
 * @type {RegExp}
 */
 J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState = /<autoInflictState:[ ]?(\[[^\]]+])>/gi;
 /**
 * Captures {@code removeOnSkillExecution} bracket tuples from <strong>state</strong> notes only.<br/>
-* On skill execution, rolls chance and may peel stacks via {@link Game_Battler#decrementStateStacks}.
+* Once the bearer has paid for a map skill it is executing, rolls chance and may peel stacks via
+* {@link Game_Battler#decrementStateStacks}- after the cost, so a state these rules strip still has its say in what
+* that skill costs.
 * <p>
 * Author shape: {@code <removeOnSkillExecution:[stypeId, chance]>}.<br/>
-* {@code stypeId} 0 matches any skill type. {@code chance} is 1–100 for {@link RPGManager.chanceIn100}.
+* {@code stypeId} 0 matches any skill type. {@code chance} is 1–100 for {@link RPGManager.fateOf100}.
 * </p>
 * @type {RegExp}
 */
@@ -326,11 +352,33 @@ J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillExecution = /<removeOnSkillExecuti
 * state traits are still active during damage calculation.
 * <p>
 * Author shape: {@code <removeOnSkillResolution:[stypeId, chance]>}.<br/>
-* {@code stypeId} 0 matches any skill type. {@code chance} is 1–100 for {@link RPGManager.chanceIn100}.
+* {@code stypeId} 0 matches any skill type. {@code chance} is 1–100 for {@link RPGManager.fateOf100}.
 * </p>
 * @type {RegExp}
 */
 J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillResolution = /<removeOnSkillResolution:[ ]?(\[[^\]]+])>/gi;
+/**
+* Captures {@code toggleStateOnSkillExecution} bracket tuples from <strong>state</strong> notes only.<br/>
+* Read by {@link SkillExecutionStateToggleManager} once the bearer has paid for a skill it is executing. Each tuple
+* names a state and a skill type: a hardcast of that type, meaning any skill of it that costs MP, executed while the
+* bearer lacks the state applies it, and one executed while the bearer carries it removes it, after that cast's cast
+* time and cost were both read with the state still on. A skill type of 0 matches every skill type. A skill that
+* costs no MP does neither.
+*
+* <pre>
+* Structure:
+*  <toggleStateOnSkillExecution:[STATE_ID, STYPE_ID]>
+*
+* Example:
+*  <toggleStateOnSkillExecution:[143, 4]>
+*
+* Translation:
+*  a type-4 skill that costs MP, executed without state 143, applies state 143;
+*  a type-4 skill that costs MP, executed with state 143, removes it once its cost is paid.
+* </pre>
+* @type {RegExp}
+*/
+J.PASSIVE.EXT.CONDITIONAL.RegExp.ToggleStateOnSkillExecution = /<toggleStateOnSkillExecution:[ ]?(\[[^\]]+])>/gi;
 /**
 * Captures {@code removeStateOnMove} bracket tuples from <strong>state</strong> notes only.<br/>
 * When the owning battler moves, strips the target state via {@link Game_Battler#decrementStateStacks}.
@@ -474,6 +522,16 @@ Object.defineProperty(RPG_BaseItem.prototype, "autoExecuteSkillRules", { get() {
 	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill);
 } });
 /**
+* Whether this skill's hits count as weapon hits for {@code onWeaponHit} rules, per
+* {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.CountsAsWeaponHit}.<br/>
+* Only ever asked of the skill whose hit just landed, by {@link JABS_Engine#isWeaponHitAction}, so on any other
+* kind of row it is simply never read.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "countsAsWeaponHit", { get() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.CountsAsWeaponHit);
+} });
+/**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns} tuples from this row.<br/>
 * Each tuple schedules a signed cooldown modification via {@link AutoModifyCooldownManager} against
 * one or more of the bearer's own active skill-slot cooldowns.
@@ -510,6 +568,15 @@ Object.defineProperty(RPG_State.prototype, "removeOnSkillExecutionRules", { get(
 */
 Object.defineProperty(RPG_State.prototype, "removeOnSkillResolutionRules", { get() {
 	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillResolution);
+} });
+/**
+* Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.ToggleStateOnSkillExecution} tuples from this state row.<br/>
+* Each tuple is {@code [stateId, stypeId]}: the state a skill of that type costing MP arms or spends;
+* {@code stypeId} 0 matches any skill type.
+* @type {Array<[number, number]>}
+*/
+Object.defineProperty(RPG_State.prototype, "toggleStateOnSkillExecutionRules", { get() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.ToggleStateOnSkillExecution);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove} tuples from this state row.<br/>
@@ -796,6 +863,28 @@ var PassiveRuleJabsAccess = class {
 };
 
 //#endregion
+//#region src/plugins/passive/ext/conditional/helpers/DistinctStates.js
+/**
+* Reads the states a battler carries with each one listed once, however many stacks of it are applied.<br/>
+* J-ABS hands {@link Game_Battler#states} back with one copy of a stacked state per stack, which is what lets every
+* stack's traits add up. A rule written on a state speaks for that state once, though: a manager reading its rules
+* off each copy would roll a five-stack state's removal chance five times over, from a single execution, and could
+* strip every stack where its rule promised one.
+*/
+var DistinctStates = class {
+	/**
+	* The states the given battler carries, each listed once.
+	* @param {Game_Actor|Game_Enemy} battler The battler whose states are being read.
+	* @returns {RPG_State[]}
+	*/
+	static of(battler) {
+		const statesById = new Map();
+		battler.states().forEach((state) => statesById.set(state.id, state));
+		return [...statesById.values()];
+	}
+};
+
+//#endregion
 //#region src/plugins/passive/ext/conditional/managers/AutoRuleManager.js
 /**
 * Base class for managers that schedule automatic effects from passive-capable source tuples.
@@ -838,9 +927,11 @@ var AutoRuleManager = class {
 	* @param {any[]} _tuple - The full authored tuple this dispatch came from, for subclasses whose
 	* payload needs more than just `id` (e.g. a modification amount plus a range/target selector
 	* living further down the tuple than the shared loop itself ever inspects).
+	* @param {JABS_Battler|null} _hitTarget - The battler a hit-driven rule's hit landed on, for subclasses
+	* that aim at it; null for every condition that has no hit behind it.
 	* @returns {boolean} - True when the effect was successfully dispatched.
 	*/
-	static dispatch(_battler, _id, _tuple) {
+	static dispatch(_battler, _id, _tuple, _hitTarget) {
 		throw new Error(`${this.name} must implement static dispatch()`);
 	}
 	/**
@@ -964,23 +1055,28 @@ var AutoRuleManager = class {
 	/**
 	* Fires {@code onDamageDealt} rules on the battler that just landed damage on an opponent.
 	* @param {Game_Actor|Game_Enemy} battler - The battler that dealt the damage.
+	* @param {JABS_Battler|null} [hitTarget=null] - The battler the damage landed on, handed to every rule
+	* this fires so a payload aimed at it can land on it.
 	*/
-	static scheduleDamageDealtTriggers(battler) {
+	static scheduleDamageDealtTriggers(battler, hitTarget = null) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		if (!battler) return;
-		this.tryDispatch(battler, "onDamageDealt");
+		this.tryDispatch(battler, "onDamageDealt", hitTarget);
 	}
 	/**
-	* Fires {@code onWeaponHit} rules on the battler that just landed a mainhand/offhand attack.
+	* Fires {@code onWeaponHit} rules on the battler that just landed a weapon hit.
 	*
-	* Narrower than {@code onDamageDealt} — only counts hits from the caster's own basic-attack or
-	* combo chain (whatever is bound to the Mainhand/Offhand slot), not damage from arbitrary skills.
+	* Narrower than {@code onDamageDealt}: only hits from the caster's own basic attack or combo chain
+	* (whatever is bound to the Mainhand/Offhand slot) count, along with skills authored to count as weapon
+	* hits, never damage from arbitrary skills. See {@link JABS_Engine#isWeaponHitAction}.
 	* @param {Game_Actor|Game_Enemy} battler - The battler that landed the weapon hit.
+	* @param {JABS_Battler|null} [hitTarget=null] - The battler the hit landed on, handed to every rule this
+	* fires so a payload aimed at it can land on it.
 	*/
-	static scheduleWeaponHitTriggers(battler) {
+	static scheduleWeaponHitTriggers(battler, hitTarget = null) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		if (!battler) return;
-		this.tryDispatch(battler, "onWeaponHit");
+		this.tryDispatch(battler, "onWeaponHit", hitTarget);
 	}
 	/**
 	* Credits one whole tile of travel toward {@code move} rules on this battler.
@@ -1025,8 +1121,10 @@ var AutoRuleManager = class {
 	* Walks every authored tuple on this battler and dispatches when the condition kind matches.
 	* @param {Game_Actor|Game_Enemy} battler - The battler whose rules are evaluated.
 	* @param {string} conditionKind - The condition kind to match against authored tuples.
+	* @param {JABS_Battler|null} [hitTarget=null] - The battler a hit-driven condition's hit landed on, passed
+	* through to every dispatch; null for every condition that has no hit behind it.
 	*/
-	static tryDispatch(battler, conditionKind) {
+	static tryDispatch(battler, conditionKind, hitTarget = null) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		const rules = this.collectRules(battler);
 		for (const entry of rules) {
@@ -1042,7 +1140,7 @@ var AutoRuleManager = class {
 			}
 			const param = Number(tuple[2]);
 			if (Number.isNaN(param) || param < 0) continue;
-			this._tryDispatchRule(battler, source, tupleIndex, id, kind, param, tuple);
+			this._tryDispatchRule(battler, source, tupleIndex, id, kind, param, tuple, hitTarget);
 		}
 	}
 	/**
@@ -1144,14 +1242,16 @@ var AutoRuleManager = class {
 	* @param {number} cooldownFrames - Minimum frames that must elapse between dispatches for this key.
 	* @param {any[]} tuple - The full authored tuple, forwarded to the subclass dispatch for rules
 	* whose payload needs more than just `id`.
+	* @param {JABS_Battler|null} [hitTarget=null] - The battler a hit-driven condition's hit landed on,
+	* forwarded to the subclass dispatch; null for every condition that has no hit behind it.
 	*/
-	static _tryDispatchRule(battler, source, tupleIndex, id, condition, cooldownFrames, tuple) {
+	static _tryDispatchRule(battler, source, tupleIndex, id, condition, cooldownFrames, tuple, hitTarget = null) {
 		const ruleKey = this.buildRuleKey(source, tupleIndex, id, condition);
 		const now = Graphics.frameCount;
 		const lastFrame = battler.getAutoRuleLastFrame(ruleKey);
 		const elapsed = now - lastFrame;
 		if (lastFrame > 0 && elapsed < cooldownFrames) return;
-		const dispatched = this.dispatch(battler, id, tuple);
+		const dispatched = this.dispatch(battler, id, tuple, hitTarget);
 		if (dispatched === true) {
 			battler.setAutoRuleLastFrame(ruleKey, now);
 		}
@@ -1288,6 +1388,9 @@ var AutoApplyStateOnNearbyManager = class extends AutoRuleManager {
 * windup down exactly as it would for any other cast, and it fires the moment that windup ends. Either way the
 * skills fired here are real map actions with hitboxes, elements, and effects, subject to JABS parry and
 * retaliation, and either way they cost nothing and start no cooldown.
+*
+* A rule fired by a hit knows the battler that was struck, and a direct payload lands on that battler's tile:
+* an enchant's follow-up hits the foe the swing hit. Every other payload fires from its bearer, as one always has.
 */
 var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleManager {
 	/**
@@ -1306,9 +1409,10 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 	static #executionDepth = 0;
 	/**
 	* The windups this manager started, each keyed by the bearer winding it up and holding the very actions it
-	* decided, so landing one can tell its own cast from anything the bearer decided for itself since. Held
-	* weakly: a bearer taken off the map takes its windup with it, and only a bearer still being updated lands one.
-	* @type {WeakMap<JABS_Battler, JABS_Action[]>}
+	* decided, so landing one can tell its own cast from anything the bearer decided for itself since, along with
+	* the tile it aims at, so it lands where it was aimed when it was wound up. Held weakly: a bearer taken off the
+	* map takes its windup with it, and only a bearer still being updated lands one.
+	* @type {WeakMap<JABS_Battler, { actions: JABS_Action[], aimTile: Array<number|null> }>}
 	*/
 	static #windups = new WeakMap();
 	/**
@@ -1320,9 +1424,11 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 	* @param {Game_Actor|Game_Enemy} battler - The battler firing the skill.
 	* @param {number} skillId - The database id of the skill to execute.
 	* @param {any[]} _tuple - The full authored tuple; unused here, this rule's whole payload is the id.
+	* @param {JABS_Battler|null} [hitTarget=null] - The battler a hit-driven rule's hit landed on, which a direct
+	* payload aims at; null when no hit fired this rule.
 	* @returns {boolean} - True when the skill fired at once or began its windup.
 	*/
-	static dispatch(battler, skillId, _tuple) {
+	static dispatch(battler, skillId, _tuple, hitTarget = null) {
 		const maxDepth = J.PASSIVE.EXT.CONDITIONAL.Metadata.autoExecuteSkillMaxDepth || 1;
 		if (AutoExecuteSkillManager.#executionDepth >= maxDepth) return false;
 		const jabsBattler = PassiveRuleJabsAccess.getJabsBattler(battler);
@@ -1334,12 +1440,29 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 			const preview = jabsBattler.createJabsActionFromSkill(skillId);
 			if (!$jabsEngine.canExecuteMapActions(jabsBattler, preview)) return false;
 			const [primaryAction] = preview;
-			if (primaryAction.getCastTime() > 0) return AutoExecuteSkillManager.#beginWindup(jabsBattler, preview);
-			$jabsEngine.forceMapAction(jabsBattler, skillId, false);
+			const aimTile = AutoExecuteSkillManager.resolveAimTile(primaryAction, hitTarget);
+			if (primaryAction.getCastTime() > 0) return AutoExecuteSkillManager.#beginWindup(jabsBattler, preview, aimTile);
+			const [aimX, aimY] = aimTile;
+			$jabsEngine.forceMapAction(jabsBattler, skillId, false, aimX, aimY);
 			return true;
 		} finally {
 			AutoExecuteSkillManager.#executionDepth -= 1;
 		}
+	}
+	/**
+	* Resolves the tile a payload aims at, as the coordinate pair {@link JABS_Engine#forceMapAction} takes.<br/>
+	* A direct payload fired by a hit aims at the battler that was struck, so it lands on them: an enchant's
+	* follow-up lands on the foe the swing hit, not around the one swinging. Everything else aims nowhere, and both
+	* coordinates are null. A rule with no hit behind it has nobody to aim at, and a non-direct payload's origin is
+	* its bearer, whatever it was fired by: a projectile still leaves from whoever fired it.
+	* @param {JABS_Action} primaryAction The payload's primary action.
+	* @param {JABS_Battler|null} hitTarget The battler a hit-driven rule's hit landed on, or null.
+	* @returns {Array<number|null>} The `[x, y]` to aim at, or `[null, null]` when the payload aims nowhere.
+	*/
+	static resolveAimTile(primaryAction, hitTarget) {
+		if (hitTarget === null) return [null, null];
+		if (primaryAction.isDirectAction() === false) return [null, null];
+		return [hitTarget.getX(), hitTarget.getY()];
 	}
 	/**
 	* Starts a payload's windup in its bearer's own cast slot: decided, with its countdown running. That is all
@@ -1348,15 +1471,20 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 	* stamps no cooldown, so a timed or proximity rule tries again on the next frame.
 	* @param {JABS_Battler} jabsBattler The bearer to wind the payload up.
 	* @param {JABS_Action[]} actions The payload's actions, built the way the instant path builds them.
+	* @param {Array<number|null>} aimTile The `[x, y]` the payload aims at, kept until it lands; see
+	* {@link resolveAimTile}.
 	* @returns {boolean}
 	*/
-	static #beginWindup(jabsBattler, actions) {
+	static #beginWindup(jabsBattler, actions, aimTile) {
 		if (jabsBattler.isActionDecided()) return false;
 		if (jabsBattler.isCastingOrChanneling()) return false;
 		jabsBattler.setDecidedAction(actions);
 		const [primaryAction] = actions;
 		jabsBattler.setCastCountdown(primaryAction.getCastTime());
-		AutoExecuteSkillManager.#windups.set(jabsBattler, actions);
+		AutoExecuteSkillManager.#windups.set(jabsBattler, {
+			actions,
+			aimTile
+		});
 		return true;
 	}
 	/**
@@ -1367,12 +1495,14 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 	* has no AI at all. So it fires through the very instant path a payload without a cast time takes, under the
 	* same depth guard, and anything extending that path sees a wound-up payload exactly as it sees an instant
 	* one. The volley that path rebuilds matches the telegraph: a casting AI neither walks nor turns, an inanimate
-	* bearer never does, and a player's movement interrupts the cast. The cast slot is cleared after.
+	* bearer never does, and a player's movement interrupts the cast. It lands on the tile it was aimed at when it
+	* was wound up, if it was aimed at all. The cast slot is cleared after.
 	* @param {JABS_Battler} jabsBattler The bearer whose windup may have ended.
 	*/
 	static landWindup(jabsBattler) {
-		const actions = AutoExecuteSkillManager.#windups.get(jabsBattler);
-		if (jabsBattler.getDecidedAction() !== actions) {
+		const windup = AutoExecuteSkillManager.#windups.get(jabsBattler);
+		if (windup === undefined) return;
+		if (jabsBattler.getDecidedAction() !== windup.actions) {
 			AutoExecuteSkillManager.#windups.delete(jabsBattler);
 			return;
 		}
@@ -1380,13 +1510,14 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 			AutoExecuteSkillManager.#windups.delete(jabsBattler);
 			return;
 		}
-		const [primaryAction] = actions;
+		const [primaryAction] = windup.actions;
 		if (!primaryAction.isCastComplete()) return;
 		AutoExecuteSkillManager.#windups.delete(jabsBattler);
 		AutoExecuteSkillManager.#executionDepth += 1;
 		try {
 			const skillId = primaryAction.getBaseSkill().id;
-			$jabsEngine.forceMapAction(jabsBattler, skillId, false);
+			const [aimX, aimY] = windup.aimTile;
+			$jabsEngine.forceMapAction(jabsBattler, skillId, false, aimX, aimY);
 		} finally {
 			AutoExecuteSkillManager.#executionDepth -= 1;
 		}
@@ -1589,12 +1720,14 @@ var AutoInflictStateManager = class AutoInflictStateManager extends AutoRuleMana
 //#endregion
 //#region src/plugins/passive/ext/conditional/managers/SkillExecutionStateRemovalManager.js
 /**
-* Processes {@link RPG_State#removeOnSkillExecutionRules} when a map battler executes a skill.<br/>
+* Processes {@link RPG_State#removeOnSkillExecutionRules} once a map battler has paid for a skill it is executing,
+* from {@link JABS_Engine#paySkillCosts}, so a state these rules strip still shapes that cost.<br/>
 * Peels stacks via {@link Game_Battler#decrementStateStacks} using {@code loseAllStacksAtOnce} policy.
 */
 var SkillExecutionStateRemovalManager = class {
 	/**
-	* Rolls removal rules on every combat state this battler currently carries.
+	* Rolls removal rules on every combat state this battler currently carries, once per state however many
+	* stacks of it are applied.
 	* @param {Game_Actor|Game_Enemy} battler The battler that executed the skill.
 	* @param {number} skillId The database skill id that was executed.
 	*/
@@ -1603,9 +1736,8 @@ var SkillExecutionStateRemovalManager = class {
 		const skill = $dataSkills[skillId];
 		if (!skill) return;
 		const executedStype = skill.stypeId;
-		const activeStates = battler.states();
+		const activeStates = DistinctStates.of(battler);
 		for (const state of activeStates) {
-			if (!state) continue;
 			const rules = state.removeOnSkillExecutionRules;
 			for (const tuple of rules) {
 				const stypeId = Number(tuple[0]);
@@ -1648,7 +1780,8 @@ var SkillExecutionStateRemovalManager = class {
 */
 var SkillResolutionStateRemovalManager = class {
 	/**
-	* Rolls removal rules on every combat state this battler currently carries.
+	* Rolls removal rules on every combat state this battler currently carries, once per state however many
+	* stacks of it are applied.
 	* @param {Game_Actor|Game_Enemy} battler - The battler whose action just resolved.
 	* @param {number} skillId - The database skill id that resolved against the target.
 	*/
@@ -1657,9 +1790,8 @@ var SkillResolutionStateRemovalManager = class {
 		const skill = $dataSkills[skillId];
 		if (!skill) return;
 		const executedStype = skill.stypeId;
-		const activeStates = battler.states();
+		const activeStates = DistinctStates.of(battler);
 		for (const state of activeStates) {
-			if (!state) continue;
 			const rules = state.removeOnSkillResolutionRules;
 			for (const tuple of rules) {
 				const stypeId = Number(tuple[0]);
@@ -1688,6 +1820,76 @@ var SkillResolutionStateRemovalManager = class {
 			return tracked.stackCount;
 		}
 		return 1;
+	}
+};
+
+//#endregion
+//#region src/plugins/passive/ext/conditional/managers/SkillExecutionStateToggleManager.js
+/**
+* Processes {@link RPG_State#toggleStateOnSkillExecutionRules} each time a map battler pays for a skill it is
+* executing, from {@link JABS_Engine#paySkillCosts}.<br/>
+* Each rule names a state and a skill type. A hardcast of that type- any skill of it that costs MP- executed while the
+* battler lacks the state arms it, and one executed while the battler carries it spends it, so those casts alternate:
+* a plain cast, then one the armed state shapes, then a plain one again. That is a Red Mage's Dualcast, when the
+* armed state makes a cast instant and free: a cheap spell arms it, and the big one after it fires free.
+* <p>
+* Running once the cost is paid is what lets the spending cast be the one the state shapes: its cast time was read
+* with the state on when the skill was decided, and its cost a moment ago. Arming and spending both come from a
+* single look at the battler, so the cast that spends a state can never arm it again.
+* </p>
+*/
+var SkillExecutionStateToggleManager = class {
+	/**
+	* Arms or spends every state the battler's own states toggle for the skill it just paid for.
+	* @param {Game_Actor|Game_Enemy} battler The battler that just paid for the skill.
+	* @param {RPG_Skill} skill The skill being executed.
+	*/
+	static process(battler, skill) {
+		if (this.isHardcast(skill) === false) return;
+		const stateIds = this.stateIdsToggledBy(battler, skill.stypeId);
+		stateIds.forEach((stateId) => this.toggle(battler, stateId, skill));
+	}
+	/**
+	* Whether the given skill counts as a hardcast, which is what lets it arm or spend a toggled state.<br/>
+	* A skill that costs MP is a hardcast, however long or short its cast: a mover that costs MP arms the charge as
+	* surely as a slow nuke does. A skill that costs nothing- a weapon swing, a free spell- never touches it, so no
+	* cast of the rule's type can ride an armed state for free without spending it. The cost is read as the database
+	* row writes it, before any cost rate applies, so the cast the armed state made free still counts as the hardcast
+	* it is.
+	* @param {RPG_Skill} skill The skill being executed.
+	* @returns {boolean}
+	*/
+	static isHardcast(skill) {
+		return skill.mpCost > 0;
+	}
+	/**
+	* The ids of the states this battler's own states toggle when it executes a skill of the given type, each listed
+	* once.<br/>
+	* A state named by two sources, or handed over once per stack of a stacked state, would otherwise be armed and then
+	* spent again by the very same execution.
+	* @param {Game_Actor|Game_Enemy} battler The battler executing the skill.
+	* @param {number} skillTypeId The type of the skill being executed.
+	* @returns {number[]}
+	*/
+	static stateIdsToggledBy(battler, skillTypeId) {
+		const rules = battler.allStates().flatMap((state) => state.toggleStateOnSkillExecutionRules);
+		const stateIds = rules.filter(([, ruleSkillTypeId]) => ruleSkillTypeId === 0 || ruleSkillTypeId === skillTypeId).map(([stateId]) => stateId);
+		return [...new Set(stateIds)];
+	}
+	/**
+	* Spends the given state when the battler carries it, or arms it when the battler does not.<br/>
+	* Spending removes the state outright, every stack of it. Arming applies it with the battler as its source, so
+	* the state's own duration runs its timer and lets an unused charge lapse.
+	* @param {Game_Actor|Game_Enemy} battler The battler executing the skill.
+	* @param {number} stateId The state being toggled.
+	* @param {RPG_Skill} skill The skill being executed, credited as the source of a state it arms.
+	*/
+	static toggle(battler, stateId, skill) {
+		if (battler.isStateAffected(stateId)) {
+			battler.removeState(stateId);
+			return;
+		}
+		battler.addState(stateId, battler, skill);
 	}
 };
 
@@ -2690,7 +2892,6 @@ JABS_Battler.prototype.setLastUsedSkillId = function(skillId) {
 	const battler = this.getBattler();
 	if (!battler) return;
 	battler.stampPassiveRuleAttackedFrame();
-	SkillExecutionStateRemovalManager.process(battler, skillId);
 };
 /**
 * Delegates throttled passive rule reconciliation to the underlying battler.<br/>
@@ -2752,21 +2953,25 @@ JABS_Engine.prototype.handleDefeatedEnemy = function(defeatedTarget, caster) {
 	AutoModifyCooldownManager.scheduleKillTriggers(casterBattler);
 };
 /**
-* Extends {@link JABS_Engine#checkKnockback}.<br/>
-* Fires {@code onKnockback} autoInflictState rules on the battler that knocked the target back,
-* applying the configured payload state onto the knocked-back target.
+* Extends {@link JABS_Engine#onKnockback}.<br/>
+* Fires {@code onKnockback} autoInflictState rules on the battler whose hit knocked the target back,
+* applying the configured payload state onto the knocked-back target. J-ABS calls this only for a hit
+* that actually moved its target, pushed away or pulled in, so a hit that moved nothing fires nothing.
+* @param {JABS_Action} action The action whose hit moved the target.
+* @param {JABS_Battler} target The map battler that was moved.
 */
-J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.set("checkKnockback", JABS_Engine.prototype.checkKnockback);
-JABS_Engine.prototype.checkKnockback = function(action, target) {
-	J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.get("checkKnockback").call(this, action, target);
+J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.set("onKnockback", JABS_Engine.prototype.onKnockback);
+JABS_Engine.prototype.onKnockback = function(action, target) {
+	J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.get("onKnockback").call(this, action, target);
 	const casterBattler = action.getCaster().getBattler();
 	const targetBattler = target.getBattler();
-	if (!casterBattler || !targetBattler) return;
 	AutoInflictStateManager.scheduleKnockbackTriggers(casterBattler, targetBattler);
 };
 /**
 * Extends {@link JABS_Engine#postExecuteSkillEffects}.<br/>
-* Fires {@code onDamageDealt} rules on the caster after landing damage on an opposing battler.
+* Fires {@code onDamageDealt} rules on the caster after landing damage on an opposing battler, and
+* {@code onWeaponHit} rules too when the hit counts as a weapon hit. Both hand the rules the battler that was
+* hit, so a direct payload one of them fires lands on whoever was struck.
 * Reuses the same result-field check {@link JABS_Engine#applyAggroEffects} already performs here.
 */
 J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.set("postExecuteSkillEffects", JABS_Engine.prototype.postExecuteSkillEffects);
@@ -2779,14 +2984,49 @@ JABS_Engine.prototype.postExecuteSkillEffects = function(action, target) {
 	if (!dealtDamage) return;
 	const casterBattler = caster.getBattler();
 	if (!casterBattler) return;
-	AutoApplyStateManager.scheduleDamageDealtTriggers(casterBattler);
-	AutoExecuteSkillManager.scheduleDamageDealtTriggers(casterBattler);
+	AutoApplyStateManager.scheduleDamageDealtTriggers(casterBattler, target);
+	AutoExecuteSkillManager.scheduleDamageDealtTriggers(casterBattler, target);
+	if (this.isWeaponHitAction(action) === false) return;
+	AutoApplyStateManager.scheduleWeaponHitTriggers(casterBattler, target);
+	AutoExecuteSkillManager.scheduleWeaponHitTriggers(casterBattler, target);
+};
+/**
+* Whether a hit from this action counts as a weapon hit, for {@code onWeaponHit} rules.<br/>
+* Anything fired from the Mainhand or Offhand slot does: the basic attack and its combo chain. A skill cast from
+* any other slot counts only when it carries {@code <countsAsWeaponHit>}, the way a blade flurry would, so an
+* arbitrary skill (e.g. a nuke hitting the whole map) never sets off a "weapon" follow-up. A forced payload
+* carries the global cooldown key rather than a slot, so the follow-up a weapon hit fires never counts as one
+* itself, and can never fire itself again.
+* @param {JABS_Action} action The action whose hit just landed.
+* @returns {boolean}
+*/
+JABS_Engine.prototype.isWeaponHitAction = function(action) {
 	const cooldownType = action.getCooldownType();
-	const isWeaponSlot = cooldownType === JABS_Button.Mainhand || cooldownType === JABS_Button.Offhand;
-	if (isWeaponSlot) {
-		AutoApplyStateManager.scheduleWeaponHitTriggers(casterBattler);
-		AutoExecuteSkillManager.scheduleWeaponHitTriggers(casterBattler);
-	}
+	if (cooldownType === JABS_Button.Mainhand || cooldownType === JABS_Button.Offhand) return true;
+	return action.getBaseSkill().countsAsWeaponHit;
+};
+/**
+* Extends {@link JABS_Engine#paySkillCosts}.<br/>
+* Once an executing skill's cost is paid, settles its caster's states that answer to that execution: a state a
+* {@code toggleStateOnSkillExecution} rule names is armed or spent, then a state a {@code removeOnSkillExecution}
+* rule strips is peeled.
+* <p>
+* Every paid execution makes this call exactly once- a decided cast, a dodge, a channel's vessel- and no forced
+* payload ever makes it, so a retaliation, a channel's tick and an auto-executed skill never reach these rules. It
+* is also the last moment a state can still shape the execution that ends it: the cast time was read when the skill
+* was decided, and the cost has just been paid. Toggling runs first so that a state both toggled and peeled by the
+* same execution ends up stripped, rather than armed again forever.
+* </p>
+* @param {JABS_Battler} caster The battler executing the skill.
+* @param {JABS_Action} action The action whose skill was just paid for.
+*/
+J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.set("paySkillCosts", JABS_Engine.prototype.paySkillCosts);
+JABS_Engine.prototype.paySkillCosts = function(caster, action) {
+	J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.get("paySkillCosts").call(this, caster, action);
+	const battler = caster.getBattler();
+	const skill = action.getBaseSkill();
+	SkillExecutionStateToggleManager.process(battler, skill);
+	SkillExecutionStateRemovalManager.process(battler, skill.id);
 };
 
 //#endregion
@@ -3201,7 +3441,8 @@ var ConditionalNotetagDescriptions = class {
 	}
 	/**
 	* Every tag this plugin describes, each paired with its describer, in the order their lines are listed: what gates
-	* the passives first, then what fires on its own, then what takes stacks away.
+	* the passives first, then what fires on its own, then what one type of skill arms and spends by turns, then what
+	* takes stacks away.
 	* @returns {Array<[RegExp, function(RegExpExecArray): NotetagLine[]]>}
 	*/
 	static describedTags() {
@@ -3215,6 +3456,7 @@ var ConditionalNotetagDescriptions = class {
 			[tags.AutoExecuteSkill, (match) => this.skillTriggerLines(match)],
 			[tags.AutoInflictState, (match) => this.selfTriggerLines(match, "autoInflictState")],
 			[tags.AutoModifyCooldowns, (match) => this.cooldownLines(match)],
+			[tags.ToggleStateOnSkillExecution, (match) => this.toggleLines(match)],
 			[tags.RemoveOnSkillExecution, (match) => this.removalLines(match, "removeOnSkillExecution")],
 			[tags.RemoveOnSkillResolution, (match) => this.removalLines(match, "removeOnSkillResolution")],
 			[tags.RemoveStateOnMove, (match) => this.moveRemovalLines(match)]
@@ -3404,6 +3646,25 @@ var ConditionalNotetagDescriptions = class {
 		const size = Math.abs(amount);
 		if (unit === "percent") return ConditionPhrases.quantity(`${size}%`);
 		return ConditionPhrases.seconds(size);
+	}
+	/**
+	* The line describing a state its holder arms and spends by turns with one type of hardcast skill, in the sentence
+	* the game's config keeps under `toggleStateOnSkillExecution`, or under its `.any` variant when any skill at all
+	* will do. The sentence may name `{state}` and `{skillType}`.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the state and skill type.
+	* @returns {NotetagLine[]}
+	*/
+	static toggleLines(match) {
+		const [stateId, skillTypeId] = this.tupleOf(match);
+		const key = skillTypeId === 0 ? "toggleStateOnSkillExecution.any" : "toggleStateOnSkillExecution";
+		const tokens = {
+			state: this.stateToken(stateId),
+			skillType: {
+				text: `\\skillType[${skillTypeId}]`,
+				kind: NotetagDescriber.TokenKinds.CODE
+			}
+		};
+		return NotetagDescriber.line(key, { tokens });
 	}
 	/**
 	* The line describing a chance to lose a stack of the carrying state when its holder uses a skill, in the

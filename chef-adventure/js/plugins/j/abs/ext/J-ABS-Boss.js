@@ -2753,18 +2753,22 @@ Game_Map.prototype.update = function(sceneActive) {
 //#endregion
 //#region src/plugins/abs/ext/boss/objects/JABS_Engine.js
 /**
-* Extends {@link #resolveKnockbackDistance}.<br/>
+* Extends {@link #resolveKnockbackResist}.<br/>
 * Also keeps every participant of the boss fight exactly where it stands.
 *
 * A boss is immune to knockback outright, however hard it is hit and whatever it otherwise resists. A boss that
 * can be shoved around its own arena can be wedged into a doorway or pinned in a corner, and then the fight is
-* fought against the walls of the room rather than against the boss. Only being moved is refused: every state a
-* hit carries, a stun among them, still lands.
+* fought against the walls of the room rather than against the boss. A pull is knockback aimed back toward the
+* caster, and dragging a boss into that same doorway is the same problem, so full resistance refuses both: J-ABS
+* and J-ABS-Tools read this one resistance before moving anyone. Only being moved is refused: every state a hit
+* carries, a stun among them, still lands.
+* @param {JABS_Battler} target The map battler whose resistance is being resolved.
+* @returns {number}
 */
-J.ABS.EXT.BOSS.Aliased.JABS_Engine.set("resolveKnockbackDistance", JABS_Engine.prototype.resolveKnockbackDistance);
-JABS_Engine.prototype.resolveKnockbackDistance = function(action, target) {
-	if (JabsBossManager.isParticipant(target)) return null;
-	return J.ABS.EXT.BOSS.Aliased.JABS_Engine.get("resolveKnockbackDistance").call(this, action, target);
+J.ABS.EXT.BOSS.Aliased.JABS_Engine.set("resolveKnockbackResist", JABS_Engine.prototype.resolveKnockbackResist);
+JABS_Engine.prototype.resolveKnockbackResist = function(target) {
+	if (JabsBossManager.isParticipant(target)) return JABS_Engine.FullKnockbackResist;
+	return J.ABS.EXT.BOSS.Aliased.JABS_Engine.get("resolveKnockbackResist").call(this, target);
 };
 /**
 * Extends {@link #handleDefeatedEnemy}.<br/>

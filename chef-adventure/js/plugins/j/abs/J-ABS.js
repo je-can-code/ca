@@ -16306,6 +16306,15 @@ var JABS_Engine = class JABS_Engine {
 		}
 	};
 	/**
+	* The knockback resistance, as a percent, at which a target refuses being forcibly moved at all.
+	*
+	* Pushes and pulls both answer to it: a pull is knockback aimed back toward the caster, so a target
+	* that resists every knockback resists every pull with the same number. At or above it the target
+	* does not even hop in place.
+	* @type {100}
+	*/
+	static FullKnockbackResist = 100;
+	/**
 	* Gets the action events.
 	* @returns {JABS_Action[]} The actionEvents.
 	*/
@@ -17628,8 +17637,8 @@ var JABS_Engine = class JABS_Engine {
 		}
 	}
 	/**
-	* Handles the on-cast state effects for a JABS action, firing once at press-time
-	* rather than once per target hit.
+	* Handles the on-cast state effects for a JABS action, firing once for the action as it executes- after
+	* any cast time has run out- rather than once per target hit.
 	* @param {JABS_Battler} caster The JABS_Battler executing the JABS action.
 	* @param {JABS_Action} action The JABS action being executed.
 	*/
@@ -18465,6 +18474,21 @@ var JABS_Engine = class JABS_Engine {
 		return [unitX * tiles, unitY * tiles];
 	}
 	/**
+	* Resolves how strongly the given target resists being forcibly moved, as a percent.
+	*
+	* Summed from `<knockbackResist:PCT>` across every note source the target has. Knockback and
+	* pull-forward both read it from here, so a plugin granting a resistance of its own- J-ABS-Boss
+	* makes every participant of a boss fight immovable- aliases this one method and both kinds of
+	* forced movement agree on it.
+	* @param {JABS_Battler} target The map battler whose resistance is being resolved.
+	* @returns {number} The resistance percent; {@link JABS_Engine.FullKnockbackResist} or more refuses
+	* every push and every pull.
+	*/
+	resolveKnockbackResist(target) {
+		const targetNotes = target.getBattler().getAllNotes();
+		return RPGManager.getSumFromAllNotesByRegex(targetNotes, J.ABS.RegExp.KnockbackResist);
+	}
+	/**
 	* Resolves how far an action should knock its target back, after the target's resistance and the
 	* caster's amplification have both been applied.
 	*
@@ -18476,9 +18500,8 @@ var JABS_Engine = class JABS_Engine {
 	* deliberately distinct from a zero distance, since zero still hops in place.
 	*/
 	resolveKnockbackDistance(action, target) {
-		const targetNotes = target.getBattler().getAllNotes();
-		const targetKnockbackResist = RPGManager.getSumFromAllNotesByRegex(targetNotes, J.ABS.RegExp.KnockbackResist);
-		if (targetKnockbackResist >= 100) return null;
+		const targetKnockbackResist = this.resolveKnockbackResist(target);
+		if (targetKnockbackResist >= JABS_Engine.FullKnockbackResist) return null;
 		let knockback = action.getKnockback();
 		if (knockback === null) return null;
 		knockback *= (100 - targetKnockbackResist) / 100;
@@ -18490,7 +18513,9 @@ var JABS_Engine = class JABS_Engine {
 		return knockback;
 	}
 	/**
-	* Forces the target hit to be knocked back.
+	* Forces the target hit to be knocked back, announcing it through {@link #announceKnockback} once
+	* the target is on its way.<br/>
+	* A hop in place moves nobody and announces nothing.
 	* @param {JABS_Action} action The action potentially knocking the target back.
 	* @param {JABS_Battler} target The map battler to potentially knockback.
 	*/
@@ -18509,12 +18534,40 @@ var JABS_Engine = class JABS_Engine {
 		const [xPlus, yPlus] = JABS_Engine.toDisplacement(knockbackDirection, knockback);
 		if (action.getBaseSkill().jabsIgnoreTerrain) {
 			targetSprite.jump(xPlus, yPlus);
+			this.announceKnockback(action, target, xPlus, yPlus);
 			return;
 		}
 		const knockbackDistance = Math.max(Math.abs(xPlus), Math.abs(yPlus));
 		const [dx, dy] = targetSprite.walkInDirectionClamped(knockbackDirection, knockbackDistance);
 		targetSprite.jump(dx, dy);
+		this.announceKnockback(action, target, dx, dy);
 	}
+	/**
+	* Announces a knockback through {@link #onKnockback}, but only when it actually moved its target.<br/>
+	* Terrain can cut a knockback down to nothing, and a facing with no cardinal meaning sends it along
+	* no axis at all; either way the target is still standing where it was, and a knockback that moved
+	* nobody is no knockback. A pull is knockback aimed back toward the caster, so the plugins that pull
+	* announce through here as well.
+	* @param {JABS_Action} action The action whose hit moved the target.
+	* @param {JABS_Battler} target The map battler that was moved.
+	* @param {number} dx The horizontal tiles the target was sent.
+	* @param {number} dy The vertical tiles the target was sent.
+	*/
+	announceKnockback(action, target, dx, dy) {
+		if (dx === 0 && dy === 0) return;
+		this.onKnockback(action, target);
+	}
+	/**
+	* Lifecycle event: a hit has just knocked its target off the tile it stood on, pushed away or pulled
+	* in.<br/>
+	* Reached only through {@link #announceKnockback}, so a hit that leaves its target where it stood- one
+	* that healed, was parried, struck a target already airborne, carried no knockback, met a target that
+	* refuses all of it, or only hopped it in place- never calls this. Extended by optional plugins (e.g.
+	* J-Passive-Conditional, whose onKnockback rules fire from here).
+	* @param {JABS_Action} _action The action whose hit moved the target.
+	* @param {JABS_Battler} _target The map battler that was moved.
+	*/
+	onKnockback(_action, _target) {}
 	/**
 	* Checks whether this landed hit should interrupt the target's in-flight cast/channel.
 	* Requires the attacking skill to carry `<interrupt:MAGNIFIER>`, and the target to be neither

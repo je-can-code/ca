@@ -264,6 +264,14 @@
     "template": "This skill negates {value} {element} resistance."
   },
   {
+    "key": "toggleStateOnSkillExecution",
+    "template": "Each {skillType} skill that costs MP grants {state}, or spends it if already active."
+  },
+  {
+    "key": "toggleStateOnSkillExecution.any",
+    "template": "Each skill that costs MP grants {state}, or spends it if already active."
+  },
+  {
     "key": "trigger.anyDmg",
     "template": "on taking damage"
   },

@@ -23,7 +23,7 @@
 | 1 | Back Off | Slow-moving projectile. Hits, knocks back, hits again, knocks back again — same target, same projectile, over and over. He threw it at exactly that speed on purpose. |
 | 2 | Skyeroll | Channeled. Locks Jerald in place, rains sharp things on a target zone repeatedly over the duration. He is rolling his eyes the entire time. |
 | 3 | Watch Your Step | Places a mine. On trigger: simultaneous root and heavy damage. He warned them. |
-| 4 | I Said Back Off | **Signature.** An 8-tile wide wall of sharp, slow-moving death. No cooldown between hits — it grinds through everything it contacts with deliberate patience. Long cooldown. He said it once already. |
+| 4 | I Said Back Off | **Signature.** An 8-tile wide wall of sharp, slow-moving death. No cooldown between hits — it grinds through everything it contacts with deliberate patience. Long cooldown. He said it once already. Its width is the javelin count, so radius bonuses never widen it: more spears, not fatter spears. |
 
 ---
 
@@ -33,7 +33,7 @@
 |---|---|---|
 | P1 | Power +10% | +10% attack. |
 | P2 | Projectile Duration +20% | Projectiles stay active 20% longer. Back Off bounces more. I Said Back Off grinds further. One throw, more work. |
-| P3 | Radius +30% | +30% AoE radius on all skills. Bigger zone, wider wall, further mine trigger. |
+| P3 | Radius +30% | +30% AoE radius on all skills. Bigger zone, bigger mine blast. The mine's trigger stays 1 tile, since the mine itself isn't getting bigger. |
 | P4 | CDR +10% | −10% cooldown duration. Back Off comes back faster. |
 | P5 | Equip Javelin | Unlock. Grants access to the Javelin weapon subgroup. |
 | P6 | Trauma | `onKnockback`: apply stun. Every push is a setup. |
