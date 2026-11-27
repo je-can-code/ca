@@ -929,7 +929,8 @@ var AutoRuleManager = class {
 	* living further down the tuple than the shared loop itself ever inspects).
 	* @param {JABS_Battler|null} _hitTarget - The battler a hit-driven rule's hit landed on, for subclasses
 	* that aim at it; null for every condition that has no hit behind it.
-	* @returns {boolean} - True when the effect was successfully dispatched.
+	* @returns {boolean} - True when the dispatch went ahead, which is what spends the rule's cooldown; each
+	* subclass says what going ahead means for its effect.
 	*/
 	static dispatch(_battler, _id, _tuple, _hitTarget) {
 		throw new Error(`${this.name} must implement static dispatch()`);
@@ -1062,6 +1063,19 @@ var AutoRuleManager = class {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		if (!battler) return;
 		this.tryDispatch(battler, "onDamageDealt", hitTarget);
+	}
+	/**
+	* Fires {@code onHealDealt} rules on the battler whose action just restored HP, MP or TP on a battler of its own
+	* side, itself included.
+	*
+	* The healing counterpart of {@code onDamageDealt}, and narrower than {@code onAllyHeal}: only an action that
+	* lands reaches it, never regeneration or a heal that merely happened nearby.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that did the healing.
+	* @param {JABS_Battler} hitTarget - The battler the heal landed on, handed to every rule this fires so a payload
+	* aimed at it can land on it.
+	*/
+	static scheduleHealDealtTriggers(battler, hitTarget) {
+		this.tryDispatch(battler, "onHealDealt", hitTarget);
 	}
 	/**
 	* Fires {@code onWeaponHit} rules on the battler that just landed a weapon hit.
@@ -1311,11 +1325,18 @@ var AutoApplyStateManager = class extends AutoRuleManager {
 * on the condition kind. This enables aura-style effects where the bearer passively afflicts
 * surrounding targets on a pulse timer.
 *
+* Every pulse rolls for the state on each target at the aura's full strength, through the same roll
+* as any other state applied by chance, {@link JABS_Fate.resolveStateProcCount}. The bearer is the
+* roller: each target's resistances and the luck between the two decide how likely it is to land,
+* the state's own {@code <type:negative>} classifier decides whether a target's curse helps it land
+* or stands in its way, and the bearer's Accumulate Mode and Encore can land it more than once in a
+* single pulse.
+*
 * Only proximity condition kinds ({@code enemiesNearby}/{@code alliesNearby} and their
 * {@code Below} counterparts) are meaningful here; other condition kinds have no proximity
 * target set to iterate and will not fire. Note that a {@code *Below} tuple with a threshold
 * of 1 (the "nothing nearby" case) can gate-pass while resolving zero targets — that pulse
-* simply applies to nobody. Thresholds of 2+ still land on the stragglers under the count
+* simply rolls for nobody. Thresholds of 2+ aim at whichever stragglers remain under the count
 * (e.g. "not swarmed by 5+ enemies, but hit whichever 1-2 are still around").
 */
 var AutoApplyStateOnNearbyManager = class extends AutoRuleManager {
@@ -1327,25 +1348,41 @@ var AutoApplyStateOnNearbyManager = class extends AutoRuleManager {
 		return "autoApplyStateOnNearbyRules";
 	}
 	/**
-	* Pushes a real combat state onto the target battler through the JABS addState path.
+	* Rolls the aura's state against one nearby target, and pushes it onto that target through the
+	* JABS addState path once for every time it lands.
+	*
+	* The bearer rolls at the aura's full strength through {@link JABS_Fate.resolveStateProcCount}:
+	* the target's State Rate and {@code <stateTypeResist>}, and the luck between the two battlers,
+	* shape the chance; the state's own {@code <type:negative>} classifier decides whether the
+	* target's curse is one more chance for it to land or one more hurdle for it to clear; and the
+	* bearer's Accumulate Mode and Encore decide how many times it lands. A state the target cannot
+	* take at all is never rolled for, and every landing checks the target's immunities on its own.
 	*
 	* The battler parameter here is the nearby target, not the rule bearer — the bearer's
 	* cooldown is managed separately in {@link _tryDispatchProximityRule}.
 	* @param {Game_Actor|Game_Enemy} battler - The nearby battler receiving the state.
 	* @param {number} stateId - The database id of the state to apply.
-	* @returns {boolean} - True when addState was called and the state was addable.
+	* @param {Game_Actor|Game_Enemy} bearer - The battler whose aura this is, who rolls for the state to land.
+	* @returns {boolean} - True when the state was rolled for against this target, whether or not it landed.
 	*/
-	static dispatch(battler, stateId) {
+	static dispatch(battler, stateId, bearer) {
 		if (battler.isStateAddable(stateId) === false) return false;
-		battler.addState(stateId, battler);
+		const procCount = JABS_Fate.resolveStateProcCount(bearer, battler, stateId, 100);
+		for (let i = 0; i < procCount; i++) {
+			battler.addState(stateId, battler);
+		}
 		return true;
 	}
 	/**
 	* Overrides the base proximity handler to redirect state application onto nearby battlers.
 	*
 	* The cooldown is tracked on the rule bearer so the pulse cadence is consistent regardless
-	* of how many targets are in range. The state is applied to every nearby battler in the
-	* resolved set each time the cooldown elapses.
+	* of how many targets are in range. Each time the cooldown elapses, the state is rolled for on
+	* every nearby battler in the resolved set, and the cooldown starts over as soon as any of them
+	* was rolled for, whether or not it landed: a pulse spends its cooldown on the attempt, so a
+	* target's resistances thin out the pulses that land rather than earning the aura a fresh roll
+	* on the very next frame. A pulse whose targets cannot take the state at all rolls for nobody,
+	* and leaves the cooldown where it was.
 	* @param {Game_Actor|Game_Enemy} battler - The battler whose proximity is evaluated.
 	* @param {RPG_BaseItem} source - The database row that declared the rule.
 	* @param {number} tupleIndex - Zero-based index of this tuple on the source row.
@@ -1366,13 +1403,13 @@ var AutoApplyStateOnNearbyManager = class extends AutoRuleManager {
 		const now = Graphics.frameCount;
 		const lastFrame = battler.getAutoRuleLastFrame(ruleKey);
 		if (lastFrame > 0 && now - lastFrame < cooldownFrames) return;
-		let anyDispatched = false;
+		let anyRolled = false;
 		nearbyJabsBattlers.forEach((jabsTarget) => {
 			const target = jabsTarget.getBattler();
 			if (!target) return;
-			if (this.dispatch(target, id) === true) anyDispatched = true;
+			if (this.dispatch(target, id, battler) === true) anyRolled = true;
 		});
-		if (anyDispatched === true) {
+		if (anyRolled === true) {
 			battler.setAutoRuleLastFrame(ruleKey, now);
 		}
 	}
@@ -1616,6 +1653,12 @@ var AutoModifyCooldownManager = class extends AutoRuleManager {
 * (proximity-targeted), this manager reads rules from the battler who just did something to an
 * external battler- inflicted a state, or knocked them back- and applies the configured payload
 * state onto that same external target, not onto the rule bearer, and not onto anything nearby.
+*
+* The payload is rolled for at its full strength, through the same roll as any other state applied
+* by chance, {@link JABS_Fate.resolveStateProcCount}. The rule bearer is the roller: the target's
+* resistances and the luck between the two decide how likely it is to land, the payload's own
+* {@code <type:negative>} classifier decides whether the target's curse helps it land or stands in
+* its way, and the bearer's Accumulate Mode and Encore can land it more than once.
 */
 var AutoInflictStateManager = class AutoInflictStateManager extends AutoRuleManager {
 	/**
@@ -1634,28 +1677,41 @@ var AutoInflictStateManager = class AutoInflictStateManager extends AutoRuleMana
 	*/
 	static #inflictDepth = 0;
 	/**
-	* Pushes a real combat state onto the target battler through the JABS addState path.
+	* Rolls the payload state against the target, and pushes it onto the target through the JABS
+	* addState path once for every time it lands.
+	*
+	* The inflictor rolls at the payload's full strength through {@link JABS_Fate.resolveStateProcCount}:
+	* the target's State Rate and {@code <stateTypeResist>}, and the luck between the two battlers,
+	* shape the chance; the payload's own {@code <type:negative>} classifier decides whether the
+	* target's curse is one more chance for it to land or one more hurdle for it to clear; and the
+	* inflictor's Accumulate Mode and Encore decide how many times it lands. A payload the target
+	* cannot take at all is never rolled for, and every landing checks the target's immunities on its own.
 	*
 	* Depth-guarded to prevent infinite re-entry- if the dispatched state is itself negative-tagged,
 	* applying it fires {@link Game_Battler#onJabsStateInflicted} again, which could otherwise chain
-	* indefinitely.
+	* indefinitely. The guard holds across every landing of one roll, so none of them can re-enter, and
+	* a dispatch it refuses is never rolled for.
 	* @param {Game_Actor|Game_Enemy} battler - The target battler receiving the state.
 	* @param {number} stateId - The database id of the state to apply.
 	* @param {Game_Actor|Game_Enemy} inflictor - The battler who actually inflicted this state- the
-	* bearer of the {@code autoInflictState} rule, credited as the source for JABS state tracking.
-	* @returns {boolean} - True when addState was called and the state was addable.
+	* bearer of the {@code autoInflictState} rule, who rolls for the payload and is credited as its
+	* source for JABS state tracking.
+	* @returns {boolean} - True when the payload was rolled for against the target, whether or not it landed.
 	*/
 	static dispatch(battler, stateId, inflictor) {
 		const maxDepth = J.PASSIVE.EXT.CONDITIONAL.Metadata.autoInflictStateMaxDepth || 1;
 		if (AutoInflictStateManager.#inflictDepth >= maxDepth) return false;
 		if (battler.isStateAddable(stateId) === false) return false;
+		const procCount = JABS_Fate.resolveStateProcCount(inflictor, battler, stateId, 100);
 		AutoInflictStateManager.#inflictDepth += 1;
 		try {
-			battler.addState(stateId, inflictor);
-			return true;
+			for (let i = 0; i < procCount; i++) {
+				battler.addState(stateId, inflictor);
+			}
 		} finally {
 			AutoInflictStateManager.#inflictDepth -= 1;
 		}
+		return true;
 	}
 	/**
 	* Evaluates every {@code autoInflictState} rule on the inflicting battler and applies matching
@@ -1690,6 +1746,10 @@ var AutoInflictStateManager = class AutoInflictStateManager extends AutoRuleMana
 	* plays both roles (rule owner and dispatch recipient)- here the rules live on {@code applier}
 	* but the payload state lands on {@code target}. Cooldown is tracked on {@code applier} since
 	* the rule itself belongs to them, regardless of which target it most recently fired against.
+	* It starts over whenever the payload was rolled for, whether or not it landed: the rule spends
+	* its cooldown on the attempt, so a target's resistances thin out the payloads that land rather
+	* than earning the rule a fresh roll on the very next event. A payload the target cannot take at
+	* all is never rolled for, and leaves the cooldown where it was.
 	* @param {Game_Actor|Game_Enemy} applier - The battler whose rules are evaluated.
 	* @param {Game_Actor|Game_Enemy} target - The battler the payload state should land on.
 	* @param {(kind: string) => boolean} kindMatches - Predicate deciding whether a tuple's condition
@@ -1709,8 +1769,8 @@ var AutoInflictStateManager = class AutoInflictStateManager extends AutoRuleMana
 			const now = Graphics.frameCount;
 			const lastFrame = applier.getAutoRuleLastFrame(ruleKey);
 			if (lastFrame > 0 && now - lastFrame < cooldownFrames) continue;
-			const dispatched = this.dispatch(target, id, applier);
-			if (dispatched === true) {
+			const rolled = this.dispatch(target, id, applier);
+			if (rolled === true) {
 				applier.setAutoRuleLastFrame(ruleKey, now);
 			}
 		}
@@ -2969,14 +3029,24 @@ JABS_Engine.prototype.onKnockback = function(action, target) {
 };
 /**
 * Extends {@link JABS_Engine#postExecuteSkillEffects}.<br/>
-* Fires {@code onDamageDealt} rules on the caster after landing damage on an opposing battler, and
-* {@code onWeaponHit} rules too when the hit counts as a weapon hit. Both hand the rules the battler that was
-* hit, so a direct payload one of them fires lands on whoever was struck.
-* Reuses the same result-field check {@link JABS_Engine#applyAggroEffects} already performs here.
+* Hands the landed action to the caster's rules that answer for it: damage on an opposing battler to its
+* damage-dealt rules, and anything restored on a battler of its own side to its heal-dealt rules.
 */
 J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.set("postExecuteSkillEffects", JABS_Engine.prototype.postExecuteSkillEffects);
 JABS_Engine.prototype.postExecuteSkillEffects = function(action, target) {
 	J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.get("postExecuteSkillEffects").call(this, action, target);
+	this.scheduleDamageDealtRules(action, target);
+	this.scheduleHealDealtRules(action, target);
+};
+/**
+* Fires {@code onDamageDealt} rules on the caster after landing damage on an opposing battler, and
+* {@code onWeaponHit} rules too when the hit counts as a weapon hit. Both hand the rules the battler that was
+* hit, so a direct payload one of them fires lands on whoever was struck.
+* Reuses the same result-field check {@link JABS_Engine#applyAggroEffects} already performs here.
+* @param {JABS_Action} action The action whose hit just landed.
+* @param {JABS_Battler} target The map battler the hit landed on.
+*/
+JABS_Engine.prototype.scheduleDamageDealtRules = function(action, target) {
 	const caster = action.getCaster();
 	if (!JABS_TeamRules.isOpposed(caster.getTeam(), target.getTeam())) return;
 	const result = target.getBattler().result();
@@ -2989,6 +3059,27 @@ JABS_Engine.prototype.postExecuteSkillEffects = function(action, target) {
 	if (this.isWeaponHitAction(action) === false) return;
 	AutoApplyStateManager.scheduleWeaponHitTriggers(casterBattler, target);
 	AutoExecuteSkillManager.scheduleWeaponHitTriggers(casterBattler, target);
+};
+/**
+* Fires {@code onHealDealt} rules on the caster after its action restores HP, MP or TP on a battler of its own side,
+* the caster itself included. The rules are handed the battler that was mended, so a direct payload lands on it.
+* <p>
+* Only an action that lands reaches this point, so natural regeneration, lifesteal and the heal cascades that answer
+* to other heals never fire these rules. That is what sets it apart from {@code onAllyHeal}, which hears every
+* restoration near its bearer, regeneration ticks included.
+* </p>
+* @param {JABS_Action} action The action that just landed.
+* @param {JABS_Battler} target The map battler the action landed on.
+*/
+JABS_Engine.prototype.scheduleHealDealtRules = function(action, target) {
+	const caster = action.getCaster();
+	if (JABS_TeamRules.isFriendly(caster.getTeam(), target.getTeam()) === false) return;
+	const result = target.getBattler().result();
+	const dealtHealing = result.hpDamage < 0 || result.mpDamage < 0 || result.tpDamage < 0;
+	if (dealtHealing === false) return;
+	const casterBattler = caster.getBattler();
+	AutoApplyStateManager.scheduleHealDealtTriggers(casterBattler, target);
+	AutoExecuteSkillManager.scheduleHealDealtTriggers(casterBattler, target);
 };
 /**
 * Whether a hit from this action counts as a weapon hit, for {@code onWeaponHit} rules.<br/>

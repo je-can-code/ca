@@ -7,6 +7,7 @@
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
+ * @orderAfter J-ABS
  * @orderAfter J-NaturalGrowth
  * @orderAfter J-Extend
  * @help
@@ -333,7 +334,8 @@ Game_Action.prototype.apply = function(target) {
 /**
 * Applies all on-crit state effects — states to the target and states to self — from both
 * the executing skill and any global crit tags present anywhere on the attacker.
-* Guarded by J-ABS availability since on-chance effects depend on {@link JABS_OnChanceEffect}.
+* Guarded by J-ABS availability: the tags are read as J-ABS's {@link JABS_OnChanceEffect}, and every state they
+* carry rolls through J-ABS's state roll, {@link Game_Action#resolveStateProcCountAgainst}.
 * @param {Game_Actor|Game_Enemy} target The target that received the critical hit.
 */
 Game_Action.prototype.applyOnCriticalStateEffects = function(target) {
@@ -360,28 +362,71 @@ Game_Action.prototype.applyOnCriticalSelfStates = function() {
 	this.rollAndApplyCritStates(attacker, this.onCritSelfStates());
 };
 /**
-* Iterates a list of on-chance effects and applies any that pass their roll to the recipient.
+* Rolls each on-crit state for its recipient, and adds it once for every time it lands.<br/>
+* Every roll is J-ABS's state roll for this action, {@link Game_Action#resolveStateProcCountAgainst}: the tag's
+* chance, already a percent, meets the recipient's State Rate traits and `<stateTypeResist>`, then, for a harmful
+* state, the luck between the attacker and the recipient, and then this action's fate. A state aimed at the target is harm when this action
+* targets the attacker's opponents and help otherwise, which decides whether the target's curse adds chances for it
+* to land or hurdles it has to clear. A state the attacker gives itself meets its own resistances and counts its fate
+* once, and the attacker holds no luck over itself. Every landing adds the state through
+* {@link Game_Battler#addState}, which checks the recipient's immunities each time.<br/>
+* Each landing records the skill that crit as the state's source skill, the way a skill's own state effect does. An
+* on-crit effect names a state, never a skill, so a skill looked up by that id would be an unrelated row at best- and
+* that row is what the state's slip amplification, spreading and expiry would go on to read.
 * @param {Game_Actor|Game_Enemy} recipient The battler receiving the state applications.
 * @param {JABS_OnChanceEffect[]} onChanceEffects The effects to roll and apply.
 */
 Game_Action.prototype.rollAndApplyCritStates = function(recipient, onChanceEffects) {
 	if (onChanceEffects.length === 0) return;
 	const attacker = this.subject();
+	const skill = this.item();
 	onChanceEffects.forEach((effect) => {
-		const skill = effect.baseSkill(attacker);
-		const positiveRolls = 1 + attacker.getPositiveRollsForSkill(skill);
-		const negativeRolls = recipient.getNegativeRolls();
-		const positiveRoller = attacker.isForceCritProcs() ? {
-			isVeryLucky: () => true,
-			isVeryCursed: () => false,
-			isAccumulating: () => attacker.isAccumulating(),
-			getEncoreRepeats: () => attacker.getEncoreRepeats()
-		} : attacker;
-		const procCount = effect.resolveProcCount(positiveRolls, negativeRolls, positiveRoller);
+		const { skillId: stateId, chance } = effect;
+		const positiveRoller = this.critStatePositiveRoller();
+		const procCount = this.resolveStateProcCountAgainst(recipient, stateId, chance, positiveRoller);
 		for (let i = 0; i < procCount; i++) {
-			recipient.addState(effect.skillId, attacker, skill);
+			recipient.addState(stateId, attacker, skill);
 		}
 	});
+};
+/**
+* Whose fate counts the landings of this action's on-crit states.<br/>
+* An attacker carrying `<forceCritProcs>` hands its on-crit rolls a stand-in whose fate always lands, whatever the
+* chance comes to after the recipient's resistances, without touching the attacker's own `isVeryLucky()` and
+* `isVeryCursed()` anywhere else. Accumulate Mode and Encore still read the real attacker: in Accumulate Mode a forced
+* roll lands once for every chance the roll brings, and Encore repeats every landing. Any other attacker counts its
+* own landings.
+* @returns {Game_Battler|object}
+*/
+Game_Action.prototype.critStatePositiveRoller = function() {
+	const attacker = this.subject();
+	if (attacker.isForceCritProcs() === false) return attacker;
+	return {
+		isVeryLucky: () => true,
+		isVeryCursed: () => false,
+		isAccumulating: () => attacker.isAccumulating(),
+		getEncoreRepeats: () => attacker.getEncoreRepeats()
+	};
+};
+/**
+* Extends {@link Game_Action#chanceRollerAgainst}.<br/>
+* A critical hit from an attacker carrying `<forceCritProcs>` lands every chance roll it carries against the battler
+* it crit: the states its skill's own effects and its on-hit tags put on that battler or take off it, as well as its
+* on-crit states. Those rolls get the stand-in {@link #critStatePositiveRoller} hands the on-crit rolls, so each one
+* lands whatever its chance comes to, while the battler's immunities still stop a state from being added. Every other
+* roll keeps the roller it had.<br/>
+* A roll the attacker aims at itself never asks after a critical: an attacker does not crit itself, and its own
+* result still describes the last hit it took. An on-hit self-state asks after the battler that was struck instead.
+* @param {Game_Battler} target The battler the roll is aimed at.
+* @returns {Game_Battler|object}
+*/
+J.CRIT.Aliased.Game_Action.set("chanceRollerAgainst", Game_Action.prototype.chanceRollerAgainst);
+Game_Action.prototype.chanceRollerAgainst = function(target) {
+	const roller = J.CRIT.Aliased.Game_Action.get("chanceRollerAgainst").call(this, target);
+	if (target === this.subject()) return roller;
+	if (target.result().critical === false) return roller;
+	if (this.subject().isForceCritProcs() === false) return roller;
+	return this.critStatePositiveRoller();
 };
 /**
 * Gets all on-crit target states sourced from the executing skill only.

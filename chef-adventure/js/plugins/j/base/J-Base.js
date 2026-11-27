@@ -692,23 +692,21 @@ var RPGManager = class RPGManager {
 	static chanceIn100(percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
 		if (percentOfSuccess <= 0) return false;
 		let success = false;
-		while (rollForPositive && !success) {
+		while (rollForPositive > 0 && !success) {
 			const chance = Math.randomInt(100) + 1;
 			if (chance <= percentOfSuccess) {
 				success = true;
 			}
 			rollForPositive--;
 		}
-		if (success && rollForNegative) {
-			while (rollForNegative && success) {
-				const chance = Math.randomInt(100) + 1;
-				if (chance <= percentOfSuccess) {
-					success = true;
-				} else {
-					return false;
-				}
-				rollForNegative--;
+		while (rollForNegative > 0 && success) {
+			const chance = Math.randomInt(100) + 1;
+			if (chance <= percentOfSuccess) {
+				success = true;
+			} else {
+				return false;
 			}
+			rollForNegative--;
 		}
 		return success;
 	}
@@ -742,7 +740,7 @@ var RPGManager = class RPGManager {
 		if (percentOfSuccess <= 0) return 0;
 		let successCount = 0;
 		let attemptsRemaining = rollForPositive;
-		while (attemptsRemaining) {
+		while (attemptsRemaining > 0) {
 			const chance = Math.randomInt(100) + 1;
 			if (chance <= percentOfSuccess) {
 				successCount++;
@@ -1373,9 +1371,10 @@ var RPGManager = class RPGManager {
 		const foundDatas = this.getArraysFromNotesByRegex(databaseData, structure);
 		const key = J.BASE.Helpers.getKeyFromRegexp(structure);
 		const mapper = (data) => {
-			const [skillId, chance, hitTypeString] = data;
-			const hitType = RPGManager.resolveHitTypeString(hitTypeString);
-			return new JABS_OnChanceEffect(skillId, chance ?? 100, key, hitType);
+			const [skillId, chance, filterString] = data;
+			const hitType = RPGManager.resolveHitTypeString(filterString);
+			const outcome = RPGManager.resolveHitOutcomeString(filterString);
+			return new JABS_OnChanceEffect(skillId, chance ?? 100, key, hitType, outcome);
 		};
 		const mappedOnChanceEffects = foundDatas.map(mapper, this);
 		return mappedOnChanceEffects;
@@ -1395,6 +1394,20 @@ var RPGManager = class RPGManager {
 			case "certain": return Game_Action.HITTYPE_CERTAIN;
 			default: return null;
 		}
+	}
+	/**
+	* Resolves an optional outcome string from a notetag: how the incoming hit must have landed for the effect to
+	* fire. Accepts "glancing" or "critical" (case-insensitive), handed back lowercased.
+	* Returns null when the string is absent or names no outcome, meaning a hit landing any way matches. A hit type
+	* string is one of those, since the same slot names either a hit type or an outcome.
+	* @param {string|undefined} str The raw string from the parsed notetag array.
+	* @returns {string|null}
+	*/
+	static resolveHitOutcomeString(str) {
+		if (!str) return null;
+		const outcome = str.toLowerCase();
+		if (outcome === "glancing" || outcome === "critical") return outcome;
+		return null;
 	}
 	/**
 	* Collects all {@link JABS_OnChanceEffect}s from the list of database objects.
@@ -11617,25 +11630,58 @@ Game_Action.registerFormulaContext("d", (action) => action.getTriggerHpDamage())
 Game_Action.registerFormulaContext("m", (action) => action.getTriggerMpDamage());
 Game_Action.registerFormulaContext("t", (action) => action.getTriggerTpDamage());
 /**
-* Extends {@link #makeDamageValue}.<br/>
-* Applies the caster's HAR to the Damage-tab "HP/MP Recover" result, mirroring
-* vanilla's own `value *= target.rec` for the same negative-value (heal) branch.
-* A negative return value here always means a heal; guard/variance/critical all
-* preserve sign, so checking the final value is equivalent to checking baseValue.
+* Overwrites {@link #makeDamageValue}.<br/>
+* Identical to vanilla except for two things. The target's physical or magical damage rate is read
+* through {@link #damageRateAgainst} rather than straight off the target: that rate is the one part of
+* a hit's damage that belongs to how the target takes it rather than to what the action is, and routing
+* it through a single method lets a plugin change how much of it an action respects without rewriting
+* the whole roll. And a Damage-tab heal answers to the caster's HAR as well as the recipient's REC, the
+* same pairing {@link #itemEffectRecoverHp} uses. Every extension of this method wraps the number this
+* produces.
+* @param {Game_Battler} target The target being hit.
+* @param {boolean} critical Whether or not this hit is a critical hit.
+* @returns {number}
 */
-J.BASE.Aliased.Game_Action.set("makeDamageValue", Game_Action.prototype.makeDamageValue);
 Game_Action.prototype.makeDamageValue = function(target, critical) {
-	let value = J.BASE.Aliased.Game_Action.get("makeDamageValue").call(this, target, critical);
+	const item = this.item();
+	const baseValue = this.evalDamageFormula(target);
+	let value = baseValue * this.calcElementRate(target);
+	const isHarmful = value > 0;
+	value *= this.damageRateAgainst(target, isHarmful);
+	if (baseValue < 0) {
+		value *= target.rec;
+	}
+	if (critical) {
+		value = this.applyCritical(value);
+	}
+	value = this.applyVariance(value, item.damage.variance);
+	value = this.applyGuard(value, target);
+	value = Math.round(value);
 	if (value < 0) {
 		value *= this.subject().har;
 	}
 	return value;
 };
 /**
+* The rate the given target takes this action at, by the action's hit type.<br/>
+* A physical hit meets the target's PDR and a magical hit its MDR, while a certain hit meets neither
+* and lands at an even 1. Every place a target's damage rate reaches a number asks this, from
+* {@link #makeDamageValue} to anything else that builds damage by hand, so a plugin changing how much
+* of that rate an action respects extends this one method and every path agrees.
+* @param {Game_Battler} target The target being hit.
+* @param {boolean} _isHarmful Whether the value this rate scales is harm rather than a heal. The rate
+* itself never depends on it; it is here for an extension that treats the two differently.
+* @returns {number}
+*/
+Game_Action.prototype.damageRateAgainst = function(target, _isHarmful) {
+	if (this.isPhysical()) return target.pdr;
+	if (this.isMagical()) return target.mdr;
+	return 1;
+};
+/**
 * Overwrites {@link #itemEffectRecoverHp}.<br/>
-* Identical to vanilla except for the added `this.subject().har` multiplier;
-* the method mutates `target` directly rather than returning a value, so there's
-* no return value to post-multiply the way {@link #makeDamageValue} allows.
+* Identical to vanilla except for the added `this.subject().har` multiplier, the caster's healing rate
+* that {@link #makeDamageValue} applies to a Damage-tab heal as well.
 */
 Game_Action.prototype.itemEffectRecoverHp = function(target, effect) {
 	let value = (target.mhp * effect.value1 + effect.value2) * target.rec * this.subject().har;
@@ -11650,9 +11696,8 @@ Game_Action.prototype.itemEffectRecoverHp = function(target, effect) {
 };
 /**
 * Overwrites {@link #itemEffectRecoverMp}.<br/>
-* Identical to vanilla except for the added `this.subject().har` multiplier;
-* the method mutates `target` directly rather than returning a value, so there's
-* no return value to post-multiply the way {@link #makeDamageValue} allows.
+* Identical to vanilla except for the added `this.subject().har` multiplier, the caster's healing rate
+* that {@link #makeDamageValue} applies to a Damage-tab heal as well.
 */
 Game_Action.prototype.itemEffectRecoverMp = function(target, effect) {
 	let value = (target.mmp * effect.value1 + effect.value2) * target.rec * this.subject().har;

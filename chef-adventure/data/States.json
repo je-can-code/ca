@@ -1172,7 +1172,7 @@
   },
   {
     "id": 37,
-    "name": "Hemorrage",
+    "name": "Hemorrhage",
     "note": "\u003cstackMax:1000\u003e\n\u003closeAllStacksAtOnce\u003e\n\u003chpFormula:[(a.atk*6) * (100 / (100 + b.def))]\u003e\n\u003cstateDuration:600\u003e\n\u003ctype:negative\u003e\n\u003ctype:bleed\u003e",
     "description": "",
     "iconIndex": 2153,
@@ -1514,7 +1514,7 @@
   {
     "id": 49,
     "name": "Cursed",
-    "note": "\u003cstateDuration:300\u003e\n\u003con-attack-hp-gain:-4%\u003e",
+    "note": "\u003cstateDuration:300\u003e\n\u003con-cast-hp-gain:-4%\u003e",
     "description": "",
     "iconIndex": 21,
     "traits": [],
@@ -4446,21 +4446,10 @@
   {
     "id": 144,
     "name": "Deliberate Position",
-    "note": "\u003cextendType:cc\u003e",
+    "note": "\u003cpierceDamageRateIfStateType:cc\u003e",
     "description": "",
     "iconIndex": 3524,
-    "traits": [
-      {
-        "code": 23,
-        "dataId": 6,
-        "value": 0
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 0
-      }
-    ],
+    "traits": [],
     "autoRemovalTiming": 0,
     "chanceByDamage": 100,
     "minTurns": 1,
@@ -4650,7 +4639,7 @@
   {
     "id": 151,
     "name": "Wings Clipped",
-    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e\n\u003cspeedBoost:-50\u003e",
+    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e\n\u003cspeedBoost:-50\u003e\n\u003ctype:negative\u003e\n\u003ctype:cc\u003e",
     "description": "",
     "iconIndex": 4047,
     "traits": [],
@@ -4676,7 +4665,7 @@
   {
     "id": 152,
     "name": "Shell Cracked",
-    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e",
+    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 3961,
     "traits": [
@@ -4708,7 +4697,7 @@
   {
     "id": 153,
     "name": "Empty Aura",
-    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e",
+    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 4157,
     "traits": [
@@ -4798,7 +4787,7 @@
   {
     "id": 156,
     "name": "Backhand",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cretaliate:[558, 100, glancing]\u003e",
     "description": "",
     "iconIndex": 3940,
     "traits": [],
@@ -4824,7 +4813,7 @@
   {
     "id": 157,
     "name": "Equation: Life",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cautoExecuteSkill:[579, onDamageDealt, 60]\u003e",
     "description": "",
     "iconIndex": 3737,
     "traits": [],
@@ -4850,7 +4839,7 @@
   {
     "id": 158,
     "name": "Equation: Entropy",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cautoExecuteSkill:[580, onHealDealt, 60]\u003e",
     "description": "",
     "iconIndex": 3754,
     "traits": [],
@@ -4902,7 +4891,7 @@
   {
     "id": 160,
     "name": "Overclock",
-    "note": "\u003cindefiniteState\u003e\n\u003cfastCooldownRate:[-50]\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003ccastSpeedRate:[-50]\u003e",
     "description": "",
     "iconIndex": 3717,
     "traits": [
@@ -4966,7 +4955,7 @@
   {
     "id": 162,
     "name": "Equalize",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cautoExecuteSkill:[579, onDamageDealt, 60]\u003e\n\u003cautoExecuteSkill:[580, onHealDealt, 60]\u003e",
     "description": "",
     "iconIndex": 3697,
     "traits": [],
@@ -5018,7 +5007,7 @@
   {
     "id": 164,
     "name": "Court Disaster",
-    "note": "\u003cstateDuration:900\u003e\n\u003ccursedRolls:[2]\u003e",
+    "note": "\u003cstateDuration:900\u003e\n\u003ccursedRolls:[2]\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 3391,
     "traits": [],
@@ -5044,7 +5033,7 @@
   {
     "id": 165,
     "name": "Doom Countdown",
-    "note": "\u003cstateDuration:600\u003e\n\u003capplyStateOnExpire:[166,100]\u003e",
+    "note": "\u003cstateDuration:600\u003e\n\u003capplyStateOnExpire:[166,100]\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 3440,
     "traits": [],
@@ -5070,7 +5059,7 @@
   {
     "id": 166,
     "name": "Doomed",
-    "note": "\u003chpPercent:-100\u003e\n\u003cmpPercent:-100\u003e\n\u003ctpPercent:-100\u003e\n\u003cstateDuration:60\u003e",
+    "note": "\u003chpPercent:-100\u003e\n\u003cmpPercent:-100\u003e\n\u003ctpPercent:-100\u003e\n\u003cstateDuration:60\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 3441,
     "traits": [],
@@ -5176,6 +5165,11 @@
         "code": 21,
         "dataId": 7,
         "value": 10
+      },
+      {
+        "code": 21,
+        "dataId": 7,
+        "value": 5
       }
     ],
     "autoRemovalTiming": 0,
@@ -5200,7 +5194,7 @@
   {
     "id": 170,
     "name": "Benediction",
-    "note": "\u003chpPercent:1\u003e\n\u003cmpPercent:1\u003e\n\u003ctpPercent:1\u003e\n\u003cstateDuration:900\u003e",
+    "note": "\u003chpPercent:1\u003e\n\u003cmpPercent:1\u003e\n\u003ctpPercent:1\u003e\n\u003cstateDuration:3600\u003e",
     "description": "",
     "iconIndex": 3899,
     "traits": [],
@@ -5356,7 +5350,7 @@
   {
     "id": 176,
     "name": "Lobotomized",
-    "note": "\u003cstateDuration:480\u003e\n\u003cveryCursed\u003e",
+    "note": "\u003cstateDuration:480\u003e\n\u003cveryCursed\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 4158,
     "traits": [],
@@ -5408,7 +5402,7 @@
   {
     "id": 178,
     "name": "Rupertified",
-    "note": "\u003cstateDuration:900\u003e\n\u003con-attack-hp-gain:-10%\u003e",
+    "note": "\u003cstateDuration:900\u003e\n\u003con-cast-hp-gain:-10%\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 3996,
     "traits": [],
@@ -5460,7 +5454,7 @@
   {
     "id": 180,
     "name": "Mild Rupertification",
-    "note": "\u003cstateDuration:480\u003e\n\u003con-attack-hp-gain:-5%\u003e",
+    "note": "\u003cstateDuration:480\u003e\n\u003con-cast-hp-gain:-5%\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 4202,
     "traits": [],
@@ -5563,10 +5557,10 @@
   },
   {
     "id": 184,
-    "name": "",
-    "note": "\u003cindefiniteState\u003e",
+    "name": "Equilibrium",
+    "note": "\u003cstateDuration:900\u003e\n\u003cautoExecuteSkill:[579, onDamageDealt, 60]\u003e\n\u003cautoExecuteSkill:[580, onHealDealt, 60]\u003e",
     "description": "",
-    "iconIndex": 0,
+    "iconIndex": 2891,
     "traits": [],
     "autoRemovalTiming": 0,
     "chanceByDamage": 100,

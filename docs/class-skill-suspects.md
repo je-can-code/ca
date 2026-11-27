@@ -165,3 +165,13 @@ Boss routine steps were swept by an assumed config shape, so treat that part as 
   `<proximity>` they hit every enemy on the map. 267 and 268 now carry `<proximity:1.5>` and action event 2, and since
   rmmz-plugins #135 the enchant's weapon-hit rule lands them on the foe each hit struck. 266 dropped `<direct>`, so it
   spawns on its caster and its knockback works.
+
+## To discuss at the end of the review
+
+**A pass on passive descriptions (his, 2026-11-26).** The Passives detail window draws a passive's traits plus a line
+for each tag that has a describer. He wrote the SDP passives' lines, but likely skipped the passives earned from weapon
+proficiency and from class skills. Deliberate Position (144) got its line on 11-26 through J-ABS's first describer
+(`pierceDamageRateIfStateType` in `config.notetag-lines.json`). Most other J-ABS tags have none yet.
+
+**AP gaining vs "AP spending" for class skill and passive unlocks (his, 2026-11-26).** Whether a class skill or passive
+unlocks by earning AP toward it, or by spending AP on it.

@@ -2319,7 +2319,7 @@
           "description": "There is no choice but to continue the ascent to the summit.",
           "logs": {
             "inactive": "",
-            "active": "The snowstorm really makes it tough to see, but the ascent contnues!",
+            "active": "The snowstorm really makes it tough to see, but the ascent continues!",
             "completed": "The SOS signal is just ahead! To rest or not to rest?",
             "failed": "",
             "missed": ""

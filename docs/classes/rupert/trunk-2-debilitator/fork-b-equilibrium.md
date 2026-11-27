@@ -20,10 +20,10 @@
 
 | # | Name | Description |
 |---|---|---|
-| 1 | Rebalance | Toggle. Flips the active equation direction. **Mode A:** healing an ally triggers damage on a nearby enemy. **Mode B:** damaging an enemy heals a nearby ally. One mode active at a time. |
-| 2 | Extract | Offensive skill. Takes what is owed from an enemy. In Mode B, every hit feeds the damage→heal equation. |
-| 3 | Distribute | Targeted. Big heal on a nearby ally. Provides what is needed. In Mode A, feeds the heal→damage equation immediately. |
-| 4 | Equilibrium | **Signature.** Both equations active simultaneously for a short duration — heals trigger damage, damage triggers heals. The loop runs until the window closes. |
+| 1 | Rebalance | Toggle, no cooldown. Switches between the two equations, one at a time; the first press picks Life. **Equation: Life:** every hit Rupert lands pulses a heal to the allies around him. **Equation: Entropy:** every heal Rupert lands pulses damage into the foes around him. |
+| 2 | Extract | Targeted magic strike on a foe up to 10 tiles away, 8 s cooldown. Takes what is owed. Under Life, every hit feeds the damage→heal equation. |
+| 3 | Distribute | Targeted big heal on an ally up to 10 tiles away, Rupert included, 8 s cooldown. Provides what is needed. Under Entropy, it feeds the heal→damage equation. |
+| 4 | Equilibrium | **Signature.** 15 s of the Equilibrium state, which runs both equations at once on top of whichever one Rebalance has on, 45 s cooldown. Every hit Rupert lands pulses a heal, which pulses damage in turn, until the window closes. |
 
 ---
 
@@ -43,15 +43,27 @@
 | P10 | Aggro +30% | +30% aggro. |
 | P11 | Max Life +60% | +60% max HP. |
 | P12 | Equip Breaker | Unlock. Grants access to the Breaker weapon subgroup. Unwrapping them for the party is the whole point of the equation. |
-| P13 | Equalize | Whenever Rupert heals himself, a nearby enemy takes a proportional hit of damage. Whenever Rupert deals damage, he heals himself for a proportional amount. Always active — doesn't care what class he's currently wearing. |
+| P13 | Equalize | Both equations, always, through the Equalize state, whatever class Rupert is wearing. Stacks with Rebalance's stance and Equilibrium's window: with Life on, Life runs twice. |
 
 ---
 
-## Rebalance mechanics
+## Equation mechanics
 
-Not equippable passives. Background toggle states that make Rebalance itself function — active only while a mode is selected or Equilibrium's window is open.
+Each equation is an `<autoExecuteSkill>` rule on a state. Every source that grants an equation carries its own copy of
+the rule, and the engine times each copy on its own, so copies from different sources stack.
 
-| Trigger | Effect |
-|---|---|
-| `onAllyHeal` | Auto-execute a damage skill on a nearby enemy. Active in Mode A and during Equilibrium. |
-| `onDamageDealt` | Auto-execute a heal skill on a nearby ally. Active in Mode B and during Equilibrium. |
+| Equation | Fires on | Payload |
+|---|---|---|
+| Life (157) | `onDamageDealt`: Rupert's damage lands on a foe | 579 Equation: Life, a heal of `a.mdf × 2` to every ally within 3 tiles of Rupert |
+| Entropy (158) | `onHealDealt`: Rupert's skill heals anyone on his side, himself included | 580 Equation: Entropy, `(a.mat × 2) − (b.mdf × 1)` to every foe within 3 tiles of Rupert |
+
+Each copy fires at most once a second. Neither pulse is `<direct>`, so both land around Rupert, never on whoever set
+them off. Regeneration, lifesteal and heal cascades never trigger Entropy, since `onHealDealt` only hears a skill that
+lands. With both equations up, a hit sets off one round: Life's heal pulse, then Entropy's damage pulse. That damage
+lands inside Life's one-second timer, so the round ends there until Rupert's next hit or heal.
+
+| Source | Life copies | Entropy copies |
+|---|---|---|
+| Rebalance's stance (157 or 158) | 1 in the Life stance | 1 in the Entropy stance |
+| Equilibrium's window (184, 15 s) | 1 | 1 |
+| Equalize (162, permanent) | 1 | 1 |

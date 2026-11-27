@@ -42,4 +42,4 @@
 | P9 | Max Life +80%          | +80% max HP.                                                                                                                |
 | P10 | Parry +30%          | +30% parry frequency against faced foes.                                                                                    |
 | P11 | Equip Arm         | Unlock. Grants access to the Arm weapon subgroup.                                                                           |
-| P12 | Backhand          | Glancing blows against Rupert retaliate with a stun. Barely touched him. Mistake.                                           |
+| P12 | Backhand          | Glancing blows against Rupert retaliate with a stun. Barely touched him. Mistake. The passive carries `<retaliate:[558, 100, glancing]>`: a glancing blow that lands fires Backhand (558), a 2 s stun on an attacker within 2 tiles, unparryable and with no damage. Glancing blows roll off GRD, Finesse and LUK, so Balanced and Parry +30% feed it. |

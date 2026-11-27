@@ -39,7 +39,7 @@
 | P6 | Magi Cost -20% | −20% skill cost. |
 | P7 | Projectile Duration +40% | Projectiles remain active 40% longer. |
 | P8 | Max Magi +60% | +60% max MP. |
-| P9 | Deliberate Position | Rooted or paralyzed targets have PDR and MDR reduced to 0. |
+| P9 | Deliberate Position | Rupert's hits treat a crowd-controlled target's PDR and MDR as at least 1.00. The passive carries `<pierceDamageRateIfStateType:cc>`: resistance and immunity are ignored, while vulnerability still counts (Exposed's ×2.0 stays ×2.0). Any of the 15 `cc`-typed states counts, whoever applied it, but only Rupert's own hits pierce, and heals never do. That includes Posed's ×0 on purpose: a crowd-controlled mannequin mid-pose is a sitting duck. |
 | P10 | Magi Cost -30% | −30% skill cost. |
 | P11 | Max Magi +80% | +80% max MP. |
 | P12 | Equip Javelin | Unlock. Grants access to the Javelin weapon subgroup. |
