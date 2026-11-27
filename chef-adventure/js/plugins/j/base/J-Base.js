@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.4.0 BASE] The base class for all J plugins.
+ * [v4.5.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -1699,7 +1699,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "4.4.0";
+J.BASE.Metadata.Version = "4.5.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */

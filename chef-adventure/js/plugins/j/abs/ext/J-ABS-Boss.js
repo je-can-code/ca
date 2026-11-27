@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 ABS-BOSS] Data-driven boss encounters for J-ABS.
+ * [v2.1.0 ABS-BOSS] Data-driven boss encounters for J-ABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -2659,7 +2659,7 @@ J.ABS.EXT.BOSS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.BOSS.Metadata = new J_BossPluginMetadata("J-ABS-Boss", "2.0.0");
+J.ABS.EXT.BOSS.Metadata = new J_BossPluginMetadata("J-ABS-Boss", "2.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

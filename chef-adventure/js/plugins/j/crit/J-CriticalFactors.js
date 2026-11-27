@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.5.0 CRIT] Manages critical damage multiplier/reduction of battlers.
+ * [v1.6.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -120,7 +120,7 @@ J.CRIT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.5.0");
+J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.6.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
