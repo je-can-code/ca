@@ -93,7 +93,6 @@ J.ABS.EXT.FOOD.Aliased = {
 	JABS_Battler: new Map(),
 	JABS_Engine: new Map(),
 	JABS_SkillSlotManager: new Map(),
-	JABS_State: new Map(),
 	Game_Actor: new Map(),
 	Input: new Map(),
 	Scene_Boot: new Map(),
@@ -655,39 +654,6 @@ JABS_Battler.prototype.applyUsableItemEffects = function(itemId, isLoot = false)
 	} else {
 		this.modCooldownCounter(JABS_Button.UsableItem, J.ABS.DefaultValues.CooldownlessItems);
 	}
-};
-
-//#endregion
-//#region src/plugins/abs/ext/food/models/JABS_State.js
-/**
-* Extends {@link JABS_State.prototype.resolveExpiryLandingCount}.<br>
-* Food chains are exempt from RNG. A link of a food chain, a state carrying {@code <foodChain:TYPE>}, lands the next
-* phase its {@code <applyStateOnExpire>} names exactly once as it expires, with no roll at all: the tag's chance, the
-* bearer's State Rate traits and {@code <stateTypeResist>}, the luck between the battler that applied it and its
-* bearer, their lucky and cursed rolls, {@code <veryLucky>} and {@code <veryCursed>}, Accumulate Mode and Encore never
-* weigh on it.
-*
-* Immunity is not chance, so it still stands: the one landing goes through the bearer's own add, which refuses a next
-* phase the bearer cannot take at all. Every other state's follow-up is rolled exactly as J-ABS rolls it.
-* @param {number} nextStateId The id of the follow-up state.
-* @param {number} chance The follow-up's authored chance, as a percent from 0 to 100.
-* @returns {number}
-*/
-J.ABS.EXT.FOOD.Aliased.JABS_State.set("resolveExpiryLandingCount", JABS_State.prototype.resolveExpiryLandingCount);
-JABS_State.prototype.resolveExpiryLandingCount = function(nextStateId, chance) {
-	if (this.isFoodChainLink()) return 1;
-	return J.ABS.EXT.FOOD.Aliased.JABS_State.get("resolveExpiryLandingCount").call(this, nextStateId, chance);
-};
-/**
-* Whether this tracked state is a link of a food chain: a state carrying {@code <foodChain:TYPE>}, as its bearer sees
-* it.<br/>
-* The state is read the same way its expiry follow-up is, through the bearer, so the row that names the next phase is
-* the row that decides whether that phase belongs to a food chain.
-* @returns {boolean}
-*/
-JABS_State.prototype.isFoodChainLink = function() {
-	const stateRow = this.battler.state(this.stateId);
-	return stateRow.jabsFoodChainType !== null;
 };
 
 //#endregion

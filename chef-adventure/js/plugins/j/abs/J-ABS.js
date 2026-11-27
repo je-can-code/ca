@@ -1987,6 +1987,7 @@ J.ABS.RegExp = {
 	ImmuneToNegatives: /<immuneToNegatives>/gi,
 	ImmuneToStates: /<immuneToStates>/gi,
 	ImmuneToAll: /<immuneToAll>/gi,
+	ImmuneToFate: /<immuneToFate>/i,
 	CannotBeInterrupted: /<cannotBeInterrupted>/i,
 	NoDamage: /<noDamage>/i,
 	NoSelfKill: /<noSelfKill>/i,
@@ -15040,11 +15041,40 @@ var JABS_Fate = class {
 		return Math.round(chance);
 	}
 	/**
+	* Whether a state is set apart from fate, as its recipient sees the state: one carrying `<immuneToFate>`.<br/>
+	* No battler's fate weighs on a roll for such a state, whoever makes it.
+	* @param {Game_Battler} recipient The battler the state is aimed at.
+	* @param {number} stateId The id of the state being rolled for.
+	* @returns {boolean}
+	*/
+	static isImmuneToFateState(recipient, stateId) {
+		const state = recipient.state(stateId);
+		return state.isImmuneToFate();
+	}
+	/**
+	* Resolves whether a state immune to fate lands on its recipient: once at most, on one plain roll.<br/>
+	* The chance is still {@link JABS_Fate.stateApplicationD100}, so the recipient's State Rate traits and
+	* `<stateTypeResist>` weigh on it, and the luck between the two battlers shapes a harmful state's. Nothing else
+	* does: no lucky or cursed roll, no recipient's curse, no `<veryLucky>`, `<veryCursed>` or `<forceCritProcs>`, no
+	* Accumulate Mode and no Encore.
+	* @param {Game_Battler} roller The battler applying the state.
+	* @param {Game_Battler} recipient The battler the state is aimed at.
+	* @param {number} stateId The id of the state being applied.
+	* @param {number} percent The authored chance, as a percent from 0 to 100.
+	* @returns {number}
+	*/
+	static resolveImmuneToFateProcCount(roller, recipient, stateId, percent) {
+		const d100 = this.stateApplicationD100(roller, recipient, stateId, percent);
+		return RPGManager.chanceIn100(d100) ? 1 : 0;
+	}
+	/**
 	* Resolves how many times a state lands on its recipient, given the rolls brought to it.<br/>
 	* The chance is {@link JABS_Fate.stateApplicationD100} and the count is {@link RPGManager.resolveProcCount}, so the
 	* positive roller's `<veryLucky>` and `<veryCursed>` settle it outright, Accumulate Mode counts every positive roll
 	* that lands, and Encore repeats each landing. The positive roller is the roller unless a caller hands over its
 	* own, the way `<forceCritProcs>` guarantees an on-crit roll; the roller brings its luck to the chance either way.
+	* A state carrying `<immuneToFate>` sets all of that fate aside, as {@link JABS_Fate.resolveImmuneToFateProcCount}
+	* describes.
 	* Nothing is added here.
 	* @param {Game_Battler} roller The battler applying the state.
 	* @param {Game_Battler} recipient The battler the state is aimed at.
@@ -15056,6 +15086,9 @@ var JABS_Fate = class {
 	* @returns {number}
 	*/
 	static resolveStateProcCountWithRolls(roller, recipient, stateId, percent, rolls, positiveRoller = roller) {
+		if (this.isImmuneToFateState(recipient, stateId)) {
+			return this.resolveImmuneToFateProcCount(roller, recipient, stateId, percent);
+		}
 		const d100 = this.stateApplicationD100(roller, recipient, stateId, percent);
 		const [positiveRolls, negativeRolls] = rolls;
 		return RPGManager.resolveProcCount(positiveRoller, d100, positiveRolls, negativeRolls);
@@ -15516,10 +15549,11 @@ var JABS_State = class {
 	* The follow-up is rolled the way every state applied by chance is rolled, through
 	* {@link JABS_Fate.resolveStateProcCount}: the battler that applied this state rolls the authored chance against the
 	* afflicted battler, with the skill it applied this state with when there was one. The afflicted battler's State Rate
-	* traits and `<stateTypeResist>` weigh on the chance, and the luck the source holds over it shapes what remains. With
-	* no action to aim it, the follow-up's own `<type:negative>` decides whether the afflicted battler's curse helps it
-	* land or stands in its way. A state its own bearer applied rolls as one the bearer gives itself: no luck edge, and
-	* its fate counted once. Accumulate Mode and Encore can land the follow-up more than once.<br/>
+	* traits and `<stateTypeResist>` weigh on the chance, and for a harmful follow-up the luck the source holds over it
+	* shapes what remains. With no action to aim it, the follow-up's own `<type:negative>` decides whether the afflicted
+	* battler's curse helps it land or stands in its way. A state its own bearer applied rolls as one the bearer gives
+	* itself: no luck edge, and its fate counted once. Accumulate Mode and Encore can land the follow-up more than once,
+	* unless it is `<immuneToFate>`, which lands once at most on one plain roll.<br/>
 	* This is the one place the count is decided, so an extension whose follow-ups land some other way aliases this.
 	* Nothing is added here; the caller adds the follow-up once per landing.
 	* @param {number} nextStateId The id of the follow-up state.
@@ -24480,6 +24514,17 @@ RPG_State.prototype.isNegativeType = function() {
 	return this.types().some((type) => type.toLowerCase() === "negative");
 };
 /**
+* Whether or not this state carries the {@code <immuneToFate>} tag, which sets it apart from fate.<br/>
+* Every roll to apply this state or take it away is one plain roll: its chance still meets State Rate traits,
+* {@code <stateTypeResist>} and, for a harmful state, the luck between the two battlers, but no lucky or cursed roll,
+* no {@code <veryLucky>} or {@code <veryCursed>}, no Accumulate Mode and no Encore weighs on it. So it lands once at
+* most, whoever applies it.
+* @returns {boolean}
+*/
+RPG_State.prototype.isImmuneToFate = function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.ImmuneToFate);
+};
+/**
 * Multiply incoming aggro by this amount.
 * @type {number|null}
 */
@@ -25757,21 +25802,36 @@ Game_Action.prototype.itemEffectAddNormalState = function(target, effect) {
 };
 /**
 * Overwrites {@link #itemEffectRemoveState}.<br/>
-* Potentially removes the state, rolling its chance with this action's fate. The roll's fate overrides come from
-* {@link #chanceRollerAgainst}.
+* Potentially removes the state, on the roll {@link #rollRemoveStateEffect} makes.
 * @param {Game_Battler} target The target having the state removed.
 * @param {RPG_UsableEffect} effect The effect containing state data for removal.
 */
 Game_Action.prototype.itemEffectRemoveState = function(target, effect) {
 	const { value1: chance, dataId: stateId } = effect;
 	const d100 = Math.round(chance * 100);
-	const [positiveRolls, negativeRolls] = this.fateRollsAgainst(target);
-	const roller = this.chanceRollerAgainst(target);
-	const isRemoved = RPGManager.fateOf100(roller, d100, positiveRolls, negativeRolls);
+	const isRemoved = this.rollRemoveStateEffect(target, stateId, d100);
 	if (isRemoved === true) {
 		target.removeState(stateId);
 		this.makeSuccess(target);
 	}
+};
+/**
+* Rolls whether a skill effect's Remove State takes a state off the target.<br/>
+* The roll is made with this action's fate, as {@link #fateRollsAgainst} describes: the caster wants the removal to
+* succeed, so a cursed target is that much easier to strip of a blessing and that much harder to cleanse. The roll's
+* fate overrides come from {@link #chanceRollerAgainst}. A state carrying `<immuneToFate>`, as the target sees it, comes
+* off on one plain roll instead, with no one's fate weighing in.
+* @param {Game_Battler} target The target having the state removed.
+* @param {number} stateId The id of the state being removed.
+* @param {number} d100 The removal's chance, as a whole percent.
+* @returns {boolean}
+*/
+Game_Action.prototype.rollRemoveStateEffect = function(target, stateId, d100) {
+	const state = target.state(stateId);
+	if (state.isImmuneToFate()) return RPGManager.chanceIn100(d100);
+	const [positiveRolls, negativeRolls] = this.fateRollsAgainst(target);
+	const roller = this.chanceRollerAgainst(target);
+	return RPGManager.fateOf100(roller, d100, positiveRolls, negativeRolls);
 };
 /**
 * Applies a state a skill effect carries once for every time its roll lands on the target: once at most, unless

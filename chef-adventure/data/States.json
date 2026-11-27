@@ -7300,7 +7300,7 @@
   {
     "id": 251,
     "name": "Well Fed (protein)",
-    "note": "\u003cstateDuration:18000\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#44cc44\u003e\n\u003capplyStateOnExpire:[252,100]\u003e\n\u003cslotTransform:[UsableItem, 237]\u003e",
+    "note": "\u003cstateDuration:18000\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#44cc44\u003e\n\u003capplyStateOnExpire:[252,100]\u003e\n\u003cslotTransform:[UsableItem, 237]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2097,
     "traits": [
@@ -7337,7 +7337,7 @@
   {
     "id": 252,
     "name": "Pumped",
-    "note": "\u003cstateDuration:7200\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#88cc22\u003e\n\u003capplyStateOnExpire:[253,100]\u003e\n\u003cslotTransform:[UsableItem, 238]\u003e\n\u003clst:5\u003e",
+    "note": "\u003cstateDuration:7200\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#88cc22\u003e\n\u003capplyStateOnExpire:[253,100]\u003e\n\u003cslotTransform:[UsableItem, 238]\u003e\n\u003clst:5\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 35,
     "traits": [
@@ -7369,7 +7369,7 @@
   {
     "id": 253,
     "name": "Hangry",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#ccaa00\u003e\n\u003cslotTransform:[UsableItem, 239]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#ccaa00\u003e\n\u003cslotTransform:[UsableItem, 239]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2675,
     "traits": [
@@ -7470,7 +7470,7 @@
   {
     "id": 256,
     "name": "Well Fed (veggie)",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#38b86c\u003e\n\u003capplyStateOnExpire:[257,100]\u003e\n\u003cslotTransform:[UsableItem, 240]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#38b86c\u003e\n\u003capplyStateOnExpire:[257,100]\u003e\n\u003cslotTransform:[UsableItem, 240]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 285,
     "traits": [
@@ -7507,7 +7507,7 @@
   {
     "id": 257,
     "name": "Refreshed",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003cmrgBuffPlus:[100 + (a.mrg*100) * 0.50]\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#62cc44\u003e\n\u003capplyStateOnExpire:[258,100]\u003e\n\u003cslotTransform:[UsableItem, 241]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003cmrgBuffPlus:[100 + (a.mrg*100) * 0.50]\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#62cc44\u003e\n\u003capplyStateOnExpire:[258,100]\u003e\n\u003cslotTransform:[UsableItem, 241]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 37,
     "traits": [
@@ -7544,7 +7544,7 @@
   {
     "id": 258,
     "name": "Light-headed",
-    "note": "\u003cstateDuration:10800\u003e\n\u003cspeedBoost:10\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003chitBuffPlus:[-1 * (a.hit*100-100)*0.10]\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#a8c828\u003e\n\u003cslotTransform:[UsableItem, 242]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003cspeedBoost:10\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003chitBuffPlus:[-1 * (a.hit*100-100)*0.10]\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#a8c828\u003e\n\u003cslotTransform:[UsableItem, 242]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2709,
     "traits": [
@@ -7634,7 +7634,7 @@
   {
     "id": 261,
     "name": "Well Fed (fruit)",
-    "note": "\u003cstateDuration:3600\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003ctrgBuffPlus:[a.trg*100]\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#66bb66\u003e\n\u003capplyStateOnExpire:[262,100]\u003e\n\u003cslotTransform:[UsableItem, 243]\u003e",
+    "note": "\u003cstateDuration:3600\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003ctrgBuffPlus:[a.trg*100]\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#66bb66\u003e\n\u003capplyStateOnExpire:[262,100]\u003e\n\u003cslotTransform:[UsableItem, 243]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 265,
     "traits": [
@@ -7666,7 +7666,7 @@
   {
     "id": 262,
     "name": "Energized",
-    "note": "\u003cstateDuration:48000\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003ctrgBuffPlus:[(a.trg*100) * 0.50]\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#ee9922\u003e\n\u003capplyStateOnExpire:[263,100]\u003e\n\u003cslotTransform:[UsableItem, 244]\u003e",
+    "note": "\u003cstateDuration:48000\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003ctrgBuffPlus:[(a.trg*100) * 0.50]\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#ee9922\u003e\n\u003capplyStateOnExpire:[263,100]\u003e\n\u003cslotTransform:[UsableItem, 244]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 40,
     "traits": [
@@ -7703,7 +7703,7 @@
   {
     "id": 263,
     "name": "Crashing",
-    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:-25\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#cc7722\u003e\n\u003cslotTransform:[UsableItem, 245]\u003e",
+    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:-25\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#cc7722\u003e\n\u003cslotTransform:[UsableItem, 245]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2760,
     "traits": [
@@ -7798,7 +7798,7 @@
   {
     "id": 266,
     "name": "Well Fed (carb)",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#b89248\u003e\n\u003capplyStateOnExpire:[267,100]\u003e\n\u003cslotTransform:[UsableItem, 231]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#b89248\u003e\n\u003capplyStateOnExpire:[267,100]\u003e\n\u003cslotTransform:[UsableItem, 231]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 1964,
     "traits": [
@@ -7835,7 +7835,7 @@
   {
     "id": 267,
     "name": "Fortified",
-    "note": "\u003cstateDuration:18000\u003e\n\u003ccritReduction:50\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#d4b84a\u003e\n\u003capplyStateOnExpire:[268,100]\u003e\n\u003cslotTransform:[UsableItem, 232]\u003e",
+    "note": "\u003cstateDuration:18000\u003e\n\u003ccritReduction:50\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#d4b84a\u003e\n\u003capplyStateOnExpire:[268,100]\u003e\n\u003cslotTransform:[UsableItem, 232]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 36,
     "traits": [
@@ -7872,7 +7872,7 @@
   {
     "id": 268,
     "name": "Carb Coma",
-    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:-15\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#c88820\u003e\n\u003cslotTransform:[UsableItem, 233]\u003e",
+    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:-15\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#c88820\u003e\n\u003cslotTransform:[UsableItem, 233]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2740,
     "traits": [
@@ -7978,7 +7978,7 @@
   {
     "id": 271,
     "name": "Well Fed (dairy)",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003cmcrBuffPlus:[-1 * (a.mrg*100) * 0.90]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#5a94c4\u003e\n\u003capplyStateOnExpire:[272,100]\u003e\n\u003cslotTransform:[UsableItem, 234]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003cmcrBuffPlus:[-1 * (a.mrg*100) * 0.90]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#5a94c4\u003e\n\u003capplyStateOnExpire:[272,100]\u003e\n\u003cslotTransform:[UsableItem, 234]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 1953,
     "traits": [
@@ -8010,7 +8010,7 @@
   {
     "id": 272,
     "name": "Focused",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003cmcrBuffPlus:[-1 * (a.mrg*100) * 0.70]\u003e\n\u003ccastSpeedRate:[-30]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#7ab8e8\u003e\n\u003capplyStateOnExpire:[273,100]\u003e\n\u003cslotTransform:[UsableItem, 235]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003cmcrBuffPlus:[-1 * (a.mrg*100) * 0.70]\u003e\n\u003ccastSpeedRate:[-30]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#7ab8e8\u003e\n\u003capplyStateOnExpire:[273,100]\u003e\n\u003cslotTransform:[UsableItem, 235]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 38,
     "traits": [
@@ -8042,7 +8042,7 @@
   {
     "id": 273,
     "name": "Foggy",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003ccastSpeedRate:[15]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#b8c4a8\u003e\n\u003cslotTransform:[UsableItem, 236]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003ccastSpeedRate:[15]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#b8c4a8\u003e\n\u003cslotTransform:[UsableItem, 236]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2694,
     "traits": [
@@ -8148,7 +8148,7 @@
   {
     "id": 276,
     "name": "Well Fed (sweet)",
-    "note": "\u003cstateDuration:1800\u003e\n\u003cspeedBoost:30\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#c85898\u003e\n\u003capplyStateOnExpire:[277,100]\u003e\n\u003cslotTransform:[UsableItem, 246]\u003e",
+    "note": "\u003cstateDuration:1800\u003e\n\u003cspeedBoost:30\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#c85898\u003e\n\u003capplyStateOnExpire:[277,100]\u003e\n\u003cslotTransform:[UsableItem, 246]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 1952,
     "traits": [
@@ -8180,7 +8180,7 @@
   {
     "id": 277,
     "name": "Hyper",
-    "note": "\u003cstateDuration:7200\u003e\n\u003cspeedBoost:20\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003ctrgBuffPlus:[(a.trg*100) * 3]\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#ff66bb\u003e\n\u003capplyStateOnExpire:[278,100]\u003e\n\u003cslotTransform:[UsableItem, 247]\u003e",
+    "note": "\u003cstateDuration:7200\u003e\n\u003cspeedBoost:20\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003ctrgBuffPlus:[(a.trg*100) * 3]\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#ff66bb\u003e\n\u003capplyStateOnExpire:[278,100]\u003e\n\u003cslotTransform:[UsableItem, 247]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 39,
     "traits": [
@@ -8217,7 +8217,7 @@
   {
     "id": 278,
     "name": "Gassy",
-    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:10\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#ddaa44\u003e\n\u003cslotTransform:[UsableItem, 248]\u003e",
+    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:10\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#ddaa44\u003e\n\u003cslotTransform:[UsableItem, 248]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2727,
     "traits": [
