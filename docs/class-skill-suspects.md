@@ -321,6 +321,12 @@ Boss routine steps were swept by an assumed config shape, so treat that part as 
   rmmz-plugins #135 the enchant's weapon-hit rule lands them on the foe each hit struck. 266 dropped `<direct>`, so it
   spawns on its caster and its knockback works.
 
+**Bosses resisting restrictions (his, 2026-11-27, "I'll need to go through", not started).** Every boss should fully
+resist mute, disable and paralysis, plus the weapon-skill and Jerald/Rupert class states that restrict bosses. Today
+only some do: Wrath's Vampire King resists 4 (Paralyzed), 6 (Muted), 8 and others by id, while Garuda and Skye resist
+nothing. A boss fight's own holds use states no boss resists (Held 2092, Stilled, Overreached, Sealed), so those keep
+working. Until then, a player's mute can cancel a boss's scripted windup, like Grudj's 600-frame Scramble.
+
 ## To discuss at the end of the review
 
 **A pass on passive descriptions (his, 2026-11-26).**
