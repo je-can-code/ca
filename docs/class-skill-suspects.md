@@ -2,6 +2,10 @@
 
 As of 2026-11-25.
 
+**Status, 2026-11-27:** the review is finished. It lands with Chef Adventure #111 and rmmz-plugins #135, which merge
+together. The tables below were its starting list, worked through kit by kit. What it left for the end is in the last
+three sections, and each entry there carries what it needs to be picked up on its own.
+
 The scripted checks flagged 78 suspects across CA's 245 class skills, and none of them is verified yet. Some will be
 intentional, and a skill can show up in more than one table.
 
@@ -118,47 +122,114 @@ flagged at a lower level, as notes.
 ## Shelved until the end of the review
 
 **Painbringer's Null Acid gate (332 Creeping Tendrils, 333 Crashdown Cloud).**
-- **The design:** Tendrils adds Creeping Tendrils (73) and Crashdown adds Corroding Resistance (74) only to targets
-  that already have Null Acid (72). Crashdown also deals much more damage to those targets.
+- **The design:** Tendrils adds state 73 and Crashdown adds Corroding Resistance (74) only to targets that already
+  have Null Acid (72). Crashdown also deals much more damage to those targets. The source is the skill table in
+  `docs/classes/jerald/trunk-1-fucking-oni/fork-b-painbringer.md`, which calls 73 Tangling Shadows; the database
+  names it Creeping Tendrils, the same as the skill.
+- **Today's data:** both skills apply both of their states on every hit, and their descriptions say so.
+  - 332: Add State 72 at 100%, then Add State 73 at 100%. "Applies \state[72] and \state[73] to everything in a wide
+    line in front."
+  - 333: Add State 72 at 100%, then Add State 74 at 100%. "Applies \state[72] and \state[74]."
+  - 72 Null Acid: `<stackMax:25> <hpFormula:[a.hp*0.02]> <stateDuration:60> <type:poison> <stackOnExpire>`.
+  - 73: `<stackMax:25> <indefiniteState> <speedBoost:-3> <type:poison>`.
+  - 74: `<stackMax:50> <indefiniteState> <type:poison>`.
+  - 334 Flambé du Vide reads all three: `<thisBonusDamagePerStateStack:[72,10]>`, `[73,10]` and `[74,5]`.
 - **Why it stalled:** nothing in the engine can apply a state only when the target already has another one, and that
   question is where the skills were left unfinished.
 - **What exists:**
   - The `IfAfflicted` tags check the caster, not the target.
   - `<autoInflictState>` isn't tied to one skill.
   - `<stacksConvertToState>` reads only its first tag.
-- **The plan:** a new tag is in order. Once it exists:
-  - Both skills stop applying their second debuff unconditionally.
-  - Crashdown gets `<thisBonusDamageIfState:[72, PCT]>`. Before relying on it, confirm the bonus is read before that
-    hit's own Null Acid lands.
+- **The ordering trap:** J-ABS's `Game_Action#executeJabsAction` works out a hit's damage first, then applies the
+  skill's effects in list order. So by the time the 73 or 74 effect runs, that same hit's Null Acid has already
+  landed, and a gate that only asks "does the target have 72?" at that moment passes on the target's very first hit.
+  The gate has to judge the target as it stood before the hit.
+- **Crashdown's bonus is safe to build on:** `<thisBonusDamageIfState:[72, PCT]>` is read while the damage is worked
+  out (`makeDamageValue`, then `applyStateDamageMultipliers`), before any of the hit's effects land. So it only counts
+  Null Acid from earlier hits.
+- **The new tag rolls like every other chance state:** through the shared fate roll
+  (`Game_Action#resolveStateProcCountAgainst`, into `JABS_Fate`), so resistances, luck on `<type:negative>` states and
+  `<immuneToFate>` keep applying to it.
+- **To settle:**
+  - Where the condition lives: on the skill, gating only that skill's application, or on the state, so 73 and 74
+    never land without 72 whatever applies them.
+  - Whether the Null Acid has to be the caster's own (Melting counts only the states Jerald authored) or anyone's.
+  - Crashdown's bonus PCT.
+  - 72, 73 and 74 carry only `<type:poison>`. The later kits gave their debuffs `<type:negative>` (151-153, 176, 178
+    and 180), which is what luck weighs on, and what the refresh diminishing below would key on.
+- **Once the tag exists:** both skills stop applying their second debuff unconditionally, their descriptions say so,
+  and Crashdown gets its bonus.
+- **Built 2026-11-27, his calls:** J-Extend 1.10.0 (rmmz-plugins #135) adds `<thisApplyStateWhenAfflicted:[APPLYING,
+  NECESSARY, CHANCE]>` on the skill, plus the caster-wide `<applyStateWhenAfflicted>` for weapons and states ("a
+  weapon that applied terrible bleeding if already bleeding"). It judges the target before the hit and rolls through
+  the shared fate roll. Anyone's Null Acid counts; only 331-334 apply it. Tendrils carries `[73, 72, 100]`, Crashdown
+  `[74, 72, 100]` and `<thisBonusDamageIfState:[72, 300]>` (+300%, so x4), and both descriptions say so.
+  - **Live, 20 trials each through `Game_Action#apply` on the Parry Floor dummy:** the first hit left 72 alone 20/20
+    and the second added the gated state 20/20, for both skills. Crashdown's median damage went 148 -> 592 (x4.00).
+  - **Still open:** whether 72-74 should also carry `<type:negative>`.
 
 **State refresh diminishing returns never engage (J-ABS).**
 - **What it should do:** CA's J-ABS settings cut each repeat refresh of a state by 120 frames
   (`defaultStateRefreshDiminish`), counted within a 900-frame window (`defaultStateRefreshReset`), so a state
-  reapplied over and over gets shorter each time.
-- **What happens:** `JABS_Engine.refreshJabsState` multiplies the cut by `JABS_State.timesRefreshed`, and nothing ever
-  increments that count. Its declaration, that read and the reset to 0 are the only references. So the cut is always
-  zero, and every refresh, stuns and roots included, gets full duration.
+  reapplied over and over gets shorter each time. A state can set its own with `<stateRefreshDiminish:N>` and
+  `<stateRefreshReset:N>`.
+- **What happens:** `JABS_Engine#refreshJabsState` multiplies the cut by `JABS_State.timesRefreshed`, and nothing ever
+  increments that count. Its declaration, that read and the reset to 0 (`JABS_State#handleDiminishedRefresh`, once the
+  window runs out) are the only references, and `JABS_State#hasDiminishingRefresh` has no callers. So the cut is
+  always zero, and every refresh, stuns and roots included, gets full duration.
+- **How far it reaches:** CA's default reapply type is `stack` (`defaultStateReapplyType` in
+  `chef-adventure/js/plugins.js`), and a stack reapply ends in `refreshJabsState` too. So a working cut would reach
+  every timed state but the seven `<stackType:extend>` ones (16 Poison, 17 Seal, 1021, 1022, 1025, 1656 and 1658).
+  64 states carry `<type:negative>`. Only 19 Serum Regen and 20 Ether Regen opt out, with `<stateRefreshDiminish:0>`,
+  and no state sets its own `<stateRefreshReset>`.
+- **Two faults the dead count hides:**
+  - **No floor.** The refreshed duration is clamped at -1, not at a minimum. A cut equal to the new duration skips the
+    refresh, and a bigger one sets -1, which runs the state's expiry on the next frame. If the count went up after
+    each refresh, Shell Cracker's 180-frame stun (one stack, CA's default cap) would last 60 frames on its second
+    refresh inside the window, and its third would end the stun on the spot.
+  - **The per-state window never sticks.** `refreshJabsState` sets the reset counter to the state's
+    `<stateRefreshReset>`, then `JABS_State#refreshDuration` sets it back to the global default straight after.
+  - **The count dies with the state (found 2026-11-27).** The count and its window live on the state's tracker, and
+    J-ABS's `Game_Battler#removeState` alias deletes the tracker when the state ends, so the next application takes
+    the add path with a fresh tracker. Even a working count only sees a reapply while the state is still on: stun,
+    let it lapse, stun again starts at zero every time, which is the chain-stun the design exists to stop.
+- **Scope data:** 15 of the 64 `<type:negative>` states also carry `<type:cc>` (4-8, 10, 148, 151, 175, 1696, 1770,
+  2006, 2067, 2076, 2080), all single-stack. The other negatives include the stack-builders (Burn x30, Bleed and
+  Hemorrhage x1000, Blind and Impaled x10), where every stack-adding hit is also a refresh under CA's stack default.
+  Pinned (28) is negative without `cc`, so the `cc` list may not be the whole stun-lock set.
 - **His design:** it exists so nobody gets stun-locked forever. Only `<type:negative>` states should diminish. Every
   other state is opted out by default, so buffs recast to stack, like Fine. and Confetti every 8 s, are never cut.
+- **To settle:** a flat cut or a share of the new duration, since 120 frames is most of a short stun; the floor, as a
+  minimum duration or as no refresh at all; and whether a reapply that adds stacks counts toward the cut.
 - **Why it waits:** it's a balance question as much as a bug, to talk through at the end.
+- **Parked, 2026-11-27 (his call):** full refresh every time stays for now. The cut has never engaged in anything CA
+  loads, so every kit and enemy stun was tuned on full refresh; turning diminishing on is the change that would need
+  re-tuning. Pick it back up once play shows whether stun-lock is a real problem.
 
 **Boss payloads with a telegraph never show it (2318 Mycelial Net, 2337 Nine Worlds, 2596 Goop Geyser).** Read in
 source, not seen in play. These are the ones a sweep of skill, state, equipment, actor, class and enemy notes found.
 Boss routine steps were swept by an assumed config shape, so treat that part as unchecked.
+- **Who fires them:**
+  - Mycelial Net: vessel skill 2315's `<onCastExecuteSkill:[2318, 100]>`, cast by Mycelich (314) and Fungod (315).
+  - Nine Worlds: vessel skill 2335's `<onCastExecuteSkill:[2337, 100]>`, cast by Yggdrasil (340).
+  - Goop Geyser: the Goop Vent enemy (590), an inanimate vent, through
+    `<autoExecuteSkill:[2596, enemiesNearby, 1, 120, 6]>`.
 - **What they should do:** each is a placed, telegraphed hit. It has its own action event (32, 48 and 47), a radius
-  (3, 1.5 and 1) and a `<delay>`, and Goop Geyser also has `<knockback:2>`.
-- **What happens:** all three are `<direct>` payloads fired through a forced path. Mycelial Net and Nine Worlds come
-  from their vessel skills' `<onCastExecuteSkill>`, and Goop Geyser from Goop Vent's (590)
-  `<autoExecuteSkill:[2596, enemiesNearby, 1, 120, 6]>`. Those paths hand `forceMapAction` no coordinates (since
-  J-Passive-Conditional 1.6.0 only the hit-driven `onDamageDealt`/`onWeaponHit` rules aim at a target, and Goop Vent's
-  proximity rule is not one), and a direct action with no coordinates never spawns on the map
-  (`JABS_Engine.handleActionGeneration`, pinned by its tests). Instead it takes the caster-proximity collision path,
-  and the delay still counts down. So nothing is drawn, and when the delay ends the hit lands on every party member
-  within the payload's proximity of the caster (20, 20 and 6 tiles), with nowhere to dodge. A direct action also
-  never knocks back; it hops in place.
+  (3, 1.5 and 1) and a `<delay>` (30, 45 and 45 frames).
+- **What happens:** all three are `<direct>` payloads fired through a forced path. J-Extend's on-cast execute calls
+  `JABS_Engine#forceMapAction(caster, skillId, false)` with no target tile, and J-Passive-Conditional's
+  `AutoExecuteSkillManager` aims only the hit-driven `onDamageDealt`/`onWeaponHit` rules at a target (since
+  J-Passive-Conditional 1.6.0); Goop Vent's proximity rule is not one. A direct action with no coordinates never
+  spawns on the map (`JABS_Engine#handleActionGeneration`, pinned by its tests). Instead it takes the caster-proximity
+  collision path, and the delay still counts down. So nothing is drawn, and when the delay ends the hit lands on every
+  party member within the payload's proximity of the caster (20, 20 and 6 tiles), with nowhere to dodge.
+- **Knockback:** a direct action never knocks back; it hops in place. That's why Goop Geyser's `<knockback:2>` became
+  `<hitstop:8>`, along with the other direct enemy skills.
 - **Not affected:** the aura payloads (Regeneration Aura, Purifying Bloom and the rest) and the gap-close landings
   2594 Embrace and 2612 Execute. They are `<direct>` with a `<proximity>` sized as their reach, so the caster-proximity
   path is what they want.
+- **To settle:** where each hit should land once a forced path can aim it: on whoever the boss is targeting, on a
+  party member in range, or, for Goop Geyser, on the foe that tripped `enemiesNearby`.
 - **Why it waits:** a fix needs the forced paths to supply a target tile, and it can't change what the aura payloads
   rely on. That's an engine call, and these are boss skills, outside the class review.
 - **Found while:** building Melufa. Its follow-ups 267 and 268 and Orbiter's 266 had the same fault, and with no
@@ -168,10 +239,49 @@ Boss routine steps were swept by an assumed config shape, so treat that part as 
 
 ## To discuss at the end of the review
 
-**A pass on passive descriptions (his, 2026-11-26).** The Passives detail window draws a passive's traits plus a line
-for each tag that has a describer. He wrote the SDP passives' lines, but likely skipped the passives earned from weapon
-proficiency and from class skills. Deliberate Position (144) got its line on 11-26 through J-ABS's first describer
-(`pierceDamageRateIfStateType` in `config.notetag-lines.json`). Most other J-ABS tags have none yet.
+**A pass on passive descriptions (his, 2026-11-26).**
+- **How the lines get drawn:** the Passives detail window draws a passive's traits, then one line for each tag that
+  has a describer. Describers register with J-Base's `NotetagDescriber` at boot, from one `describe*Notetags.js` per
+  plugin: J-ABS, J-CriticalFactors, J-DropsControl, J-Elementalistics, J-NaturalGrowth, J-Passive, J-Passive-Affix,
+  J-Passive-Conditional and J-Proficiency. The words live in `chef-adventure/data/config.notetag-lines.json` under
+  each tag's key, and a tag with no line there says nothing.
+- **The example:** Deliberate Position (144) got its line on 11-26 through J-ABS's first describer
+  (`pierceDamageRateIfStateType`). It is still J-ABS's only one, so most J-ABS tags draw nothing.
+- **Scope:** he wrote the SDP passives' lines, but likely skipped the passives earned from weapon proficiency (each
+  conditional's `skillRewards` in `config.proficiency.json`) and from class skills (the skills each class teaches
+  through `<aptitude>`, whose `<passive:[...]>` names the states).
+- **First step:** list every tag those passive states carry that has no describer, or no line, so the work is sized
+  before any words get written.
 
 **AP gaining vs "AP spending" for class skill and passive unlocks (his, 2026-11-26).** Whether a class skill or passive
 unlocks by earning AP toward it, or by spending AP on it.
+- **How it works today, by earning (J-Aptitude):** each class lists the skills it teaches as
+  `<aptitude:[SKILL_ID, REQUIRED_AP]>`, 282 of them across Classes.json. Defeated enemies pay `<ap:N>`, scaled by
+  `<aptMultiplier>`, into every source active on the actor: its class, plus any equipment or state with an
+  `<aptitude>` of its own (CA has none). Progress is tracked per source, and a skill is learned the moment one source's
+  requirement is crossed. The capstones sit at 3000 AP and up.
+- **Spending would mean:** AP becomes a currency the player spends on the skills and passives they pick, in the order
+  they pick. J-Aptitude has no such mode today.
+
+## Live check still to run
+
+**The shared fate roll on the Parry Floor.** rmmz-plugins' tests cover this; the check confirms it in the running game.
+- **What it confirms:** every chance state rolls through the shared fate roll wherever it lands, so a Certain Hit no
+  longer skips the target's resistances, and luck weighs only on `<type:negative>` states.
+- **Where:** the Parry Floor (Map555), against the Parry Dummy (enemy 603: LUK 10, no immunities). Blocks A and B hold
+  the dummy's State Rate for their state at 100%, 50% and 0%, and count landings over 2000 trials per rate.
+  - **A, `<thisApplyState>`:** Shell Cracker (552) carries `<thisApplyState:[8,100,180]>`, Stunned at 100%. Landings
+    should follow the State Rate, down to none at 0%.
+  - **B, a Certain Hit's Add State:** Doom (593) puts Doom Countdown (165) on at 75%. A Certain Hit used to skip the
+    State Rate. Doom Countdown is `<type:negative>`, so the luck between caster and dummy moves the 75%; what matters
+    is that landings fall with the State Rate and stop at 0%.
+  - **C, a buff across a LUK gap:** Radiate (243, Certain Hit, all allies) puts Radiant (264) on actor 2 at 100%,
+    first at the pair's own LUK, then with actor 2's LUK raised by 300. Radiant isn't `<type:negative>`, so it should
+    land every time at both.
+- **How:** a one-off `--probe` script for `tools/playtest/run.js`, which plays a private copy of the game on a hidden
+  display.
+- **Ran 2026-11-27, all three confirmed** (fresh copy with the #135 build, Jerald LUK 6 vs the dummy's 10, 2000 trials
+  per line):
+  - A, Shell Cracker's stun: 100.0% / 49.4% / 0.0% at State Rate 100 / 50 / 0.
+  - B, Doom's Certain Hit at 75%: 74.2% / 36.5% / 0.0% at State Rate 100 / 50 / 0.
+  - C, Radiate on Rupert: 100.0% at the pair's own LUK and 100.0% with Rupert's LUK raised to 310.

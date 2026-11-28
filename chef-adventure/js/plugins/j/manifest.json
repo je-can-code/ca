@@ -40,7 +40,7 @@
     "drops/ext/J-Drops-Passive.js": "7b7c122e779933ecb86738ec64baa12a7140e101abc6eb9d67f237d6f4802697",
     "elem/J-Elementalistics.js": "2214d9179055ff49f738ec8eee5ab017d0ed784561e47a0812113efa979a2d70",
     "escribe/J-Escriptions.js": "9f6e1eb08b44e6053fd22a47025bdbd0f544fb64619f26e367b10b4fae1c7687",
-    "extend/J-Extend.js": "53ebd44025a582d0946c85996b82463f890f673e33f68d7daed0fba81585c8ed",
+    "extend/J-Extend.js": "26ffbcf17f32aceb110f3ce42fb9ec866b355c60ca3b3013749074d063a12ab5",
     "extend/ext/J-Extend-ABS.js": "063c96fe54ded579c8bd28e81e81932f3cf94c34481981dde682c747f773fb1c",
     "extend/ext/J-Extend-SKS.js": "389c4ca5dcf25d4f62f37d38a3f24f0947d22374b5123190d30b9b6333a53f25",
     "hud/J-HUD.js": "0220499c164e2dfd289f605347ec7e054cbc801ca7833993f4765a1c87666ec7",
@@ -3631,6 +3631,14 @@
       "flags": "gi"
     },
     {
+      "label": "J.EXTEND.RegExp.ApplyStateWhenAfflicted",
+      "names": [
+        "applyStateWhenAfflicted"
+      ],
+      "pattern": "<applyStateWhenAfflicted:[ ]?(\\[\\d+,[ ]?\\d+,[ ]?\\d+])>",
+      "flags": "gi"
+    },
+    {
       "label": "J.EXTEND.RegExp.Extend",
       "names": [
         "extend"
@@ -3740,6 +3748,14 @@
         "thisApplyState"
       ],
       "pattern": "<thisApplyState:[ ]?(\\[\\d+,[ ]?\\d+(?:,[ ]?-?\\d+(?:,[ ]?\\d+)?)?])>",
+      "flags": "gi"
+    },
+    {
+      "label": "J.EXTEND.RegExp.ThisApplyStateWhenAfflicted",
+      "names": [
+        "thisApplyStateWhenAfflicted"
+      ],
+      "pattern": "<thisApplyStateWhenAfflicted:[ ]?(\\[\\d+,[ ]?\\d+,[ ]?\\d+])>",
       "flags": "gi"
     },
     {
@@ -6854,6 +6870,16 @@
         "table": "States"
       }
     ],
+    "applyStateWhenAfflicted": [
+      {
+        "position": 0,
+        "table": "States"
+      },
+      {
+        "position": 1,
+        "table": "States"
+      }
+    ],
     "aptitude": [
       {
         "position": 0,
@@ -7438,6 +7464,16 @@
     "thisApplyState": [
       {
         "position": 0,
+        "table": "States"
+      }
+    ],
+    "thisApplyStateWhenAfflicted": [
+      {
+        "position": 0,
+        "table": "States"
+      },
+      {
+        "position": 1,
         "table": "States"
       }
     ],
