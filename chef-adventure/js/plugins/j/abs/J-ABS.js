@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.29.0 ABS] Enables combat to be carried out on the map.
+ * [v4.30.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1432,7 +1432,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.29.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.30.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -1873,15 +1873,17 @@ J.ABS.RegExp = {
 	*/
 	ThisLuckyRolls: /<thisLuckyRolls:[ ]?\[([+\-*/ ().\w]+)]>/gi,
 	/**
-	* Battler-wide bonus negative rerolls fed into chanceIn100 whenever this battler is the party
-	* wanting a roll to fail (e.g. the defender evading a hit/crit/state-apply). Evaluated with
-	* `a` bound to this battler, summed across every note source. No floor or cap.
+	* Battler-wide bad fate, fed into chanceIn100 against this battler. On its own rolls each curse is
+	* one more roll it has to pass as well; on harm aimed at it, one more chance for that harm to land;
+	* on help aimed at it, one more roll that help has to pass. Evaluated with `a` bound to this
+	* battler, summed across every note source. No floor or cap.
 	* Structure: <cursedRolls:[FORMULA]>
 	* @type {RegExp}
 	*/
 	CursedRolls: /<cursedRolls:[ ]?\[([+\-*/ ().\w]+)]>/gi,
 	/**
-	* Same as {@link CursedRolls}, but read from a specific skill's own note only.
+	* Same as {@link CursedRolls}, but read from a specific skill's own note only- curses its caster's
+	* fortune specifically while using it.
 	* Structure: <thisCursedRolls:[FORMULA]>
 	* @type {RegExp}
 	*/
@@ -1985,6 +1987,7 @@ J.ABS.RegExp = {
 	ImmuneToNegatives: /<immuneToNegatives>/gi,
 	ImmuneToStates: /<immuneToStates>/gi,
 	ImmuneToAll: /<immuneToAll>/gi,
+	ImmuneToFate: /<immuneToFate>/i,
 	CannotBeInterrupted: /<cannotBeInterrupted>/i,
 	NoDamage: /<noDamage>/i,
 	NoSelfKill: /<noSelfKill>/i,
@@ -2428,6 +2431,27 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	BonusDamagePerStateType: /<bonusDamagePerStateType:[ ]?(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
+	/**
+	* Pierces the target's physical and magical damage rates while it carries at least one active
+	* state with the given type classifier (see RPG_Base's types()). A rate below 1.00, resistance and
+	* immunity alike, is lifted to an even 1.00, while a rate already at or above 1.00 is a
+	* vulnerability and stands. Heals are never pierced. Reads from getAllNotes(), so it works from any
+	* note source the battler carries; several tags naming different types pierce on any one of them.
+	*
+	* <pre>
+	* Structure:
+	*  <pierceDamageRateIfStateType:TYPE>
+	*
+	* Example:
+	*  <pierceDamageRateIfStateType:cc>
+	*
+	* Translation:
+	*  Against a target with any active state classified as "cc", this battler's physical and magical
+	*  hits treat the target's PDR and MDR as no lower than 100%.
+	* </pre>
+	* @type {RegExp}
+	*/
+	PierceDamageRateIfStateType: /<pierceDamageRateIfStateType:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>/gi,
 	/**
 	* Percent damage bonus per stack of one specific state currently active on the target.
 	* Unlike BonusDamagePerStateType (which counts distinct states of a type), this reads the
@@ -7805,6 +7829,7 @@ var JABS_AiManager = class JABS_AiManager {
 	* @returns {boolean} True if this battler can movie idly, false otherwise.
 	*/
 	static canMoveIdly(battler) {
+		if (battler.isMovementLockedByState()) return false;
 		if (!battler.isIdleActionReady()) return false;
 		if (!this.shouldMoveIdly()) return false;
 		return true;
@@ -7954,9 +7979,30 @@ var JABS_AiManager = class JABS_AiManager {
 			this.decideAiPhase2Movement(battler);
 			return;
 		}
+		if (this.canFireFromWhereItStands(battler)) {
+			battler.setInPosition(true);
+		}
 		if (this.needsActionExecution(battler)) {
 			this.executeAiPhase2Action(battler);
 		}
+	}
+	/**
+	* Determines whether a battler that cannot move is ready to fire its decided action from where it stands.<br/>
+	* A battler that can move gets into position by moving there, in {@link #decideAiPhase2Movement}, and a battler
+	* that cannot never reaches that step. So once its target is within the decided action's proximity, it counts as in
+	* position where it stands; while its target is out of reach, it waits for the target to come to it. A battler whose
+	* states forbid the action it decided, like a paralyzed one, waits too, so being held in place never lets it act.
+	* @param {JABS_Battler} battler The battler to check.
+	* @returns {boolean} True if the battler should fire from where it stands, false otherwise.
+	*/
+	static canFireFromWhereItStands(battler) {
+		if (battler.isCastingOrChanneling()) return false;
+		if (battler.isInPosition()) return false;
+		if (battler.canBattlerMove()) return false;
+		if (this.needsToMoveCloser(battler)) return false;
+		const [action] = battler.getDecidedAction();
+		if (battler.isSkillLockedOutByState(action.getBaseSkill().id)) return false;
+		return true;
 	}
 	/**
 	* Determines whether or not this battler needs to decide an action.
@@ -11614,28 +11660,40 @@ var JABS_Battler = class JABS_Battler {
 		character.turnTowardCharacter(target.getCharacter());
 	}
 	/**
-	* Whether or not the battler is able to use attacks based on states.
+	* Whether or not the battler is able to use attacks based on states.<br/>
+	* Passive states count as much as applied ones, so a passive that disables its bearer disables it for good.
 	* @returns {boolean} True if the battler can attack, false otherwise.
 	*/
 	canBattlerUseAttacks() {
-		const states = this.getBattler().states();
-		if (!states.length) {
-			return true;
-		}
-		const disabled = states.find((state) => state.jabsDisarmed || state.jabsParalyzed);
+		const states = this.getBattler().allStates();
+		const disabled = states.some((state) => state.jabsDisarmed || state.jabsParalyzed);
 		return !disabled;
 	}
 	/**
-	* Whether or not the battler is able to use skills based on states.
+	* Whether or not the battler is able to use skills based on states.<br/>
+	* Passive states count as much as applied ones, so a passive that mutes its bearer mutes it for good.
 	* @returns {boolean} True if the battler can use skills, false otherwise.
 	*/
 	canBattlerUseSkills() {
-		const states = this.getBattler().states();
-		if (!states.length) {
-			return true;
-		}
-		const muted = states.find((state) => state.jabsMuted || state.jabsParalyzed);
+		const states = this.getBattler().allStates();
+		const muted = states.some((state) => state.jabsMuted || state.jabsParalyzed);
 		return !muted;
+	}
+	/**
+	* Whether the battler's states forbid it from using the given skill.<br/>
+	* A disabling state forbids the battler's basic attack, and a muting state forbids every other skill. A paralyzing
+	* state does both, and a battler forbidden both is answered before anything asks whether the skill is its basic
+	* attack, which for an actor means scanning its skill slots on every AI decision.
+	* @param {number} skillId The skill to check.
+	* @returns {boolean}
+	*/
+	isSkillLockedOutByState(skillId) {
+		const canUseSkills = this.canBattlerUseSkills();
+		const canUseAttacks = this.canBattlerUseAttacks();
+		if (!canUseSkills && !canUseAttacks) return true;
+		const isBasicAttack = this.isSkillIdBasicAttack(skillId);
+		if (isBasicAttack) return !canUseAttacks;
+		return !canUseSkills;
 	}
 	/**
 	* Gets the skill id of the last skill that this battler executed.
@@ -12528,6 +12586,36 @@ var JABS_Battler = class JABS_Battler {
 		const penalty = sourceAction.getCooldown() * (penaltyPct / 100);
 		$jabsEngine.applyCooldownValueForSkill(this, sourceAction, penalty);
 		this.clearDecidedAction();
+	}
+	/**
+	* Cancels whatever this battler has lined up to fire: a windup or channel in flight stops, the decided action is
+	* dropped, and the battler is no longer in position, so it decides afresh once it can act again.<br/>
+	* Unlike {@link #interrupt}, nothing is penalized. The action never happened, so no cooldown is spent on it. A hold
+	* calls this the moment it lands, so a held battler never acts on a decision it made before.
+	*/
+	cancelLinedUpAction() {
+		if (this.isChanneling()) {
+			this.endChannel();
+		} else if (this.isCasting()) {
+			this.setCasting(false);
+			this.setCastTimeCountdown(0);
+		}
+		this.clearDecidedAction();
+		this.setInPosition(false);
+	}
+	/**
+	* Whether the action this battler has lined up winds up with a cast time and is of the kind the given state forbids:
+	* a disabling state forbids its basic attack, and a muting state forbids every other skill. An action with no cast
+	* time has no windup to cancel, so it never counts.
+	* @param {RPG_State} state The state just put on this battler.
+	* @returns {boolean}
+	*/
+	hasForbiddenWindupLinedUp(state) {
+		if (!this.isActionDecided()) return false;
+		const [action] = this.getDecidedAction();
+		if (action.getCastTime() <= 0) return false;
+		if (this.isSkillIdBasicAttack(action.getBaseSkill().id)) return state.jabsDisarmed;
+		return state.jabsMuted;
 	}
 	/**
 	* Updates the timer for "engagement".
@@ -13753,11 +13841,11 @@ var JABS_Battler = class JABS_Battler {
 		this.applyToolToPlayer(toolId);
 	}
 	/**
-	* Applies the effects of the tool against all opponents on the map.
+	* Applies the effects of the tool against one opponent: this battler's current target, or failing that, the last
+	* battler it hit.
 	* @param {number} toolId The id of the tool/item being used.
 	*/
 	applyToolForOneOpponent(toolId) {
-		const item = $dataItems[toolId];
 		let jabsBattler = this.getTarget();
 		if (!jabsBattler) {
 			jabsBattler = this.getBattlerLastHit();
@@ -13765,9 +13853,9 @@ var JABS_Battler = class JABS_Battler {
 		if (!jabsBattler) {
 			return;
 		}
-		const battler = jabsBattler.getBattler();
-		const gameAction = new Game_Action(battler, false);
-		gameAction.apply(battler);
+		const gameAction = new Game_Action(this.getBattler(), false);
+		gameAction.setItem(toolId);
+		gameAction.apply(jabsBattler.getBattler());
 		this.onItemApplied(gameAction, toolId, jabsBattler);
 	}
 	/**
@@ -13777,9 +13865,9 @@ var JABS_Battler = class JABS_Battler {
 	applyToolForAllOpponents(toolId) {
 		const battlers = JABS_AiManager.getEnemyBattlers();
 		battlers.forEach((jabsBattler) => {
-			const battler = jabsBattler.getBattler();
-			const gameAction = new Game_Action(battler, false);
-			gameAction.apply(battler);
+			const gameAction = new Game_Action(this.getBattler(), false);
+			gameAction.setItem(toolId);
+			gameAction.apply(jabsBattler.getBattler());
 			this.onItemApplied(gameAction, toolId, jabsBattler);
 		}, this);
 	}
@@ -13928,12 +14016,12 @@ var JABS_Battler = class JABS_Battler {
 		return true;
 	}
 	/**
-	* Checks all states to see if any are movement-locking.
+	* Checks all states to see if any are movement-locking.<br/>
+	* Passive states count as much as applied ones, so a passive that roots its bearer pins it in place for good.
 	* @returns {boolean} True if there is at least one locking movement, false otherwise.
 	*/
 	isMovementLockedByState() {
-		const states = this.getBattler().states();
-		if (!states.length) return false;
+		const states = this.getBattler().allStates();
 		const lockedByState = states.some((state) => state.jabsRooted || state.jabsParalyzed);
 		return lockedByState;
 	}
@@ -14112,18 +14200,7 @@ var JABS_Battler = class JABS_Battler {
 	*/
 	canExecuteSkill(chosenSkillId) {
 		if (!chosenSkillId) return false;
-		const canUseSkills = this.canBattlerUseSkills();
-		const canUseAttacks = this.canBattlerUseAttacks();
-		if (!canUseSkills && !canUseAttacks) {
-			return false;
-		}
-		const isBasicAttack = this.isSkillIdBasicAttack(chosenSkillId);
-		if (!canUseAttacks && isBasicAttack) {
-			return false;
-		}
-		if (!canUseSkills && !isBasicAttack) {
-			return false;
-		}
+		if (this.isSkillLockedOutByState(chosenSkillId)) return false;
 		if (!this.canPaySkillCost(chosenSkillId)) {
 			return false;
 		}
@@ -14911,6 +14988,207 @@ var JABS_SkillExecution = class {
 };
 
 //#endregion
+//#region src/plugins/abs/core/managers/JABS_Fate.js
+/**
+* A static class for the rolls one battler makes against another: the fate each of them brings to the roll, the luck
+* between them, and how many times a state with an authored chance lands.<br/>
+* Every state applied by chance rolls here, whatever carried it to its recipient- a skill's own state effect, an
+* on-hit or on-crit tag, an evasion, an aura, a spread or an expiry chain- so the recipient's resistances and the two
+* battlers' fate weigh on every one of them alike, and the luck between them weighs on every harmful one. Nothing here
+* adds the state: each caller adds it once per proc through whichever add method it needs, and every one of those adds
+* checks immunity on its own.
+*/
+var JABS_Fate = class {
+	/**
+	* The luck one battler holds over another, as a multiplier on the chance that what it aims at the other lands.<br/>
+	* This is the rate RMMZ gives an action against its target: every point of LUK the roller holds over the recipient
+	* adds a tenth of a percent, every point it lacks takes one away, and the rate never falls below nothing. A battler
+	* rolling against itself holds no edge over itself, so its rate is exactly one.
+	* @param {Game_Battler} roller The battler making the roll.
+	* @param {Game_Battler} recipient The battler the roll is aimed at.
+	* @returns {number}
+	*/
+	static lukEffectRate(roller, recipient) {
+		const luckGap = roller.luk - recipient.luk;
+		return Math.max(1 + luckGap * .001, 0);
+	}
+	/**
+	* The rolls a battler's own fate brings to a roll it makes, before anything it aims at weighs in: its one chance plus
+	* every lucky roll it carries, then every cursed roll it carries as a hurdle the roll has to clear as well.<br/>
+	* With a skill in hand, that skill's own `<thisLuckyRolls>` and `<thisCursedRolls>` join the battler-wide totals. A
+	* roll made with no skill in hand reads the battler-wide totals alone.
+	* @param {Game_Battler} roller The battler making the roll.
+	* @param {RPG_UsableItem|null} skill The skill the roll is made with, or null when there is none.
+	* @returns {number[]}
+	*/
+	static ownRolls(roller, skill) {
+		if (skill === null) return [1 + roller.getPositiveRolls(), roller.getNegativeRolls()];
+		return [1 + roller.getPositiveRollsForSkill(skill), roller.getNegativeRollsForSkill(skill)];
+	}
+	/**
+	* The rolls one battler brings against another, as the positive and negative counts
+	* {@link RPGManager.resolveProcCount} and {@link RPGManager.fateOf100} take.<br/>
+	* The roller's own fate speaks for and against its roll, whatever it aims at. The recipient's curse is that
+	* recipient's bad fate: harm aimed at a cursed recipient gets one more chance to land for every curse it carries, so
+	* the recipient has to survive each of them, while help aimed at it has to clear every curse it carries to land at
+	* all. A battler aiming at itself brings its fate once, as the roller. Lucky rolls belong to the roller alone; the
+	* recipient's never weigh on a roll aimed at it.
+	* @param {Game_Battler} roller The battler making the roll.
+	* @param {Game_Battler} recipient The battler the roll is aimed at.
+	* @param {RPG_UsableItem|null} skill The skill the roll is made with, or null when there is none.
+	* @param {boolean} isHarm Whether the roll is harm aimed at the recipient, rather than help.
+	* @returns {number[]}
+	*/
+	static rollsAgainst(roller, recipient, skill, isHarm) {
+		const [positiveRolls, negativeRolls] = this.ownRolls(roller, skill);
+		if (recipient === roller) return [positiveRolls, negativeRolls];
+		const recipientCurse = recipient.getNegativeRolls();
+		if (isHarm) return [positiveRolls + recipientCurse, negativeRolls];
+		return [positiveRolls, negativeRolls + recipientCurse];
+	}
+	/**
+	* The rolls an action brings against its target: its subject's fate with the item it is using, aimed as harm when
+	* the action targets the subject's opponents and as help otherwise.<br/>
+	* {@link Game_Action#fateRollsAgainst} answers with this for every roll an action makes: landing the hit, scoring a
+	* critical, removing a state and applying one.
+	* @param {Game_Action} action The action making the roll.
+	* @param {Game_Battler} target The battler the action is aimed at.
+	* @returns {number[]}
+	*/
+	static actionRollsAgainst(action, target) {
+		const subject = action.subject();
+		const skill = action.item();
+		const isHarm = action.isForOpponent();
+		return this.rollsAgainst(subject, target, skill, isHarm);
+	}
+	/**
+	* The luck that weighs on a state aimed at a recipient, as a multiplier on its chance to land.<br/>
+	* Luck only weighs on harm. A state carrying the `<type:negative>` classifier, as its recipient sees the state, meets
+	* the luck between the two battlers through {@link JABS_Fate.lukEffectRate}. Any other state is a blessing, and no one
+	* can luck their way out of a blessing, so its rate is exactly one.
+	* @param {Game_Battler} roller The battler applying the state.
+	* @param {Game_Battler} recipient The battler the state is aimed at.
+	* @param {number} stateId The id of the state being applied.
+	* @returns {number}
+	*/
+	static stateLuckRate(roller, recipient, stateId) {
+		const state = recipient.state(stateId);
+		if (state.isNegativeType() === false) return 1;
+		return this.lukEffectRate(roller, recipient);
+	}
+	/**
+	* The chance a state lands on its recipient, as the whole percent the dice are rolled against.<br/>
+	* The authored percent meets the recipient's resistance to the state by its id, through State Rate traits, and by
+	* its type, through `<stateTypeResist>`. A harmful state then meets the luck between the two battlers, as
+	* {@link JABS_Fate.stateLuckRate} describes. Every roll meets them alike: a certain hit cannot miss, but the states it
+	* carries meet the same resistances and luck as any others.
+	* @param {Game_Battler} roller The battler applying the state.
+	* @param {Game_Battler} recipient The battler the state is aimed at.
+	* @param {number} stateId The id of the state being applied.
+	* @param {number} percent The authored chance, as a percent from 0 to 100.
+	* @returns {number}
+	*/
+	static stateApplicationD100(roller, recipient, stateId, percent) {
+		const luckRate = this.stateLuckRate(roller, recipient, stateId);
+		const chance = percent * recipient.stateRate(stateId) * recipient.stateTypeResistRate(stateId) * luckRate;
+		return Math.round(chance);
+	}
+	/**
+	* Whether a state is set apart from fate, as its recipient sees the state: one carrying `<immuneToFate>`.<br/>
+	* No battler's fate weighs on a roll for such a state, whoever makes it.
+	* @param {Game_Battler} recipient The battler the state is aimed at.
+	* @param {number} stateId The id of the state being rolled for.
+	* @returns {boolean}
+	*/
+	static isImmuneToFateState(recipient, stateId) {
+		const state = recipient.state(stateId);
+		return state.isImmuneToFate();
+	}
+	/**
+	* Resolves whether a state immune to fate lands on its recipient: once at most, on one plain roll.<br/>
+	* The chance is still {@link JABS_Fate.stateApplicationD100}, so the recipient's State Rate traits and
+	* `<stateTypeResist>` weigh on it, and the luck between the two battlers shapes a harmful state's. Nothing else
+	* does: no lucky or cursed roll, no recipient's curse, no `<veryLucky>`, `<veryCursed>` or `<forceCritProcs>`, no
+	* Accumulate Mode and no Encore.
+	* @param {Game_Battler} roller The battler applying the state.
+	* @param {Game_Battler} recipient The battler the state is aimed at.
+	* @param {number} stateId The id of the state being applied.
+	* @param {number} percent The authored chance, as a percent from 0 to 100.
+	* @returns {number}
+	*/
+	static resolveImmuneToFateProcCount(roller, recipient, stateId, percent) {
+		const d100 = this.stateApplicationD100(roller, recipient, stateId, percent);
+		return RPGManager.chanceIn100(d100) ? 1 : 0;
+	}
+	/**
+	* Resolves how many times a state lands on its recipient, given the rolls brought to it.<br/>
+	* The chance is {@link JABS_Fate.stateApplicationD100} and the count is {@link RPGManager.resolveProcCount}, so the
+	* positive roller's `<veryLucky>` and `<veryCursed>` settle it outright, Accumulate Mode counts every positive roll
+	* that lands, and Encore repeats each landing. The positive roller is the roller unless a caller hands over its
+	* own, the way `<forceCritProcs>` guarantees an on-crit roll; the roller brings its luck to the chance either way.
+	* A state carrying `<immuneToFate>` sets all of that fate aside, as {@link JABS_Fate.resolveImmuneToFateProcCount}
+	* describes.
+	* Nothing is added here.
+	* @param {Game_Battler} roller The battler applying the state.
+	* @param {Game_Battler} recipient The battler the state is aimed at.
+	* @param {number} stateId The id of the state being applied.
+	* @param {number} percent The authored chance, as a percent from 0 to 100.
+	* @param {number[]} rolls The positive rolls, the baseline one included, then the negative rolls.
+	* @param {Game_Battler|object=} positiveRoller Whose fate overrides, Accumulate Mode and Encore count the landings;
+	* defaults to the roller.
+	* @returns {number}
+	*/
+	static resolveStateProcCountWithRolls(roller, recipient, stateId, percent, rolls, positiveRoller = roller) {
+		if (this.isImmuneToFateState(recipient, stateId)) {
+			return this.resolveImmuneToFateProcCount(roller, recipient, stateId, percent);
+		}
+		const d100 = this.stateApplicationD100(roller, recipient, stateId, percent);
+		const [positiveRolls, negativeRolls] = rolls;
+		return RPGManager.resolveProcCount(positiveRoller, d100, positiveRolls, negativeRolls);
+	}
+	/**
+	* Resolves how many times a state lands on its recipient when no action aims it: an evasion's state, an aura, a
+	* spread, an expiry chain or a region's state.<br/>
+	* With no action to say whether it was aimed at a friend or a foe, the state decides: one carrying the
+	* `<type:negative>` classifier, as its recipient sees the state, arrives as harm, and any other as help. That
+	* decides which side of the roll the recipient's curse weighs on, as {@link JABS_Fate.rollsAgainst} describes.
+	* Nothing is added here; the caller adds the state once per proc.
+	* @param {Game_Battler} roller The battler applying the state; the recipient itself for a state it gives itself.
+	* @param {Game_Battler} recipient The battler the state is aimed at.
+	* @param {number} stateId The id of the state being applied.
+	* @param {number} percent The authored chance, as a percent from 0 to 100.
+	* @param {RPG_UsableItem|null=} skill The skill whose own lucky and cursed rolls join the roller's; defaults to null,
+	* which reads the roller's battler-wide totals alone.
+	* @returns {number}
+	*/
+	static resolveStateProcCount(roller, recipient, stateId, percent, skill = null) {
+		const state = recipient.state(stateId);
+		const isHarm = state.isNegativeType();
+		const rolls = this.rollsAgainst(roller, recipient, skill, isHarm);
+		return this.resolveStateProcCountWithRolls(roller, recipient, stateId, percent, rolls);
+	}
+	/**
+	* Resolves how many times a state lands on a target for an action: a skill's own state effect, or a state carried
+	* by an on-hit, on-cast or on-crit tag.<br/>
+	* The action's subject is the roller, and the fate it brings is {@link Game_Action#fateRollsAgainst}: harm when the
+	* action targets the subject's opponents, help otherwise, and counted once when the target is the subject itself.
+	* Nothing is added here; the caller adds the state once per proc.
+	* @param {Game_Action} action The action applying the state.
+	* @param {Game_Battler} target The battler the state is aimed at; the subject itself for a self-state.
+	* @param {number} stateId The id of the state being applied.
+	* @param {number} percent The authored chance, as a percent from 0 to 100.
+	* @param {Game_Battler|object=} positiveRoller Whose fate overrides, Accumulate Mode and Encore count the landings;
+	* defaults to the action's subject.
+	* @returns {number}
+	*/
+	static resolveActionStateProcCount(action, target, stateId, percent, positiveRoller = action.subject()) {
+		const rolls = action.fateRollsAgainst(target);
+		const subject = action.subject();
+		return this.resolveStateProcCountWithRolls(subject, target, stateId, percent, rolls, positiveRoller);
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/core/models/JABS_StateBuilder.js
 /**
 * A fluent builder/factory for constructing {@link JABS_State} instances.
@@ -15302,17 +15580,41 @@ var JABS_State = class {
 		}
 	}
 	/**
-	* When this state has reached the end of its natural duration, checks for an
-	* {@link jabsApplyStateOnExpire} tag on the database state and rolls the
-	* configured percent chance to apply the follow-up state to the same battler.<br/>
+	* When this state has reached the end of its natural duration, checks for an {@link jabsApplyStateOnExpire} tag on
+	* the state, as the afflicted battler sees it, and lands its follow-up state onto the same battler.<br/>
+	* The state is read through the afflicted battler rather than straight off the database, so anything layered onto
+	* the battler's view of it decides which follow-up it names. How many times that follow-up lands is
+	* {@link #resolveExpiryLandingCount}, and each landing adds it once, inheriting this state's source and source
+	* skill.<br/>
 	* This method does NOT run when a state is removed by force (dispel, script, KO).
 	*/
 	handleApplyStateOnExpire() {
-		const expireData = $dataStates[this.stateId].jabsApplyStateOnExpire;
+		const expireData = this.battler.state(this.stateId).jabsApplyStateOnExpire;
 		if (expireData === null) return;
 		const { stateId: nextStateId, chance } = expireData;
-		if (!RPGManager.chanceIn100(chance)) return;
-		this.battler.addState(nextStateId, this.source, this.sourceSkill);
+		const landingCount = this.resolveExpiryLandingCount(nextStateId, chance);
+		for (let i = 0; i < landingCount; i++) {
+			this.battler.addState(nextStateId, this.source, this.sourceSkill);
+		}
+	}
+	/**
+	* Resolves how many times this state's expiry follow-up lands on the afflicted battler as this state expires.<br/>
+	* The follow-up is rolled the way every state applied by chance is rolled, through
+	* {@link JABS_Fate.resolveStateProcCount}: the battler that applied this state rolls the authored chance against the
+	* afflicted battler, with the skill it applied this state with when there was one. The afflicted battler's State Rate
+	* traits and `<stateTypeResist>` weigh on the chance, and for a harmful follow-up the luck the source holds over it
+	* shapes what remains. With no action to aim it, the follow-up's own `<type:negative>` decides whether the afflicted
+	* battler's curse helps it land or stands in its way. A state its own bearer applied rolls as one the bearer gives
+	* itself: no luck edge, and its fate counted once. Accumulate Mode and Encore can land the follow-up more than once,
+	* unless it is `<immuneToFate>`, which lands once at most on one plain roll.<br/>
+	* This is the one place the count is decided, so an extension whose follow-ups land some other way aliases this.
+	* Nothing is added here; the caller adds the follow-up once per landing.
+	* @param {number} nextStateId The id of the follow-up state.
+	* @param {number} chance The follow-up's authored chance, as a percent from 0 to 100.
+	* @returns {number}
+	*/
+	resolveExpiryLandingCount(nextStateId, chance) {
+		return JABS_Fate.resolveStateProcCount(this.source, this.battler, nextStateId, chance, this.sourceSkill);
 	}
 	/**
 	* Handle reset circumstances for the refresh reset counter and times refreshed counter.
@@ -15469,7 +15771,13 @@ var JABS_State = class {
 		carrier.processStateTick(this.source.state(this.stateId));
 	}
 	/**
-	* Attempts to spread this state to nearby battlers when the state row defines a spread rule.
+	* Attempts to spread this state to nearby battlers when the state row defines a spread rule.<br/>
+	* Each candidate that could take the state is rolled for on its own, by the battler that first applied this state
+	* and with the skill it applied it with, through {@link JABS_Fate.resolveStateProcCount}: the candidate's State Rate
+	* traits and `<stateTypeResist>` weigh on the chance, and the luck the source holds over the candidate shapes what
+	* remains. With no action to aim it, the state's own `<type:negative>` decides whether the candidate's curse helps
+	* it land or stands in its way. A candidate the spread lands on takes the state once for every time it lands, and
+	* counts once toward the `<spreadPerTick>` cap however many times that was; a candidate it misses does not count.
 	*/
 	handleSpreading() {
 		if (this.expired === true) return;
@@ -15498,8 +15806,11 @@ var JABS_State = class {
 		for (const jabsBattler of orderedCandidates) {
 			if (maxPerTick > 0 && successCount >= maxPerTick) break;
 			const targetBattler = jabsBattler.getBattler();
-			if (RPGManager.chanceIn100(chance) === false) continue;
-			targetBattler.addState(this.stateId, this.source, this.sourceSkill);
+			const procCount = JABS_Fate.resolveStateProcCount(this.source, targetBattler, this.stateId, chance, this.sourceSkill);
+			if (procCount === 0) continue;
+			for (let i = 0; i < procCount; i++) {
+				targetBattler.addState(this.stateId, this.source, this.sourceSkill);
+			}
 			successCount++;
 		}
 	}
@@ -16305,6 +16616,15 @@ var JABS_Engine = class JABS_Engine {
 			9: 6
 		}
 	};
+	/**
+	* The knockback resistance, as a percent, at which a target refuses being forcibly moved at all.
+	*
+	* Pushes and pulls both answer to it: a pull is knockback aimed back toward the caster, so a target
+	* that resists every knockback resists every pull with the same number. At or above it the target
+	* does not even hop in place.
+	* @type {100}
+	*/
+	static FullKnockbackResist = 100;
 	/**
 	* Gets the action events.
 	* @returns {JABS_Action[]} The actionEvents.
@@ -17628,21 +17948,14 @@ var JABS_Engine = class JABS_Engine {
 		}
 	}
 	/**
-	* Handles the on-cast state effects for a JABS action, firing once at press-time
-	* rather than once per target hit.
-	* @param {JABS_Battler} caster The JABS_Battler executing the JABS action.
-	* @param {JABS_Action} action The JABS action being executed.
+	* A hook fired once for a JABS action as it executes- after any cast time has run out- rather than once per target
+	* hit, for the effects a cast has on its own caster the moment it goes off.<br/>
+	* Does nothing on its own. J-ABS has no on-cast effects of its own to apply here; extensions alias this to add
+	* theirs.
+	* @param {JABS_Battler} _caster The JABS_Battler executing the JABS action.
+	* @param {JABS_Action} _action The JABS action being executed.
 	*/
-	handleOnCastStateEffects(caster, action) {
-		const gameAction = action.getAction();
-		gameAction.applyOnCastSelfStates();
-		gameAction.applyOnCastSelfStatesIfAfflicted();
-		gameAction.applyOnCastLoseStates();
-		gameAction.applyToggleOnExecuteStates();
-		gameAction.applyToggleGroupOnExecuteStates();
-		gameAction.applyOnCastExecuteSkills(caster);
-		gameAction.applyOnCastExecuteSkillsIfAfflicted(caster);
-	}
+	handleOnCastStateEffects(_caster, _action) {}
 	/**
 	* Handles adding this action to the map if applicable.
 	* @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
@@ -18465,6 +18778,21 @@ var JABS_Engine = class JABS_Engine {
 		return [unitX * tiles, unitY * tiles];
 	}
 	/**
+	* Resolves how strongly the given target resists being forcibly moved, as a percent.
+	*
+	* Summed from `<knockbackResist:PCT>` across every note source the target has. Knockback and
+	* pull-forward both read it from here, so a plugin granting a resistance of its own- J-ABS-Boss
+	* makes every participant of a boss fight immovable- aliases this one method and both kinds of
+	* forced movement agree on it.
+	* @param {JABS_Battler} target The map battler whose resistance is being resolved.
+	* @returns {number} The resistance percent; {@link JABS_Engine.FullKnockbackResist} or more refuses
+	* every push and every pull.
+	*/
+	resolveKnockbackResist(target) {
+		const targetNotes = target.getBattler().getAllNotes();
+		return RPGManager.getSumFromAllNotesByRegex(targetNotes, J.ABS.RegExp.KnockbackResist);
+	}
+	/**
 	* Resolves how far an action should knock its target back, after the target's resistance and the
 	* caster's amplification have both been applied.
 	*
@@ -18476,9 +18804,8 @@ var JABS_Engine = class JABS_Engine {
 	* deliberately distinct from a zero distance, since zero still hops in place.
 	*/
 	resolveKnockbackDistance(action, target) {
-		const targetNotes = target.getBattler().getAllNotes();
-		const targetKnockbackResist = RPGManager.getSumFromAllNotesByRegex(targetNotes, J.ABS.RegExp.KnockbackResist);
-		if (targetKnockbackResist >= 100) return null;
+		const targetKnockbackResist = this.resolveKnockbackResist(target);
+		if (targetKnockbackResist >= JABS_Engine.FullKnockbackResist) return null;
 		let knockback = action.getKnockback();
 		if (knockback === null) return null;
 		knockback *= (100 - targetKnockbackResist) / 100;
@@ -18490,7 +18817,9 @@ var JABS_Engine = class JABS_Engine {
 		return knockback;
 	}
 	/**
-	* Forces the target hit to be knocked back.
+	* Forces the target hit to be knocked back, announcing it through {@link #announceKnockback} once
+	* the target is on its way.<br/>
+	* A hop in place moves nobody and announces nothing.
 	* @param {JABS_Action} action The action potentially knocking the target back.
 	* @param {JABS_Battler} target The map battler to potentially knockback.
 	*/
@@ -18509,12 +18838,40 @@ var JABS_Engine = class JABS_Engine {
 		const [xPlus, yPlus] = JABS_Engine.toDisplacement(knockbackDirection, knockback);
 		if (action.getBaseSkill().jabsIgnoreTerrain) {
 			targetSprite.jump(xPlus, yPlus);
+			this.announceKnockback(action, target, xPlus, yPlus);
 			return;
 		}
 		const knockbackDistance = Math.max(Math.abs(xPlus), Math.abs(yPlus));
 		const [dx, dy] = targetSprite.walkInDirectionClamped(knockbackDirection, knockbackDistance);
 		targetSprite.jump(dx, dy);
+		this.announceKnockback(action, target, dx, dy);
 	}
+	/**
+	* Announces a knockback through {@link #onKnockback}, but only when it actually moved its target.<br/>
+	* Terrain can cut a knockback down to nothing, and a facing with no cardinal meaning sends it along
+	* no axis at all; either way the target is still standing where it was, and a knockback that moved
+	* nobody is no knockback. A pull is knockback aimed back toward the caster, so the plugins that pull
+	* announce through here as well.
+	* @param {JABS_Action} action The action whose hit moved the target.
+	* @param {JABS_Battler} target The map battler that was moved.
+	* @param {number} dx The horizontal tiles the target was sent.
+	* @param {number} dy The vertical tiles the target was sent.
+	*/
+	announceKnockback(action, target, dx, dy) {
+		if (dx === 0 && dy === 0) return;
+		this.onKnockback(action, target);
+	}
+	/**
+	* Lifecycle event: a hit has just knocked its target off the tile it stood on, pushed away or pulled
+	* in.<br/>
+	* Reached only through {@link #announceKnockback}, so a hit that leaves its target where it stood- one
+	* that healed, was parried, struck a target already airborne, carried no knockback, met a target that
+	* refuses all of it, or only hopped it in place- never calls this. Extended by optional plugins (e.g.
+	* J-Passive-Conditional, whose onKnockback rules fire from here).
+	* @param {JABS_Action} _action The action whose hit moved the target.
+	* @param {JABS_Battler} _target The map battler that was moved.
+	*/
+	onKnockback(_action, _target) {}
 	/**
 	* Checks whether this landed hit should interrupt the target's in-flight cast/channel.
 	* Requires the attacking skill to carry `<interrupt:MAGNIFIER>`, and the target to be neither
@@ -18718,9 +19075,26 @@ var JABS_Engine = class JABS_Engine {
 		const scaleFactor = J.ABS.Metadata.ImplicitParryScaleFactor;
 		const parryChancePercent = Math.round(rawChance * scaleFactor);
 		const defenderBattler = target.getBattler();
+		const [positiveRolls, negativeRolls] = this.defensiveFateRolls(caster, target, action);
+		return RPGManager.fateOf100(defenderBattler, parryChancePercent, positiveRolls, negativeRolls);
+	}
+	/**
+	* The rolls a defender brings to parrying or glancing an attacker's hit, as the positive and negative counts
+	* {@link RPGManager.fateOf100} takes.<br/>
+	* The defender is the one rolling, so its own luck adds chances to turn the hit aside and its own curse adds rolls
+	* it has to pass as well. The attacker's curse is the attacker's bad fate: one more chance for the defender to turn
+	* the hit aside for every curse the attacker carries, its skill's own included.
+	* @param {JABS_Battler} caster The battler performing the action.
+	* @param {JABS_Battler} target The battler defending against it.
+	* @param {JABS_Action} action The action being defended against.
+	* @returns {number[]} The positive rolls, the baseline one included, then the negative rolls.
+	*/
+	defensiveFateRolls(caster, target, action) {
+		const defenderBattler = target.getBattler();
 		const defenderPositiveRolls = defenderBattler.getPositiveRolls();
-		const attackerNegativeRolls = caster.getBattler().getNegativeRollsForSkill(action.getBaseSkill());
-		return RPGManager.fateOf100(defenderBattler, parryChancePercent, 1 + defenderPositiveRolls, attackerNegativeRolls);
+		const defenderNegativeRolls = defenderBattler.getNegativeRolls();
+		const attackerCurse = caster.getBattler().getNegativeRollsForSkill(action.getBaseSkill());
+		return [1 + defenderPositiveRolls + attackerCurse, defenderNegativeRolls];
 	}
 	/**
 	* Calculates whether the implicit parry roll succeeds as a glancing blow.
@@ -18738,9 +19112,8 @@ var JABS_Engine = class JABS_Engine {
 		const ignoreParryPercent = this.getIgnoreParryPct(caster, action);
 		const glancingChancePercent = JABS_Engine.glancingBlowChancePercent(caster, target, ignoreParryPercent);
 		const defenderBattler = target.getBattler();
-		const defenderPositiveRolls = defenderBattler.getPositiveRolls();
-		const attackerNegativeRolls = caster.getBattler().getNegativeRollsForSkill(action.getBaseSkill());
-		return RPGManager.fateOf100(defenderBattler, glancingChancePercent, 1 + defenderPositiveRolls, attackerNegativeRolls);
+		const [positiveRolls, negativeRolls] = this.defensiveFateRolls(caster, target, action);
+		return RPGManager.fateOf100(defenderBattler, glancingChancePercent, positiveRolls, negativeRolls);
 	}
 	/**
 	* Prerequisites for implicit defensive events: {@link #checkImplicitFullParry} and
@@ -18941,9 +19314,11 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	executeRetaliationSkills(retaliator, retaliationSkills, triggeringAction) {
 		const incomingHitType = triggeringAction.getBaseSkill().hitType;
-		const { hpDamage, mpDamage, tpDamage } = retaliator.getBattler().result();
+		const triggeringResult = retaliator.getBattler().result();
+		const { hpDamage, mpDamage, tpDamage } = triggeringResult;
 		retaliationSkills.forEach((skillChance) => {
 			if (!skillChance.matchesHitType(incomingHitType)) return;
+			if (!skillChance.matchesOutcome(triggeringResult)) return;
 			const retaliatorBattler = retaliator.getBattler();
 			const skill = skillChance.baseSkill(retaliatorBattler);
 			const positiveRolls = 1 + retaliatorBattler.getPositiveRollsForSkill(skill);
@@ -21599,17 +21974,26 @@ var JABS_OnChanceEffect = class {
 	*/
 	hitType = null;
 	/**
+	* The outcome filter for this on-chance effect: how the incoming hit must have landed.
+	* When null the effect fires however the hit landed. When `glancing`, only a glancing blow that
+	* landed triggers it; when `critical`, only a critical hit does.
+	* @type {string|null}
+	*/
+	outcome = null;
+	/**
 	* Constructor.
 	* @param {number} skillId The id of the skill associated with this on-chance effect.
 	* @param {number} chance A number between 1-100 representing the percent chance of success.
 	* @param {string} key The key associated with this on-chance effect.
 	* @param {number|null} hitType Optional hit type filter; null means any hit type.
+	* @param {string|null} outcome Optional outcome filter; null means a hit landing any way.
 	*/
-	constructor(skillId, chance, key, hitType = null) {
+	constructor(skillId, chance, key, hitType = null, outcome = null) {
 		this.skillId = skillId;
 		this.chance = chance;
 		this.key = key;
 		this.hitType = hitType;
+		this.outcome = outcome;
 	}
 	/**
 	* Checks whether this effect should fire given the hit type of the incoming action.
@@ -21620,6 +22004,17 @@ var JABS_OnChanceEffect = class {
 	matchesHitType(incomingHitType) {
 		if (this.hitType === null) return true;
 		return this.hitType === incomingHitType;
+	}
+	/**
+	* Checks whether this effect should fire given how the incoming action landed.
+	* If no outcome filter is set, always returns true.
+	* @param {Game_ActionResult} result The bearer's result from the hit that struck it.
+	* @returns {boolean}
+	*/
+	matchesOutcome(result) {
+		if (this.outcome === null) return true;
+		if (this.outcome === "glancing") return result.glancing && result.isHit();
+		return result.critical;
 	}
 	/**
 	* Gets the underlying skill for this on-chance effect.
@@ -21660,7 +22055,8 @@ var JABS_OnChanceEffect = class {
 	/**
 	* Resolves how many times this effect's action should execute, folding in the positive-roller's
 	* Accumulate Mode and Encore repeats. Use this instead of {@link #shouldTrigger} at any call
-	* site whose action is repeatable (adding a state, force-executing a skill).
+	* site whose action is repeatable, such as force-executing a skill. A state applied by chance
+	* rolls through {@link JABS_Fate} instead, where the recipient's resistances weigh on it.
 	* @param {number=} rollForPositive The number of times to try for success; defaults to 1.
 	* @param {number=} rollForNegative The number of times to try and undo success; defaults to 0.
 	* @param {Game_Battler=} positiveRoller The battler whose success this roll is for; when absent,
@@ -24171,6 +24567,17 @@ RPG_State.prototype.isNegativeType = function() {
 	return this.types().some((type) => type.toLowerCase() === "negative");
 };
 /**
+* Whether or not this state carries the {@code <immuneToFate>} tag, which sets it apart from fate.<br/>
+* Every roll to apply this state or take it away is one plain roll: its chance still meets State Rate traits,
+* {@code <stateTypeResist>} and, for a harmful state, the luck between the two battlers, but no lucky or cursed roll,
+* no {@code <veryLucky>} or {@code <veryCursed>}, no Accumulate Mode and no Encore weighs on it. So it lands once at
+* most, whoever applies it.
+* @returns {boolean}
+*/
+RPG_State.prototype.isImmuneToFate = function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.ImmuneToFate);
+};
+/**
 * Multiply incoming aggro by this amount.
 * @type {number|null}
 */
@@ -25169,15 +25576,43 @@ Game_Action.prototype.isIgnoredRecoverHarm = function(target, maximum, effect) {
 	return target.isImmuneToDamage();
 };
 /**
+* The rolls this action brings against a target, as the positive and negative counts {@link RPGManager.fateOf100}
+* takes: the positive rolls, the baseline one included, then the negative rolls.<br/>
+* The subject's own fate speaks for and against its own roll, whatever it aims at: its luck adds chances to succeed,
+* and its curse adds rolls it has to pass as well. A target's curse is that target's bad fate. Harm aimed at a cursed
+* target gets one more chance to land for every curse it carries, so the target has to survive each of them, while
+* help aimed at it has to clear every curse it carries to land at all. An action aimed at the subject's opponents is
+* harm, and anything else it aims is help. A battler aiming at itself brings its fate once, as the roller.<br/>
+* Every roll this action makes reads its fate here- the hit, the critical, a state removed and a state applied- and
+* the math behind it is {@link JABS_Fate.actionRollsAgainst}, shared with the rolls no action makes.
+* @param {Game_Battler} target The battler this action is aimed at.
+* @returns {number[]}
+*/
+Game_Action.prototype.fateRollsAgainst = function(target) {
+	return JABS_Fate.actionRollsAgainst(this, target);
+};
+/**
+* The battler whose fate overrides settle this action's chance rolls against a target: whether a state lands on it,
+* and whether a state comes off it.<br/>
+* That is this action's subject. The hit and the critical never ask; they always roll with the subject. An extension
+* that guarantees some of these rolls aliases this to hand over a stand-in whose `isVeryLucky` answers yes. The
+* subject still brings its own luck and rolls to every roll either way, and the stand-in counts landings with the
+* subject's Accumulate Mode and Encore.
+* @param {Game_Battler} _target The battler the roll is aimed at.
+* @returns {Game_Battler|object}
+*/
+Game_Action.prototype.chanceRollerAgainst = function(_target) {
+	return this.subject();
+};
+/**
 * Calculates whether or not this action is evaded by the target.
 * @param {Game_Battler} target The target the skill is being applied to.
 * @returns {boolean} True if this action was evaded, false otherwise.
 */
 Game_Action.prototype.isHitEvaded = function(target) {
 	const hitChancePercent = (1 + this.itemHit() - this.itemEva(target)) * 100;
-	const attackerPositiveRolls = this.subject().getPositiveRollsForSkill(this.item());
-	const targetNegativeRolls = target.getNegativeRolls();
-	const isHit = RPGManager.fateOf100(this.subject(), hitChancePercent, 1 + attackerPositiveRolls, targetNegativeRolls);
+	const [positiveRolls, negativeRolls] = this.fateRollsAgainst(target);
+	const isHit = RPGManager.fateOf100(this.subject(), hitChancePercent, positiveRolls, negativeRolls);
 	return isHit === false;
 };
 /**
@@ -25186,9 +25621,9 @@ Game_Action.prototype.isHitEvaded = function(target) {
 * @returns {boolean} True if this action was critical, false otherwise.
 */
 Game_Action.prototype.isHitCritical = function(target) {
-	const attackerPositiveRolls = this.subject().getPositiveRollsForSkill(this.item());
-	const targetNegativeRolls = target.getNegativeRolls();
-	const isCritical = RPGManager.fateOf100(this.subject(), this.itemCri(target) * 100, 1 + attackerPositiveRolls, targetNegativeRolls);
+	const critChancePercent = this.itemCri(target) * 100;
+	const [positiveRolls, negativeRolls] = this.fateRollsAgainst(target);
+	const isCritical = RPGManager.fateOf100(this.subject(), critChancePercent, positiveRolls, negativeRolls);
 	return isCritical;
 };
 /**
@@ -25420,27 +25855,48 @@ Game_Action.prototype.itemEffectAddNormalState = function(target, effect) {
 };
 /**
 * Overwrites {@link #itemEffectRemoveState}.<br/>
-* Potentially removes the state, leveraging our {@link RPGManager.chanceIn100}.
+* Potentially removes the state, on the roll {@link #rollRemoveStateEffect} makes.
 * @param {Game_Battler} target The target having the state removed.
 * @param {RPG_UsableEffect} effect The effect containing state data for removal.
 */
 Game_Action.prototype.itemEffectRemoveState = function(target, effect) {
 	const { value1: chance, dataId: stateId } = effect;
 	const d100 = Math.round(chance * 100);
-	const casterPositiveRolls = this.subject().getPositiveRollsForSkill(this.item());
-	const targetNegativeRolls = target.getNegativeRolls();
-	const isRemoved = RPGManager.fateOf100(this.subject(), d100, 1 + casterPositiveRolls, targetNegativeRolls);
+	const isRemoved = this.rollRemoveStateEffect(target, stateId, d100);
 	if (isRemoved === true) {
 		target.removeState(stateId);
 		this.makeSuccess(target);
 	}
 };
 /**
-* Applies a state when the shouldApplyState roll passes for this action.
-* @param {Game_Battler} target The target.
+* Rolls whether a skill effect's Remove State takes a state off the target.<br/>
+* The roll is made with this action's fate, as {@link #fateRollsAgainst} describes: the caster wants the removal to
+* succeed, so a cursed target is that much easier to strip of a blessing and that much harder to cleanse. The roll's
+* fate overrides come from {@link #chanceRollerAgainst}. A state carrying `<immuneToFate>`, as the target sees it, comes
+* off on one plain roll instead, with no one's fate weighing in.
+* @param {Game_Battler} target The target having the state removed.
+* @param {number} stateId The id of the state being removed.
+* @param {number} d100 The removal's chance, as a whole percent.
+* @returns {boolean}
+*/
+Game_Action.prototype.rollRemoveStateEffect = function(target, stateId, d100) {
+	const state = target.state(stateId);
+	if (state.isImmuneToFate()) return RPGManager.chanceIn100(d100);
+	const [positiveRolls, negativeRolls] = this.fateRollsAgainst(target);
+	const roller = this.chanceRollerAgainst(target);
+	return RPGManager.fateOf100(roller, d100, positiveRolls, negativeRolls);
+};
+/**
+* Applies a state a skill effect carries once for every time its roll lands on the target: once at most, unless
+* Accumulate Mode or Encore land it again.<br/>
+* The roll is {@link #resolveApplyStateProcCount}: the effect's chance meets the target's resistances and the luck
+* between the two battlers, and then this action's fate. Every landing adds the state through
+* {@link #applyStateEffect}, so the target's immunities are checked on each one.
+* @param {Game_Battler} target The battler the state is aimed at.
 * @param {number} stateId The id of the state being applied.
-* @param {number} chance The base chance the state will be applied.
-* @param {boolean} useAttackerStateRate Whether or not the attacker's state rate should apply.
+* @param {number} chance The chance the skill effect authored, as a decimal from 0 to 1.
+* @param {boolean} useAttackerStateRate Whether the attacker's own rate for the state applies, as it does for the
+* states a normal attack carries.
 */
 Game_Action.prototype.handleApplyState = function(target, stateId, chance, useAttackerStateRate) {
 	const procCount = this.resolveApplyStateProcCount(target, stateId, chance, useAttackerStateRate);
@@ -25449,70 +25905,45 @@ Game_Action.prototype.handleApplyState = function(target, stateId, chance, useAt
 	}
 };
 /**
-* Calculates the fully-modified d100 chance of applying the given state to the target, shared
-* by both {@link #shouldApplyState} and {@link #resolveApplyStateProcCount}.<br/>
-* A certain hit sets aside the target's resistances and the two battlers' luck alike, the way RMMZ's
-* own state effects do, so the state it carries lands at its authored chance. Only the attacker's
-* own state rate still shapes it.
-* @param {Game_Battler} target The battler being afflicted with the state.
+* Resolves how many times a state a skill effect carries lands on the target, folding in the subject's Accumulate
+* Mode and Encore repeats.<br/>
+* A skill effect authors its chance as a decimal, and this is the one place that chance becomes the percent
+* {@link #resolveStateProcCountAgainst} rolls. The states a normal attack carries also answer to the attacker's own
+* rate for each of them, before the target's resistances weigh in.
+* @param {Game_Battler} target The battler the state is aimed at.
 * @param {number} stateId The id of the state being applied.
-* @param {number} baseChance The decimal base chance of applying the state.
-* @param {boolean=} useAttackerStateRate Whether or not to apply the attacker's state rate.
-* @returns {number} The rounded base-100 chance of application.
-*/
-Game_Action.prototype.calculateStateApplicationD100 = function(target, stateId, baseChance, useAttackerStateRate = false) {
-	let applicationModifier = 1;
-	if (useAttackerStateRate) {
-		applicationModifier *= this.subject().attackStatesRate(stateId);
-	}
-	if (this.shouldTargetApplyResistances()) {
-		applicationModifier *= target.stateRate(stateId);
-		applicationModifier *= target.stateTypeResistRate(stateId);
-		applicationModifier *= this.lukEffectRate(target);
-	}
-	const calculatedChance = baseChance * applicationModifier;
-	return Math.round(calculatedChance * 100);
-};
-/**
-* Determines whether or not the state should be applied to the target.
-* @param {Game_Battler} target The battler being afflicted with the state.
-* @param {number} stateId The id of the state being applied.
-* @param {number} baseChance The decimal base chance of applying the state.
-* @param {boolean=} useAttackerStateRate Whether or not to apply the attacker's state rate.
-* @returns {boolean} True if the state should be applied to the target, false otherwise.
-*/
-Game_Action.prototype.shouldApplyState = function(target, stateId, baseChance, useAttackerStateRate = false) {
-	const d100 = this.calculateStateApplicationD100(target, stateId, baseChance, useAttackerStateRate);
-	const casterPositiveRolls = this.subject().getPositiveRollsForSkill(this.item());
-	const targetNegativeRolls = target.getNegativeRolls();
-	return RPGManager.fateOf100(this.subject(), d100, 1 + casterPositiveRolls, targetNegativeRolls);
-};
-/**
-* Resolves how many times the state application should execute, folding in the caster's
-* Accumulate Mode and Encore repeats.
-* @param {Game_Battler} target The battler being afflicted with the state.
-* @param {number} stateId The id of the state being applied.
-* @param {number} baseChance The decimal base chance of applying the state.
-* @param {boolean=} useAttackerStateRate Whether or not to apply the attacker's state rate.
-* @returns {number} How many times the state application should execute; 0 means it did not proc.
+* @param {number} baseChance The chance the skill effect authored, as a decimal from 0 to 1.
+* @param {boolean=} useAttackerStateRate Whether the attacker's own rate for the state applies; defaults to false.
+* @returns {number}
 */
 Game_Action.prototype.resolveApplyStateProcCount = function(target, stateId, baseChance, useAttackerStateRate = false) {
-	const d100 = this.calculateStateApplicationD100(target, stateId, baseChance, useAttackerStateRate);
-	const casterPositiveRolls = this.subject().getPositiveRollsForSkill(this.item());
-	const targetNegativeRolls = target.getNegativeRolls();
-	return RPGManager.resolveProcCount(this.subject(), d100, 1 + casterPositiveRolls, targetNegativeRolls);
+	let percent = baseChance * 100;
+	if (useAttackerStateRate) {
+		percent *= this.subject().attackStatesRate(stateId);
+	}
+	return this.resolveStateProcCountAgainst(target, stateId, percent);
 };
 /**
-* Determines whether or not the direct application of a state should be
-* resisted by a target.
-*
-* The default implementation is to ignore resistances only for skills/items that
-* are of type "certain hit" in the database.
-* @returns {boolean} True if the resistances should be applied, false otherwise.
+* Resolves how many times a state with an authored percent chance lands on a target for this action: a skill
+* effect's state, or a state an on-hit, on-cast or on-crit tag carries.<br/>
+* The chance meets the target's resistance to the state by its id, through State Rate traits, and by its type,
+* through `<stateTypeResist>`. A harmful state, one carrying `<type:negative>`, then meets the luck between this
+* action's subject and the target. A certain hit meets them too: it cannot miss, but the states it carries roll like
+* any others. This action's fate then decides the count, as {@link #fateRollsAgainst} describes: harm when the action
+* is aimed at the subject's opponents, help otherwise, and the subject's fate counted once when the target is the
+* subject itself.<br/>
+* Nothing is added here; the caller adds the state once per landing, through whichever add method it needs.
+* @param {Game_Battler} target The battler the state is aimed at; the subject itself for a self-state.
+* @param {number} stateId The id of the state being applied.
+* @param {number} percent The authored chance, as a percent from 0 to 100.
+* @param {Game_Battler|object|null=} positiveRoller Whose fate overrides, Accumulate Mode and Encore count the
+* landings, for a caller that hands over its own; null, the default, means {@link #chanceRollerAgainst}. The subject
+* brings its luck either way.
+* @returns {number}
 */
-Game_Action.prototype.shouldTargetApplyResistances = function() {
-	if (this.isCertainHit()) return false;
-	return true;
+Game_Action.prototype.resolveStateProcCountAgainst = function(target, stateId, percent, positiveRoller = null) {
+	const roller = positiveRoller ?? this.chanceRollerAgainst(target);
+	return JABS_Fate.resolveActionStateProcCount(this, target, stateId, percent, roller);
 };
 /**
 * Applies a state to a given target.
@@ -25868,6 +26299,37 @@ Game_Action.prototype.calculateAuthoredVulnerabilityStackPct = function(target) 
 		totalPct += perStackPct * trackedState.stackCount;
 	});
 	return totalPct;
+};
+/**
+* Extends {@link #damageRateAgainst}.<br/>
+* Lifts a target's damage rate to an even 1 when this action pierces it ({@link #isDamageRatePierced}),
+* so the hit lands as though the target resisted none of it. Resistance and immunity are both lifted,
+* but a rate already at or above 1 is a vulnerability and stands, the way `<pierceElement>` never
+* touches a weakness. A heal is never pierced, having no mitigation to get past.
+* @param {Game_Battler} target The target being hit.
+* @param {boolean} isHarmful Whether the value this rate scales is harm rather than a heal.
+* @returns {number}
+*/
+J.ABS.Aliased.Game_Action.set("damageRateAgainst", Game_Action.prototype.damageRateAgainst);
+Game_Action.prototype.damageRateAgainst = function(target, isHarmful) {
+	const damageRate = J.ABS.Aliased.Game_Action.get("damageRateAgainst").call(this, target, isHarmful);
+	if (isHarmful === false) return damageRate;
+	if (this.isDamageRatePierced(target) === false) return damageRate;
+	return Math.max(1, damageRate);
+};
+/**
+* Whether or not this action pierces the given target's damage rate.<br/>
+* `<pierceDamageRateIfStateType:TYPE>` on any of the caster's note sources pierces it while the target
+* already carries at least one active state classified as TYPE, matched case-insensitively. Several
+* tags naming different types pierce on any one of them. The caster's notes are read the same way the
+* other state-type bonuses read them, through the battler's note cache.
+* @param {Game_Battler} target The target being hit.
+* @returns {boolean}
+*/
+Game_Action.prototype.isDamageRatePierced = function(target) {
+	const notes = this.subject().getAllNotes();
+	const piercedTypes = RPGManager.getStringsFromAllNotesByRegex(notes, J.ABS.RegExp.PierceDamageRateIfStateType);
+	return piercedTypes.some((type) => this.targetHasActiveStateType(target, type));
 };
 /**
 * Applies any skill history bonuses to the given base damage amount.
@@ -27670,35 +28132,43 @@ Game_Battler.prototype.onEvadeExecuteEffects = function() {
 	return executeEffects;
 };
 /**
-* Processes the on-evasion state effects targeting the evader themselves.
+* Processes the on-evasion state effects targeting the evader themselves.<br/>
+* Each `<onEvadeApplySelf>` state is one the evader gives itself, so it rolls through
+* {@link JABS_Fate.resolveStateProcCount} as both the roller and the recipient: its own State Rate traits and
+* `<stateTypeResist>` weigh on the chance, it holds no luck edge over itself, and its fate counts once. An evasion is
+* not a skill the evader uses, so the lucky and cursed rolls it brings are its battler-wide totals. The state is
+* added once for every time it lands, and each of those adds checks the evader's immunities on its own.
 */
 Game_Battler.prototype.processOnEvadeStateSelf = function() {
 	const selfEffects = this.onEvadeApplySelfEffects();
 	if (selfEffects.length === 0) return;
 	selfEffects.forEach((stateEffect) => {
-		const skill = stateEffect.baseSkill(this);
-		const positiveRolls = 1 + this.getPositiveRollsForSkill(skill);
-		const negativeRolls = this.getNegativeRollsForSkill(skill);
-		const procCount = stateEffect.resolveProcCount(positiveRolls, negativeRolls, this);
+		const { skillId: stateId, chance } = stateEffect;
+		const procCount = JABS_Fate.resolveStateProcCount(this, this, stateId, chance);
 		for (let i = 0; i < procCount; i++) {
-			this.addState(stateEffect.skillId, this);
+			this.addState(stateId, this);
 		}
 	});
 };
 /**
-* Processes the on-evasion state effects targeting the attacker who was evaded.
+* Processes the on-evasion state effects targeting the attacker who was evaded.<br/>
+* Each `<onEvadeApply>` state is rolled by the evader against the attacker through
+* {@link JABS_Fate.resolveStateProcCount}: the attacker's State Rate traits and `<stateTypeResist>` weigh on the
+* chance, and the luck the evader holds over the attacker shapes what remains. An evasion is not a skill the evader
+* uses, so the lucky and cursed rolls it brings are its battler-wide totals. With no action to aim it, the state
+* decides how the attacker's curse weighs: a state carrying `<type:negative>` gets one more chance to land for every
+* curse the attacker carries, and any other state has to clear each of them. The state is added once for every time
+* it lands, and each of those adds checks the attacker's immunities on its own.
 * @param {Game_Actor|Game_Enemy} attacker The battler whose attack was evaded.
 */
 Game_Battler.prototype.processOnEvadeStateAttacker = function(attacker) {
 	const attackerEffects = this.onEvadeApplyAttackerEffects();
 	if (attackerEffects.length === 0) return;
 	attackerEffects.forEach((stateEffect) => {
-		const skill = stateEffect.baseSkill(this);
-		const positiveRolls = 1 + this.getPositiveRollsForSkill(skill);
-		const negativeRolls = attacker.getNegativeRolls();
-		const procCount = stateEffect.resolveProcCount(positiveRolls, negativeRolls, this);
+		const { skillId: stateId, chance } = stateEffect;
+		const procCount = JABS_Fate.resolveStateProcCount(this, attacker, stateId, chance);
 		for (let i = 0; i < procCount; i++) {
-			attacker.addState(stateEffect.skillId, this);
+			attacker.addState(stateId, this);
 		}
 	});
 };
@@ -27934,8 +28404,27 @@ Game_Battler.prototype.handleAddingJabsState = function(stateId, attacker, overr
 	this.resetStateCounts(stateId, attacker);
 	this.addJabsState(stateId, attacker, overrides, sourceSkill);
 	this.onJabsStateInflicted(stateId, attacker);
+	this.cancelLinedUpActionIfForbidden(stateId);
 	this.result().pushAddedState(stateId);
 	this.flagSkillSlotsForRefresh();
+};
+/**
+* Cancels whatever this battler had lined up to fire when the state just put on it forbids it.<br/>
+* A paralyzing state holds its bearer outright, so whatever it had lined up is dropped rather than fired from inside
+* the hold. A muting state cancels a skill it had lined up that winds up with a cast time, and a disabling state does
+* the same for its basic attack; an action with no cast time still goes off. Every application cancels, a repeat one
+* included. A boss fight's script still acts for a held boss: a cast it forces after the hold lands is untouched, so a
+* script puts its hold on before forcing a cast, never during the windup of one.
+* @param {number} stateId The state just put on this battler.
+*/
+Game_Battler.prototype.cancelLinedUpActionIfForbidden = function(stateId) {
+	const state = this.state(stateId);
+	if (!state.jabsParalyzed && !state.jabsMuted && !state.jabsDisarmed) return;
+	const jabsBattler = JABS_AiManager.getBattlerByUuid(this.getUuid());
+	if (!jabsBattler) return;
+	if (state.jabsParalyzed || jabsBattler.hasForbiddenWindupLinedUp(state)) {
+		jabsBattler.cancelLinedUpAction();
+	}
 };
 /**
 * A no-op hook fired on the afflicted battler whenever an attacker successfully inflicts a state
@@ -28314,9 +28803,9 @@ Game_Battler.prototype.getPositiveRolls = function() {
 	return Math.floor(this.getRawPositiveRolls());
 };
 /**
-* The total extra negative rerolls this battler contributes whenever it is the party wanting a
-* `chanceIn100` roll to fail (e.g. the defender evading a hit, resisting a crit, or resisting a
-* state). Floored once at the end.
+* The total extra rolls this battler's curse brings against its own fortune: one more roll its own
+* `chanceIn100` rolls have to pass, one more chance for harm aimed at it to land, and one more roll
+* help aimed at it has to pass, per curse. Floored once at the end.
 * @returns {number}
 */
 Game_Battler.prototype.getNegativeRolls = function() {
@@ -28335,8 +28824,10 @@ Game_Battler.prototype.getPositiveRollsForSkill = function(skill) {
 	return Math.floor(battlerWide + thisSkill);
 };
 /**
-* This battler's total negative rerolls while executing the given skill: its own battler-wide
-* `cursedRolls` plus that skill's own `<thisCursedRolls:[FORMULA]>` bonus, floored once combined.
+* This battler's total curse while executing the given skill: its own battler-wide `cursedRolls`
+* plus that skill's own `<thisCursedRolls:[FORMULA]>`, floored once combined. It weighs on every
+* roll this battler makes with the skill, and turns the hit aside more often when a defender rolls
+* to parry or glance it.
 * @param {RPG_UsableItem} skill The skill being executed.
 * @returns {number}
 */
@@ -31510,10 +32001,62 @@ Game_Unit.prototype.inBattle = function() {
 };
 
 //#endregion
+//#region src/plugins/abs/core/core/describeAbsNotetags.js
+/**
+* The lines describing the notetags this plugin reads, registered with {@link NotetagDescriber} at boot.
+*
+* No words are written here. Each sentence is the game's, kept in its config under the tag's key; this class reads
+* the tag and supplies what the sentence names. Only the tags that have their words so far are described, and a tag
+* with no sentence in the config simply says nothing.
+*/
+var AbsNotetagDescriptions = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Registers the describer of every tag this plugin reads that has its words so far.
+	*/
+	static registerAll() {
+		NotetagDescriber.register(J.ABS.RegExp.PierceDamageRateIfStateType, (match) => this.pierceDamageRateIfStateTypeLines(match));
+	}
+	/**
+	* The line describing the tag that pierces a target's damage rates, in the sentence the game's config keeps under
+	* `pierceDamageRateIfStateType`: the holder's physical and magical hits treat the PDR and MDR of a target carrying
+	* any state of the given type as no lower than 100%.
+	*
+	* A type is a classifier the game's own states declare with `<type:NAME>` rather than a row anywhere in the
+	* database, so it is named exactly as the tag writes it. The sentence may name `{type}`; there is no amount to show.
+	* The line wears physical damage rate's own face, and getting past a target's resistance only ever works in its
+	* holder's favor.
+	* @param {RegExpExecArray} match The tag as its regex matched it; the first capture is the type.
+	* @returns {NotetagLine[]}
+	*/
+	static pierceDamageRateIfStateTypeLines(match) {
+		const [, stateType] = match;
+		const type = {
+			text: stateType,
+			kind: NotetagDescriber.TokenKinds.SUBJECT
+		};
+		const iconIndex = IconManager.sparam(6);
+		const holderImpact = NotetagLine.Impacts.HELPS;
+		return NotetagDescriber.line("pierceDamageRateIfStateType", {
+			iconIndex,
+			holderImpact,
+			tokens: { type }
+		});
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* Registers CDR and PER with the parameter catalog after vanilla seeding.
+* Registers CDR and PER with the parameter catalog after vanilla seeding, then describes this plugin's tags once the
+* database they are read from exists.
 */
 J.ABS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
@@ -31522,6 +32065,7 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 	ParameterRegistry.register(cooldownReduction);
 	const parryExtension = ParameterDefinition.Builder().key("per").group(ParameterGroups.PRECISION).sortOrder(3).label(() => TextManager.per()).description(() => TextManager.perDescription()).iconIndex(() => IconManager.per()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.per).build();
 	ParameterRegistry.register(parryExtension);
+	AbsNotetagDescriptions.registerAll();
 };
 
 //#endregion

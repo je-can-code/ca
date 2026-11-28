@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.1 ABS-TOOLS] Enable new tool-like tags for use with skills.
+ * [v1.3.0 ABS-TOOLS] Enable new tool-like tags for use with skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -90,7 +90,7 @@ J.ABS.EXT.TOOLS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.TOOLS.Metadata = new J_ToolsPluginMetadata("J-ABS-Tools", "1.2.1");
+J.ABS.EXT.TOOLS.Metadata = new J_ToolsPluginMetadata("J-ABS-Tools", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -328,9 +328,8 @@ JABS_Battler.prototype.pullToCaster = function(action, caster) {
 	if (this.getCharacter().isJumping()) return;
 	const pullMagnitude = action.getBaseSkill().jabsPullForward;
 	if (pullMagnitude === null) return;
-	const notes = this.getBattler().getAllNotes();
-	const resist = RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.KnockbackResist);
-	if (resist >= 100) return;
+	const resist = $jabsEngine.resolveKnockbackResist(this);
+	if (resist >= JABS_Engine.FullKnockbackResist) return;
 	const effectiveMagnitude = pullMagnitude * ((100 - resist) / 100);
 	const { unitX, unitY, maxPullDistance } = this.resolvePullVector(caster);
 	const distance = Math.min(effectiveMagnitude, maxPullDistance);
@@ -352,6 +351,7 @@ JABS_Battler.prototype.pullToCaster = function(action, caster) {
 		[finalX, finalY] = targetCharacter.walkInDirectionClamped(direction, roundedDistance);
 	}
 	targetCharacter.jump(finalX, finalY);
+	$jabsEngine.announceKnockback(action, this, finalX, finalY);
 };
 /**
 * Resolves the unit vector and maximum safe travel distance for pulling this battler toward

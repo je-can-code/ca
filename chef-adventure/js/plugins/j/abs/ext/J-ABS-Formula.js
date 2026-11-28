@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.3 ABS-FORMULA] An extension for JABS that allows multiple damage formulas.
+ * [v1.2.0 ABS-FORMULA] An extension for JABS that allows multiple damage formulas.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -64,7 +64,7 @@ J.ABS.EXT.FORMULA = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.FORMULA.Metadata = new JFORMULA_PluginMetadata("J-ABS-Formula", "1.1.3");
+J.ABS.EXT.FORMULA.Metadata = new JFORMULA_PluginMetadata("J-ABS-Formula", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -663,13 +663,13 @@ Game_Action.prototype.limitFormulaPacketDamage = function(recipient, magnitude, 
 * Damage path:
 *  - element rate
 *  - critical (on-hit only if result.critical true)
-*  - physical/magical damage rate
+*  - physical/magical damage rate, via {@link #damageRateAgainst}
 *  - native guard
 *  - variance
 *  - JABS guard/parry reductions
 * Healing path:
 *  - element rate
-*  - physical/magical damage rate
+*  - physical/magical damage rate, via {@link #damageRateAgainst}
 *  - variance
 *  - REC (recovery)
 * @param {Game_Battler} target The recipient.
@@ -685,12 +685,7 @@ Game_Action.prototype.pipeFormulaThroughBattleCalculations = function(target, ma
 	if (isDamage && J.ABS.EXT.FORMULA.Context.activeTrigger === FormulaEffect.Trigger.HIT && targetResult && targetResult.critical) {
 		value = this.applyCritical(value);
 	}
-	if (this.isPhysical()) {
-		value *= target.pdr;
-	}
-	if (this.isMagical()) {
-		value *= target.mdr;
-	}
+	value *= this.damageRateAgainst(target, isDamage);
 	if (isDamage) {
 		value = this.applyGuard(value, target);
 	}

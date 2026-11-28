@@ -19,7 +19,7 @@
                       "activeView": "map-tree",
                       "id": "1"
                     },
-                    "size": 35
+                    "size": 332
                   },
                   {
                     "type": "leaf",
@@ -31,7 +31,7 @@
                       "activeView": "palette",
                       "id": "2"
                     },
-                    "size": 549
+                    "size": 733
                   },
                   {
                     "type": "leaf",
@@ -42,23 +42,24 @@
                       "activeView": "layers",
                       "id": "3"
                     },
-                    "size": 448
+                    "size": 268
                   }
                 ],
-                "size": 310
+                "size": 368
               },
               {
                 "type": "leaf",
                 "data": {
                   "views": [
                     "start",
-                    "map-361",
-                    "map-380"
+                    "map-371",
+                    "map-375",
+                    "map-376"
                   ],
-                  "activeView": "map-380",
+                  "activeView": "map-376",
                   "id": "4"
                 },
-                "size": 1167
+                "size": 1916
               },
               {
                 "type": "branch",
@@ -73,7 +74,7 @@
                       "activeView": "map-properties",
                       "id": "5"
                     },
-                    "size": 35
+                    "size": 1298
                   },
                   {
                     "type": "leaf",
@@ -82,19 +83,19 @@
                         "history",
                         "events"
                       ],
-                      "activeView": "events",
+                      "activeView": "history",
                       "id": "6"
                     },
-                    "size": 997
+                    "size": 35
                   }
                 ],
-                "size": 443
+                "size": 0
               }
             ],
-            "size": 1032
+            "size": 1333
           },
-          "width": 1920,
-          "height": 1032,
+          "width": 2284,
+          "height": 1333,
           "orientation": "HORIZONTAL"
         },
         "panels": {
@@ -116,7 +117,12 @@
                 12,
                 13,
                 120,
-                122
+                367,
+                370,
+                379,
+                110,
+                122,
+                371
               ]
             },
             "title": "Maps",
@@ -149,23 +155,32 @@
             "tabComponent": "props.defaultTabComponent",
             "title": "Start"
           },
-          "map-361": {
-            "id": "map-361",
+          "map-371": {
+            "id": "map-371",
             "contentComponent": "map",
             "tabComponent": "props.defaultTabComponent",
             "params": {
-              "mapId": 361
+              "mapId": 371
             },
-            "title": "_FullEnemyMap"
+            "title": "The Approach"
           },
-          "map-380": {
-            "id": "map-380",
+          "map-375": {
+            "id": "map-375",
             "contentComponent": "map",
             "tabComponent": "props.defaultTabComponent",
             "params": {
-              "mapId": 380
+              "mapId": 375
             },
-            "title": "Throne of Glory"
+            "title": "Grand Entry Hall"
+          },
+          "map-376": {
+            "id": "map-376",
+            "contentComponent": "map",
+            "tabComponent": "props.defaultTabComponent",
+            "params": {
+              "mapId": 376
+            },
+            "title": "Pillared Hall"
           },
           "map-properties": {
             "id": "map-properties",
@@ -196,17 +211,26 @@
             "minimumWidth": 300
           }
         },
-        "activeGroup": "4",
+        "activeGroup": "3",
         "collapsedGroups": {
-          "1": {
-            "height": 356,
+          "6": {
+            "height": 1298,
             "minimumHeight": 100,
             "maximumHeight": 9007199254740991
-          },
-          "5": {
-            "height": 516,
-            "minimumHeight": 100,
-            "maximumHeight": 9007199254740991
+          }
+        },
+        "collapsedSides": {
+          "right": {
+            "5": {
+              "width": 554,
+              "minimumWidth": 300,
+              "maximumWidth": 9007199254740991
+            },
+            "6": {
+              "width": 554,
+              "minimumWidth": 300,
+              "maximumWidth": 9007199254740991
+            }
           }
         }
       }

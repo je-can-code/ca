@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.3 REGIONS-STATES] Enables application of states via region ids.
+ * [v1.2.0 REGIONS-STATES] Enables application of states via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -68,7 +68,7 @@ J.REGIONS.EXT.STATES = {};
 /**
 * The metadata associated with this plugin, such as name and version.
 */
-J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Regions-States", "1.1.3");
+J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Regions-States", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -297,7 +297,15 @@ Game_Character.prototype.canHandleRegionStates = function() {
 	return true;
 };
 /**
-* Applies all relevant region states based on their regionId.
+* Applies all relevant region states based on their regionId.<br/>
+* Each tagged state is one the battler standing on the region gives itself, so its chance is rolled through
+* {@link JABS_Fate.resolveStateProcCount} with that battler as both the roller and the recipient: the tag's chance
+* meets its own resistances to the state, its fate counts once, and it holds no luck over itself.<br/>
+* Every landing adds the state through {@link Game_Battler#addState}, credited to the battler itself, exactly as any
+* other application would: J-ABS checks the battler's immunities on each one, starts the state on a battler that does
+* not carry it yet, and reapplies it by the state's own rule- refreshed, extended or stacked- on a battler that
+* already does, whether the earlier landing came in this proc or a previous one. The tag's animation plays only when
+* the state landed at least once.
 */
 Game_Character.prototype.applyRegionStates = function() {
 	const regionStateDatas = this.getRegionStatesByCurrentRegionId();
@@ -305,18 +313,10 @@ Game_Character.prototype.applyRegionStates = function() {
 	const battler = this.getJabsBattler().getBattler();
 	regionStateDatas.forEach((regionStateData) => {
 		const { stateId, chance, animationId } = regionStateData;
-		const calculatedChance = battler.stateRate(stateId) * chance;
-		const state = $dataStates.at(stateId);
-		const positiveRolls = 1 + battler.getPositiveRollsForSkill(state);
-		const negativeRolls = battler.getNegativeRollsForSkill(state);
-		const procCount = RPGManager.resolveProcCount(battler, calculatedChance, positiveRolls, negativeRolls);
+		const procCount = JABS_Fate.resolveStateProcCount(battler, battler, stateId, chance);
 		if (procCount === 0) return;
 		for (let i = 0; i < procCount; i++) {
-			if (battler.isStateAffected(stateId)) {
-				battler.resetStateCounts(stateId, battler);
-			} else {
-				battler.addState(stateId, battler);
-			}
+			battler.addState(stateId, battler);
 		}
 		if (animationId > 0) {
 			this.requestAnimation(animationId);

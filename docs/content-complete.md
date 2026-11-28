@@ -193,9 +193,9 @@ Rest rooms, arenas and rooms whose fight is listed by hand owe nothing to the en
 - [ ] Fork unlock quest: Strategist's forks
 - [ ] Fork unlock quest: Debilitator's forks
 - [ ] Fork unlock quest: Fate's forks
-- [ ] Transcendant and Omniscient: real stats, learnings, and every equip unslotted
-- [ ] Transcendant and Omniscient: their unlock path
-- [ ] Transcendant and Omniscient: a couple of preposterous skills, the reward for the endless grind
+- [ ] Transcendent and Omniscient: real stats, learnings, and every equip unslotted
+- [ ] Transcendent and Omniscient: their unlock path
+- [ ] Transcendent and Omniscient: a couple of preposterous skills, the reward for the endless grind
 - [ ] The hunt board rebuilt around one named enemy for every group
 - [ ] Legendary recipe unlocks placed in the world
 - [x] Survival's study shelf has no way in (CE28)

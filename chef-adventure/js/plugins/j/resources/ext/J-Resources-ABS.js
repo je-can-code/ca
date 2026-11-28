@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 RESOURCES-ABS] Damage-linked HP, MP, and TP resource effects.
+ * [v1.3.0 RESOURCES-ABS] Damage-linked HP, MP, and TP resource effects.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -61,7 +61,7 @@ J.RESOURCES.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.RESOURCES.EXT.ABS.Metadata = new JResourcesAbs_PluginMetadata("J-Resources-ABS", "1.2.0");
+J.RESOURCES.EXT.ABS.Metadata = new JResourcesAbs_PluginMetadata("J-Resources-ABS", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -82,6 +82,15 @@ J.RESOURCES.EXT.ABS.RegExp.OnAttackMpGainFormula = /<on-attack-mp-gain:\[([+\-*/
 J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainFlat = /<on-attack-tp-gain:(-?\d+)>/gi;
 J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainPercent = /<on-attack-tp-gain:(-?\d+)%>/gi;
 J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainFormula = /<on-attack-tp-gain:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnCastHpGainFlat = /<on-cast-hp-gain:(-?\d+)>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnCastHpGainPercent = /<on-cast-hp-gain:(-?\d+)%>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnCastHpGainFormula = /<on-cast-hp-gain:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnCastMpGainFlat = /<on-cast-mp-gain:(-?\d+)>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnCastMpGainPercent = /<on-cast-mp-gain:(-?\d+)%>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnCastMpGainFormula = /<on-cast-mp-gain:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnCastTpGainFlat = /<on-cast-tp-gain:(-?\d+)>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnCastTpGainPercent = /<on-cast-tp-gain:(-?\d+)%>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnCastTpGainFormula = /<on-cast-tp-gain:\[([+\-*/ ().\w]+)]>/gi;
 J.RESOURCES.EXT.ABS.RegExp.WhenHitHpGainFlat = /<when-hit-hp-gain:(\d+)>/gi;
 J.RESOURCES.EXT.ABS.RegExp.WhenHitHpGainPercent = /<when-hit-hp-gain:(\d+)%>/gi;
 J.RESOURCES.EXT.ABS.RegExp.WhenHitHpGainFormula = /<when-hit-hp-gain:\[([+\-*/ ().\w]+)]>/gi;
@@ -519,13 +528,14 @@ Game_Battler.prototype.onHeal = function(resource, amount) {
 //#endregion
 //#region src/plugins/resources/ext/abs/managers/ResourceHitManager.js
 /**
-* Manages damage-linked resource mutations for J-Resources-ABS.
+* Manages combat-linked resource mutations for J-Resources-ABS.
 *
 * On-attack effects aggregate tags from both the executing skill and the caster's
-* traited sources (actor/class/equip/states) and apply gains to the caster.
-* When-hit effects aggregate tags from the target's traited sources and apply
-* gains to the target. Negative net totals are clamped by the engine's own
-* gainHp/Mp/Tp calls.
+* traited sources (actor/class/equip/states) and apply gains to the caster for every
+* hit the skill lands. On-cast effects aggregate the same way and apply gains to the
+* caster once each time it executes a skill, hit or miss. When-hit effects aggregate
+* tags from the target's traited sources and apply gains to the target. Negative net
+* totals are clamped by the engine's own gainHp/Mp/Tp calls.
 */
 var ResourceHitManager = class ResourceHitManager {
 	/**
@@ -553,6 +563,25 @@ var ResourceHitManager = class ResourceHitManager {
 		if (hpGain !== 0) caster.gainHpFromResource(hpGain);
 		if (mpGain !== 0) caster.gainMpFromResource(mpGain);
 		if (tpGain !== 0) caster.gainTpFromResource(tpGain);
+	}
+	/**
+	* Applies all on-cast resource gains to the caster, once each time it executes a skill.<br/>
+	* Called as the skill's costs are paid, so it fires whether or not the skill goes on to land a hit, and only once
+	* however many actions or targets the skill goes on to have. Tags are read from both the executing skill and the
+	* caster's traited sources (actor/class/equip/states), then summed before being applied, so a negative total on a
+	* state the caster carries taxes every skill it uses.
+	* @param {JABS_Battler} caster The battler executing the skill.
+	* @param {JABS_Action} action The action whose skill is being paid for.
+	*/
+	static applyOnCastEffects(caster, action) {
+		const battler = caster.getBattler();
+		const skill = action.getBaseSkill();
+		const hpGain = ResourceHitManager.onCastHpGain(battler, skill);
+		const mpGain = ResourceHitManager.onCastMpGain(battler, skill);
+		const tpGain = ResourceHitManager.onCastTpGain(battler, skill);
+		if (hpGain !== 0) battler.gainHpFromResource(hpGain);
+		if (mpGain !== 0) battler.gainMpFromResource(mpGain);
+		if (tpGain !== 0) battler.gainTpFromResource(tpGain);
 	}
 	/**
 	* Applies all when-hit resource gains to the target.
@@ -599,6 +628,36 @@ var ResourceHitManager = class ResourceHitManager {
 	*/
 	static onAttackTpGain(caster, skill) {
 		return ResourceHitManager.#gainBySkillAndSources(caster, skill, J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainFlat, J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainPercent, J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainFormula, caster.mtp);
+	}
+	/**
+	* Calculates the HP gain for the caster from on-cast tags.
+	* Aggregates from both the executing skill and the caster's traited sources.
+	* @param {Game_Actor|Game_Enemy} caster The caster of the skill.
+	* @param {RPG_Skill} skill The skill being executed.
+	* @returns {number}
+	*/
+	static onCastHpGain(caster, skill) {
+		return ResourceHitManager.#gainBySkillAndSources(caster, skill, J.RESOURCES.EXT.ABS.RegExp.OnCastHpGainFlat, J.RESOURCES.EXT.ABS.RegExp.OnCastHpGainPercent, J.RESOURCES.EXT.ABS.RegExp.OnCastHpGainFormula, caster.mhp);
+	}
+	/**
+	* Calculates the MP gain for the caster from on-cast tags.
+	* Aggregates from both the executing skill and the caster's traited sources.
+	* @param {Game_Actor|Game_Enemy} caster The caster of the skill.
+	* @param {RPG_Skill} skill The skill being executed.
+	* @returns {number}
+	*/
+	static onCastMpGain(caster, skill) {
+		return ResourceHitManager.#gainBySkillAndSources(caster, skill, J.RESOURCES.EXT.ABS.RegExp.OnCastMpGainFlat, J.RESOURCES.EXT.ABS.RegExp.OnCastMpGainPercent, J.RESOURCES.EXT.ABS.RegExp.OnCastMpGainFormula, caster.mmp);
+	}
+	/**
+	* Calculates the TP gain for the caster from on-cast tags.
+	* Aggregates from both the executing skill and the caster's traited sources.
+	* @param {Game_Actor|Game_Enemy} caster The caster of the skill.
+	* @param {RPG_Skill} skill The skill being executed.
+	* @returns {number}
+	*/
+	static onCastTpGain(caster, skill) {
+		return ResourceHitManager.#gainBySkillAndSources(caster, skill, J.RESOURCES.EXT.ABS.RegExp.OnCastTpGainFlat, J.RESOURCES.EXT.ABS.RegExp.OnCastTpGainPercent, J.RESOURCES.EXT.ABS.RegExp.OnCastTpGainFormula, caster.mtp);
 	}
 	/**
 	* Aggregates the HP gain for the target from all traited sources' when-hit tags.
@@ -731,6 +790,16 @@ JABS_Engine.prototype.postPrimaryBattleEffects = function(action, target) {
 	ResourceHitManager.applyOnAttackEffects(action, target);
 	if (result.hpDamage <= 0) return;
 	ResourceHitManager.applyWhenHitEffects(action, target);
+};
+/**
+* Extends {@link #paySkillCosts}.<br/>
+* Also applies on-cast resource gains to the caster, once for every skill it executes: as the skill's costs are paid,
+* before it has hit or missed anything.
+*/
+J.RESOURCES.EXT.ABS.Aliased.JABS_Engine.set("paySkillCosts", JABS_Engine.prototype.paySkillCosts);
+JABS_Engine.prototype.paySkillCosts = function(caster, action) {
+	J.RESOURCES.EXT.ABS.Aliased.JABS_Engine.get("paySkillCosts").call(this, caster, action);
+	ResourceHitManager.applyOnCastEffects(caster, action);
 };
 
 //#endregion

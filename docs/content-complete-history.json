@@ -15,5 +15,21 @@
   {"date":"2026-11-05","lane":"Enemy passes","total":23,"left":19},
   {"date":"2026-11-05","lane":"Optional areas","total":8,"left":8},
   {"date":"2026-11-05","lane":"Loose ends","total":20,"left":20},
-  {"date":"2026-11-05","lane":"Calls to make","total":11,"left":11}
+  {"date":"2026-11-05","lane":"Calls to make","total":11,"left":11},
+  {"date":"2026-11-26","lane":"Nimbus","total":15,"left":13},
+  {"date":"2026-11-26","lane":"The Subterranean","total":10,"left":8},
+  {"date":"2026-11-26","lane":"The Frozen Fortress","total":28,"left":13},
+  {"date":"2026-11-26","lane":"Boss fights","total":26,"left":24},
+  {"date":"2026-11-26","lane":"Holding the story together","total":12,"left":12},
+  {"date":"2026-11-26","lane":"Townsfolk quests","total":62,"left":62},
+  {"date":"2026-11-26","lane":"What the quests need built","total":34,"left":34},
+  {"date":"2026-11-26","lane":"Side quests and unlocks","total":25,"left":21},
+  {"date":"2026-11-26","lane":"Enemies on the new maps","total":91,"left":0},
+  {"date":"2026-11-26","lane":"Harvest nodes to place","total":39,"left":0},
+  {"date":"2026-11-26","lane":"Node names and flavor","total":50,"left":1},
+  {"date":"2026-11-26","lane":"Named gear recipes","total":27,"left":0},
+  {"date":"2026-11-26","lane":"Enemy passes","total":23,"left":0},
+  {"date":"2026-11-26","lane":"Optional areas","total":8,"left":8},
+  {"date":"2026-11-26","lane":"Loose ends","total":24,"left":17},
+  {"date":"2026-11-26","lane":"Calls to make","total":11,"left":0}
 ]

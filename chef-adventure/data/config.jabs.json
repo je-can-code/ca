@@ -512,8 +512,8 @@
           "steps": [
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -530,8 +530,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -548,8 +548,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -566,8 +566,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -584,8 +584,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -602,8 +602,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -620,8 +620,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -664,8 +664,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "forceSkill",
@@ -882,8 +882,8 @@
             {
               "verb": "addState",
               "participant": "garuda",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -912,8 +912,8 @@
             {
               "verb": "addState",
               "participant": "garuda",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -942,8 +942,8 @@
             {
               "verb": "addState",
               "participant": "garuda",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -972,8 +972,8 @@
             {
               "verb": "addState",
               "participant": "garuda",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -1002,8 +1002,8 @@
             {
               "verb": "addState",
               "participant": "garuda",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -1032,8 +1032,8 @@
             {
               "verb": "addState",
               "participant": "garuda",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -1252,8 +1252,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",
@@ -1264,8 +1264,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "face",
@@ -1283,8 +1283,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "face",
@@ -1302,8 +1302,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "face",
@@ -1321,8 +1321,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "face",
@@ -1340,8 +1340,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "face",
@@ -1359,8 +1359,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "face",
@@ -1378,8 +1378,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "face",
@@ -1397,8 +1397,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "face",
@@ -1416,8 +1416,8 @@
             },
             {
               "verb": "addState",
-              "state": 5,
-              "expect": "Rooted"
+              "state": 2092,
+              "expect": "Held"
             },
             {
               "verb": "blink",

@@ -13,6 +13,10 @@
 from `jabsStateDurationFrames` (tags first; `stepsToRemove` is only a legacy/MZ placeholder).
 Use `<indefiniteState>` for buffs that never expire on the map. MZ `removeByWalking` is not used.
 
+**Fate:** every phase also carries `<immuneToFate>` (J-ABS), so each one lands the next exactly once as it expires.
+No lucky or cursed rolls, `<veryLucky>`, `<veryCursed>`, Accumulate Mode or Encore weigh on it; the bearer's regular
+resistances still apply, and nothing in the game resists a food state.
+
 **Related:** [`../sdp/archetype-mapping.md`](../sdp/archetype-mapping.md) (food overview), [`../sdp/implementation-status.md`](../sdp/implementation-status.md) (cookbook).
 
 Last updated: **2026-06-02**

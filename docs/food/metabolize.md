@@ -303,7 +303,8 @@ magnitude the existing peaks use, since those stats are contested.
 
 Radiant is the "I hit something, I splash healing" version: lifesteal routes through `gainHp` → `onHeal`
 → `HealEventManager.dispatch`, which reads the recipient's states, so the on-state `<onSelfHpHealHp>` fires
-on every lifesteal tick. `on-attack-hp-gain` is skill-only and was never an option here.
+on every lifesteal tick. `on-attack-hp-gain` reads the caster's states too, but it is a flat or percent gain per hit
+landed, not a share of the damage dealt, so it was never the shape for this.
 
 ### Chain fixes applied alongside
 

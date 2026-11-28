@@ -20,10 +20,10 @@
 
 | # | Name | Description |
 |---|---|---|
-| 1 | Miracle | Party-wide buff. All on-chance effects become guaranteed for the duration. No rolls. Everything lands. Applied state uses `<veryLucky>` — a true bypass, not a reroll count. |
-| 2 | Blessed | Party-wide buff. LUK ×50. Dominates `lukEffectRate` — their states land on everything, enemy states bounce back. Also a raw damage multiplier for pistol and taser users. Cross-class contamination fully intended. |
-| 3 | Benediction | Party-wide blessing. Slow trickle regen of HP, MP, and TP for approximately one minute. Not a heal. A blessing. The party is going to be fine. |
-| 4 | Encore | **Signature.** State applied to all allies. Every proc that lands fires again. Combined with Miracle: every proc guaranteed AND doubled. Combined with the multi-apply passive: each success stacks and then echoes. Applied state uses `<encoreRepeats:[1]>`. |
+| 1 | Miracle | Party-wide buff for 15 s, 1 min cooldown. Every chance roll the party makes succeeds for the duration: hits, crits, procs, counters, retaliations, drops, and their own parries and glancing blows. No rolls. Everything lands. Applied state uses `<veryLucky>` — a true bypass, not a reroll count; it lands states through any resistance, never through immunity. |
+| 2 | Blessed | Party-wide buff for 15 s, 90 s cooldown. LUK ×50 (five ×10 traits and one ×5, stacked additively). Dominates the luck gap on harmful states — their debuffs land on everything, enemy debuffs bounce back. Luck never touches a blessing, so allies' buffs still land on each other. Also a raw damage multiplier for pistol and taser users. Cross-class contamination fully intended. |
+| 3 | Benediction | Party-wide blessing for one minute, 2 min cooldown. Slow trickle regen of 1% HP, MP and TP every half-second tick. Not a heal. A blessing. The party is going to be fine. |
+| 4 | Encore | **Signature.** State applied to all allies for 15 s, 5 min cooldown, the longest in the game. Every proc that lands fires again: states land twice, retaliations and evasion counters fire twice, drops come in pairs. Combined with Miracle: every proc guaranteed AND doubled. Combined with the multi-apply passive: each success stacks and then echoes. Applied state uses `<encoreRepeats:[1]>`. |
 
 ---
 
@@ -41,4 +41,4 @@
 | P8 | Every Chance | **Accumulate mode.** Positive rolls count every success instead of stopping at the first. One hit stacks bleed three deep, lands burn twice, applies a state multiple times from a single proc. Uses `<accumulate>`. |
 | P9 | Phys Evade +50% | +50% evasion. |
 | P10 | Equip Claws | Unlock. Grants access to the Claws weapon subgroup. |
-| P11 | Zero Chance | Critical hits always apply their on-hit effects, regardless of chance. Stacks with Every Chance. Applied state uses `<forceCritProcs>` — scoped to on-crit state applications only, unlike the battler-wide `<veryLucky>`. |
+| P11 | Zero Chance | Critical hits always land every chance effect they carry, regardless of chance: the skill's own state effects, the on-hit state tags and the on-crit states. Stacks with Every Chance. Applied state uses `<forceCritProcs>` — scoped to critical hits only, unlike the battler-wide `<veryLucky>`. |

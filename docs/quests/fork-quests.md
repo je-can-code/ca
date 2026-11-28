@@ -77,7 +77,7 @@ Jerald answers each one. Jeremy's sketch:
 | Debilitator | 18 | Methodical Dismantler (19), Equilibrium (20) |
 | Fate | 21 | RNGesus (22), Hexagonal (23) |
 
-The capstones are Transcendant (12) and Omniscient (24).
+The capstones are Transcendent (12) and Omniscient (24).
 
 ## Jerald's half
 
@@ -250,7 +250,7 @@ says to someone who names himself, isn't settled.
 
 ## The capstones
 
-**Decided (2026-11-06):** Transcendant and Omniscient "will just auto-unlock, unless you can think of a
+**Decided (2026-11-06):** Transcendent and Omniscient "will just auto-unlock, unless you can think of a
 stylish way to unlock them."
 
 **Parked ("Scribble that down for now, I'll circle back to that for later."):** the mirror. There's exactly
@@ -267,7 +267,7 @@ Rupert: ...
 Rupert: I have no ideas.
 ```
 
-Transcendant. The same choice box comes up, with one option:
+Transcendent. The same choice box comes up, with one option:
 
 ```text
 Rupert: What about you, Jerald? What do you think you wanna be?
@@ -277,8 +277,8 @@ Rupert: That's what people call you.
 Jerald: Yeah.
 ```
 
-**Parked:** whether Transcendant is spelled on purpose or becomes Transcendent (Classes row 12, and the
-capstone lines in `content-complete.md`).
+**Spelling (2026-11-26):** Classes row 12 and the capstone lines in `content-complete.md` read Transcendent, under
+Jeremy's standing call to fix typos unless they are clearly on purpose; "Transcendant" was the old row name.
 
 ## Retired
 

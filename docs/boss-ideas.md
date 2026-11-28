@@ -50,7 +50,7 @@ the frozen fortress", so that is what the hall dresses them in. SDPs are still u
 | The Courtyard (Grudj) | about 150 | 4,418 | 7,107 |
 
 Every class sits on one of two lines, physical `220+40*(lv-1)` or magical `180+30*(lv-1)`, times its own multiplier from
-×0.80 (Quicksilver, Strategist, Melufa) to ×2.00 (Transcendant, Omniscient). So the class a player picks moves their bar
+×0.80 (Quicksilver, Strategist, Melufa) to ×2.00 (Transcendent, Omniscient). So the class a player picks moves their bar
 by up to 2.5×, and every "pulses to fall" count below moves with it: out-classing, working as intended.
 
 ## Contents
@@ -443,7 +443,11 @@ Data only, so no plugin changed. Script `/tmp/claude-1000/lust/data/build-lust.j
   its comment says, but still multiplied in luck, which its comment says it skips too (vanilla RMMZ skips both), and
   Lust's LUK is 1. **Fixed in the engine at his call** ("LUK should be fixed at the engine level"): J-ABS core's
   `calculateStateApplicationD100` now skips luck along with the resistances on a Certain Hit. Uncommitted on
-  `boss-pass`; hotfix green.
+  `boss-pass`; hotfix green. *Since 11-26 a Certain Hit sets nothing aside:* the states it carries meet the target's
+  State Rate, `<stateTypeResist>` and the luck between the two battlers like any other state with a chance to land
+  (J-ABS's shared state application roll, which took over from `calculateStateApplicationD100`). The grab left Certain
+  Hit on 11-14, and Lust's LUK of 521 is what lands his hold (see
+  [Every boss's secondary stats](#every-bosss-secondary-stats)).
 - **The window opened on a timer, about 1.1 s after a short leap lands,** so a caught Rupert's 3 s hold ended with about
   a second of window left. **Now 1.5 s after the tell** (his default, 11-13): it opens as he lands on a leap of up to six
   tiles, and in the air on a longer one, which the landing grab doesn't mind.
@@ -1644,7 +1648,7 @@ Script `~/.claude/backups/ca-greed-shades/bosses.js` (the votaries' is `votaries
 - **Rows.** 588 "Evil Jerald" and 589 "Evil Rupert" (working names), `<level:80>`, the locked kits as actions:
   Jerald 311 Crimson Glide, 302 Stomp, 314 Puree, 421 Shared Suffering; Rupert 501 Heated Enchant, 504 Mince, 472
   Magic Bomb, 484 Meltima. Both slots had been holding the Gluttonwolf Mayor's pre-growth row (its flats, vs Beast,
-  PDR/MDR and the Euphoria/Hemorrage rates), all gone now.
+  PDR/MDR and the Euphoria/Hemorrhage rates), all gone now.
 - **HP.** The sin bosses' line `(a.level ** 2) * 28`, leaning by each real class's lv80 HP against the baseline class:
   Raving Lunatic ×1.15 (K 32), Melufa ×0.60 (K 17), so evil Rupert carries a bit over half of evil Jerald's bar, like
   the real pair. Each template wears **Hearty** (306, ×5): Jerald 1,025,265, Rupert 544,660, the pair about one Plump

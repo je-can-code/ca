@@ -105,7 +105,7 @@
   },
   {
     "key": "forceCritProcs",
-    "template": "On-crit effects \\C[3]ALWAYS\\C[0] land when landing a \\C[2]critical hit\\C[0]."
+    "template": "Chance effects \\C[3]ALWAYS\\C[0] land when landing a \\C[2]critical hit\\C[0]."
   },
   {
     "key": "gate.allOffCooldown",
@@ -196,6 +196,10 @@
     "template": "{state} is only active {gate}."
   },
   {
+    "key": "pierceDamageRateIfStateType",
+    "template": "Your hits ignore the \\C[1]damage mitigation\\C[0] of targets with any {type} state."
+  },
+  {
     "key": "pierceElement",
     "template": "Negates {value} {element} resistance."
   },
@@ -264,6 +268,14 @@
     "template": "This skill negates {value} {element} resistance."
   },
   {
+    "key": "toggleStateOnSkillExecution",
+    "template": "Each {skillType} skill that costs MP grants {state}, or spends it if already active."
+  },
+  {
+    "key": "toggleStateOnSkillExecution.any",
+    "template": "Each skill that costs MP grants {state}, or spends it if already active."
+  },
+  {
     "key": "trigger.anyDmg",
     "template": "on taking damage"
   },
@@ -294,6 +306,22 @@
   {
     "key": "trigger.negaStateInflicted",
     "template": "on inflicting an ailment"
+  },
+  {
+    "key": "trigger.onDamageDealt",
+    "template": "on dealing damage"
+  },
+  {
+    "key": "trigger.onDamageDealt.throttled",
+    "template": "on dealing damage, at most once every {seconds}"
+  },
+  {
+    "key": "trigger.onHealDealt",
+    "template": "on healing an ally or yourself"
+  },
+  {
+    "key": "trigger.onHealDealt.throttled",
+    "template": "on healing an ally or yourself, at most once every {seconds}"
   },
   {
     "key": "trigger.onKill",

@@ -1172,7 +1172,7 @@
   },
   {
     "id": 37,
-    "name": "Hemorrage",
+    "name": "Hemorrhage",
     "note": "\u003cstackMax:1000\u003e\n\u003closeAllStacksAtOnce\u003e\n\u003chpFormula:[(a.atk*6) * (100 / (100 + b.def))]\u003e\n\u003cstateDuration:600\u003e\n\u003ctype:negative\u003e\n\u003ctype:bleed\u003e",
     "description": "",
     "iconIndex": 2153,
@@ -1275,7 +1275,7 @@
       {
         "code": 23,
         "dataId": 6,
-        "value": 0
+        "value": 2
       }
     ],
     "autoRemovalTiming": 0,
@@ -1514,7 +1514,7 @@
   {
     "id": 49,
     "name": "Cursed",
-    "note": "\u003cstateDuration:300\u003e\n\u003con-attack-hp-gain:-4%\u003e",
+    "note": "\u003cstateDuration:300\u003e\n\u003con-cast-hp-gain:-4%\u003e",
     "description": "",
     "iconIndex": 21,
     "traits": [],
@@ -2117,7 +2117,7 @@
   {
     "id": 69,
     "name": "Numbness",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cretaliate:[275,100]\u003e",
     "description": "",
     "iconIndex": 3626,
     "traits": [
@@ -2389,7 +2389,7 @@
   {
     "id": 78,
     "name": "Melting",
-    "note": "\u003cindefiniteState\u003e\n\u003cbonusDamageForMyStateCount:50\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cbonusDamageForMyStateCount:33\u003e",
     "description": "",
     "iconIndex": 3818,
     "traits": [],
@@ -2672,7 +2672,7 @@
   {
     "id": 88,
     "name": "Overdue",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cautoApplyStateOnNearby:[89, enemiesNearby, 1, 60]\u003e",
     "description": "",
     "iconIndex": 4064,
     "traits": [
@@ -2815,7 +2815,7 @@
   {
     "id": 92,
     "name": "Locked",
-    "note": "",
+    "note": "\u003cstackMax:10\u003e\n\u003cstateDuration:300\u003e",
     "description": "",
     "iconIndex": 3534,
     "traits": [],
@@ -3206,7 +3206,7 @@
   {
     "id": 105,
     "name": "Fine.",
-    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:1800\u003e\n\u003ctype:low-effort\u003e",
+    "note": "\u003cstackMax:10\u003e\n\u003cstateDuration:1800\u003e\n\u003ctype:low-effort\u003e",
     "description": "",
     "iconIndex": 3857,
     "traits": [
@@ -3510,7 +3510,7 @@
   {
     "id": 115,
     "name": "Look its Confetti!",
-    "note": "\u003ctype:low-effort\u003e",
+    "note": "\u003cstackMax:10\u003e\n\u003cstateDuration:1800\u003e\n\u003ctype:low-effort\u003e",
     "description": "",
     "iconIndex": 3692,
     "traits": [
@@ -3651,7 +3651,7 @@
   {
     "id": 120,
     "name": "Low-effort Aggression",
-    "note": "\u003ccritMultiplier:20\u003e",
+    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e\n\u003ccritMultiplier:20\u003e",
     "description": "",
     "iconIndex": 3495,
     "traits": [
@@ -3693,7 +3693,7 @@
   {
     "id": 121,
     "name": "Low-effort Recovery",
-    "note": "\u003chpPercent:1\u003e\n\u003cmpPercent:1\u003e\n\u003ctpPercent:1\u003e",
+    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e\n\u003chpPercent:1\u003e\n\u003cmpPercent:1\u003e\n\u003ctpPercent:1\u003e",
     "description": "",
     "iconIndex": 3448,
     "traits": [],
@@ -4378,7 +4378,7 @@
   {
     "id": 142,
     "name": "Time Collapse",
-    "note": "\u003cindefiniteState\u003e\n\u003conCastSelfState:[143,100]\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003ctoggleStateOnSkillExecution:[143, 4]\u003e",
     "description": "",
     "iconIndex": 3851,
     "traits": [],
@@ -4404,7 +4404,7 @@
   {
     "id": 143,
     "name": "Instant Cast Ready",
-    "note": "\u003cstateDuration:600\u003e\n\u003ccastSpeedRate:[-100]\u003e\n\u003cremoveOnSkillExecution:[4,100]\u003e",
+    "note": "\u003cstateDuration:600\u003e\n\u003ccastSpeedRate:[-300]\u003e",
     "description": "",
     "iconIndex": 3851,
     "traits": [
@@ -4446,21 +4446,10 @@
   {
     "id": 144,
     "name": "Deliberate Position",
-    "note": "\u003cextendType:cc\u003e",
+    "note": "\u003cpierceDamageRateIfStateType:cc\u003e",
     "description": "",
     "iconIndex": 3524,
-    "traits": [
-      {
-        "code": 23,
-        "dataId": 6,
-        "value": 0
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 0
-      }
-    ],
+    "traits": [],
     "autoRemovalTiming": 0,
     "chanceByDamage": 100,
     "minTurns": 1,
@@ -4572,7 +4561,7 @@
   {
     "id": 148,
     "name": "Smother",
-    "note": "\u003cmuted\u003e\n\u003cstackMax:1\u003e\n\u003cmpFormula:[b.mmp*0.10]\u003e\n\u003ctpFormula:[b.mtp*0.10]\u003e\n\u003cstateDuration:300\u003e",
+    "note": "\u003cmuted\u003e\n\u003cstackMax:1\u003e\n\u003cmpFormula:[b.mmp*0.10]\u003e\n\u003ctpFormula:[b.mtp*0.10]\u003e\n\u003cstateDuration:300\u003e\n\u003ctype:negative\u003e\n\u003ctype:cc\u003e",
     "description": "",
     "iconIndex": 3598,
     "traits": [],
@@ -4598,21 +4587,10 @@
   {
     "id": 149,
     "name": "Erode",
-    "note": "\u003cextendType:negative\u003e",
+    "note": "\u003cbonusDamageIfStateType:[negative, 15]\u003e",
     "description": "",
     "iconIndex": 3870,
-    "traits": [
-      {
-        "code": 23,
-        "dataId": 6,
-        "value": 0.85
-      },
-      {
-        "code": 23,
-        "dataId": 7,
-        "value": 0.85
-      }
-    ],
+    "traits": [],
     "autoRemovalTiming": 0,
     "chanceByDamage": 100,
     "minTurns": 1,
@@ -4661,7 +4639,7 @@
   {
     "id": 151,
     "name": "Wings Clipped",
-    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e\n\u003cspeedBoost:-50\u003e",
+    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e\n\u003cspeedBoost:-50\u003e\n\u003ctype:negative\u003e\n\u003ctype:cc\u003e",
     "description": "",
     "iconIndex": 4047,
     "traits": [],
@@ -4687,7 +4665,7 @@
   {
     "id": 152,
     "name": "Shell Cracked",
-    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e",
+    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 3961,
     "traits": [
@@ -4719,7 +4697,7 @@
   {
     "id": 153,
     "name": "Empty Aura",
-    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e",
+    "note": "\u003cstackMax:1\u003e\n\u003cstateDuration:600\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 4157,
     "traits": [
@@ -4809,7 +4787,7 @@
   {
     "id": 156,
     "name": "Backhand",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cretaliate:[558, 100, glancing]\u003e",
     "description": "",
     "iconIndex": 3940,
     "traits": [],
@@ -4835,7 +4813,7 @@
   {
     "id": 157,
     "name": "Equation: Life",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cautoExecuteSkill:[579, onDamageDealt, 60]\u003e",
     "description": "",
     "iconIndex": 3737,
     "traits": [],
@@ -4861,7 +4839,7 @@
   {
     "id": 158,
     "name": "Equation: Entropy",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cautoExecuteSkill:[580, onHealDealt, 60]\u003e",
     "description": "",
     "iconIndex": 3754,
     "traits": [],
@@ -4913,7 +4891,7 @@
   {
     "id": 160,
     "name": "Overclock",
-    "note": "\u003cindefiniteState\u003e\n\u003cfastCooldownRate:[-50]\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003ccastSpeedRate:[-50]\u003e",
     "description": "",
     "iconIndex": 3717,
     "traits": [
@@ -4977,7 +4955,7 @@
   {
     "id": 162,
     "name": "Equalize",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cautoExecuteSkill:[579, onDamageDealt, 60]\u003e\n\u003cautoExecuteSkill:[580, onHealDealt, 60]\u003e",
     "description": "",
     "iconIndex": 3697,
     "traits": [],
@@ -5029,7 +5007,7 @@
   {
     "id": 164,
     "name": "Court Disaster",
-    "note": "\u003cstateDuration:900\u003e\n\u003ccursedRolls:[2]\u003e",
+    "note": "\u003cstateDuration:900\u003e\n\u003ccursedRolls:[2]\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 3391,
     "traits": [],
@@ -5055,7 +5033,7 @@
   {
     "id": 165,
     "name": "Doom Countdown",
-    "note": "\u003cstateDuration:600\u003e\n\u003capplyStateOnExpire:[166,100]\u003e",
+    "note": "\u003cstateDuration:600\u003e\n\u003capplyStateOnExpire:[166,100]\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 3440,
     "traits": [],
@@ -5081,7 +5059,7 @@
   {
     "id": 166,
     "name": "Doomed",
-    "note": "\u003chpPercent:-100\u003e\n\u003cmpPercent:-100\u003e\n\u003ctpPercent:-100\u003e\n\u003cstateDuration:60\u003e",
+    "note": "\u003chpPercent:-100\u003e\n\u003cmpPercent:-100\u003e\n\u003ctpPercent:-100\u003e\n\u003cstateDuration:60\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 3441,
     "traits": [],
@@ -5187,6 +5165,11 @@
         "code": 21,
         "dataId": 7,
         "value": 10
+      },
+      {
+        "code": 21,
+        "dataId": 7,
+        "value": 5
       }
     ],
     "autoRemovalTiming": 0,
@@ -5211,7 +5194,7 @@
   {
     "id": 170,
     "name": "Benediction",
-    "note": "\u003chpPercent:1\u003e\n\u003cmpPercent:1\u003e\n\u003ctpPercent:1\u003e\n\u003cstateDuration:900\u003e",
+    "note": "\u003chpPercent:1\u003e\n\u003cmpPercent:1\u003e\n\u003ctpPercent:1\u003e\n\u003cstateDuration:3600\u003e",
     "description": "",
     "iconIndex": 3899,
     "traits": [],
@@ -5341,7 +5324,7 @@
   {
     "id": 175,
     "name": "Terrorize",
-    "note": "\u003cparalyzed\u003e\n\u003cstateDuration:480\u003e",
+    "note": "\u003cparalyzed\u003e\n\u003cstateDuration:480\u003e\n\u003ctype:negative\u003e\n\u003ctype:cc\u003e",
     "description": "",
     "iconIndex": 4154,
     "traits": [],
@@ -5367,7 +5350,7 @@
   {
     "id": 176,
     "name": "Lobotomized",
-    "note": "\u003cstateDuration:480\u003e\n\u003cveryCursed\u003e",
+    "note": "\u003cstateDuration:480\u003e\n\u003cveryCursed\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 4158,
     "traits": [],
@@ -5393,7 +5376,7 @@
   {
     "id": 177,
     "name": "Eyes of Rupert",
-    "note": "\u003cstateDuration:900\u003e",
+    "note": "\u003cstateDuration:900\u003e\n\u003cretaliate:[273,100]\u003e",
     "description": "",
     "iconIndex": 3996,
     "traits": [],
@@ -5419,7 +5402,7 @@
   {
     "id": 178,
     "name": "Rupertified",
-    "note": "\u003cstateDuration:900\u003e\n\u003con-attack-hp-gain:-10%\u003e",
+    "note": "\u003cstateDuration:900\u003e\n\u003con-cast-hp-gain:-10%\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 3996,
     "traits": [],
@@ -5445,7 +5428,7 @@
   {
     "id": 179,
     "name": "Rupert's Retinas",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003cretaliate:[274,100]\u003e",
     "description": "",
     "iconIndex": 4202,
     "traits": [],
@@ -5471,7 +5454,7 @@
   {
     "id": 180,
     "name": "Mild Rupertification",
-    "note": "\u003cstateDuration:480\u003e\n\u003con-attack-hp-gain:-5%\u003e",
+    "note": "\u003cstateDuration:480\u003e\n\u003con-cast-hp-gain:-5%\u003e\n\u003ctype:negative\u003e",
     "description": "",
     "iconIndex": 4202,
     "traits": [],
@@ -5574,10 +5557,10 @@
   },
   {
     "id": 184,
-    "name": "",
-    "note": "\u003cindefiniteState\u003e",
+    "name": "Equilibrium",
+    "note": "\u003cstateDuration:900\u003e\n\u003cautoExecuteSkill:[579, onDamageDealt, 60]\u003e\n\u003cautoExecuteSkill:[580, onHealDealt, 60]\u003e",
     "description": "",
-    "iconIndex": 0,
+    "iconIndex": 2891,
     "traits": [],
     "autoRemovalTiming": 0,
     "chanceByDamage": 100,
@@ -7317,7 +7300,7 @@
   {
     "id": 251,
     "name": "Well Fed (protein)",
-    "note": "\u003cstateDuration:18000\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#44cc44\u003e\n\u003capplyStateOnExpire:[252,100]\u003e\n\u003cslotTransform:[UsableItem, 237]\u003e",
+    "note": "\u003cstateDuration:18000\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#44cc44\u003e\n\u003capplyStateOnExpire:[252,100]\u003e\n\u003cslotTransform:[UsableItem, 237]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2097,
     "traits": [
@@ -7354,7 +7337,7 @@
   {
     "id": 252,
     "name": "Pumped",
-    "note": "\u003cstateDuration:7200\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#88cc22\u003e\n\u003capplyStateOnExpire:[253,100]\u003e\n\u003cslotTransform:[UsableItem, 238]\u003e\n\u003clst:5\u003e",
+    "note": "\u003cstateDuration:7200\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003ccdmBuffPlus:[50]\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#88cc22\u003e\n\u003capplyStateOnExpire:[253,100]\u003e\n\u003cslotTransform:[UsableItem, 238]\u003e\n\u003clst:5\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 35,
     "traits": [
@@ -7386,7 +7369,7 @@
   {
     "id": 253,
     "name": "Hangry",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#ccaa00\u003e\n\u003cslotTransform:[UsableItem, 239]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-protein\u003e\n\u003cfoodChain:protein\u003e\n\u003cfoodGroupColor:#ccaa00\u003e\n\u003cslotTransform:[UsableItem, 239]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2675,
     "traits": [
@@ -7487,7 +7470,7 @@
   {
     "id": 256,
     "name": "Well Fed (veggie)",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#38b86c\u003e\n\u003capplyStateOnExpire:[257,100]\u003e\n\u003cslotTransform:[UsableItem, 240]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#38b86c\u003e\n\u003capplyStateOnExpire:[257,100]\u003e\n\u003cslotTransform:[UsableItem, 240]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 285,
     "traits": [
@@ -7524,7 +7507,7 @@
   {
     "id": 257,
     "name": "Refreshed",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003cmrgBuffPlus:[100 + (a.mrg*100) * 0.50]\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#62cc44\u003e\n\u003capplyStateOnExpire:[258,100]\u003e\n\u003cslotTransform:[UsableItem, 241]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003cmrgBuffPlus:[100 + (a.mrg*100) * 0.50]\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#62cc44\u003e\n\u003capplyStateOnExpire:[258,100]\u003e\n\u003cslotTransform:[UsableItem, 241]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 37,
     "traits": [
@@ -7561,7 +7544,7 @@
   {
     "id": 258,
     "name": "Light-headed",
-    "note": "\u003cstateDuration:10800\u003e\n\u003cspeedBoost:10\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003chitBuffPlus:[-1 * (a.hit*100-100)*0.10]\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#a8c828\u003e\n\u003cslotTransform:[UsableItem, 242]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003cspeedBoost:10\u003e\n\u003ctype:food\u003e\n\u003ctype:food-veggie\u003e\n\u003chitBuffPlus:[-1 * (a.hit*100-100)*0.10]\u003e\n\u003cfoodChain:vegetable\u003e\n\u003cfoodGroupColor:#a8c828\u003e\n\u003cslotTransform:[UsableItem, 242]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2709,
     "traits": [
@@ -7651,7 +7634,7 @@
   {
     "id": 261,
     "name": "Well Fed (fruit)",
-    "note": "\u003cstateDuration:3600\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003ctrgBuffPlus:[a.trg*100]\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#66bb66\u003e\n\u003capplyStateOnExpire:[262,100]\u003e\n\u003cslotTransform:[UsableItem, 243]\u003e",
+    "note": "\u003cstateDuration:3600\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003ctrgBuffPlus:[a.trg*100]\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#66bb66\u003e\n\u003capplyStateOnExpire:[262,100]\u003e\n\u003cslotTransform:[UsableItem, 243]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 265,
     "traits": [
@@ -7683,7 +7666,7 @@
   {
     "id": 262,
     "name": "Energized",
-    "note": "\u003cstateDuration:48000\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003ctrgBuffPlus:[(a.trg*100) * 0.50]\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#ee9922\u003e\n\u003capplyStateOnExpire:[263,100]\u003e\n\u003cslotTransform:[UsableItem, 244]\u003e",
+    "note": "\u003cstateDuration:48000\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003ctrgBuffPlus:[(a.trg*100) * 0.50]\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#ee9922\u003e\n\u003capplyStateOnExpire:[263,100]\u003e\n\u003cslotTransform:[UsableItem, 244]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 40,
     "traits": [
@@ -7720,7 +7703,7 @@
   {
     "id": 263,
     "name": "Crashing",
-    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:-25\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#cc7722\u003e\n\u003cslotTransform:[UsableItem, 245]\u003e",
+    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:-25\u003e\n\u003ctype:food\u003e\n\u003ctype:food-fruit\u003e\n\u003cfoodChain:fruit\u003e\n\u003cfoodGroupColor:#cc7722\u003e\n\u003cslotTransform:[UsableItem, 245]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2760,
     "traits": [
@@ -7815,7 +7798,7 @@
   {
     "id": 266,
     "name": "Well Fed (carb)",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#b89248\u003e\n\u003capplyStateOnExpire:[267,100]\u003e\n\u003cslotTransform:[UsableItem, 231]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#b89248\u003e\n\u003capplyStateOnExpire:[267,100]\u003e\n\u003cslotTransform:[UsableItem, 231]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 1964,
     "traits": [
@@ -7852,7 +7835,7 @@
   {
     "id": 267,
     "name": "Fortified",
-    "note": "\u003cstateDuration:18000\u003e\n\u003ccritReduction:50\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#d4b84a\u003e\n\u003capplyStateOnExpire:[268,100]\u003e\n\u003cslotTransform:[UsableItem, 232]\u003e",
+    "note": "\u003cstateDuration:18000\u003e\n\u003ccritReduction:50\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#d4b84a\u003e\n\u003capplyStateOnExpire:[268,100]\u003e\n\u003cslotTransform:[UsableItem, 232]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 36,
     "traits": [
@@ -7889,7 +7872,7 @@
   {
     "id": 268,
     "name": "Carb Coma",
-    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:-15\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#c88820\u003e\n\u003cslotTransform:[UsableItem, 233]\u003e",
+    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:-15\u003e\n\u003ctype:food\u003e\n\u003ctype:food-carb\u003e\n\u003cfoodChain:carb\u003e\n\u003cfoodGroupColor:#c88820\u003e\n\u003cslotTransform:[UsableItem, 233]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2740,
     "traits": [
@@ -7995,7 +7978,7 @@
   {
     "id": 271,
     "name": "Well Fed (dairy)",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003cmcrBuffPlus:[-1 * (a.mrg*100) * 0.90]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#5a94c4\u003e\n\u003capplyStateOnExpire:[272,100]\u003e\n\u003cslotTransform:[UsableItem, 234]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003cmcrBuffPlus:[-1 * (a.mrg*100) * 0.90]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#5a94c4\u003e\n\u003capplyStateOnExpire:[272,100]\u003e\n\u003cslotTransform:[UsableItem, 234]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 1953,
     "traits": [
@@ -8027,7 +8010,7 @@
   {
     "id": 272,
     "name": "Focused",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003cmcrBuffPlus:[-1 * (a.mrg*100) * 0.70]\u003e\n\u003ccastSpeedRate:[-30]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#7ab8e8\u003e\n\u003capplyStateOnExpire:[273,100]\u003e\n\u003cslotTransform:[UsableItem, 235]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003cmcrBuffPlus:[-1 * (a.mrg*100) * 0.70]\u003e\n\u003ccastSpeedRate:[-30]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#7ab8e8\u003e\n\u003capplyStateOnExpire:[273,100]\u003e\n\u003cslotTransform:[UsableItem, 235]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 38,
     "traits": [
@@ -8059,7 +8042,7 @@
   {
     "id": 273,
     "name": "Foggy",
-    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003ccastSpeedRate:[15]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#b8c4a8\u003e\n\u003cslotTransform:[UsableItem, 236]\u003e",
+    "note": "\u003cstateDuration:10800\u003e\n\u003ctype:food\u003e\n\u003ctype:food-dairy\u003e\n\u003ccastSpeedRate:[15]\u003e\n\u003cfoodChain:dairy\u003e\n\u003cfoodGroupColor:#b8c4a8\u003e\n\u003cslotTransform:[UsableItem, 236]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2694,
     "traits": [
@@ -8165,7 +8148,7 @@
   {
     "id": 276,
     "name": "Well Fed (sweet)",
-    "note": "\u003cstateDuration:1800\u003e\n\u003cspeedBoost:30\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#c85898\u003e\n\u003capplyStateOnExpire:[277,100]\u003e\n\u003cslotTransform:[UsableItem, 246]\u003e",
+    "note": "\u003cstateDuration:1800\u003e\n\u003cspeedBoost:30\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#c85898\u003e\n\u003capplyStateOnExpire:[277,100]\u003e\n\u003cslotTransform:[UsableItem, 246]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 1952,
     "traits": [
@@ -8197,7 +8180,7 @@
   {
     "id": 277,
     "name": "Hyper",
-    "note": "\u003cstateDuration:7200\u003e\n\u003cspeedBoost:20\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003ctrgBuffPlus:[(a.trg*100) * 3]\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#ff66bb\u003e\n\u003capplyStateOnExpire:[278,100]\u003e\n\u003cslotTransform:[UsableItem, 247]\u003e",
+    "note": "\u003cstateDuration:7200\u003e\n\u003cspeedBoost:20\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003ctrgBuffPlus:[(a.trg*100) * 3]\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#ff66bb\u003e\n\u003capplyStateOnExpire:[278,100]\u003e\n\u003cslotTransform:[UsableItem, 247]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 39,
     "traits": [
@@ -8234,7 +8217,7 @@
   {
     "id": 278,
     "name": "Gassy",
-    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:10\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#ddaa44\u003e\n\u003cslotTransform:[UsableItem, 248]\u003e",
+    "note": "\u003cstateDuration:3600\u003e\n\u003cspeedBoost:10\u003e\n\u003ctype:food\u003e\n\u003ctype:food-sweet\u003e\n\u003cfoodChain:sweet\u003e\n\u003cfoodGroupColor:#ddaa44\u003e\n\u003cslotTransform:[UsableItem, 248]\u003e\n\u003cimmuneToFate\u003e",
     "description": "",
     "iconIndex": 2727,
     "traits": [
@@ -22960,7 +22943,7 @@
   {
     "id": 766,
     "name": "Healing Rate +10%",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003char:10\u003e",
     "description": "",
     "iconIndex": 0,
     "traits": [],
@@ -22986,7 +22969,7 @@
   {
     "id": 767,
     "name": "Healing Rate +20%",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003char:20\u003e",
     "description": "",
     "iconIndex": 0,
     "traits": [],
@@ -23012,7 +22995,7 @@
   {
     "id": 768,
     "name": "Healing Rate +30%",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003char:30\u003e",
     "description": "",
     "iconIndex": 0,
     "traits": [],
@@ -23038,7 +23021,7 @@
   {
     "id": 769,
     "name": "Healing Rate +40%",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003char:40\u003e",
     "description": "",
     "iconIndex": 0,
     "traits": [],
@@ -23064,7 +23047,7 @@
   {
     "id": 770,
     "name": "Healing Rate +50%",
-    "note": "\u003cindefiniteState\u003e",
+    "note": "\u003cindefiniteState\u003e\n\u003char:50\u003e",
     "description": "",
     "iconIndex": 0,
     "traits": [],
@@ -57876,7 +57859,7 @@
   {
     "id": 2006,
     "name": "Toppled",
-    "note": "\u003cparalyzed\u003e\n\u003cstateDuration:120\u003e\n\u003cmotion:[tint, #a08060, 20]\u003e",
+    "note": "\u003cparalyzed\u003e\n\u003cstateDuration:120\u003e\n\u003ctype:negative\u003e\n\u003ctype:cc\u003e\n\u003cmotion:[tint, #a08060, 20]\u003e",
     "description": "",
     "iconIndex": 22,
     "traits": [
@@ -59700,7 +59683,7 @@
   {
     "id": 2072,
     "name": "Sealed",
-    "note": "\u003crooted\u003e\n\u003cdisabled\u003e\n\u003cindefiniteState\u003e\n\u003cimmuneToAll\u003e\n\u003cnoDamage\u003e",
+    "note": "\u003cparalyzed\u003e\n\u003cindefiniteState\u003e\n\u003cimmuneToAll\u003e\n\u003cnoDamage\u003e",
     "description": "",
     "iconIndex": 85,
     "traits": [
@@ -59841,7 +59824,7 @@
   {
     "id": 2075,
     "name": "Stilled",
-    "note": "\u003crooted\u003e\n\u003cdisabled\u003e\n\u003cindefiniteState\u003e",
+    "note": "\u003cparalyzed\u003e\n\u003cindefiniteState\u003e",
     "description": "Held in place, unable to strike, yet nothing like sealed.",
     "iconIndex": 85,
     "traits": [],
@@ -60008,7 +59991,7 @@
   {
     "id": 2081,
     "name": "Overreached",
-    "note": "\u003crooted\u003e\n\u003cdisabled\u003e\n\u003cindefiniteState\u003e",
+    "note": "\u003cparalyzed\u003e\n\u003cindefiniteState\u003e",
     "description": "Overreached: open, and held where he landed.",
     "iconIndex": 85,
     "traits": [],
@@ -60327,6 +60310,38 @@
     "motion": 0,
     "overlay": 0,
     "priority": 50,
+    "restriction": 0,
+    "removeAtBattleEnd": false,
+    "removeByDamage": false,
+    "removeByRestriction": false,
+    "removeByWalking": false,
+    "stepsToRemove": 0,
+    "messageType": 1
+  },
+  {
+    "id": 2092,
+    "name": "Held",
+    "note": "\u003cparalyzed\u003e\n\u003cstateDuration:120\u003e\n\u003ctype:negative\u003e\n\u003ctype:cc\u003e\na boss holding still while its fight's script acts for it.",
+    "description": "",
+    "iconIndex": 26,
+    "traits": [
+      {
+        "code": 22,
+        "dataId": 1,
+        "value": -10
+      }
+    ],
+    "autoRemovalTiming": 0,
+    "chanceByDamage": 100,
+    "minTurns": 3,
+    "maxTurns": 3,
+    "message1": "",
+    "message2": "",
+    "message3": "",
+    "message4": "",
+    "motion": 1,
+    "overlay": 8,
+    "priority": 80,
     "restriction": 0,
     "removeAtBattleEnd": false,
     "removeByDamage": false,
