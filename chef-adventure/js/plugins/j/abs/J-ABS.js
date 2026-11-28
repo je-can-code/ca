@@ -12604,6 +12604,20 @@ var JABS_Battler = class JABS_Battler {
 		this.setInPosition(false);
 	}
 	/**
+	* Whether the action this battler has lined up winds up with a cast time and is of the kind the given state forbids:
+	* a disabling state forbids its basic attack, and a muting state forbids every other skill. An action with no cast
+	* time has no windup to cancel, so it never counts.
+	* @param {RPG_State} state The state just put on this battler.
+	* @returns {boolean}
+	*/
+	hasForbiddenWindupLinedUp(state) {
+		if (!this.isActionDecided()) return false;
+		const [action] = this.getDecidedAction();
+		if (action.getCastTime() <= 0) return false;
+		if (this.isSkillIdBasicAttack(action.getBaseSkill().id)) return state.jabsDisarmed;
+		return state.jabsMuted;
+	}
+	/**
 	* Updates the timer for "engagement".
 	*
 	* This is an important timer that prevents recalculating distances for all
@@ -28390,23 +28404,27 @@ Game_Battler.prototype.handleAddingJabsState = function(stateId, attacker, overr
 	this.resetStateCounts(stateId, attacker);
 	this.addJabsState(stateId, attacker, overrides, sourceSkill);
 	this.onJabsStateInflicted(stateId, attacker);
-	this.cancelLinedUpActionIfHeld(stateId);
+	this.cancelLinedUpActionIfForbidden(stateId);
 	this.result().pushAddedState(stateId);
 	this.flagSkillSlotsForRefresh();
 };
 /**
-* Cancels whatever this battler had lined up to fire when the state just put on it is a hold.<br/>
-* A paralyzing state stops its bearer moving, attacking and casting, so a decision made before it landed is dropped
-* rather than fired from inside the hold, every application of it included. A boss fight's script still acts for a
-* held boss: a cast it forces after the hold lands is untouched, so a script puts its hold on before forcing a cast,
-* never during the windup of one.
+* Cancels whatever this battler had lined up to fire when the state just put on it forbids it.<br/>
+* A paralyzing state holds its bearer outright, so whatever it had lined up is dropped rather than fired from inside
+* the hold. A muting state cancels a skill it had lined up that winds up with a cast time, and a disabling state does
+* the same for its basic attack; an action with no cast time still goes off. Every application cancels, a repeat one
+* included. A boss fight's script still acts for a held boss: a cast it forces after the hold lands is untouched, so a
+* script puts its hold on before forcing a cast, never during the windup of one.
 * @param {number} stateId The state just put on this battler.
 */
-Game_Battler.prototype.cancelLinedUpActionIfHeld = function(stateId) {
-	if (!this.state(stateId).jabsParalyzed) return;
+Game_Battler.prototype.cancelLinedUpActionIfForbidden = function(stateId) {
+	const state = this.state(stateId);
+	if (!state.jabsParalyzed && !state.jabsMuted && !state.jabsDisarmed) return;
 	const jabsBattler = JABS_AiManager.getBattlerByUuid(this.getUuid());
 	if (!jabsBattler) return;
-	jabsBattler.cancelLinedUpAction();
+	if (state.jabsParalyzed || jabsBattler.hasForbiddenWindupLinedUp(state)) {
+		jabsBattler.cancelLinedUpAction();
+	}
 };
 /**
 * A no-op hook fired on the afflicted battler whenever an attacker successfully inflicts a state

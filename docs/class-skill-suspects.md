@@ -299,7 +299,13 @@ Boss routine steps were swept by an assumed config shape, so treat that part as 
     `handleAddingJabsState`, `JABS_Battler#cancelLinedUpAction`, no cooldown spent). Live: Lucian had Unholy Smite
     decided, in position and winding up; Held landed and it all dropped to nothing, and he stayed silent through the
     hold. Only Lust's reach adds a hold after a forced windup, about 2 s later, after Desire has fired; the book says
-    scripts hold before forcing. Mutes and disables do not cancel (not asked yet).
+    scripts hold before forcing.
+  - **His call 20:04:** "Muted and disabled should cancel their corresponding skill types, yes. I mean, if they wind
+    up with a cast time." Built as `Game_Battler#cancelLinedUpActionIfForbidden` plus `JABS_Battler#
+    hasForbiddenWindupLinedUp`: a mute cancels a lined-up skill with a cast time (windup started or not), a disable a
+    lined-up basic attack with one; an instant action still goes off; a mute also cuts a boss script's forced windup.
+    Live: Disabled cut the Parry Dummy's mid-windup basic attack; Disabled left Mycelich's mid-windup Fungal Rage alone
+    and Muted cut it a frame later. Mycelich then chose Mycelial Net on its own and the follow-up net came by itself.
   - **Live (probes `watch-probe-4.js`, `-5.js`):** Mycelich's drop landed on the player's tile with its swirl, then
     its AI followed up with the lingering net on the same tile, map event and all, ticking about once a second.
     Yggdrasil's crescents flew, then the ninth root came as its own cast with a map event on the player's tile, landing
