@@ -12588,6 +12588,22 @@ var JABS_Battler = class JABS_Battler {
 		this.clearDecidedAction();
 	}
 	/**
+	* Cancels whatever this battler has lined up to fire: a windup or channel in flight stops, the decided action is
+	* dropped, and the battler is no longer in position, so it decides afresh once it can act again.<br/>
+	* Unlike {@link #interrupt}, nothing is penalized. The action never happened, so no cooldown is spent on it. A hold
+	* calls this the moment it lands, so a held battler never acts on a decision it made before.
+	*/
+	cancelLinedUpAction() {
+		if (this.isChanneling()) {
+			this.endChannel();
+		} else if (this.isCasting()) {
+			this.setCasting(false);
+			this.setCastTimeCountdown(0);
+		}
+		this.clearDecidedAction();
+		this.setInPosition(false);
+	}
+	/**
 	* Updates the timer for "engagement".
 	*
 	* This is an important timer that prevents recalculating distances for all
@@ -28374,8 +28390,23 @@ Game_Battler.prototype.handleAddingJabsState = function(stateId, attacker, overr
 	this.resetStateCounts(stateId, attacker);
 	this.addJabsState(stateId, attacker, overrides, sourceSkill);
 	this.onJabsStateInflicted(stateId, attacker);
+	this.cancelLinedUpActionIfHeld(stateId);
 	this.result().pushAddedState(stateId);
 	this.flagSkillSlotsForRefresh();
+};
+/**
+* Cancels whatever this battler had lined up to fire when the state just put on it is a hold.<br/>
+* A paralyzing state stops its bearer moving, attacking and casting, so a decision made before it landed is dropped
+* rather than fired from inside the hold, every application of it included. A boss fight's script still acts for a
+* held boss: a cast it forces after the hold lands is untouched, so a script puts its hold on before forcing a cast,
+* never during the windup of one.
+* @param {number} stateId The state just put on this battler.
+*/
+Game_Battler.prototype.cancelLinedUpActionIfHeld = function(stateId) {
+	if (!this.state(stateId).jabsParalyzed) return;
+	const jabsBattler = JABS_AiManager.getBattlerByUuid(this.getUuid());
+	if (!jabsBattler) return;
+	jabsBattler.cancelLinedUpAction();
 };
 /**
 * A no-op hook fired on the afflicted battler whenever an attacker successfully inflicts a state
