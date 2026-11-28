@@ -60317,5 +60317,37 @@
     "removeByWalking": false,
     "stepsToRemove": 0,
     "messageType": 1
+  },
+  {
+    "id": 2092,
+    "name": "Held",
+    "note": "\u003cparalyzed\u003e\n\u003cstateDuration:120\u003e\n\u003ctype:negative\u003e\n\u003ctype:cc\u003e\na boss holding still while its fight's script acts for it.",
+    "description": "",
+    "iconIndex": 26,
+    "traits": [
+      {
+        "code": 22,
+        "dataId": 1,
+        "value": -10
+      }
+    ],
+    "autoRemovalTiming": 0,
+    "chanceByDamage": 100,
+    "minTurns": 3,
+    "maxTurns": 3,
+    "message1": "",
+    "message2": "",
+    "message3": "",
+    "message4": "",
+    "motion": 1,
+    "overlay": 8,
+    "priority": 80,
+    "restriction": 0,
+    "removeAtBattleEnd": false,
+    "removeByDamage": false,
+    "removeByRestriction": false,
+    "removeByWalking": false,
+    "stepsToRemove": 0,
+    "messageType": 1
   }
 ]

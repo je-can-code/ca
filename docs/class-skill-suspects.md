@@ -288,8 +288,14 @@ Boss routine steps were swept by an assumed config shape, so treat that part as 
     forbid; `canMoveIdly` respects the movement lock. Tests, book pages for all four lock tags, glossary, changelog.
   - CA (#111, `kit-boss-payloads.js`): the combo chains (2315 -> 2318, 2335 -> 2337, followers in the action lists
     with `<aiSkillExclusion>`); the vent (no inanimate or auto-execute, Bolted Down passive, noHpBar, sight 6 MY pick);
-    Sealed, Stilled and Overreached are `<paralyzed>`; Wrath's, Garuda's and Skye's 24 self-roots are Paralyzed (4),
-    180 frames to Rooted's 120 (flagged).
+    Sealed, Stilled and Overreached are `<paralyzed>`. Wrath's, Garuda's and Skye's 24 self-roots first went to
+    Paralyzed (4), but Wrath's boss (enemy 582, Vampire King) resists state 4 by id, so they now use a new state, Held
+    (2092, `kit-boss-held.js`): Rooted's row (120 frames, EVA -10, negative and cc) with `<paralyzed>`, Paralyzed's
+    icon; name and icon are MY picks. Live on a spawned Lucian, added the way the script adds it: Paralyzed landed false,
+    Held landed with movement, attacks and skills locked, a cast:false Wave of the Void fired through it, and his own AI
+    decided nothing for the 100 frames watched (the wave then knocked Jerald onto the stairs). A boss already lined up
+    to fire when a hold lands still fires that one action (needsActionExecution does not re-check locks), as it did
+    under the old roots.
   - **Live (probes `watch-probe-4.js`, `-5.js`):** Mycelich's drop landed on the player's tile with its swirl, then
     its AI followed up with the lingering net on the same tile, map event and all, ticking about once a second.
     Yggdrasil's crescents flew, then the ninth root came as its own cast with a map event on the player's tile, landing
