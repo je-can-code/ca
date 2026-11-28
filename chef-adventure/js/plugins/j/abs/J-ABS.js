@@ -7829,6 +7829,7 @@ var JABS_AiManager = class JABS_AiManager {
 	* @returns {boolean} True if this battler can movie idly, false otherwise.
 	*/
 	static canMoveIdly(battler) {
+		if (battler.isMovementLockedByState()) return false;
 		if (!battler.isIdleActionReady()) return false;
 		if (!this.shouldMoveIdly()) return false;
 		return true;
@@ -7978,9 +7979,30 @@ var JABS_AiManager = class JABS_AiManager {
 			this.decideAiPhase2Movement(battler);
 			return;
 		}
+		if (this.canFireFromWhereItStands(battler)) {
+			battler.setInPosition(true);
+		}
 		if (this.needsActionExecution(battler)) {
 			this.executeAiPhase2Action(battler);
 		}
+	}
+	/**
+	* Determines whether a battler that cannot move is ready to fire its decided action from where it stands.<br/>
+	* A battler that can move gets into position by moving there, in {@link #decideAiPhase2Movement}, and a battler
+	* that cannot never reaches that step. So once its target is within the decided action's proximity, it counts as in
+	* position where it stands; while its target is out of reach, it waits for the target to come to it. A battler whose
+	* states forbid the action it decided, like a paralyzed one, waits too, so being held in place never lets it act.
+	* @param {JABS_Battler} battler The battler to check.
+	* @returns {boolean} True if the battler should fire from where it stands, false otherwise.
+	*/
+	static canFireFromWhereItStands(battler) {
+		if (battler.isCastingOrChanneling()) return false;
+		if (battler.isInPosition()) return false;
+		if (battler.canBattlerMove()) return false;
+		if (this.needsToMoveCloser(battler)) return false;
+		const [action] = battler.getDecidedAction();
+		if (battler.isSkillLockedOutByState(action.getBaseSkill().id)) return false;
+		return true;
 	}
 	/**
 	* Determines whether or not this battler needs to decide an action.
@@ -11638,28 +11660,40 @@ var JABS_Battler = class JABS_Battler {
 		character.turnTowardCharacter(target.getCharacter());
 	}
 	/**
-	* Whether or not the battler is able to use attacks based on states.
+	* Whether or not the battler is able to use attacks based on states.<br/>
+	* Passive states count as much as applied ones, so a passive that disables its bearer disables it for good.
 	* @returns {boolean} True if the battler can attack, false otherwise.
 	*/
 	canBattlerUseAttacks() {
-		const states = this.getBattler().states();
-		if (!states.length) {
-			return true;
-		}
-		const disabled = states.find((state) => state.jabsDisarmed || state.jabsParalyzed);
+		const states = this.getBattler().allStates();
+		const disabled = states.some((state) => state.jabsDisarmed || state.jabsParalyzed);
 		return !disabled;
 	}
 	/**
-	* Whether or not the battler is able to use skills based on states.
+	* Whether or not the battler is able to use skills based on states.<br/>
+	* Passive states count as much as applied ones, so a passive that mutes its bearer mutes it for good.
 	* @returns {boolean} True if the battler can use skills, false otherwise.
 	*/
 	canBattlerUseSkills() {
-		const states = this.getBattler().states();
-		if (!states.length) {
-			return true;
-		}
-		const muted = states.find((state) => state.jabsMuted || state.jabsParalyzed);
+		const states = this.getBattler().allStates();
+		const muted = states.some((state) => state.jabsMuted || state.jabsParalyzed);
 		return !muted;
+	}
+	/**
+	* Whether the battler's states forbid it from using the given skill.<br/>
+	* A disabling state forbids the battler's basic attack, and a muting state forbids every other skill. A paralyzing
+	* state does both, and a battler forbidden both is answered before anything asks whether the skill is its basic
+	* attack, which for an actor means scanning its skill slots on every AI decision.
+	* @param {number} skillId The skill to check.
+	* @returns {boolean}
+	*/
+	isSkillLockedOutByState(skillId) {
+		const canUseSkills = this.canBattlerUseSkills();
+		const canUseAttacks = this.canBattlerUseAttacks();
+		if (!canUseSkills && !canUseAttacks) return true;
+		const isBasicAttack = this.isSkillIdBasicAttack(skillId);
+		if (isBasicAttack) return !canUseAttacks;
+		return !canUseSkills;
 	}
 	/**
 	* Gets the skill id of the last skill that this battler executed.
@@ -13952,12 +13986,12 @@ var JABS_Battler = class JABS_Battler {
 		return true;
 	}
 	/**
-	* Checks all states to see if any are movement-locking.
+	* Checks all states to see if any are movement-locking.<br/>
+	* Passive states count as much as applied ones, so a passive that roots its bearer pins it in place for good.
 	* @returns {boolean} True if there is at least one locking movement, false otherwise.
 	*/
 	isMovementLockedByState() {
-		const states = this.getBattler().states();
-		if (!states.length) return false;
+		const states = this.getBattler().allStates();
 		const lockedByState = states.some((state) => state.jabsRooted || state.jabsParalyzed);
 		return lockedByState;
 	}
@@ -14136,18 +14170,7 @@ var JABS_Battler = class JABS_Battler {
 	*/
 	canExecuteSkill(chosenSkillId) {
 		if (!chosenSkillId) return false;
-		const canUseSkills = this.canBattlerUseSkills();
-		const canUseAttacks = this.canBattlerUseAttacks();
-		if (!canUseSkills && !canUseAttacks) {
-			return false;
-		}
-		const isBasicAttack = this.isSkillIdBasicAttack(chosenSkillId);
-		if (!canUseAttacks && isBasicAttack) {
-			return false;
-		}
-		if (!canUseSkills && !isBasicAttack) {
-			return false;
-		}
+		if (this.isSkillLockedOutByState(chosenSkillId)) return false;
 		if (!this.canPaySkillCost(chosenSkillId)) {
 			return false;
 		}

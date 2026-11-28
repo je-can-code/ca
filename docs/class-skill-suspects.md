@@ -228,6 +228,74 @@ Boss routine steps were swept by an assumed config shape, so treat that part as 
 - **Not affected:** the aura payloads (Regeneration Aura, Purifying Bloom and the rest) and the gap-close landings
   2594 Embrace and 2612 Execute. They are `<direct>` with a `<proximity>` sized as their reach, so the caster-proximity
   path is what they want.
+- **Seen in play, 2026-11-27** (the Parry Floor dummy casting each boss's own skill through the same engine calls;
+  probe `/tmp/claude-scratch/dr/watch-probe-2.js`, clip sent to him):
+  - Mycelial Net: the vessel's purple swirl landed on the tile the player stood on and missed once he stepped 5
+    tiles off. The payload had no map event; its only visual was a faint radius ring around the caster. It hit
+    Jerald 6 tiles away 5 times, about once a second, poisoning him each time.
+  - Nine Worlds: the 2336 nova's eight crescents fly visibly out from the caster. 2337 had no map event and hit Jerald
+    11 tiles away after its 45-frame delay, with nothing on screen first.
+  - Goop Geyser: nothing on screen, then a splash on Jerald for 54 at 5 tiles; at 9 tiles it never landed.
+  - Rupert stood on Jerald's tile throughout and none of the payloads hit him; not looked into.
+- **`<targeted>` is J-ABS-Targeting's player reticle:** only the player's input adapter reads it, so it does nothing
+  on a boss skill. The boss casts already get the target's tile from the AI.
+- **Boss routine `forceSkill` steps, now checked** (the key is `skill`, not `skillId`): 34 steps, 13 skills, 11
+  direct. `cast: true` steps wind up and execute through the AI's decided-action path at the boss's target (Earthie's
+  Rockfall 2554, Sloth's Heartbeat 2590, Lust's Desire 2593). The `cast: false` ones are arena-wide by design
+  (Brand of Cynder 2552 proximity 50; Absolute Solitude 2587, Wings of Wrath 2375 radius 99) or radius-less (Power
+  of Wrath 2589). So the three above are the whole list.
+- **His call 17:07: stop force-firing them; the boss casts them like normal spells.** Proposed (not yet approved):
+  - Mycelial Net and Nine Worlds through J-ABS's enemy combo chain, the Hard Syrup (2256 -> 2257) and Big Bad
+    (2396 -> 2397) pattern: the vessel drops `<onCastExecuteSkill>` for the direct payload and gains
+    `<combo:[PAYLOAD, 0]>`, `<comboStarter>` and `<freeCombo>`; the payload joins the boss's action list with
+    `<aiSkillExclusion>`. Nine Worlds' nova 2336 stays force-fired (non-direct, visible).
+  - The Goop Vent is `<jabsConfig:inanimate>`, which suppresses all combat AI, so it cannot cast. Asked him: make it
+    a pinned real caster (drop inanimate) or keep it a prop and make the geyser a visible non-direct eruption at the
+    vent.
+- **His calls 17:18:** Net and Worlds "sounds good for now". Geyser: "make it a real caster, but lock it down from
+  moving (`<rooted>` or passive with rooted?)".
+  - **Snag, read in source:** `JABS_Battler#isMovementLockedByState` reads `getBattler().states()`, which holds no
+    passives (J-Passive adds them to `allStates()` only), so a passive `<rooted>` pins nothing. A real root
+    pins, but `JABS_AiManager.needsRepositioning` bails when `canBattlerMove()` is false, and the only AI path to
+    `setInPosition(true)` is `decideAiPhase2Movement` behind it, so a rooted AI battler decides and never fires.
+    Only `JabsBossManager`'s forced cast sets in-position for immobile bosses.
+  - **Proposed J-ABS fix (#135):** movement lock reads passives too (no CA passive grants a locking state today), and
+    a battler that cannot move fires from where it stands once its target is in reach. This also stops ordinary roots
+    from freezing an in-reach enemy's attack. Vent data: drop inanimate and the auto-execute, add Bolted Down (2091)
+    to its passives, keep the HP bar hidden.
+- **His calls 18:20-18:31:** "passive SHOULD count towards AI decisions like movement. Fix that." Fire-from-where-it-
+  stands: "Yep add that" (after proximity 20 was shown not to help: the reach check lives inside the movement step).
+- **Found before building (18:4x), raised with him:**
+  - The scan for lock passives is now complete: database notes, every map's event comments (the vent template's own
+    `<passive:[2079, 183]>` is Scrambled and No Rewards), configs, and the rule tags. None grants a lock. Event comment
+    passives add to the enemy row's (J-Passive-Affix's postConvertMutate), so 2091 goes on enemy 590.
+  - Bolted Down's `<disabled>` only blocks the vent's basic attack (trait 35 -> skill 2511), not 2596.
+  - Idle wandering ignores roots: `JABS_AiManager.canMoveIdly` never checks the movement lock (seekForAlerter and goHome
+    do), so a rooted idle battler still `moveRandom`s. Needs a guard for the vent.
+  - **Boss scripts root their bosses:** Earthie (Sealed), Wrath (Rooted x8), Garuda (x6), Skye (x10), Gloria (Sealed),
+    Sloth (Sealed, Stilled), Lust (Stilled, Overreached), Grudj (Bolted Down, so I was wrong that nothing uses 2091).
+    All eight are `aiControl: shared`, so their normal AI runs alongside; today a root stalls it short of position.
+    A general fire-from-where-it-stands would let those bosses cast regular skills during their scripted holds.
+    Offered: narrow (only a passive movement lock fires from where it stands) or broad (all roots, plus muting the
+    holds meant to stop everything, fight by fight). Leaned narrow.
+- **His call 19:09: broad, with "bosses don't get rooted, they get paralyzed ... because the boss script force
+  executes the action".** Confirmed in source: neither forced path (`cast: false` through `forceMapAction`, `cast:
+  true` through the decided-action path and `#landForcedCast`) checks mute or disable, and a paralyzed boss's own AI
+  can decide nothing.
+- **Built 2026-11-27:**
+  - J-ABS 4.30.0 (#135): the three lock checks read `allStates()`; `isSkillLockedOutByState` (keeps the both-locked
+    fast path); `canFireFromWhereItStands` plus one `aiPhase2` step, which also refuses a decided action the locks now
+    forbid; `canMoveIdly` respects the movement lock. Tests, book pages for all four lock tags, glossary, changelog.
+  - CA (#111, `kit-boss-payloads.js`): the combo chains (2315 -> 2318, 2335 -> 2337, followers in the action lists
+    with `<aiSkillExclusion>`); the vent (no inanimate or auto-execute, Bolted Down passive, noHpBar, sight 6 MY pick);
+    Sealed, Stilled and Overreached are `<paralyzed>`; Wrath's, Garuda's and Skye's 24 self-roots are Paralyzed (4),
+    180 frames to Rooted's 120 (flagged).
+  - **Live (probes `watch-probe-4.js`, `-5.js`):** Mycelich's drop landed on the player's tile with its swirl, then
+    its AI followed up with the lingering net on the same tile, map event and all, ticking about once a second.
+    Yggdrasil's crescents flew, then the ninth root came as its own cast with a map event on the player's tile, landing
+    about 45 frames later. The vent held its spot (Bolted Down among its states), waited while the player stood 8
+    tiles off, then dropped the geyser on a telegraphed tile; stepping out during it made it miss. Yggdrasil has
+    `<sight:2>`, so it needs a player within 2 tiles to engage. Clip sent.
 - **To settle:** where each hit should land once a forced path can aim it: on whoever the boss is targeting, on a
   party member in range, or, for Goop Geyser, on the foe that tripped `enemiesNearby`.
 - **Why it waits:** a fix needs the forced paths to supply a target tile, and it can't change what the aura payloads

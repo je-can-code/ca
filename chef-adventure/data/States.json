@@ -59683,7 +59683,7 @@
   {
     "id": 2072,
     "name": "Sealed",
-    "note": "\u003crooted\u003e\n\u003cdisabled\u003e\n\u003cindefiniteState\u003e\n\u003cimmuneToAll\u003e\n\u003cnoDamage\u003e",
+    "note": "\u003cparalyzed\u003e\n\u003cindefiniteState\u003e\n\u003cimmuneToAll\u003e\n\u003cnoDamage\u003e",
     "description": "",
     "iconIndex": 85,
     "traits": [
@@ -59824,7 +59824,7 @@
   {
     "id": 2075,
     "name": "Stilled",
-    "note": "\u003crooted\u003e\n\u003cdisabled\u003e\n\u003cindefiniteState\u003e",
+    "note": "\u003cparalyzed\u003e\n\u003cindefiniteState\u003e",
     "description": "Held in place, unable to strike, yet nothing like sealed.",
     "iconIndex": 85,
     "traits": [],
@@ -59991,7 +59991,7 @@
   {
     "id": 2081,
     "name": "Overreached",
-    "note": "\u003crooted\u003e\n\u003cdisabled\u003e\n\u003cindefiniteState\u003e",
+    "note": "\u003cparalyzed\u003e\n\u003cindefiniteState\u003e",
     "description": "Overreached: open, and held where he landed.",
     "iconIndex": 85,
     "traits": [],

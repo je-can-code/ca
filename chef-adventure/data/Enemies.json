@@ -27971,6 +27971,13 @@
         "conditionType": 0,
         "rating": 5,
         "skillId": 2313
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2318
       }
     ],
     "battlerHue": 220,
@@ -28096,6 +28103,13 @@
         "conditionType": 0,
         "rating": 5,
         "skillId": 2313
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2318
       }
     ],
     "battlerHue": 220,
@@ -30098,6 +30112,13 @@
         "conditionType": 0,
         "rating": 5,
         "skillId": 2332
+      },
+      {
+        "conditionParam1": 0,
+        "conditionParam2": 0,
+        "conditionType": 0,
+        "rating": 5,
+        "skillId": 2337
       }
     ],
     "battlerHue": 327,
@@ -52658,7 +52679,7 @@
   {
     "id": 590,
     "name": "Goop Vent",
-    "note": "\u003clevel:130\u003e\n\u003cpassive:[2012, 322]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 15.93]\u003e\n\u003catkBuffPlus:[(a.level * 1.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 7.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 1.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 0)]\u003e\n\u003clukBuffPlus:[(a.level * 0)]\u003e\n\u003cmonsterFamilyIcon:56\u003e\n\u003cjabsConfig:inanimate\u003e\n\u003cknockbackResist:100\u003e\n\u003cautoExecuteSkill:[2596, enemiesNearby, 1, 120, 6]\u003e",
+    "note": "\u003clevel:130\u003e\n\u003cpassive:[2012, 322, 2091]\u003e\n\u003cmhpBuffPlus:[(a.level ** 2) * 15.93]\u003e\n\u003catkBuffPlus:[(a.level * 1.75)]\u003e\n\u003cdefBuffPlus:[(a.level * 7.75)]\u003e\n\u003cmatBuffPlus:[(a.level * 1.5)]\u003e\n\u003cmdfBuffPlus:[(a.level * 7.75)]\u003e\n\u003cagiBuffPlus:[(a.level * 0)]\u003e\n\u003clukBuffPlus:[(a.level * 0)]\u003e\n\u003cmonsterFamilyIcon:56\u003e\n\u003cknockbackResist:100\u003e\n\u003cjabsConfig:noHpBar\u003e\n\u003csight:6\u003e",
     "battlerName": "Waterspirit",
     "traits": [
       {
